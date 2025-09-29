@@ -1,8 +1,100 @@
+@model DashboardViewModel
 @{
     ViewData["Title"] = "Dashboard Home";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h1> Welcome to the OneJax Dashboard</h1>
-<p>This is the home page of the Strategic Dashboard.</p>
-<p>Use the navigation menu to explore different sections of the dashboard.</p>
+<h1 class="headline mb-4" style="color:var(--onejax-navy);">OneJax Strategic Dashboard</h1>
+
+<div class="row mb-4">
+    @foreach (var goal in Model.StrategicGoals)
+    {
+        <div class="col-md-3">
+            <div class="card dashboard-card text-center" style="background-color:var(--onejax-orange);">
+                <div class="card-body">
+                    <h5 class="headline" style="color:var(--onejax-navy);">@goal.GoalName</h5>
+                    <p class="display-6" style="color:@goal.StatusColor;">@goal.ProgressPercent%</p>
+                    <span class="badge" style="background-color:@goal.StatusColor;">@goal.StatusColor</span>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card dashboard-card">
+            <div class="card-body">
+                <h2 class="headline" style="color:var(--onejax-navy);">Progress Chart</h2>
+                <canvas id="progressChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card dashboard-card">
+            <div class="card-body">
+                <h2 class="headline" style="color:var(--onejax-blue);">Alerts</h2>
+                <ul>
+                @foreach (var alert in Model.Alerts)
+                {
+                    <li>
+                        @alert.Message (Due: @alert.DueDate.ToShortDateString())
+                        @if (alert.IsCritical)
+                        {
+                            <span class="critical-alert">Critical</span>
+                        }
+                    </li>
+                }
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card dashboard-card mb-4">
+    <div class="card-body">
+        <h2 class="headline" style="color:var(--onejax-navy);">Recent Programs & Events</h2>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var item in Model.RecentProgramsEvents)
+            {
+                <tr>
+                    <td>@item.Name</td>
+                    <td>@item.Type</td>
+                    <td>@item.Date.ToShortDateString()</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Chart.js script -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    var ctx = document.getElementById('progressChart').getContext('2d');
+    var chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: [@string.Join(",", Model.StrategicGoals.Select(g => $"'{g.GoalName}'"))],
+            datasets: [{
+                label: 'Progress (%)',
+                data: [@string.Join(",", Model.StrategicGoals.Select(g => g.ProgressPercent))],
+                backgroundColor: ['#f5a045', '#4bb4c8', '#bfa871', '#278aa2'],
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true, max: 100 }
+            }
+        }
+    });
+</script>

@@ -1,0 +1,77 @@
+/* Brand Colors */
+:root {
+    --onejax-orange: #f5a045;
+    --onejax-blue: #4bb4c8;
+    --onejax-gold: #bfa871;
+    --onejax-dark-blue: #278aa2;
+    --onejax-green: #67ab8c;
+    --onejax-navy: #096682;
+}
+
+/* Typography */
+body,
+p,
+.body-copy {
+    font-family: 'Poppins', Arial, sans-serif;
+}
+
+h1,
+h2,
+h3,
+.headline {
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+/* Dashboard Cards */
+.dashboard-card {
+    border-radius: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+    padding: 1.5rem;
+}
+
+/* Circle Graphics */
+.circle-bg {
+    position: absolute;
+    top: -30px;
+    right: -30px;
+    width: 80px;
+    height: 80px;
+    background: var(--onejax-orange);
+    border-radius: 50%;
+    opacity: 0.3;
+}
+
+.circle-bg2 {
+    position: absolute;
+    bottom: -20px;
+    left: -20px;
+    width: 60px;
+    height: 60px;
+    background: var(--onejax-blue);
+    border-radius: 50%;
+    opacity: 0.2;
+}
+
+/* Navbar Brand */
+.navbar-brand img {
+    height: 40px;
+    margin-right: 10px;
+}
+
+/* Alerts */
+.critical-alert {
+    color: red;
+    font-weight: bold;
+}
+
+/* Logo */
+.navbar {
+    padding-left: 2rem;
+    padding-right: 2rem;
+}
