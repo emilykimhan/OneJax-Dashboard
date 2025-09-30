@@ -1,0 +1,21 @@
+@using static StrategicGoalsHelper
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2 class="headline mb-4" style="color:var(--onejax-navy);">Projects</h2>
+<div class="row">
+    @foreach (var goal in StrategicGoalsHelper.All)
+    {
+        <div class="col-md-6 mb-4">
+            <div class="card dashboard-card" style="background-color:var(--onejax-blue);">
+                <div class="card-body">
+                    <h4 class="headline" style="color:var(--onejax-dark-green);">@goal</h4>
+                    <a href="/Strategy/Index?goalName=@goal" class="btn btn-outline-primary"
+                    style="color:var(--onejax-white) !important; border-color:var(--onejax-white);">Manage Strategies</a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
