@@ -5,6 +5,8 @@ builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
+app.UseStaticFiles();
+
 // Use routing and endpoints for controllers with views
 app.UseRouting();
 app.MapControllerRoute(
