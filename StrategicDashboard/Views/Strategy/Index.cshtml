@@ -1,0 +1,33 @@
+@model List<Strategy>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var goalName = ViewBag.GoalName as string;
+}
+
+<div class="container mt-4">
+    <div class="card dashboard-card" style="background-color:var(--onejax-blue);">
+        <div class="card-body">
+            <h2 class="headline mb-4" style="color:var(--onejax-white);">@goalName Strategies</h2>
+
+            <form asp-action="Add" method="post" class="mb-4">
+                <input type="hidden" name="goalName" value="@goalName" />
+                <div class="input-group">
+                    <input type="text" name="strategyName" class="form-control" placeholder="Add a new strategy..."
+                        required />
+                    <button type="submit" class="btn btn-primary"
+                        style="background-color:var(--onejax-orange); border:none; color:var(--onejax-white);">Add</button>
+                </div>
+            </form>
+
+            <ul class="list-group">
+                @foreach (var strategy in Model)
+                {
+                    <li class="list-group-item"
+                        style="background-color:var(--onejax-white); color:var(--onejax-navy); font-family:'Poppins', Arial, sans-serif;">
+                        @strategy.Name
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</div>
