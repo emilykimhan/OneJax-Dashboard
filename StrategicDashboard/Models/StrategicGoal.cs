@@ -7,9 +7,8 @@ namespace OneJax.StrategicDashboard.Models
 {
     public class StrategicGoal
     {
-        public string GoalName { get; set; }
-        public string StatusColor { get; set; }
-        public int ProgressPercent { get; set; }
-        // Add other properties as needed
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public List<Strategy> Strategies { get; set; } = new();
     }
 }

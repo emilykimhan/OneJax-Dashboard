@@ -1,33 +1,59 @@
 @model List<Strategy>
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var goalName = ViewBag.GoalName as string;
+    var goalId = ViewBag.GoalId;
+    var goals = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "1", Text = "Community Engagement" },
+        new SelectListItem { Value = "2", Text = "Education & Awareness" },
+        new SelectListItem { Value = "3", Text = "Leadership Development" },
+        new SelectListItem { Value = "4", Text = "Advocacy & Policy" }
+    };
 }
 
 <div class="container mt-4">
-    <div class="card dashboard-card" style="background-color:var(--onejax-blue);">
-        <div class="card-body">
-            <h2 class="headline mb-4" style="color:var(--onejax-white);">@goalName Strategies</h2>
+    <div class="card p-4 mb-4" style="background-color:var(--onejax-white); box-shadow:0 4px 24px rgba(0,0,0,0.08); border-radius:24px;">
+        <h2 class="mb-3" style="color:var(--onejax-navy);">Add a New Strategy</h2>
+        <form asp-action="Add" method="post" class="row g-3">
+            <div class="col-md-6">
+                <label for="strategyName" class="form-label">Strategy Name</label>
+                <input type="text" id="strategyName" name="strategyName" class="form-control" placeholder="New strategy name" required />
+            </div>
+            <div class="col-md-6">
+                <label for="goalId" class="form-label">Assign to Goal</label>
+                <select id="goalId" name="goalId" class="form-select" required>
+                    <option value="">Select a goal...</option>
+                    @foreach (var goal in goals)
+                    {
+                        <option value="@goal.Value">@goal.Text</option>
+                    }
+                </select>
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">Add Strategy</button>
+            </div>
+        </form>
+    </div>
 
-            <form asp-action="Add" method="post" class="mb-4">
-                <input type="hidden" name="goalName" value="@goalName" />
-                <div class="input-group">
-                    <input type="text" name="strategyName" class="form-control" placeholder="Add a new strategy..."
-                        required />
-                    <button type="submit" class="btn btn-primary"
-                        style="background-color:var(--onejax-orange); border:none; color:var(--onejax-white);">Add</button>
+    <h3 class="mb-3" style="color:var(--onejax-navy);">Strategies</h3>
+    <div class="row">
+        @foreach (var strategy in Model)
+        {
+            <div class="col-md-6 mb-4">
+                <div class="card h-100" style="background-color:var(--onejax-blue); border-radius:16px;">
+                    <div class="card-body">
+                        <h5 class="card-title" style="color:var(--onejax-white);">@strategy.Name</h5>
+                        <p class="card-text" style="color:var(--onejax-white);">
+                            <strong>Goal:</strong>
+                            @{
+                                var goalName = goals.FirstOrDefault(g => g.Value == strategy.StrategicGoalId.ToString())?.Text ?? "Unknown";
+                            }
+                            @goalName
+                        </p>
+                        <!-- Metrics list can go here -->
+                    </div>
                 </div>
-            </form>
-
-            <ul class="list-group">
-                @foreach (var strategy in Model)
-                {
-                    <li class="list-group-item"
-                        style="background-color:var(--onejax-white); color:var(--onejax-navy); font-family:'Poppins', Arial, sans-serif;">
-                        @strategy.Name
-                    </li>
-                }
-            </ul>
-        </div>
+            </div>
+        }
     </div>
 </div>

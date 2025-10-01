@@ -7,47 +7,56 @@ public class HomeController : Controller
 {
     public IActionResult Index(string status, string time, string goal)
     {
-        var allGoals = StrategicGoalsHelper.All
-            .Select(g => new StrategicGoal { GoalName = g, StatusColor = "#278aa2", ProgressPercent = 0 })
-            .ToList();
-
-        var allProjects = new List<Project>
+        // Sample data
+        var allGoals = new List<StrategicGoal>
         {
-            new Project { Name = "Identify and cultivate partnerships", GoalName = "Community Engagement", Status = "Active", StatusColor = "#278aa2", ProgressPercent = 50, TimePeriod = "Monthly" },
-            new Project { Name = "Foster Relationships among clergy", GoalName = "Community Engagement", Status = "Active", StatusColor = "#278aa2", ProgressPercent = 60, TimePeriod = "Quarterly" },
-            new Project { Name = "Provide youth programs", GoalName = "Community Engagement", Status = "Upcoming", StatusColor = "#278aa2", ProgressPercent = 0, TimePeriod = "Yearly" },
-            new Project { Name = "Deepen relationships with donors", GoalName = "Financial Sustainability", Status = "Completed", StatusColor = "#278aa2", ProgressPercent = 100, TimePeriod = "Yearly" },
-            new Project { Name = "Integrated marketing plan", GoalName = "Identity/Value Proposition", Status = "Active", StatusColor = "#278aa2", ProgressPercent = 80, TimePeriod = "Quarterly" },
-            // ...add more projects
+            new StrategicGoal
+            {
+                Id = 1,
+                Name = "Community Engagement",
+                Strategies = new List<Strategy>
+                {
+                    new Strategy
+                    {
+                        Id = 1,
+                        Name = "Identify and cultivate partnerships",
+                        Metrics = new List<Metric>
+                        {
+                            new Metric { Id = 1, Description = "Launch joint initiatives", Target = "3 initiatives, 85% satisfaction", Progress = "2 initiatives, 80% satisfaction", Status = "Active", TimePeriod = "Monthly" },
+                            new Metric { Id = 2, Description = "Increase collaborations", Target = "3 to 10 by FY 26-27", Progress = "5 collaborations", Status = "Upcoming", TimePeriod = "Yearly" }
+                        }
+                    }
+                }
+            },
+            // Add more goals, strategies, and metrics as needed
         };
 
-        // Start with all projects
-        var filteredProjects = allProjects;
+        // Filter by goal name if selected
+        var filteredGoals = string.IsNullOrEmpty(goal)
+            ? allGoals
+            : allGoals.Where(g => g.Name == goal).ToList();
 
-        // Filter by goal (only if a goal is selected)
-        if (!string.IsNullOrEmpty(goal))
+        // Filter metrics by status and time period
+        foreach (var g in filteredGoals)
         {
-            filteredProjects = filteredProjects.Where(p => p.GoalName == goal).ToList();
+            foreach (var s in g.Strategies)
+            {
+                s.Metrics = s.Metrics
+                    .Where(m => (string.IsNullOrEmpty(status) || m.Status == status)
+                             && (string.IsNullOrEmpty(time) || m.TimePeriod == time))
+                    .ToList();
+            }
         }
 
-        // Filter by status (only if a status is selected)
-        if (!string.IsNullOrEmpty(status))
+        // Optionally, remove strategies with no metrics after filtering
+        foreach (var g in filteredGoals)
         {
-            filteredProjects = filteredProjects.Where(p => p.Status == status).ToList();
+            g.Strategies = g.Strategies.Where(s => s.Metrics.Any()).ToList();
         }
 
-        // Filter by time (only if a time is selected)
-        if (!string.IsNullOrEmpty(time))
-        {
-            filteredProjects = filteredProjects.Where(p => p.TimePeriod == time).ToList();
-        }
+        // Optionally, remove goals with no strategies after filtering
+        filteredGoals = filteredGoals.Where(g => g.Strategies.Any()).ToList();
 
-        var model = new DashboardViewModel
-        {
-            StrategicGoals = allGoals,
-            Projects = filteredProjects
-        };
-
-        return View(model);
+        return View(new DashboardViewModel { StrategicGoals = filteredGoals });
     }
 }

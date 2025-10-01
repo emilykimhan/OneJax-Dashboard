@@ -6,6 +6,6 @@ public class Strategy
 {
     public int Id { get; set; }
     public string Name { get; set; }
-    public string GoalName { get; set; } // Link to your static goal
-
+    public int StrategicGoalId { get; set; }
+    public List<Metric> Metrics { get; set; } = new();
 }
