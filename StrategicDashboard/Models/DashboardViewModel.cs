@@ -3,12 +3,10 @@
 //Usage: Passed from your controller to the dashboard view.
 
 
-using OneJax.StrategicDashboard.Models; // Add the correct namespace for StrategicGoal
+using OneJax.StrategicDashboard.Models;
 
 public class DashboardViewModel
 {
     public IEnumerable<StrategicGoal> StrategicGoals { get; set; }
-    public IEnumerable<Project> Projects { get; set; }
-    // other properties
-
+    // Add other dashboard properties as needed
 }

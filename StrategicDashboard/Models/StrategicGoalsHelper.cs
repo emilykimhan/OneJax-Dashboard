@@ -7,7 +7,7 @@ public static class StrategicGoalsHelper
     {
         "Community Engagement",
         "Financial Sustainability",
-        "Identiy/Value Proposition",
+        "Identify/Value Proposition",
         "Organizational Building",
 
     };

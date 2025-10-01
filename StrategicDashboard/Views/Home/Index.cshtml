@@ -3,6 +3,8 @@
     ViewData["Title"] = "Dashboard Home";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var selectedGoal = Context.Request.Query["goal"].ToString();
+    var selectedStatus = Context.Request.Query["status"].ToString();
+    var selectedTime = Context.Request.Query["time"].ToString();
 }
 
 <h1 class="headline mb-4" style="color:var(--onejax-navy);">OneJax Strategic Dashboard</h1>
@@ -20,8 +22,8 @@
             @foreach (var goal in Model.StrategicGoals)
             {
                 <li class="nav-item">
-                    <a class="nav-link @(selectedGoal == goal.GoalName ? "active" : "")"
-                        href="@Url.Action("Index", new { goal = goal.GoalName })">@goal.GoalName</a>
+                    <a class="nav-link @(selectedGoal == goal.Name ? "active" : "")"
+                        href="@Url.Action("Index", new { goal = goal.Name })">@goal.Name</a>
                 </li>
             }
         </ul>
@@ -31,25 +33,30 @@
             <div class="d-flex flex-wrap align-items-center gap-3">
                 <!-- Status Filter -->
                 <select class="form-select" name="status" style="max-width:200px;">
-                    <option value="" @(string.IsNullOrEmpty(Context.Request.Query["status"]) ? "selected" : "")>Status: All</option>
-                    <option value="Active" @(Context.Request.Query["status"] == "Active" ? "selected" : "")>Active</option>
-                    <option value="Completed" @(Context.Request.Query["status"] == "Completed" ? "selected" : "")>Completed</option>
-                    <option value="Upcoming" @(Context.Request.Query["status"] == "Upcoming" ? "selected" : "")>Upcoming</option>
+                    <option value="" @(string.IsNullOrEmpty(selectedStatus) ? "selected" : "")>Status: All</option>
+                    <option value="Active" @(selectedStatus == "Active" ? "selected" : "")>Active</option>
+                    <option value="Completed" @(selectedStatus == "Completed" ? "selected" : "")>Completed</option>
+                    <option value="Upcoming" @(selectedStatus == "Upcoming" ? "selected" : "")>Upcoming</option>
                 </select>
                 <!-- Time Filter -->
                 <select class="form-select" name="time" style="max-width:200px;">
-                    <option value="" @(string.IsNullOrEmpty(Context.Request.Query["time"]) ? "selected" : "")>All Time</option>
-                    <option value="Monthly" @(Context.Request.Query["time"] == "Monthly" ? "selected" : "")>Monthly</option>
-                    <option value="Quarterly" @(Context.Request.Query["time"] == "Quarterly" ? "selected" : "")>Quarterly</option>
-                    <option value="Yearly" @(Context.Request.Query["time"] == "Yearly" ? "selected" : "")>Yearly</option>
+                    <option value="" @(string.IsNullOrEmpty(selectedTime) ? "selected" : "")>All Time</option>
+                    <option value="Monthly" @(selectedTime == "Monthly" ? "selected" : "")>Monthly</option>
+                    <option value="Quarterly" @(selectedTime == "Quarterly" ? "selected" : "")>Quarterly</option>
+                    <option value="Yearly" @(selectedTime == "Yearly" ? "selected" : "")>Yearly</option>
                 </select>
                 <!-- Goal Filter Dropdown -->
                 <select class="form-select" name="goal" style="max-width:200px;">
                     <option value="" @(string.IsNullOrEmpty(selectedGoal) ? "selected" : "")>All Goals</option>
                     @foreach (var goal in Model.StrategicGoals)
                     {
-                        <option value="@goal.GoalName" @(selectedGoal == goal.GoalName ? "selected" : "")>@goal.GoalName
-                        </option>
+                        <h3>@goal.Name</h3>
+                        <ul>
+                            @foreach (var strategy in goal.Strategies)
+                            {
+                                <li>@strategy.Name</li>
+                            }
+                        </ul>
                     }
                 </select>
                 <button type="submit" class="btn btn-primary ms-2">Filter</button>
@@ -59,21 +66,31 @@
             </div>
         </form>
 
-        <!-- Dashboard cards grid: Only show projects for selected goal -->
+        <!-- Dashboard grid: Goals > Strategies > Metrics -->
         <div class="row">
-            @foreach (var project in Model.Projects.Where(p => string.IsNullOrEmpty(selectedGoal) || p.GoalName ==
-                        selectedGoal))
+            @foreach (var goal in Model.StrategicGoals.Where(g => string.IsNullOrEmpty(selectedGoal) || g.Name == selectedGoal))
             {
-                <div class="col-12 col-md-4 mb-4 d-flex align-items-stretch justify-content-center">
-                    <div class="card dashboard-card text-center"
-                        style="width:100%; max-width:260px; height:180px; background-color:var(--onejax-blue); display:flex; flex-direction:column; justify-content:center; padding:1rem;">
-                        <div class="card-body d-flex flex-column justify-content-center align-items-center h-100">
-                            <h4 class="headline mb-2" style="color:var(--onejax-white); font-size:1.2rem;">@project.Name
-                            </h4>
-                            <p class="display-6 mb-2" style="color:@project.StatusColor; font-size:1.5rem;">
-                                @project.ProgressPercent%</p>
-                            <span class="badge mb-3"
-                                style="background-color:@project.StatusColor; font-size:1rem;">@project.Status</span>
+                <div class="col-12 mb-4">
+                    <div class="card" style="background-color:var(--onejax-blue); border-radius:16px;">
+                        <div class="card-body">
+                            <h3 style="color:var(--onejax-white);">@goal.Name</h3>
+                            @foreach (var strategy in goal.Strategies)
+                            {
+                                <h5 style="color:var(--onejax-orange);">@strategy.Name</h5>
+                                <ul>
+                                    @foreach (var metric in strategy.Metrics
+                                        .Where(m => (string.IsNullOrEmpty(selectedStatus) || m.Status == selectedStatus)
+                                                 && (string.IsNullOrEmpty(selectedTime) || m.TimePeriod == selectedTime)))
+                                    {
+                                        <li style="color:var(--onejax-white);">
+                                            <strong>@metric.Description</strong><br />
+                                            Target: @metric.Target<br />
+                                            Progress: @metric.Progress<br />
+                                            Status: @metric.Status, Time: @metric.TimePeriod
+                                        </li>
+                                    }
+                                </ul>
+                            }
                         </div>
                     </div>
                 </div>
