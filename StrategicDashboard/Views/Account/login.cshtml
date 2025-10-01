@@ -1,0 +1,58 @@
+@model StrategicDashboard.Models.LoginViewModel
+
+@{
+    ViewData["Title"] = "Log in";
+}
+
+<div class="login-page">
+    <div class="card login-card w-100 shadow-sm" style="max-width: 900px;">
+        <div class="row g-0">
+
+            <!-- Left Branding Side (hidden on small screens) -->
+            <div class="col-md-6 d-none d-md-flex login-brand align-items-center justify-content-center">
+                <div class="text-center">
+                    <img src="/images/Onejax Logo.png" alt="OneJax Logo" class="mb-3" />
+                    <h3 class="headline" style="color:var(--onejax-navy);">Strategic Dashboard</h3>
+                    <p class="text-muted">Welcome back — sign in to continue to your dashboard.</p>
+                </div>
+            </div>
+
+            <!-- Right Login Form -->
+            <div class="col-12 col-md-6 bg-white d-flex align-items-center justify-content-center">
+                <div class="login-card-body w-100 p-4" style="max-width: 400px;">
+                    <h4 class="headline mb-4 text-center" style="color:var(--onejax-dark-blue);">Log In</h4>
+
+                    <form asp-action="Login" method="post" novalidate>
+                        <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                        <!-- Username -->
+                        <div class="mb-3">
+                            <label asp-for="Username" class="form-label fw-bold"></label>
+                            <input asp-for="Username" class="form-control" placeholder="Enter your username" />
+                            <span asp-validation-for="Username" class="text-danger"></span>
+                        </div>
+
+                        <!-- Password -->
+                        <div class="mb-3">
+                            <label asp-for="Password" class="form-label fw-bold"></label>
+                            <input asp-for="Password" type="password" class="form-control" placeholder="Enter your password" />
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-grid mb-3">
+                            <button type="submit" class="btn btn-primary btn-lg">Log In</button>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="login-footer">
+                            <span class="login-help">Don’t have an account?</span>
+                            <a href="/Account/Register">Create one</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
