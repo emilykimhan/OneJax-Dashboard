@@ -1,0 +1,65 @@
+@model OneJax_Dashboard.Models.EventEntryViewModel
+
+@{
+    ViewData["Title"] = "Event Data Entry";
+}
+<link rel="stylesheet" href="/css/Dataentry.css" />
+
+<div class="card shadow-sm p-4">
+    <h2 class="mb-3">Event Entry Form</h2>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+
+    <form asp-action="Index" method="post">
+        <div class="mb-3">
+            <label asp-for="EventName" class="form-label">Event Name:</label>
+            <input asp-for="EventName" class="form-control" />
+            <span asp-validation-for="EventName" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="EventDate" class="form-label">Date:</label>
+            <input asp-for="EventDate" class="form-control" type="date" min="2020-01-01" max="2029-12-30" />
+            <span asp-validation-for="EventDate" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="PostEventSatisfaction" class="form-label">Post-Event Survey Satisfaction (1-10)</label>
+            <input asp-for="PostEventSatisfaction" class="form-control" type="number" min="1" max="10" />
+            <span asp-validation-for="PostEventSatisfaction" class="text-danger"></span>
+        </div>
+
+        <h4 class="mt-4">Pre-Assessment</h4>
+        <div class="mb-3">
+            <label asp-for="PreResiliency" class="form-label">Resiliency (1-10)</label>
+            <input asp-for="PreResiliency" class="form-control" type="number" min="1" max="10" />
+            <span asp-validation-for="PreResiliency" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="PreCommunication" class="form-label">Communication (1-10)</label>
+            <input asp-for="PreCommunication" class="form-control" type="number" min="1" max="10" />
+            <span asp-validation-for="PreCommunication" class="text-danger"></span>
+        </div>
+
+        <h4 class="mt-4">Post-Assessment</h4>
+        <div class="mb-3">
+            <label asp-for="PostResiliency" class="form-label">Resiliency (1-10)</label>
+            <input asp-for="PostResiliency" class="form-control" type="number" min="1" max="10" />
+            <span asp-validation-for="PostResiliency" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="PostCommunication" class="form-label">Communication (1-10)</label>
+            <input asp-for="PostCommunication" class="form-control" type="number" min="1" max="10" />
+            <span asp-validation-for="PostCommunication" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
