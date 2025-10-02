@@ -11,7 +11,8 @@ namespace OneJax_Dashboard.Models
 
         [Required(ErrorMessage = "Event Date is required.")]
         [DataType(DataType.Date)]
-        public DateTime EventDate { get; set; }
+        [Range(typeof(DateTime), "1/1/2020", "12/31/2030", ErrorMessage = "Date must be between 01/01/2020 and 12/31/2030.")]
+            public DateTime EventDate { get; set; }
 
         [Required(ErrorMessage = "Satisfaction score is required.")]
         [Range(1, 10, ErrorMessage = "Satisfaction must be between 1 and 10.")]

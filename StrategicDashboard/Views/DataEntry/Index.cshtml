@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "Event Data Entry";
 }
+<link rel="stylesheet" href="/css/Dataentry.css" />
 
 <div class="card shadow-sm p-4">
     <h2 class="mb-3">Event Entry Form</h2>
@@ -14,14 +15,14 @@
 
     <form asp-action="Index" method="post">
         <div class="mb-3">
-            <label asp-for="EventName" class="form-label"></label>
+            <label asp-for="EventName" class="form-label">Event Name:</label>
             <input asp-for="EventName" class="form-control" />
             <span asp-validation-for="EventName" class="text-danger"></span>
         </div>
 
         <div class="mb-3">
-            <label asp-for="EventDate" class="form-label"></label>
-            <input asp-for="EventDate" class="form-control" type="date" />
+            <label asp-for="EventDate" class="form-label">Date:</label>
+            <input asp-for="EventDate" class="form-control" type="date" min="2020-01-01" max="2029-12-30" />
             <span asp-validation-for="EventDate" class="text-danger"></span>
         </div>
 
