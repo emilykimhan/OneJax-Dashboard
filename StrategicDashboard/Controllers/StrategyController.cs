@@ -4,8 +4,13 @@ using System.Linq;
 
 public class StrategyController : Controller
 {
-    // Temporary in-memory storage for strategies
-    private static List<Strategy> strategies = new();
+    // Temporary in-memory storage for strategies since no database is set up
+    private static List<Strategy> strategies = new()
+    {
+        // Add test data to verify the view works
+        new Strategy { Id = 1, Name = "Test Strategy 1", StrategicGoalId = 1, Metrics = new List<Metric>() },
+        new Strategy { Id = 2, Name = "Test Strategy 2", StrategicGoalId = 2, Metrics = new List<Metric>() }
+    };
 
     // Show strategies for a specific goal
     public IActionResult Index(int goalId)
@@ -19,6 +24,8 @@ public class StrategyController : Controller
     [HttpPost]
     public IActionResult Add(int goalId, string strategyName)
     {
+        Console.WriteLine($"Add called: goalId={goalId}, strategyName={strategyName}");
+
         strategies.Add(new Strategy
         {
             Id = strategies.Count + 1,
@@ -26,8 +33,6 @@ public class StrategyController : Controller
             StrategicGoalId = goalId,
             Metrics = new List<Metric>()
         });
-
-        Console.WriteLine($"Total strategies: {strategies.Count}");
 
         return RedirectToAction("Index", new { goalId });
     }
