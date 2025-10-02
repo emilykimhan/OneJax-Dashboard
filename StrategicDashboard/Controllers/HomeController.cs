@@ -7,7 +7,7 @@ public class HomeController : Controller
 {
     public IActionResult Index(string status, string time, string goal)
     {
-        // Sample data
+        // Sample data; supposed to be a herarchical structure of goals, strategies, and metrics
         var allGoals = new List<StrategicGoal>
         {
             new StrategicGoal
@@ -48,14 +48,6 @@ public class HomeController : Controller
             }
         }
 
-        // Optionally, remove strategies with no metrics after filtering
-        foreach (var g in filteredGoals)
-        {
-            g.Strategies = g.Strategies.Where(s => s.Metrics.Any()).ToList();
-        }
-
-        // Optionally, remove goals with no strategies after filtering
-        filteredGoals = filteredGoals.Where(g => g.Strategies.Any()).ToList();
 
         return View(new DashboardViewModel { StrategicGoals = filteredGoals });
     }
