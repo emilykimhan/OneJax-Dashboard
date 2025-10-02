@@ -2,64 +2,72 @@
 
 @{
     ViewData["Title"] = "Event Data Entry";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
-<link rel="stylesheet" href="/css/Dataentry.css" />
 
-<div class="card shadow-sm p-4">
-    <h2 class="mb-3">Event Entry Form</h2>
+<div class="container mt-4">
+    <div class="card p-4 mb-4" style="background-color:var(--onejax-white); box-shadow:0 4px 24px rgba(0,0,0,0.08); border-radius:24px;">
+        <h2 class="mb-3" style="color:var(--onejax-navy);">Event Data Entry</h2>
 
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
-    }
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success" style="border-radius:12px;">@TempData["SuccessMessage"]</div>
+        }
 
-    <form asp-action="Index" method="post">
-        <div class="mb-3">
-            <label asp-for="EventName" class="form-label">Event Name:</label>
-            <input asp-for="EventName" class="form-control" />
-            <span asp-validation-for="EventName" class="text-danger"></span>
-        </div>
+        <form asp-action="Index" method="post" class="row g-3">
+            <div class="col-md-6">
+                <label asp-for="EventName" class="form-label">Event Name:</label>
+                <input asp-for="EventName" class="form-control" style="border-radius:8px;" />
+                <span asp-validation-for="EventName" class="text-danger"></span>
+            </div>
 
-        <div class="mb-3">
-            <label asp-for="EventDate" class="form-label">Date:</label>
-            <input asp-for="EventDate" class="form-control" type="date" min="2020-01-01" max="2029-12-30" />
-            <span asp-validation-for="EventDate" class="text-danger"></span>
-        </div>
+            <div class="col-md-6">
+                <label asp-for="EventDate" class="form-label">Date:</label>
+                <input asp-for="EventDate" class="form-control" type="date" min="2020-01-01" max="2029-12-30" style="border-radius:8px;" />
+                <span asp-validation-for="EventDate" class="text-danger"></span>
+            </div>
 
-        <div class="mb-3">
-            <label asp-for="PostEventSatisfaction" class="form-label">Post-Event Survey Satisfaction (1-10)</label>
-            <input asp-for="PostEventSatisfaction" class="form-control" type="number" min="1" max="10" />
-            <span asp-validation-for="PostEventSatisfaction" class="text-danger"></span>
-        </div>
+            <div class="col-12">
+                <label asp-for="PostEventSatisfaction" class="form-label">Post-Event Survey Satisfaction (1-10)</label>
+                <input asp-for="PostEventSatisfaction" class="form-control" type="number" min="1" max="10" style="border-radius:8px;" />
+                <span asp-validation-for="PostEventSatisfaction" class="text-danger"></span>
+            </div>
 
-        <h4 class="mt-4">Pre-Assessment</h4>
-        <div class="mb-3">
-            <label asp-for="PreResiliency" class="form-label">Resiliency (1-10)</label>
-            <input asp-for="PreResiliency" class="form-control" type="number" min="1" max="10" />
-            <span asp-validation-for="PreResiliency" class="text-danger"></span>
-        </div>
-        <div class="mb-3">
-            <label asp-for="PreCommunication" class="form-label">Communication (1-10)</label>
-            <input asp-for="PreCommunication" class="form-control" type="number" min="1" max="10" />
-            <span asp-validation-for="PreCommunication" class="text-danger"></span>
-        </div>
+            <div class="col-12">
+                <h4 class="mt-4 mb-3" style="color:var(--onejax-navy);">Pre-Assessment</h4>
+            </div>
 
-        <h4 class="mt-4">Post-Assessment</h4>
-        <div class="mb-3">
-            <label asp-for="PostResiliency" class="form-label">Resiliency (1-10)</label>
-            <input asp-for="PostResiliency" class="form-control" type="number" min="1" max="10" />
-            <span asp-validation-for="PostResiliency" class="text-danger"></span>
-        </div>
-        <div class="mb-3">
-            <label asp-for="PostCommunication" class="form-label">Communication (1-10)</label>
-            <input asp-for="PostCommunication" class="form-control" type="number" min="1" max="10" />
-            <span asp-validation-for="PostCommunication" class="text-danger"></span>
-        </div>
+            <div class="col-md-6">
+                <label asp-for="PreResiliency" class="form-label">Resiliency (1-10)</label>
+                <input asp-for="PreResiliency" class="form-control" type="number" min="1" max="10" style="border-radius:8px;" />
+                <span asp-validation-for="PreResiliency" class="text-danger"></span>
+            </div>
 
-        <button type="submit" class="btn btn-primary">Submit</button>
-    </form>
+            <div class="col-md-6">
+                <label asp-for="PreCommunication" class="form-label">Communication (1-10)</label>
+                <input asp-for="PreCommunication" class="form-control" type="number" min="1" max="10" style="border-radius:8px;" />
+                <span asp-validation-for="PreCommunication" class="text-danger"></span>
+            </div>
+
+            <div class="col-12">
+                <h4 class="mt-4 mb-3" style="color:var(--onejax-navy);">Post-Assessment</h4>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="PostResiliency" class="form-label">Resiliency (1-10)</label>
+                <input asp-for="PostResiliency" class="form-control" type="number" min="1" max="10" style="border-radius:8px;" />
+                <span asp-validation-for="PostResiliency" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="PostCommunication" class="form-label">Communication (1-10)</label>
+                <input asp-for="PostCommunication" class="form-control" type="number" min="1" max="10" style="border-radius:8px;" />
+                <span asp-validation-for="PostCommunication" class="text-danger"></span>
+            </div>
+
+            <div class="col-12 mt-4">
+                <button type="submit" class="btn btn-primary" style="border-radius:8px; padding:12px 24px;">Submit Event Data</button>
+            </div>
+        </form>
+    </div>
 </div>
-
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-}
