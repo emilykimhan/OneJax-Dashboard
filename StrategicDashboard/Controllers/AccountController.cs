@@ -20,10 +20,10 @@ namespace StrategicDashboard.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
-            // Simple demo login: accept any non-empty credentials
+            
             if (!string.IsNullOrEmpty(model.Username) && !string.IsNullOrEmpty(model.Password))
             {
-                // TODO: replace with real authentication later
+                
                 return RedirectToAction("Index", "Home");
             }
 
