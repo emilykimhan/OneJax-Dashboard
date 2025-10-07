@@ -1,0 +1,74 @@
+@model StrategicDashboard.Models.LoginViewModel
+
+@{
+    ViewData["Title"] = "Log in";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="login-wrapper">
+    <div class="card login-card shadow-sm">
+        <div class="row g-0">
+
+            
+            <aside class="col-md-6 d-none d-md-flex login-brand align-items-center justify-content-center">
+                <div class="text-center px-3">
+                    <img src="/images/Onejax Logo.png" alt="OneJax Logo" class="mb-3" />
+                    <h3 class="headline mb-1">Strategic Dashboard</h3>
+                    <p class="small mb-0">Welcome back — sign in to continue to your dashboard.</p>
+                </div>
+            </aside>
+
+           
+            <section class="col-12 col-md-6 bg-white d-flex align-items-center">
+                <div class="login-form-area w-100">
+                    <div class="mx-auto" style="max-width:380px">
+                        <div class="text-center mb-3 d-md-none">
+                            <img src="/images/Onejax Logo.png" alt="OneJax Logo" style="max-width:100px;" />
+                        </div>
+                        <h4 class="mb-3 text-center" style="color:var(--onejax-dark-blue); font-weight:700;">Log in</h4>
+
+                        <form asp-action="Login" method="post" novalidate>
+                            <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                            <div class="mb-3">
+                                <label asp-for="Username" class="form-label">Username</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-person"></i></span>
+                                    <input asp-for="Username" class="form-control border-start-0" placeholder="your.username" />
+                                </div>
+                                <span asp-validation-for="Username" class="text-danger small"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="Password" class="form-label">Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-lock"></i></span>
+                                    <input asp-for="Password" type="password" class="form-control border-start-0" placeholder="Enter your password" />
+                                </div>
+                                <span asp-validation-for="Password" class="text-danger small"></span>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="" id="rememberMe" />
+                                    <label class="form-check-label small" for="rememberMe">Remember me</label>
+                                </div>
+                                <a href="/Account/ForgotPassword" class="small">Forgot?</a>
+                            </div>
+
+                            <div class="d-grid mb-3">
+                                <button type="submit" class="btn btn-onejax btn-lg">Sign in</button>
+                            </div>
+
+                            <div class="text-center login-footer">
+                                <span>Don't have an account?</span>
+                                <a href="/Account/Register" class="ms-2">Create one</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+</div>
