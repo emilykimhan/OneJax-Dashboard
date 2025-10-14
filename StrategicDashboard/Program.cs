@@ -1,14 +1,23 @@
+using Microsoft.AspNetCore.Builder;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Addings this service for controllers with views
+// Add services for controllers with views
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-app.UseStaticFiles();
+// Configure the HTTP request pipeline
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Home/Error");
+    app.UseHsts();
+}
 
-// Use routing and endpoints for controllers with views
+app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseRouting();
+
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
