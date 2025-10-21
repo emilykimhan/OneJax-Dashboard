@@ -3,54 +3,107 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     var goalId = ViewBag.GoalId;
     var goals = new List<SelectListItem>
-    {
-        new SelectListItem { Value = "1", Text = "Community Engagement" },
-        new SelectListItem { Value = "2", Text = "Education & Awareness" },
-        new SelectListItem { Value = "3", Text = "Leadership Development" },
-        new SelectListItem { Value = "4", Text = "Advocacy & Policy" }
-    };
+{
+new SelectListItem { Value = "1", Text = "Community Engagement" },
+new SelectListItem { Value = "2", Text = "Education & Awareness" },
+new SelectListItem { Value = "3", Text = "Leadership Development" },
+new SelectListItem { Value = "4", Text = "Advocacy & Policy" }
+};
 }
 
 <div class="container mt-4">
-    <div class="card p-4 mb-4" style="background-color:var(--onejax-white); box-shadow:0 4px 24px rgba(0,0,0,0.08); border-radius:24px;">
-        <h2 class="mb-3" style="color:var(--onejax-navy);">Add a New Strategy</h2>
+    <!-- Add a New Event -->
+    <div class="card p-4 mb-4"
+        style="background-color:var(--onejax-white); box-shadow:0 4px 24px rgba(0,0,0,0.08); border-radius:24px;">
+        <h2 class="mb-3" style="color:var(--onejax-navy);">Add a New Event</h2>
         <form asp-action="Add" method="post" class="row g-3">
             <div class="col-md-6">
-                <label for="strategyName" class="form-label">Strategy Name</label>
-                <input type="text" id="strategyName" name="strategyName" class="form-control" placeholder="New strategy name" required />
+                <label for="eventName" class="form-label">Event Name</label>
+                <input type="text" id="eventName" name="eventName" class="form-control" placeholder="Enter event name"
+                    required />
             </div>
+
             <div class="col-md-6">
                 <label for="goalId" class="form-label">Assign to Goal</label>
                 <select id="goalId" name="goalId" class="form-select" required>
-                    <option value="">Select a goal...</option>
+                    <option value="">Select a Goal</option>
                     @foreach (var goal in goals)
                     {
                         <option value="@goal.Value">@goal.Text</option>
                     }
                 </select>
             </div>
+
             <div class="col-12">
-                <button type="submit" class="btn btn-primary">Add Strategy</button>
+                <label for="eventDescription" class="form-label">Event Description</label>
+                <textarea id="eventDescription" name="eventDescription" class="form-control" rows="3"
+                    placeholder="Enter event description..."></textarea>
+            </div>
+
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary w-100">Add Event</button>
             </div>
         </form>
     </div>
 
-    <h3 class="mb-3" style="color:var(--onejax-navy);">Strategies</h3>
+    <h3 class="mb-3" style="color:var(--onejax-navy);">New Events</h3>
     <div class="row">
         @foreach (var strategy in Model)
         {
+            var goalName = goals.FirstOrDefault(g => g.Value == strategy.StrategicGoalId.ToString())?.Text ?? "Unknown";
+
             <div class="col-md-6 mb-4">
-                <div class="card h-100" style="background-color:var(--onejax-blue); border-radius:16px;">
+                <div class="card h-100 position-relative p-3"
+                    style="background-color:var(--onejax-blue); border-radius:16px;">
+                    <!-- Edit button  -->
+                    <button class="btn btn-light btn-sm position-absolute top-0 end-0 m-2" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#editForm-@strategy.Id" aria-expanded="false">
+                        Edit
+                    </button>
+
                     <div class="card-body">
-                        <h5 class="card-title" style="color:var(--onejax-white);">@strategy.Name</h5>
-                        <p class="card-text" style="color:var(--onejax-white);">
-                            <strong>Goal:</strong>
-                            @{
-                                var goalName = goals.FirstOrDefault(g => g.Value == strategy.StrategicGoalId.ToString())?.Text ?? "Unknown";
-                            }
-                            @goalName
+                        <h5 class="card-title mb-2" style="color:var(--onejax-white);">@strategy.Name</h5>
+                        <p class="card-text mb-2" style="color:var(--onejax-white);">
+                            <strong>Description:</strong>
+                            @(string.IsNullOrWhiteSpace(strategy.Description)
+                                                    ? "No description provided."
+                                                    : strategy.Description)
                         </p>
-                        <!-- Metrics list can go here -->
+                        <p class="card-text" style="color:var(--onejax-white);">
+                            <strong>Goal:</strong> @goalName
+                        </p>
+                    </div>
+
+                    <!-- Collapsible Edit Form -->
+                    <div class="collapse mt-2" id="editForm-@strategy.Id">
+                        <form asp-action="Edit" method="post" class="card card-body border-0 p-3 mt-2"
+                            style="background-color:var(--onejax-light);">
+                            <input type="hidden" name="id" value="@strategy.Id" />
+
+                            <div class="mb-2">
+                                <label class="form-label">Event Name</label>
+                                <input type="text" name="eventName" class="form-control" value="@strategy.Name" required />
+                            </div>
+
+                            <div class="mb-2">
+                                <label class="form-label">Description</label>
+                                <textarea name="eventDescription" class="form-control"
+                                rows="2">@strategy.Description</textarea>
+                            </div>
+
+                            <div class="mb-2">
+                                <label class="form-label">Assign to Goal</label>
+                                <select name="goalId" class="form-select">
+                                    @foreach (var goal in goals)
+                                    {
+                                        <option value="@goal.Value"
+                                            selected="@(goal.Value == strategy.StrategicGoalId.ToString())">@goal.Text</option>
+                                    }
+                                </select>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100">Save Changes</button>
+                        </form>
                     </div>
                 </div>
             </div>

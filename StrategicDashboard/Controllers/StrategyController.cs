@@ -4,40 +4,58 @@ using System.Linq;
 
 public class StrategyController : Controller
 {
-    // Temporary in-memory storage for strategies since no database is set up
     private static List<Strategy> strategies = new()
     {
-        // Add test data to verify the view works
-        new Strategy { Id = 1, Name = "Test Strategy 1", StrategicGoalId = 1, Metrics = new List<Metric>() },
-        new Strategy { Id = 2, Name = "Test Strategy 2", StrategicGoalId = 2, Metrics = new List<Metric>() }
+        new Strategy { Id = 1, Name = "Test Event 1", Description = "Sample description for community engagement", StrategicGoalId = 1, Metrics = new List<Metric>() },
+        new Strategy { Id = 2, Name = "Test Event 2", Description = "Another event for leadership growth", StrategicGoalId = 2, Metrics = new List<Metric>() }
     };
 
-    // Show strategies for a specific goal
-    public IActionResult Index(int goalId)
+    public IActionResult Index(int? goalId)
     {
-        var goalStrategies = strategies.Where(s => s.StrategicGoalId == goalId).ToList();
+        var goalStrategies = goalId.HasValue
+            ? strategies.Where(s => s.StrategicGoalId == goalId.Value).ToList()
+            : strategies.ToList();
+
+        goalStrategies = goalStrategies.OrderByDescending(s => s.Id).ToList();
+
         ViewBag.GoalId = goalId;
         return View(goalStrategies);
     }
 
-    // Add a new strategy to a goal
+    // Add a new event
     [HttpPost]
-    public IActionResult Add(int goalId, string strategyName)
+    public IActionResult Add(int goalId, string eventName, string eventDescription)
     {
-        Console.WriteLine($"Add called: goalId={goalId}, strategyName={strategyName}");
+        int newId = strategies.Any() ? strategies.Max(s => s.Id) + 1 : 1;
 
         strategies.Add(new Strategy
         {
-            Id = strategies.Count + 1,
-            Name = strategyName,
+            Id = newId,
+            Name = eventName,
+            Description = eventDescription,
             StrategicGoalId = goalId,
             Metrics = new List<Metric>()
         });
 
-        return RedirectToAction("Index", new { goalId });
+        return RedirectToAction("Index");
     }
 
-    // Add a metric to a strategy
+    // Edit an existing event
+    [HttpPost]
+    public IActionResult Edit(int id, string eventName, string eventDescription, int goalId)
+    {
+        var existingEvent = strategies.FirstOrDefault(s => s.Id == id);
+        if (existingEvent != null)
+        {
+            existingEvent.Name = eventName;
+            existingEvent.Description = eventDescription;
+            existingEvent.StrategicGoalId = goalId;
+        }
+
+        return RedirectToAction("Index");
+    }
+
+    // Add a metric to an event 
     [HttpPost]
     public IActionResult AddMetric(int strategyId, string description, string target, string progress, string status, string timePeriod)
     {
@@ -54,6 +72,7 @@ public class StrategyController : Controller
                 TimePeriod = timePeriod
             });
         }
+
         return RedirectToAction("Index", new { goalId = strategy?.StrategicGoalId });
     }
 }
