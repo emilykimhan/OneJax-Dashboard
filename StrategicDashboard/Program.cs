@@ -1,25 +1,26 @@
-using Microsoft.AspNetCore.Builder;
+using Microsoft.EntityFrameworkCore;
+using VMS.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services for controllers with views
+// ✅ 1. Add the database context FIRST
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"))
+);
+
+// ✅ 2. Add MVC controllers with views
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
-if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
-}
-
-app.UseHttpsRedirection();
+// ✅ 3. Middleware pipeline
 app.UseStaticFiles();
+
 app.UseRouting();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Home}/{action=Index}/{id?}"
+);
 
 app.Run();
