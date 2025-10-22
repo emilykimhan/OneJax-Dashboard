@@ -17,7 +17,7 @@ namespace StrategicDashboard.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Login(LoginViewModel model)
         {
-            if (!ModelState.IsValid)
+            if (!ModelState.IsValid) 
                 return View(model);
 
             
