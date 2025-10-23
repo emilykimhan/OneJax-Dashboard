@@ -1,7 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace OneJax_Dashboard.Models
+namespace OneJaxDashboard.Models
 {
     public class EventEntryViewModel
     {

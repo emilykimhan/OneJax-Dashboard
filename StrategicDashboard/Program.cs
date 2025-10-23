@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using VMS.Data;
+using OneJaxDashboard.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
