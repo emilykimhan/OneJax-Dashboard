@@ -3,7 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using VMS.Data;
+using OneJaxDashboard.Data;
 
 #nullable disable
 
@@ -17,7 +17,7 @@ namespace StrategicDashboard.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.10");
 
-            modelBuilder.Entity("VMS.Models.ThreeDDataEntry", b =>
+            modelBuilder.Entity("OneJaxDashboard.Models.ThreeDDataEntry", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()

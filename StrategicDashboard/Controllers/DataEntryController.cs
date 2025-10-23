@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using OneJax_Dashboard.Models;
+using OneJaxDashboard.Models;
 
 namespace OneJax_Dashboard.Controllers
 {
