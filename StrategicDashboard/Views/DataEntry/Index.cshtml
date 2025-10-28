@@ -12,35 +12,161 @@
                border-radius:24px; 
                max-width:2000px;">
 
-        <!-- Tabs for Goals -->
-        <ul class="nav nav-tabs mb-4">
-            <li class="nav-item">
-                <a class="nav-link active" 
-                   style="font-weight:500; color:var(--onejax-navy);" 
-                   href="#">Identity / Value Proposition</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" 
-                   style="font-weight:500; color:var(--onejax-navy);" 
-                   href="#">Community Engagement</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" 
-                   style="font-weight:500; color:var(--onejax-navy);" 
-                   href="#">Financial Sustainability</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" 
-                   style="font-weight:500; color:var(--onejax-navy);" 
-                   href="#">Organizational Building</a>
-            </li>
-        </ul>
+        <!-- Pure CSS Tab System using :target -->
+        <div class="tab-system">
+            <!-- Tab Navigation -->
+            <div class="tab-nav">
+                <a href="#identity" class="tab-link">Identity / Value Proposition</a>
+                <a href="#community" class="tab-link">Community Engagement</a>
+                <a href="#financial" class="tab-link">Financial Sustainability</a>
+                <a class="tab-link external"
+                   asp-controller="OrganizationalBuilding"
+                   asp-action="Index">Organizational Building</a>
+            </div>
 
-        <!-- Empty content section for now -->
-        <div class="tab-content mt-3">
-            <p style="color:var(--onejax-gray);">
-                Select a tab above to view its content.
-            </p>
+            <!-- Tab Content Panels -->
+            <div class="tab-panels">
+                <div id="identity" class="tab-panel">
+                    <div class="panel-content">
+                        <h4>Identity / Value Proposition</h4>
+                        <p>Content for Identity / Value Proposition will go here. This section focuses on 
+                           defining our core identity and unique value we bring to the community.</p>
+                    </div>
+                </div>
+
+                <div id="community" class="tab-panel">
+                    <div class="panel-content">
+                        <h4>Community Engagement</h4>
+                        <p>Hello! This is the Community Engagement section where we focus on building 
+                           strong relationships with our community partners and stakeholders.</p>
+                    </div>
+                </div>
+
+                <div id="financial" class="tab-panel">
+                    <div class="panel-content">
+                        <h4>Financial Sustainability</h4>
+                        <p>Content for Financial Sustainability will go here. This section covers our 
+                           financial planning and sustainability strategies.</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+<style>
+    /* CSS Tab System Styles */
+    .tab-system {
+        width: 100%;
+    }
+
+    /* Tab Navigation */
+    .tab-nav {
+        display: flex;
+        border-bottom: 2px solid #dee2e6;
+        margin-bottom: 1.5rem;
+        gap: 4px;
+    }
+
+    .tab-link {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-bottom: none;
+        padding: 12px 20px;
+        font-weight: 500;
+        color: var(--onejax-navy);
+        text-decoration: none;
+        border-radius: 8px 8px 0 0;
+        transition: all 0.3s ease;
+        display: block;
+    }
+
+    .tab-link:hover {
+        background: #e9ecef;
+        color: var(--onejax-navy);
+        text-decoration: none;
+    }
+
+    .tab-link.external {
+        background: var(--onejax-navy);
+        color: white;
+        border-color: var(--onejax-navy);
+    }
+
+    .tab-link.external:hover {
+        background: #1a365d;
+        color: white;
+    }
+
+    /* Tab Panels */
+    .tab-panels {
+        position: relative;
+        min-height: 300px;
+    }
+
+    .tab-panel {
+        display: none;
+        padding: 0;
+    }
+
+    /* CSS :target selector for tab switching */
+    .tab-panel:target {
+        display: block;
+    }
+
+    /* Show first tab by default */
+    .tab-panel:first-child {
+        display: block;
+    }
+
+    .tab-panel:target ~ .tab-panel {
+        display: none;
+    }
+
+    /* Panel Content */
+    .panel-content {
+        background: #f8f9fa;
+        padding: 2rem;
+        border-radius: 12px;
+        border: 1px solid #e9ecef;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .panel-content h4 {
+        color: var(--onejax-navy);
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+
+    .panel-content p {
+        color: #6c757d;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    /* Active tab styling - Default first tab active */
+    .tab-link[href="#identity"] {
+        background: white;
+        border-bottom: 2px solid white;
+        margin-bottom: -2px;
+        font-weight: 600;
+        box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+    }
+
+    /* Active state based on URL hash */
+    .tab-link[href="#community"]:target,
+    .tab-link[href="#financial"]:target {
+        background: white;
+        border-bottom: 2px solid white;
+        margin-bottom: -2px;
+        font-weight: 600;
+        box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+    }
+
+    /* Animation */
+    .tab-panel {
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+   
+</style>

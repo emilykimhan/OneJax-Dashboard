@@ -1,28 +1,49 @@
 using Microsoft.AspNetCore.Mvc;
 using OneJaxDashboard.Models;
 
-namespace OneJax_Dashboard.Controllers
+namespace OneJaxDashboard.Controllers
 {
     public class DataEntryController : Controller
     {
+        // Main page for Strategic Goals Data Entry
         [HttpGet]
         public IActionResult Index()
         {
-            return View(new EventEntryViewModel());
+            // Just load the main page (Index.cshtml under Views/DataEntry)
+            return View();
         }
 
-        [HttpPost]
-        public IActionResult Index(EventEntryViewModel model)
+        // Redirect to OrganizationalBuilding controller 
+        [HttpGet]
+        public IActionResult OrganizationalBuilding()
         {
-            if (ModelState.IsValid)
-            {
-                // TODO: Save to database
-                TempData["SuccessMessage"] = "Event successfully submitted!";
-                return RedirectToAction("Index");
-            }
+            return RedirectToAction("Index", "OrganizationalBuilding");
+        }
 
-            // If validation fails, redisplay form with errors
-            return View(model);
+        [HttpGet]
+        public IActionResult StaffSurvey()
+        {
+            return RedirectToAction("Index", "StaffSurvey");
+        }
+
+        [HttpGet]
+        public IActionResult Identity()
+        {
+            ViewData["Title"] = "Identity / Value Proposition";
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult Community()
+        {
+            ViewData["Title"] = "Community Engagement";
+            return View();
+        }
+        [HttpGet]
+        public IActionResult Financial()
+        {
+            ViewData["Title"] = "Financial Sustainability";
+            return View();
         }
     }
 }
