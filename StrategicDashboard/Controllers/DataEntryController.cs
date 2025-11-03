@@ -1,15 +1,23 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using OneJaxDashboard.Models;
+using OneJaxDashboard.Data;
 
 namespace OneJaxDashboard.Controllers
 {
     public class DataEntryController : Controller
     {
+        private readonly ApplicationDbContext _context;
+
+        public DataEntryController(ApplicationDbContext context)
+        {
+            _context = context;
+        }
+
         // Main page for Strategic Goals Data Entry
         [HttpGet]
         public IActionResult Index()
         {
-            // Just load the main page (Index.cshtml under Views/DataEntry)
             return View();
         }
 
@@ -43,6 +51,21 @@ namespace OneJaxDashboard.Controllers
         public IActionResult Financial()
         {
             ViewData["Title"] = "Financial Sustainability";
+            return View();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> RecordHistory()
+        {
+            ViewData["Title"] = "Record History";
+            
+            // Get all records for Record History page
+            var staffSurveys = await _context.StaffSurveys_22D.ToListAsync();
+            var professionalDevelopments = await _context.ProfessionalDevelopments.ToListAsync();
+            
+            ViewBag.StaffSurveys = staffSurveys;
+            ViewBag.ProfessionalDevelopments = professionalDevelopments;
+            
             return View();
         }
     }
