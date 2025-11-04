@@ -300,7 +300,12 @@
                     Your Investment at Work
                 </h1>
                 <p class="lead mb-4" style="color: rgba(255,255,255,0.9); font-size: 1.5rem;">See the Revenue and the Projects</p>
-                <p class="mb-0" style="color: rgba(255,255,255,0.8); font-size: 1.1rem;">The OneJax Strategic Dashboard provides comprehensive financial and project progress tracking of our strategic initiatives.</p>
+                <p class="mb-3" style="color: rgba(255,255,255,0.8); font-size: 1.1rem;">The OneJax Strategic Dashboard provides comprehensive financial and project progress tracking of our strategic initiatives.</p>
+                <div class="mt-4">
+                    <a href="/Public/Overview" class="btn btn-outline-light btn-lg" style="border-radius: 12px; font-weight: 600; border: 2px solid rgba(255,255,255,0.3); backdrop-filter: blur(10px);">
+                        📊 View Public Overview
+                    </a>
+                </div>
             </div>
             <div class="col-md-4 text-end slide-in-right">
                 <div class="pulse-animation">
@@ -402,11 +407,11 @@
                                 Project Status
                             </label>
                             <select class="form-select" id="statusFilter" name="status" style="border-radius: 12px; border: 2px solid var(--onejax-border); padding: 12px;">
-                                <option value="" @(string.IsNullOrEmpty(selectedStatus) ? "selected" : "")>All Statuses</option>
-                                <option value="Planned" @(selectedStatus == "Planned" ? "selected" : "")>Planned</option>
-                                <option value="Active" @(selectedStatus == "Active" ? "selected" : "")>In Progress</option>
-                                <option value="Completed" @(selectedStatus == "Completed" ? "selected" : "")>Completed</option>
-                                <option value="On Hold" @(selectedStatus == "On Hold" ? "selected" : "")>On Hold</option>
+                                <option value="" selected="@(string.IsNullOrEmpty(selectedStatus))">All Statuses</option>
+                                <option value="Planned" selected="@(selectedStatus == "Planned")">Planned</option>
+                                <option value="Active" selected="@(selectedStatus == "Active")">In Progress</option>
+                                <option value="Completed" selected="@(selectedStatus == "Completed")">Completed</option>
+                                <option value="On Hold" selected="@(selectedStatus == "On Hold")">On Hold</option>
                             </select>
                         </div>
                         
@@ -415,20 +420,26 @@
                                 Time Period
                             </label>
                             <select class="form-select" id="timeFilter" name="time" style="border-radius: 12px; border: 2px solid var(--onejax-border); padding: 12px;">
-                                <option value="" @(string.IsNullOrEmpty(selectedTime) ? "selected" : "")>All Periods</option>
-                                <option value="This Quarter" @(selectedTime == "This Quarter" ? "selected" : "")">Current Quarter</option>
-                                <option value="Next Quarter" @(selectedTime == "Next Quarter" ? "selected" : "")">Next Quarter</option>
-                                <option value="This Year" @(selectedTime == "This Year" ? "selected" : "")">Fiscal Year 2025</option>
+                                <option value="" selected="@(string.IsNullOrEmpty(selectedTime))">All Periods</option>
+                                <option value="This Quarter" selected="@(selectedTime == "This Quarter")">Q4 2025 (Current Quarter)</option>
+                                <option value="Next Quarter" selected="@(selectedTime == "Next Quarter")">Q1 2026 (Next Quarter)</option>
+                                <option value="This Year" selected="@(selectedTime == "This Year")">Fiscal Year 2025</option>
                             </select>
                         </div>
 
                         <div class="col-md-2">
-                            <button type="submit" class="btn btn-primary-modern w-100">
+                            <button type="submit" class="btn btn-primary-modern w-100" style="font-weight: 600;">
                                 Apply Filters
                             </button>
                         </div>
                         
-                        <div class="col-md-4">
+                        <div class="col-md-2">
+                            <button type="button" class="btn btn-outline-secondary w-100" onclick="resetFilters()" style="border-radius: 12px;">
+                                Reset
+                            </button>
+                        </div>
+                        
+                        <div class="col-md-2">
                             <div class="d-flex gap-2 justify-content-end">
                                 <button type="button" class="btn btn-secondary-modern" onclick="exportToPDF()">
                                     PDF Report
@@ -810,7 +821,12 @@
                                             .Where(e => (string.IsNullOrEmpty(selectedStatus) || e.Status == selectedStatus)))
                                         {
                                             <div class="col-md-6 col-lg-4 mb-3">
-                                                <div class="card" style="background-color:var(--onejax-white); border-radius:12px;">
+                                                <div class="card event-card" 
+                                                     style="background-color:var(--onejax-white); border-radius:12px;"
+                                                     data-status="@eventItem.Status"
+                                                     data-date="@eventItem.Date.ToString("yyyy-MM-dd")"
+                                                     data-quarter="@((eventItem.Date.Month - 1) / 3 + 1)"
+                                                     data-year="@eventItem.Date.Year">
                                                     <div class="card-body">
                                                         <h6 class="card-title" style="color:var(--onejax-navy);">@eventItem.Title</h6>
                                                         <p class="card-text" style="color:var(--onejax-navy);">
@@ -968,32 +984,57 @@ function applyFilters() {
     const statusFilter = document.getElementById('statusFilter').value;
     const timeFilter = document.getElementById('timeFilter').value;
     
+    // Get current date info for time filtering
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentQuarter = Math.floor((now.getMonth()) / 3) + 1;
+    const nextQuarter = currentQuarter === 4 ? 1 : currentQuarter + 1;
+    const nextQuarterYear = currentQuarter === 4 ? currentYear + 1 : currentYear;
+    
     // Get all event cards and goal sections
-    const eventCards = document.querySelectorAll('.col-md-6.col-lg-4.mb-3, .col-md-4.mb-3');
+    const eventCards = document.querySelectorAll('.event-card');
     const goalSections = document.querySelectorAll('.goal-section');
     
     let filteredCount = 0;
     
     // Filter event cards within goal sections
     goalSections.forEach(section => {
-        const events = section.querySelectorAll('[data-status], .card .card-body');
+        const events = section.querySelectorAll('.event-card');
         let sectionHasVisibleEvents = false;
         
         events.forEach(event => {
             let shouldShow = true;
             
             // Check status filter
-            if (statusFilter && event.textContent) {
-                const hasStatus = event.textContent.toLowerCase().includes(statusFilter.toLowerCase());
-                if (!hasStatus) {
+            if (statusFilter && event.dataset.status) {
+                if (event.dataset.status !== statusFilter) {
                     shouldShow = false;
                 }
             }
             
-            // Check time filter (basic implementation)
+            // Check time filter
             if (timeFilter && shouldShow) {
-                // For now, we'll show all items for time filter since we don't have date data in the DOM
-                // In a real implementation, you'd check actual dates
+                const eventYear = parseInt(event.dataset.year);
+                const eventQuarter = parseInt(event.dataset.quarter);
+                
+                switch(timeFilter) {
+                    case 'This Quarter':
+                        if (eventYear !== currentYear || eventQuarter !== currentQuarter) {
+                            shouldShow = false;
+                        }
+                        break;
+                    case 'Next Quarter':
+                        if (eventYear !== nextQuarterYear || eventQuarter !== nextQuarter) {
+                            shouldShow = false;
+                        }
+                        break;
+                    case 'This Year':
+                        if (eventYear !== currentYear) {
+                            shouldShow = false;
+                        }
+                        break;
+                    // 'All Periods' shows everything, so no additional filtering needed
+                }
             }
             
             if (shouldShow) {
@@ -1021,9 +1062,13 @@ function applyFilters() {
         window.location.pathname;
     window.history.replaceState(null, '', newUrl);
     
-    // Show notification
-    const filterText = [statusFilter, timeFilter].filter(f => f).join(', ') || 'All items';
-    showNotification('Filters Applied', `Showing: ${filterText} | Found ${filteredCount} matching items`, 'success');
+    // Show notification with time period info
+    let filterText = [];
+    if (statusFilter) filterText.push(`Status: ${statusFilter}`);
+    if (timeFilter) filterText.push(`Period: ${timeFilter}`);
+    const filterDescription = filterText.length > 0 ? filterText.join(', ') : 'All items';
+    
+    showNotification('Filters Applied', `Showing: ${filterDescription} | Found ${filteredCount} matching events`, 'success');
 }
 
 // Enhanced Export Functions with Visual Feedback
@@ -1043,6 +1088,26 @@ function exportToExcel() {
 
 function showComingSoon(feature) {
     showNotification(feature + ' Coming Soon!', 'This exciting feature is currently in development and will be available in the next update.', 'info');
+}
+
+// Reset Filters Function
+function resetFilters() {
+    // Reset the select elements to their default values
+    const statusFilter = document.getElementById('statusFilter');
+    const timeFilter = document.getElementById('timeFilter');
+    
+    if (statusFilter) {
+        statusFilter.value = '';
+    }
+    if (timeFilter) {
+        timeFilter.value = '';
+    }
+    
+    // Apply the reset (show all items)
+    applyFilters();
+    
+    // Show notification
+    showNotification('Filters Reset', 'All filters have been cleared. Showing all projects.', 'info');
 }
 
 // Enhanced Notification System
@@ -1203,12 +1268,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const statusFilter = document.getElementById('statusFilter');
     const timeFilter = document.getElementById('timeFilter');
     
-    if (statusFilter) {
-        statusFilter.addEventListener('change', applyFilters);
-    }
-    if (timeFilter) {
-        timeFilter.addEventListener('change', applyFilters);
-    }
+    // Removed automatic filter application - now filters only apply when button is clicked
+    // if (statusFilter) {
+    //     statusFilter.addEventListener('change', applyFilters);
+    // }
+    // if (timeFilter) {
+    //     timeFilter.addEventListener('change', applyFilters);
+    // }
     
     // Auto-refresh with visual indicator
     setInterval(() => {
