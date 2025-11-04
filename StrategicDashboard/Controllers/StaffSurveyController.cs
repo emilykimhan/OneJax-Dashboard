@@ -54,7 +54,7 @@ namespace OneJaxDashboard.Controllers
                 }
                 catch (Exception)
                 {
-                    // Log the error (you might want to use a proper logging framework)
+                    // Log the error (if logging is set up)
                     TempData["ErrorMessage"] = "An error occurred while saving the survey. Please try again.";
                     return View(model);
                 }

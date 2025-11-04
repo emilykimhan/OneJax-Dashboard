@@ -28,11 +28,6 @@ namespace OneJaxDashboard.Controllers
             return RedirectToAction("Index", "OrganizationalBuilding");
         }
 
-        [HttpGet]
-        public IActionResult StaffSurvey()
-        {
-            return RedirectToAction("Index", "StaffSurvey");
-        }
 
         [HttpGet]
         public IActionResult Identity()
