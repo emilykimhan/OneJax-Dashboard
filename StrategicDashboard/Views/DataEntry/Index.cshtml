@@ -1,73 +1,179 @@
-@model OneJax_Dashboard.Models.EventEntryViewModel
-
 @{
-    ViewData["Title"] = "Event Data Entry";
+    ViewData["Title"] = "Strategic Goals";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+<h1 class="headline mb-4" style="color:var(--onejax-navy);">OneJax Strategic Goals</h1>
+
 <div class="container mt-4">
-    <div class="card p-4 mb-4" style="background-color:var(--onejax-white); box-shadow:0 4px 24px rgba(0,0,0,0.08); border-radius:24px;">
-        <h2 class="mb-3" style="color:var(--onejax-navy);">Event Data Entry</h2>
+    <div class="card p-4"
+        style="background-color:var(--onejax-white); 
+               box-shadow:0 4px 24px rgba(0,0,0,0.08); 
+               border-radius:24px; 
+               max-width:2000px;">
 
-        @if (TempData["SuccessMessage"] != null)
-        {
-            <div class="alert alert-success" style="border-radius:12px;">@TempData["SuccessMessage"]</div>
-        }
-
-        <form asp-action="Index" method="post" class="row g-3">
-            <div class="col-md-6">
-                <label asp-for="EventName" class="form-label">Event Name:</label>
-                <input asp-for="EventName" class="form-control" style="border-radius:8px;" />
-                <span asp-validation-for="EventName" class="text-danger"></span>
+        <!-- Pure CSS Tab System using :target -->
+        <div class="tab-system">
+            <!-- Tab Navigation -->
+            <div class="tab-nav">
+                <a href="#identity" class="tab-link">Identity / Value Proposition</a>
+                <a href="#community" class="tab-link">Community Engagement</a>
+                <a href="#financial" class="tab-link">Financial Sustainability</a>
+               <!-- Organizational Building tab -->
+                <a class="tab-link external"
+                   asp-controller="OrganizationalBuilding"
+                   asp-action="Index">Organizational Building</a>
+                <!-- Record History tab -->
+                 <a class="tab-link external"
+                   asp-controller="DataEntry"
+                   asp-action="RecordHistory">Record History</a>
             </div>
 
-            <div class="col-md-6">
-                <label asp-for="EventDate" class="form-label">Date:</label>
-                <input asp-for="EventDate" class="form-control" type="date" min="2020-01-01" max="2029-12-30" style="border-radius:8px;" />
-                <span asp-validation-for="EventDate" class="text-danger"></span>
-            </div>
+            <!-- Tab Content Panels -->
+            <div class="tab-panels">
+                <div id="identity" class="tab-panel">
+                    <div class="panel-content">
+                        <h4>Identity / Value Proposition</h4>
+                        <p>Content for Identity / Value Proposition will go here. This section focuses on 
+                           defining our core identity and unique value we bring to the community.</p>
+                    </div>
+                </div>
 
-            <div class="col-12">
-                <label asp-for="PostEventSatisfaction" class="form-label">Post-Event Survey Satisfaction (1-10)</label>
-                <input asp-for="PostEventSatisfaction" class="form-control" type="number" min="1" max="10" style="border-radius:8px;" />
-                <span asp-validation-for="PostEventSatisfaction" class="text-danger"></span>
-            </div>
+                <div id="community" class="tab-panel">
+                    <div class="panel-content">
+                        <h4>Community Engagement</h4>
+                        <p>Hello! This is the Community Engagement section where we focus on building 
+                           strong relationships with our community partners and stakeholders.</p>
+                    </div>
+                </div>
 
-            <div class="col-12">
-                <h4 class="mt-4 mb-3" style="color:var(--onejax-navy);">Pre-Assessment</h4>
+                <div id="financial" class="tab-panel">
+                    <div class="panel-content">
+                        <h4>Financial Sustainability</h4>
+                        <p>Content for Financial Sustainability will go here. This section covers our 
+                           financial planning and sustainability strategies.</p>
+                    </div>
+                </div>
             </div>
-
-            <div class="col-md-6">
-                <label asp-for="PreResiliency" class="form-label">Resiliency (1-10)</label>
-                <input asp-for="PreResiliency" class="form-control" type="number" min="1" max="10" style="border-radius:8px;" />
-                <span asp-validation-for="PreResiliency" class="text-danger"></span>
-            </div>
-
-            <div class="col-md-6">
-                <label asp-for="PreCommunication" class="form-label">Communication (1-10)</label>
-                <input asp-for="PreCommunication" class="form-control" type="number" min="1" max="10" style="border-radius:8px;" />
-                <span asp-validation-for="PreCommunication" class="text-danger"></span>
-            </div>
-
-            <div class="col-12">
-                <h4 class="mt-4 mb-3" style="color:var(--onejax-navy);">Post-Assessment</h4>
-            </div>
-
-            <div class="col-md-6">
-                <label asp-for="PostResiliency" class="form-label">Resiliency (1-10)</label>
-                <input asp-for="PostResiliency" class="form-control" type="number" min="1" max="10" style="border-radius:8px;" />
-                <span asp-validation-for="PostResiliency" class="text-danger"></span>
-            </div>
-
-            <div class="col-md-6">
-                <label asp-for="PostCommunication" class="form-label">Communication (1-10)</label>
-                <input asp-for="PostCommunication" class="form-control" type="number" min="1" max="10" style="border-radius:8px;" />
-                <span asp-validation-for="PostCommunication" class="text-danger"></span>
-            </div>
-
-            <div class="col-12 mt-4">
-                <button type="submit" class="btn btn-primary" style="border-radius:8px; padding:12px 24px;">Submit Event Data</button>
-            </div>
-        </form>
+        </div>
     </div>
 </div>
+
+<style>
+    /* CSS Tab System Styles */
+    .tab-system {
+        width: 100%;
+    }
+
+    /* Tab Navigation */
+    .tab-nav {
+        display: flex;
+        border-bottom: 2px solid #dee2e6;
+        margin-bottom: 1.5rem;
+        gap: 4px;
+    }
+
+    .tab-link {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-bottom: none;
+        padding: 12px 20px;
+        font-weight: 500;
+        color: var(--onejax-navy);
+        text-decoration: none;
+        border-radius: 8px 8px 0 0;
+        transition: all 0.3s ease;
+        display: block;
+    }
+
+    .tab-link:hover {
+        background: #e9ecef;
+        color: var(--onejax-navy);
+        text-decoration: none;
+    }
+
+    .tab-link.external {
+        background: var(--onejax-navy);
+        color: white;
+        border-color: var(--onejax-navy);
+    }
+
+    .tab-link.external:hover {
+        background: #1a365d;
+        color: white;
+    }
+
+    /* Tab Panels */
+    .tab-panels {
+        position: relative;
+        min-height: 300px;
+    }
+
+    .tab-panel {
+        display: none;
+        padding: 0;
+    }
+
+    /* CSS :target selector for tab switching */
+    .tab-panel:target {
+        display: block;
+    }
+
+    /* Show first tab by default */
+    .tab-panel:first-child {
+        display: block;
+    }
+
+    .tab-panel:target ~ .tab-panel {
+        display: none;
+    }
+
+    /* Panel Content */
+    .panel-content {
+        background: #f8f9fa;
+        padding: 2rem;
+        border-radius: 12px;
+        border: 1px solid #e9ecef;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .panel-content h4 {
+        color: var(--onejax-navy);
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+
+    .panel-content p {
+        color: #6c757d;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    /* Active tab styling - Default first tab active */
+    .tab-link[href="#identity"] {
+        background: white;
+        border-bottom: 2px solid white;
+        margin-bottom: -2px;
+        font-weight: 600;
+        box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+    }
+
+    /* Active state based on URL hash */
+    .tab-link[href="#community"]:target,
+    .tab-link[href="#financial"]:target {
+        background: white;
+        border-bottom: 2px solid white;
+        margin-bottom: -2px;
+        font-weight: 600;
+        box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+    }
+
+    /* Animation */
+    .tab-panel {
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+
+
+   
+</style>

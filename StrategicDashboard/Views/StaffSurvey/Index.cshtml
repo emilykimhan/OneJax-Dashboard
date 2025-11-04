@@ -1,0 +1,129 @@
+@model OneJaxDashboard.Models.StaffSurvey_22D
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    ViewData["Title"] = "Staff Survey";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card p-4"
+                 style="background-color:var(--onejax-white);
+                        box-shadow:0 4px 24px rgba(0,0,0,0.08);
+                        border-radius:24px;">
+                
+                <!-- Header with back button -->
+                <div class="d-flex align-items-center mb-4">
+                    <a href="/OrganizationalBuilding" 
+                       class="btn btn-outline-secondary me-3"
+                       style="border-radius: 8px;">
+                        ← Back
+                    </a>
+                    <h2 class="mb-0" style="color:var(--onejax-navy);">Staff Survey</h2>
+                </div>
+                
+                <!-- Survey Form -->
+                <div class="survey-form">
+                    <h4 class="mb-4 text-center" style="color:var(--onejax-navy);">Staff Satisfaction Survey</h4>
+
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success text-center">
+                            @TempData["SuccessMessage"]
+                        </div>
+                    }
+
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger text-center">
+                            @TempData["ErrorMessage"]
+                        </div>
+                    }
+
+                    <form asp-controller="StaffSurvey" asp-action="Index" method="post" novalidate>
+                        <div class="mb-3">
+                            <label asp-for="Name" class="form-label fw-bold">Staff Member Name:</label>
+                            <select asp-for="Name" class="form-select" asp-items="ViewBag.StaffMembers">
+                                <option value="">-- Select a Staff Member --</option>
+                            </select>
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="SatisfactionRate" class="form-label fw-bold">Satisfaction Rate (0-100):</label>
+                            <input asp-for="SatisfactionRate" type="number" min="0" max="100"
+                                   class="form-control" placeholder="Enter satisfaction rate (0-100)" />
+                            <span asp-validation-for="SatisfactionRate" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ProfessionalDevelopmentCount" class="form-label fw-bold">Professional Development Activities:</label>
+                            <input asp-for="ProfessionalDevelopmentCount" type="number" min="1" max="50"
+                                   class="form-control" placeholder="Enter number of professional development activities" />
+                            <span asp-validation-for="ProfessionalDevelopmentCount" class="text-danger"></span>
+                        </div>
+
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary px-4" 
+                                    style="background-color:var(--onejax-navy); border-color:var(--onejax-navy);">
+                                Submit Survey
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-outline-secondary {
+        border-color: var(--onejax-navy);
+        color: var(--onejax-navy);
+    }
+    
+    .btn-outline-secondary:hover {
+        background-color: var(--onejax-navy);
+        border-color: var(--onejax-navy);
+        color: white;
+    }
+    
+    .card {
+        border: none;
+    }
+
+    /* Survey Form Styles */
+    .survey-form {
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 12px;
+        margin-top: 1rem;
+    }
+
+    .form-control:focus {
+        border-color: var(--onejax-navy);
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 191, 0.25);
+    }
+
+    .form-select:focus {
+        border-color: var(--onejax-navy);
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 191, 0.25);
+    }
+
+    .btn:hover {
+        background-color: #1a365d !important;
+        border-color: #1a365d !important;
+    }
+
+    .alert {
+        border: none;
+        border-radius: 8px;
+    }
+
+    .text-danger {
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        display: block;
+    }
+</style>

@@ -1,0 +1,90 @@
+@model OneJaxDashboard.Models.OrganizationalBuildingViewModel
+@{
+    ViewData["Title"] = Model.PageTitle;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <!-- Left Box - Staff Survey -->
+        <div class="col-md-6">
+            <div class="card p-4"
+                 style="background-color:var(--onejax-white);
+                        box-shadow:0 4px 24px rgba(0,0,0,0.08);
+                        border-radius:24px;
+                        height:100%;">
+
+                <h3 class="text-center mb-4" style="color:var(--onejax-navy);">Annual Staff Satisfaction Survey</h3>
+
+                <div class="text-center">
+                    <p class="mb-4" style="color:var(--onejax-gray);">
+                        @Model.StaffSurveyDescription
+                    </p>
+                    @if (Model.ShowStaffSurveyButton)
+                    {
+                        <a href="/StaffSurvey" class="btn btn-primary btn-lg px-5 py-3"
+                           style="background-color:var(--onejax-navy); border-color:var(--onejax-navy); 
+                                  border-radius: 12px; font-weight: 600;">
+                            Open Staff Survey
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+
+     
+
+        <!-- Right Box - Professional Development -->
+        <div class="col-md-6">
+            <div class="card p-4"
+                 style="background-color:var(--onejax-white);
+                        box-shadow:0 4px 24px rgba(0,0,0,0.08);
+                        border-radius:24px;
+                        height:100%;">
+                
+                <h3 class="text-center mb-4" style="color:var(--onejax-navy);">Professional Development</h3>
+                
+                <div class="text-center">
+                    <p class="mb-4" style="color:var(--onejax-gray);">
+                        Track employee professional development activities. Employees must participate in at least 1 opportunity for professional development annually across 2026 and 2027.
+                    </p>
+                    
+                    <a href="/ProfessionalDevelopment" class="btn btn-primary btn-lg px-5 py-3"
+                       style="background-color:var(--onejax-navy); border-color:var(--onejax-navy); 
+                              border-radius: 12px; font-weight: 600;">
+                        Enter Professional Development
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Ensure equal height boxes */
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    
+    .col-md-6 {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 1rem;
+    }
+    
+    .card {
+        flex: 1;
+    }
+    
+    .play-content {
+        text-align: center;
+        padding: 2rem 1rem;
+    }
+
+    .btn-outline-primary:hover {
+        background-color: var(--onejax-navy);
+        border-color: var(--onejax-navy);
+        color: white;
+    }
+</style>
