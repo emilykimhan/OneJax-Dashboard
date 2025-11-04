@@ -1,0 +1,100 @@
+@model OneJaxDashboard.Models.EventEntryViewModel
+
+@{
+    ViewData["Title"] = "Data Entry";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-10 mx-auto">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="bi bi-calendar-event me-2"></i>Event Assessment Data Entry</h4>
+                </div>
+                <div class="card-body">
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="bi bi-check-circle me-2"></i>@TempData["SuccessMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    @using (Html.BeginForm("Index", "DataEvent", FormMethod.Post, new { @class = "needs-validation" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                @Html.LabelFor(m => m.EventName, new { @class = "form-label" })
+                                @Html.TextBoxFor(m => m.EventName, new { @class = "form-control", placeholder = "Enter event name" })
+                                @Html.ValidationMessageFor(m => m.EventName, "", new { @class = "text-danger small" })
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                @Html.LabelFor(m => m.EventDate, new { @class = "form-label" })
+                                @Html.TextBoxFor(m => m.EventDate, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+                                @Html.ValidationMessageFor(m => m.EventDate, "", new { @class = "text-danger small" })
+                            </div>
+                        </div>
+
+                        <hr class="my-4" />
+                        <h5 class="mb-3"><i class="bi bi-emoji-smile me-2"></i>Post-Event Satisfaction</h5>
+                        
+                        <div class="mb-4">
+                            @Html.LabelFor(m => m.PostEventSatisfaction, "Satisfaction Score (1-10)", new { @class = "form-label" })
+                            @Html.TextBoxFor(m => m.PostEventSatisfaction, new { @class = "form-control", type = "number", min = "1", max = "10" })
+                            @Html.ValidationMessageFor(m => m.PostEventSatisfaction, "", new { @class = "text-danger small" })
+                        </div>
+
+                        <hr class="my-4" />
+                        <h5 class="mb-3"><i class="bi bi-clipboard-check me-2"></i>Pre-Assessment Scores</h5>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                @Html.LabelFor(m => m.PreResiliency, "Resiliency Score (1-10)", new { @class = "form-label" })
+                                @Html.TextBoxFor(m => m.PreResiliency, new { @class = "form-control", type = "number", min = "1", max = "10" })
+                                @Html.ValidationMessageFor(m => m.PreResiliency, "", new { @class = "text-danger small" })
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                @Html.LabelFor(m => m.PreCommunication, "Communication Score (1-10)", new { @class = "form-label" })
+                                @Html.TextBoxFor(m => m.PreCommunication, new { @class = "form-control", type = "number", min = "1", max = "10" })
+                                @Html.ValidationMessageFor(m => m.PreCommunication, "", new { @class = "text-danger small" })
+                            </div>
+                        </div>
+
+                        <hr class="my-4" />
+                        <h5 class="mb-3"><i class="bi bi-clipboard-data me-2"></i>Post-Assessment Scores</h5>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                @Html.LabelFor(m => m.PostResiliency, "Resiliency Score (1-10)", new { @class = "form-label" })
+                                @Html.TextBoxFor(m => m.PostResiliency, new { @class = "form-control", type = "number", min = "1", max = "10" })
+                                @Html.ValidationMessageFor(m => m.PostResiliency, "", new { @class = "text-danger small" })
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                @Html.LabelFor(m => m.PostCommunication, "Communication Score (1-10)", new { @class = "form-label" })
+                                @Html.TextBoxFor(m => m.PostCommunication, new { @class = "form-control", type = "number", min = "1", max = "10" })
+                                @Html.ValidationMessageFor(m => m.PostCommunication, "", new { @class = "text-danger small" })
+                            </div>
+                        </div>
+
+                        <hr class="my-4" />
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-save me-2"></i>Submit Event Assessment
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Html.Partial("_ValidationScriptsPartial")
+}
