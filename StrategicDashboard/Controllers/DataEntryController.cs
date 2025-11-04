@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using OneJax_Dashboard.Models;
 
-namespace OneJax_Dashboard.Controllers
+namespace StrategicDashboard.Controllers
 {
     public class DataEntryController : Controller
     {
