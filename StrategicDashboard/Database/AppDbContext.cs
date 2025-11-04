@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using OneJaxDashboard.Models;
+using StrategicDashboard.Models;
 
 namespace OneJaxDashboard.Data
 {
@@ -11,7 +11,16 @@ namespace OneJaxDashboard.Data
         {
         }
 
-        
-      
+        public DbSet<Staff> StaffMembers { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            // Unique username for staff
+            modelBuilder.Entity<Staff>()
+                .HasIndex(s => s.Username)
+                .IsUnique();
+        }
     }
 }

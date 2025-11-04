@@ -1,0 +1,104 @@
+@model StrategicDashboard.Models.Staff
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "My Profile";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="mb-3">
+            <a href="/StaffPortal/Index" class="text-decoration-none">
+                <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+            </a>
+        </div>
+        
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white border-bottom py-3">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-3">
+                        <i class="bi bi-person-circle text-primary" style="font-size: 1.5rem;"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0 fw-bold">My Profile</h4>
+                        <p class="text-muted small mb-0">Update your personal information</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                        @TempData["SuccessMessage"]
+                    </div>
+                }
+                
+                @using (Html.BeginForm("Profile", "StaffPortal", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
+                    <div class="mb-4">
+                        @Html.LabelFor(m => m.Username, new { @class = "form-label fw-semibold" })
+                        <div class="input-group">
+                            <span class="input-group-text bg-light">
+                                <i class="bi bi-person-badge"></i>
+                            </span>
+                            @Html.TextBoxFor(m => m.Username, new { @class = "form-control bg-light", @readonly = "readonly" })
+                        </div>
+                        <div class="form-text">
+                            <i class="bi bi-info-circle me-1"></i>Username cannot be changed
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        @Html.LabelFor(m => m.FullName, new { @class = "form-label fw-semibold" })
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-person"></i>
+                            </span>
+                            @Html.TextBoxFor(m => m.FullName, new { @class = "form-control", placeholder = "Enter your full name" })
+                        </div>
+                        @Html.ValidationMessageFor(m => m.FullName, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="mb-4">
+                        @Html.LabelFor(m => m.Email, new { @class = "form-label fw-semibold" })
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-envelope"></i>
+                            </span>
+                            @Html.TextBoxFor(m => m.Email, new { @class = "form-control", type = "email", placeholder = "your.email@example.com" })
+                        </div>
+                        @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-onejax">
+                            <i class="bi bi-check-lg me-1"></i>Save Changes
+                        </button>
+                        <a href="/StaffPortal/Index" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-lg me-1"></i>Cancel
+                        </a>
+                    </div>
+                }
+
+                <hr class="my-4">
+
+                <div class="card bg-light border-0">
+                    <div class="card-body">
+                        <h5 class="card-title mb-2">
+                            <i class="bi bi-shield-lock text-warning me-2"></i>Security
+                        </h5>
+                        <p class="text-muted small mb-3">Manage your account security settings</p>
+                        <a href="/StaffPortal/ChangePassword" class="btn btn-outline-warning">
+                            <i class="bi bi-key me-1"></i>Change Password
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

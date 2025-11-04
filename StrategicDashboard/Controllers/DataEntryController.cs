@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using OneJaxDashboard.Models;
 
 namespace OneJax_Dashboard.Controllers
 {
+    [Authorize(Roles = "Admin,Staff")]
     public class DataEntryController : Controller
     {
         [HttpGet]

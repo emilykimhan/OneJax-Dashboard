@@ -1,0 +1,190 @@
+@{
+    ViewData["Title"] = "Admin Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var staffCount = ViewData["StaffCount"] as int? ?? 0;
+}
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h2 class="fw-bold" style="color:var(--onejax-navy);">
+            <i class="bi bi-shield-lock-fill me-2"></i>Admin Dashboard
+        </h2>
+        <p class="text-muted">Welcome back, @User.Identity?.Name — Manage your organization</p>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Staff Overview Card -->
+    <div class="col-12 col-md-6 col-lg-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body d-flex flex-column">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
+                        <i class="bi bi-people-fill text-primary" style="font-size: 1.5rem;"></i>
+                    </div>
+                    <div>
+                        <h5 class="card-title mb-0">Staff Members</h5>
+                        <p class="text-muted small mb-0">Total active staff</p>
+                    </div>
+                </div>
+                <p class="display-4 fw-bold mb-3" style="color:var(--onejax-navy);">@staffCount</p>
+                <div class="mt-auto">
+                    <a href="/Staff/Index" class="btn btn-onejax w-100 mb-2">
+                        <i class="bi bi-list-ul me-1"></i>View All Staff
+                    </a>
+                    <a href="/Staff/Create" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-person-plus me-1"></i>Add New Staff
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Events Management Card -->
+    <div class="col-12 col-md-6 col-lg-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body d-flex flex-column">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="rounded-circle bg-success bg-opacity-10 p-3 me-3">
+                        <i class="bi bi-calendar-event-fill text-success" style="font-size: 1.5rem;"></i>
+                    </div>
+                    <div>
+                        <h5 class="card-title mb-0">Events</h5>
+                        <p class="text-muted small mb-0">Manage submissions</p>
+                    </div>
+                </div>
+                <p class="text-muted mb-3">Submit new events and track strategic initiatives</p>
+                <div class="mt-auto">
+                    <a href="/DataEntry/Index" class="btn btn-success w-100 mb-2">
+                        <i class="bi bi-calendar-plus me-1"></i>Submit Event
+                    </a>
+                    <button class="btn btn-outline-secondary w-100" disabled title="Coming soon">
+                        <i class="bi bi-kanban me-1"></i>Manage Events
+                    </button>
+                    <small class="text-muted d-block mt-2">
+                        <i class="bi bi-info-circle me-1"></i>Event list management coming soon
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Overview Card -->
+    <div class="col-12 col-md-6 col-lg-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body d-flex flex-column">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="rounded-circle bg-warning bg-opacity-10 p-3 me-3">
+                        <i class="bi bi-gear-fill text-warning" style="font-size: 1.5rem;"></i>
+                    </div>
+                    <div>
+                        <h5 class="card-title mb-0">System</h5>
+                        <p class="text-muted small mb-0">Settings & tools</p>
+                    </div>
+                </div>
+                <ul class="list-unstyled mb-3 flex-grow-1">
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success me-2"></i>
+                        <span class="text-muted">Authentication active</span>
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success me-2"></i>
+                        <span class="text-muted">Role-based access</span>
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success me-2"></i>
+                        <span class="text-muted">Staff portal enabled</span>
+                    </li>
+                </ul>
+                <div class="mt-auto">
+                    <a href="/Home/Index" class="btn btn-outline-secondary w-100">
+                        <i class="bi bi-house-door me-1"></i>View Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions Row -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white border-bottom">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-lightning-fill me-2 text-warning" style="font-size: 1.25rem;"></i>
+                    <h5 class="mb-0 fw-bold">Quick Actions</h5>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6 col-lg-3">
+                        <a href="/Staff/Create" class="text-decoration-none">
+                            <div class="d-flex align-items-center p-3 bg-light rounded hover-card">
+                                <div class="rounded-circle bg-primary bg-opacity-25 p-2 me-3">
+                                    <i class="bi bi-person-plus-fill text-primary"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-semibold text-dark">Add Staff Member</div>
+                                    <small class="text-muted">Create new account</small>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <a href="/DataEntry/Index" class="text-decoration-none">
+                            <div class="d-flex align-items-center p-3 bg-light rounded hover-card">
+                                <div class="rounded-circle bg-success bg-opacity-25 p-2 me-3">
+                                    <i class="bi bi-calendar-plus-fill text-success"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-semibold text-dark">Submit Event</div>
+                                    <small class="text-muted">Log new activity</small>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <a href="/Staff/Index" class="text-decoration-none">
+                            <div class="d-flex align-items-center p-3 bg-light rounded hover-card">
+                                <div class="rounded-circle bg-info bg-opacity-25 p-2 me-3">
+                                    <i class="bi bi-people-fill text-info"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-semibold text-dark">Manage Staff</div>
+                                    <small class="text-muted">Edit or remove</small>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <a href="/Home/Index" class="text-decoration-none">
+                            <div class="d-flex align-items-center p-3 bg-light rounded hover-card">
+                                <div class="rounded-circle bg-secondary bg-opacity-25 p-2 me-3">
+                                    <i class="bi bi-bar-chart-fill text-secondary"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-semibold text-dark">View Reports</div>
+                                    <small class="text-muted">Strategic goals</small>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hover-card {
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+    }
+    .hover-card:hover {
+        background-color: #fff !important;
+        border-color: #dee2e6;
+        box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+        transform: translateY(-2px);
+    }
+</style>

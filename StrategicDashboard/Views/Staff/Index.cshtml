@@ -1,0 +1,96 @@
+@model IEnumerable<StrategicDashboard.Models.Staff>
+
+@{
+    ViewData["Title"] = "Staff Management";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="headline mb-0" style="color: var(--onejax-dark-blue);">Staff Management</h2>
+                <a href="/Staff/Create" class="btn btn-onejax">
+                    <i class="bi bi-plus-circle me-2"></i>Add New Staff
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="dashboard-card bg-white">
+                <div class="circle-bg"></div>
+                <div class="circle-bg2"></div>
+                
+                @if (Model != null && Model.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead style="background-color: rgba(39, 138, 162, 0.1);">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Username</th>
+                                    <th>Full Name</th>
+                                    <th>Email</th>
+                                    <th class="text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var staff in Model)
+                                {
+                                    <tr>
+                                        <td>@staff.Id</td>
+                                        <td><strong>@staff.Username</strong></td>
+                                        <td>@staff.FullName</td>
+                                        <td>@staff.Email</td>
+                                        <td class="text-center">
+                                            <a href="/Staff/Edit/@staff.Id" class="btn btn-sm btn-outline-primary me-1">
+                                                <i class="bi bi-pencil"></i> Edit
+                                            </a>
+                                            <a href="/Staff/Delete/@staff.Id" class="btn btn-sm btn-outline-danger">
+                                                <i class="bi bi-trash"></i> Delete
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5">
+                        <i class="bi bi-people" style="font-size: 3rem; color: var(--onejax-blue); opacity: 0.3;"></i>
+                        <p class="mt-3 text-muted">No staff members found. Click "Add New Staff" to create one.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-onejax {
+        background: linear-gradient(90deg, var(--onejax-dark-blue), var(--onejax-blue));
+        border: none;
+        color: white;
+        padding: 0.6rem 1.2rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    .btn-onejax:hover {
+        background: linear-gradient(90deg, var(--onejax-blue), var(--onejax-dark-blue));
+        box-shadow: 0 4px 12px rgba(39, 138, 162, 0.3);
+        transform: translateY(-2px);
+    }
+    .table th {
+        font-weight: 600;
+        color: var(--onejax-dark-blue);
+        border-bottom: 2px solid var(--onejax-blue);
+    }
+    .table-hover tbody tr:hover {
+        background-color: rgba(75, 180, 200, 0.05);
+    }
+</style>
