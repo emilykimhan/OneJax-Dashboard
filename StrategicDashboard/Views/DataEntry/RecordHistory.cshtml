@@ -1,0 +1,221 @@
+@{
+    ViewData["Title"] = "Record History";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1 class="headline mb-4" style="color:var(--onejax-navy);">Record History</h1>
+
+<div class="container mt-4">
+    <div class="card p-4"
+        style="background-color:var(--onejax-white); 
+               box-shadow:0 4px 24px rgba(0,0,0,0.08); 
+               border-radius:24px; 
+               max-width:2000px;">
+
+        <p class="mb-4">View all previously entered data records below.</p>
+        
+        <!-- Staff Survey Records -->
+        <div class="record-section">
+            <h5 class="section-title">Staff Survey Records</h5>
+            @if (ViewBag.StaffSurveys != null && ((List<OneJaxDashboard.Models.StaffSurvey_22D>)ViewBag.StaffSurveys).Any())
+            {
+                <div class="records-list">
+                    @foreach (var survey in (List<OneJaxDashboard.Models.StaffSurvey_22D>)ViewBag.StaffSurveys)
+                    {
+                        <div class="record-item">
+                            <div class="record-header">
+                                <span class="record-type">Staff Survey</span>
+                                <span class="record-id">ID: @survey.Id</span>
+                            </div>
+                            <div class="record-details">
+                                <div class="detail-item">
+                                    <strong>Staff Name:</strong> @survey.Name
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Satisfaction Rate:</strong> @survey.SatisfactionRate%
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Professional Development Count:</strong> @survey.ProfessionalDevelopmentCount
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="no-records">No Staff Survey records found.</p>
+            }
+        </div>
+
+        <!-- Professional Development Records -->
+        <div class="record-section">
+            <h5 class="section-title">Professional Development Records</h5>
+            @if (ViewBag.ProfessionalDevelopments != null && ((List<OneJaxDashboard.Models.ProfessionalDevelopment>)ViewBag.ProfessionalDevelopments).Any())
+            {
+                <div class="records-list">
+                    @foreach (var profDev in (List<OneJaxDashboard.Models.ProfessionalDevelopment>)ViewBag.ProfessionalDevelopments)
+                    {
+                        <div class="record-item">
+                            <div class="record-header">
+                                <span class="record-type">Professional Development</span>
+                                <span class="record-id">ID: @profDev.Id</span>
+                            </div>
+                            <div class="record-details">
+                                <div class="detail-item">
+                                    <strong>Staff Name:</strong> @profDev.Name
+                                </div>
+                                <div class="detail-item">
+                                    <strong>2026 Activities:</strong> @profDev.ProfessionalDevelopmentYear26
+                                </div>
+                                <div class="detail-item">
+                                    <strong>2027 Activities:</strong> @profDev.ProfessionalDevelopmentYear27
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="no-records">No Professional Development records found.</p>
+            }
+        </div>
+
+        <!-- Back to Data Entry Button -->
+        <div class="back-navigation mt-4">
+            <a asp-controller="DataEntry" asp-action="Index" class="btn-back">
+                ← Back to Data Entry
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Record History Styles */
+    .record-section {
+        margin-bottom: 3rem;
+    }
+
+    .section-title {
+        color: var(--onejax-navy);
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #dee2e6;
+        font-size: 1.25rem;
+    }
+
+    .records-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .record-item {
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+
+    .record-item:hover {
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        transform: translateY(-1px);
+    }
+
+    .record-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #f1f3f4;
+    }
+
+    .record-type {
+        background: var(--onejax-navy);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .record-id {
+        color: #6c757d;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .record-details {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .detail-item {
+        color: #495057;
+        line-height: 1.5;
+    }
+
+    .detail-item strong {
+        color: var(--onejax-navy);
+        font-weight: 600;
+    }
+
+    .no-records {
+        color: #6c757d;
+        font-style: italic;
+        text-align: center;
+        padding: 3rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border: 1px dashed #dee2e6;
+        margin: 1rem 0;
+    }
+
+    .back-navigation {
+        border-top: 1px solid #dee2e6;
+        padding-top: 1.5rem;
+    }
+
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.75rem 1.5rem;
+        background: var(--onejax-navy);
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-back:hover {
+        background: #1a365d;
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    /* Responsive design for record history */
+    @@media (max-width: 768px) {
+        .record-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+        
+        .record-item {
+            padding: 1rem;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+        }
+    }
+</style>
