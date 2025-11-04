@@ -40,7 +40,7 @@ namespace StrategicDashboard.Controllers
         [Microsoft.AspNetCore.Authorization.AllowAnonymous]
         public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl = null)
         {
-            if (!ModelState.IsValid)
+            if (!ModelState.IsValid) 
                 return View(model);
             var usernameLower = model.Username.ToLower();
 
