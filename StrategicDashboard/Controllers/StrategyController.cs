@@ -1,17 +1,26 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using OneJax.StrategicDashboard.Models;
 using System.Collections.Generic;
 using System.Linq;
 
 public class StrategyController : Controller
 {
-    private static List<Strategy> strategies = new()
-    {
-        new Strategy { Id = 1, Name = "Test Event 1", Description = "Sample description for community engagement", StrategicGoalId = 1, Metrics = new List<Metric>() },
-        new Strategy { Id = 2, Name = "Test Event 2", Description = "Another event for leadership growth", StrategicGoalId = 2, Metrics = new List<Metric>() }
-    };
+    // In-memory "database" (no hardcoded initial events)
+    private static List<Strategy> strategies = new();
 
     public IActionResult Index(int? goalId)
     {
+        // Always populate the goals list
+        ViewBag.Goals = new List<SelectListItem>
+        {
+            new SelectListItem { Value = "1", Text = "Community Engagement" },
+            new SelectListItem { Value = "2", Text = "Education & Awareness" },
+            new SelectListItem { Value = "3", Text = "Leadership Development" },
+            new SelectListItem { Value = "4", Text = "Advocacy & Policy" }
+        };
+
+        // Only show events filtered by goal if requested
         var goalStrategies = goalId.HasValue
             ? strategies.Where(s => s.StrategicGoalId == goalId.Value).ToList()
             : strategies.ToList();
@@ -22,7 +31,6 @@ public class StrategyController : Controller
         return View(goalStrategies);
     }
 
-    // Add a new event
     [HttpPost]
     public IActionResult Add(int goalId, string eventName, string eventDescription)
     {
@@ -33,14 +41,12 @@ public class StrategyController : Controller
             Id = newId,
             Name = eventName,
             Description = eventDescription,
-            StrategicGoalId = goalId,
-            Metrics = new List<Metric>()
+            StrategicGoalId = goalId
         });
 
         return RedirectToAction("Index");
     }
 
-    // Edit an existing event
     [HttpPost]
     public IActionResult Edit(int id, string eventName, string eventDescription, int goalId)
     {
@@ -55,24 +61,13 @@ public class StrategyController : Controller
         return RedirectToAction("Index");
     }
 
-    // Add a metric to an event 
     [HttpPost]
-    public IActionResult AddMetric(int strategyId, string description, string target, string progress, string status, string timePeriod)
+    public IActionResult Delete(int id)
     {
-        var strategy = strategies.FirstOrDefault(s => s.Id == strategyId);
+        var strategy = strategies.FirstOrDefault(s => s.Id == id);
         if (strategy != null)
-        {
-            strategy.Metrics.Add(new Metric
-            {
-                Id = strategy.Metrics.Count + 1,
-                Description = description,
-                Target = target,
-                Progress = progress,
-                Status = status,
-                TimePeriod = timePeriod
-            });
-        }
+            strategies.Remove(strategy);
 
-        return RedirectToAction("Index", new { goalId = strategy?.StrategicGoalId });
+        return RedirectToAction("Index");
     }
 }
