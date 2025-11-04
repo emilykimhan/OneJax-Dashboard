@@ -4,9 +4,11 @@
 
 public class Strategy
 {
-    public int Id { get; set; } 
-    public string Name { get; set; } // the name of the strategy
-    public int StrategicGoalId { get; set; } // foreign key to the StrategicGoal
+    public int Id { get; set; }
+    public string Name { get; set; } 
+    public int StrategicGoalId { get; set; } 
     public string Description { get; set; }
-    public List<Metric> Metrics { get; set; } = new(); // list of associated metrics
+    public List<Metric> Metrics { get; set; } = new(); 
+    public string? Date { get; set; }  
+    public string? Time { get; set; }
 }

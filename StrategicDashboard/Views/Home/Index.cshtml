@@ -33,30 +33,24 @@
             <div class="d-flex flex-wrap align-items-center gap-3">
                 <!-- Status Filter -->
                 <select class="form-select" name="status" style="max-width:200px;">
-                    <option value="" @(string.IsNullOrEmpty(selectedStatus) ? "selected" : "")>Status: All</option>
-                    <option value="Active" @(selectedStatus == "Active" ? "selected" : "")>Active</option>
-                    <option value="Completed" @(selectedStatus == "Completed" ? "selected" : "")>Completed</option>
-                    <option value="Upcoming" @(selectedStatus == "Upcoming" ? "selected" : "")>Upcoming</option>
+                    <option value="" selected="@(string.IsNullOrEmpty(selectedStatus))">Status: All</option>
+                    <option value="Active" selected="@(selectedStatus == "Active")">Active</option>
+                    <option value="Completed" selected="@(selectedStatus == "Completed")">Completed</option>
+                    <option value="Upcoming" selected="@(selectedStatus == "Upcoming")">Upcoming</option>
                 </select>
                 <!-- Time Filter -->
                 <select class="form-select" name="time" style="max-width:200px;">
-                    <option value="" @(string.IsNullOrEmpty(selectedTime) ? "selected" : "")>All Time</option>
-                    <option value="Monthly" @(selectedTime == "Monthly" ? "selected" : "")>Monthly</option>
-                    <option value="Quarterly" @(selectedTime == "Quarterly" ? "selected" : "")>Quarterly</option>
-                    <option value="Yearly" @(selectedTime == "Yearly" ? "selected" : "")>Yearly</option>
+                    <option value="" selected="@(string.IsNullOrEmpty(selectedTime))">All Time</option>
+                    <option value="Monthly" selected="@(selectedTime == "Monthly")">Monthly</option>
+                    <option value="Quarterly" selected="@(selectedTime == "Quarterly")">Quarterly</option>
+                    <option value="Yearly" selected="@(selectedTime == "Yearly")">Yearly</option>
                 </select>
                 <!-- Goal Filter Dropdown -->
                 <select class="form-select" name="goal" style="max-width:200px;">
-                    <option value="" @(string.IsNullOrEmpty(selectedGoal) ? "selected" : "")>All Goals</option>
+                    <option value="" selected="@(string.IsNullOrEmpty(selectedGoal))">All Goals</option>
                     @foreach (var goal in Model.StrategicGoals)
                     {
-                        <h3>@goal.Name</h3>
-                        <ul>
-                            @foreach (var strategy in goal.Strategies)
-                            {
-                                <li>@strategy.Name</li>
-                            }
-                        </ul>
+                        <option value="@goal.Name" selected="@(selectedGoal == goal.Name)">@goal.Name</option>
                     }
                 </select>
                 <button type="submit" class="btn btn-primary ms-2">Filter</button>

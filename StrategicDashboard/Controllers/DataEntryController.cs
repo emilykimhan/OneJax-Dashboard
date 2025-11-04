@@ -1,28 +1,18 @@
 using Microsoft.AspNetCore.Mvc;
-using OneJax_Dashboard.Models;
+using Microsoft.EntityFrameworkCore;
+using StrategicDashboard.Models;
+using StrategicDashboard.Data;
 
-namespace OneJax_Dashboard.Controllers
+namespace OneJaxDashboard.Controllers
 {
     public class DataEntryController : Controller
     {
-        [HttpGet]
-        public IActionResult Index()
+        private readonly ApplicationDbContext _context;
+
+        public DataEntryController(ApplicationDbContext context)
         {
-            return View(new EventEntryViewModel());
+            _context = context;
         }
 
-        [HttpPost]
-        public IActionResult Index(EventEntryViewModel model)
-        {
-            if (ModelState.IsValid)
-            {
-                // TODO: Save to database
-                TempData["SuccessMessage"] = "Event successfully submitted!";
-                return RedirectToAction("Index");
-            }
-
-            // If validation fails, redisplay form with errors
-            return View(model);
-        }
     }
 }
