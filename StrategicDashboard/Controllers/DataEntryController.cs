@@ -5,7 +5,7 @@ using OneJaxDashboard.Models;
 namespace OneJax_Dashboard.Controllers
 {
     [Authorize(Roles = "Admin,Staff")]
-    public class DataEventController : Controller
+    public class DataEntryController : Controller
     {
         [HttpGet]
         public IActionResult Index()

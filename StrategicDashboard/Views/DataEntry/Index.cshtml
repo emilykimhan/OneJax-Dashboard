@@ -20,7 +20,7 @@
                         </div>
                     }
 
-                    @using (Html.BeginForm("Index", "DataEvent", FormMethod.Post, new { @class = "needs-validation" }))
+                    @using (Html.BeginForm("Index", "DataEntry", FormMethod.Post, new { @class = "needs-validation" }))
                     {
                         @Html.AntiForgeryToken()
                         @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
