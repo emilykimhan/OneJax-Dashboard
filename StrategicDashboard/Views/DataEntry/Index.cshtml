@@ -1,100 +1,179 @@
-@model OneJaxDashboard.Models.EventEntryViewModel
-
 @{
-    ViewData["Title"] = "Data Entry";
+    ViewData["Title"] = "Strategic Goals";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+<h1 class="headline mb-4" style="color:var(--onejax-navy);">OneJax Strategic Goals</h1>
+
 <div class="container mt-4">
-    <div class="row">
-        <div class="col-md-10 mx-auto">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0"><i class="bi bi-calendar-event me-2"></i>Event Assessment Data Entry</h4>
+    <div class="card p-4"
+        style="background-color:var(--onejax-white); 
+               box-shadow:0 4px 24px rgba(0,0,0,0.08); 
+               border-radius:24px; 
+               max-width:2000px;">
+
+        <!-- Pure CSS Tab System using :target -->
+        <div class="tab-system">
+            <!-- Tab Navigation -->
+            <div class="tab-nav">
+                <a href="#identity" class="tab-link">Identity / Value Proposition</a>
+                <a href="#community" class="tab-link">Community Engagement</a>
+                <a href="#financial" class="tab-link">Financial Sustainability</a>
+               <!-- Organizational Building tab -->
+                <a class="tab-link external"
+                   asp-controller="OrganizationalBuilding"
+                   asp-action="Index">Organizational Building</a>
+                <!-- Record History tab -->
+                 <a class="tab-link external"
+                   asp-controller="DataEntry"
+                   asp-action="RecordHistory">Record History</a>
+            </div>
+
+            <!-- Tab Content Panels -->
+            <div class="tab-panels">
+                <div id="identity" class="tab-panel">
+                    <div class="panel-content">
+                        <h4>Identity / Value Proposition</h4>
+                        <p>Content for Identity / Value Proposition will go here. This section focuses on 
+                           defining our core identity and unique value we bring to the community.</p>
+                    </div>
                 </div>
-                <div class="card-body">
-                    @if (TempData["SuccessMessage"] != null)
-                    {
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            <i class="bi bi-check-circle me-2"></i>@TempData["SuccessMessage"]
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    }
 
-                    @using (Html.BeginForm("Index", "DataEntry", FormMethod.Post, new { @class = "needs-validation" }))
-                    {
-                        @Html.AntiForgeryToken()
-                        @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+                <div id="community" class="tab-panel">
+                    <div class="panel-content">
+                        <h4>Community Engagement</h4>
+                        <p>Hello! This is the Community Engagement section where we focus on building 
+                           strong relationships with our community partners and stakeholders.</p>
+                    </div>
+                </div>
 
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                @Html.LabelFor(m => m.EventName, new { @class = "form-label" })
-                                @Html.TextBoxFor(m => m.EventName, new { @class = "form-control", placeholder = "Enter event name" })
-                                @Html.ValidationMessageFor(m => m.EventName, "", new { @class = "text-danger small" })
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                @Html.LabelFor(m => m.EventDate, new { @class = "form-label" })
-                                @Html.TextBoxFor(m => m.EventDate, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
-                                @Html.ValidationMessageFor(m => m.EventDate, "", new { @class = "text-danger small" })
-                            </div>
-                        </div>
-
-                        <hr class="my-4" />
-                        <h5 class="mb-3"><i class="bi bi-emoji-smile me-2"></i>Post-Event Satisfaction</h5>
-                        
-                        <div class="mb-4">
-                            @Html.LabelFor(m => m.PostEventSatisfaction, "Satisfaction Score (1-10)", new { @class = "form-label" })
-                            @Html.TextBoxFor(m => m.PostEventSatisfaction, new { @class = "form-control", type = "number", min = "1", max = "10" })
-                            @Html.ValidationMessageFor(m => m.PostEventSatisfaction, "", new { @class = "text-danger small" })
-                        </div>
-
-                        <hr class="my-4" />
-                        <h5 class="mb-3"><i class="bi bi-clipboard-check me-2"></i>Pre-Assessment Scores</h5>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                @Html.LabelFor(m => m.PreResiliency, "Resiliency Score (1-10)", new { @class = "form-label" })
-                                @Html.TextBoxFor(m => m.PreResiliency, new { @class = "form-control", type = "number", min = "1", max = "10" })
-                                @Html.ValidationMessageFor(m => m.PreResiliency, "", new { @class = "text-danger small" })
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                @Html.LabelFor(m => m.PreCommunication, "Communication Score (1-10)", new { @class = "form-label" })
-                                @Html.TextBoxFor(m => m.PreCommunication, new { @class = "form-control", type = "number", min = "1", max = "10" })
-                                @Html.ValidationMessageFor(m => m.PreCommunication, "", new { @class = "text-danger small" })
-                            </div>
-                        </div>
-
-                        <hr class="my-4" />
-                        <h5 class="mb-3"><i class="bi bi-clipboard-data me-2"></i>Post-Assessment Scores</h5>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                @Html.LabelFor(m => m.PostResiliency, "Resiliency Score (1-10)", new { @class = "form-label" })
-                                @Html.TextBoxFor(m => m.PostResiliency, new { @class = "form-control", type = "number", min = "1", max = "10" })
-                                @Html.ValidationMessageFor(m => m.PostResiliency, "", new { @class = "text-danger small" })
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                @Html.LabelFor(m => m.PostCommunication, "Communication Score (1-10)", new { @class = "form-label" })
-                                @Html.TextBoxFor(m => m.PostCommunication, new { @class = "form-control", type = "number", min = "1", max = "10" })
-                                @Html.ValidationMessageFor(m => m.PostCommunication, "", new { @class = "text-danger small" })
-                            </div>
-                        </div>
-
-                        <hr class="my-4" />
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="bi bi-save me-2"></i>Submit Event Assessment
-                            </button>
-                        </div>
-                    }
+                <div id="financial" class="tab-panel">
+                    <div class="panel-content">
+                        <h4>Financial Sustainability</h4>
+                        <p>Content for Financial Sustainability will go here. This section covers our 
+                           financial planning and sustainability strategies.</p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-@section Scripts {
-    @Html.Partial("_ValidationScriptsPartial")
-}
+<style>
+    /* CSS Tab System Styles */
+    .tab-system {
+        width: 100%;
+    }
+
+    /* Tab Navigation */
+    .tab-nav {
+        display: flex;
+        border-bottom: 2px solid #dee2e6;
+        margin-bottom: 1.5rem;
+        gap: 4px;
+    }
+
+    .tab-link {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-bottom: none;
+        padding: 12px 20px;
+        font-weight: 500;
+        color: var(--onejax-navy);
+        text-decoration: none;
+        border-radius: 8px 8px 0 0;
+        transition: all 0.3s ease;
+        display: block;
+    }
+
+    .tab-link:hover {
+        background: #e9ecef;
+        color: var(--onejax-navy);
+        text-decoration: none;
+    }
+
+    .tab-link.external {
+        background: var(--onejax-navy);
+        color: white;
+        border-color: var(--onejax-navy);
+    }
+
+    .tab-link.external:hover {
+        background: #1a365d;
+        color: white;
+    }
+
+    /* Tab Panels */
+    .tab-panels {
+        position: relative;
+        min-height: 300px;
+    }
+
+    .tab-panel {
+        display: none;
+        padding: 0;
+    }
+
+    /* CSS :target selector for tab switching */
+    .tab-panel:target {
+        display: block;
+    }
+
+    /* Show first tab by default */
+    .tab-panel:first-child {
+        display: block;
+    }
+
+    .tab-panel:target ~ .tab-panel {
+        display: none;
+    }
+
+    /* Panel Content */
+    .panel-content {
+        background: #f8f9fa;
+        padding: 2rem;
+        border-radius: 12px;
+        border: 1px solid #e9ecef;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .panel-content h4 {
+        color: var(--onejax-navy);
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+
+    .panel-content p {
+        color: #6c757d;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    /* Active tab styling - Default first tab active */
+    .tab-link[href="#identity"] {
+        background: white;
+        border-bottom: 2px solid white;
+        margin-bottom: -2px;
+        font-weight: 600;
+        box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+    }
+
+    /* Active state based on URL hash */
+    .tab-link[href="#community"]:target,
+    .tab-link[href="#financial"]:target {
+        background: white;
+        border-bottom: 2px solid white;
+        margin-bottom: -2px;
+        font-weight: 600;
+        box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+    }
+
+    /* Animation */
+    .tab-panel {
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+
+
+   
+</style>
