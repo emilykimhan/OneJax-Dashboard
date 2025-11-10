@@ -60,9 +60,21 @@
                                 <i class="bi bi-info-circle"></i>
                             </span>
                             <select name="Status" class="form-select">
-                                <option value="Planned" @(Model.Status == "Planned" ? "selected" : "")>Planned</option>
-                                <option value="In Progress" @(Model.Status == "In Progress" ? "selected" : "")>In Progress</option>
-                                <option value="Completed" @(Model.Status == "Completed" ? "selected" : "")>Completed</option>
+                                @if(Model.Status == "Planned") {
+                                    <option value="Planned" selected>Planned</option>
+                                } else {
+                                    <option value="Planned">Planned</option>
+                                }
+                                @if(Model.Status == "In Progress") {
+                                    <option value="In Progress" selected>In Progress</option>
+                                } else {
+                                    <option value="In Progress">In Progress</option>
+                                }
+                                @if(Model.Status == "Completed") {
+                                    <option value="Completed" selected>Completed</option>
+                                } else {
+                                    <option value="Completed">Completed</option>
+                                }
                             </select>
                         </div>
                     </div>

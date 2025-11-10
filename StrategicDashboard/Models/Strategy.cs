@@ -2,10 +2,19 @@
 // Properties: Id, Name, GoalName (which goal it belongs to).
 // Usage: Displayed and managed in the strategies view for each goal.
 
-public class Strategy
+using StrategicDashboard.Models;
+using OneJax.StrategicDashboard.Models;
+
+namespace StrategicDashboard.Models
 {
-    public int Id { get; set; } 
-    public string Name { get; set; } // the name of the strategy
-    public int StrategicGoalId { get; set; } // foreign key to the StrategicGoal
-    public List<Metric> Metrics { get; set; } = new(); // list of associated metrics
+    public class Strategy
+    {
+        public int Id { get; set; } 
+        public string Name { get; set; } = string.Empty; // the name of the strategy
+        public int StrategicGoalId { get; set; } // foreign key to the StrategicGoal
+        public List<Metric> Metrics { get; set; } = new(); // list of associated metrics
+        
+        // Navigation property
+        public virtual StrategicGoal? StrategicGoal { get; set; }
+    }
 }

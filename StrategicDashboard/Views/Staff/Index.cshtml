@@ -1,4 +1,4 @@
-@model IEnumerable<StrategicDashboard.Models.Staff>
+@model IEnumerable<OneJaxDashboard.Models.StaffSurvey_22D>
 
 @{
     ViewData["Title"] = "Staff Management";
@@ -42,7 +42,7 @@
                                     <tr>
                                         <td>@staff.Id</td>
                                         <td><strong>@staff.Username</strong></td>
-                                        <td>@staff.FullName</td>
+                                        <td>@staff.Name</td>
                                         <td>@staff.Email</td>
                                         <td class="text-center">
                                             <a href="/Staff/Edit/@staff.Id" class="btn btn-sm btn-outline-primary me-1">

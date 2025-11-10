@@ -18,5 +18,16 @@ namespace OneJaxDashboard.Models
         [Required(ErrorMessage = "Please enter the number of professional development activities.")]
         [Range(1, int.MaxValue, ErrorMessage = "Number of professional development activities must be a positive number.")]
         public int ProfessionalDevelopmentCount { get; set; }
+
+        // Authentication fields added for login functionality
+        [Display(Name = "Username")]
+        public string? Username { get; set; }
+
+        [Display(Name = "Password")]
+        public string? Password { get; set; }
+
+        [EmailAddress(ErrorMessage = "Invalid email address")]
+        [Display(Name = "Email")]
+        public string? Email { get; set; }
     }
 }

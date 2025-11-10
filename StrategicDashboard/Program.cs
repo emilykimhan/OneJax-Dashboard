@@ -20,8 +20,12 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     });
 
 builder.Services.AddSingleton<StrategicDashboard.Services.StaffService>();
-builder.Services.AddSingleton<StrategicDashboard.Services.ProjectsService>();
+builder.Services.AddSingleton<StrategicDashboard.Services.EventsService>();
+builder.Services.AddSingleton<StrategicDashboard.Services.StrategyService>();
 builder.Services.AddSingleton<StrategicDashboard.Services.ActivityLogService>();
+
+// Keep ProjectsService for backward compatibility during transition
+builder.Services.AddSingleton<StrategicDashboard.Services.ProjectsService>();
 
 var app = builder.Build();
 
@@ -33,9 +37,11 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapControllers();
+
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Account}/{action=Login}/{id?}"
+    pattern: "{controller=Home}/{action=Index}/{id?}"
 );
 
 

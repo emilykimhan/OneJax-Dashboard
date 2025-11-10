@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using OneJax.StrategicDashboard.Models;
+using StrategicDashboard.Models;
 using System.Collections.Generic;
 using System.Linq;
 

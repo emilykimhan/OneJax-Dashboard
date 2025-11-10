@@ -72,14 +72,14 @@ namespace StrategicDashboard.Controllers
             }
 
             // Staff login against database
-            var staff = _db.StaffMembers.FirstOrDefault(s => s.Username == model.Username);
+            var staff = _db.StaffSurveys_22D.FirstOrDefault(s => s.Username == model.Username);
             if (staff != null && staff.Password == model.Password)
             {
                 var claims = new List<Claim>
                 {
-                    new Claim(ClaimTypes.Name, staff.Username),
+                    new Claim(ClaimTypes.Name, staff.Username ?? string.Empty),
                     new Claim(ClaimTypes.Role, "Staff"),
-                    new Claim(ClaimTypes.GivenName, staff.FullName ?? string.Empty)
+                    new Claim(ClaimTypes.GivenName, staff.Name ?? string.Empty)
                 };
 
                 var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);

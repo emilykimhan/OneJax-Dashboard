@@ -11,8 +11,7 @@ namespace StrategicDashboard.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "BoardMembersEntries_29D");
+            migrationBuilder.Sql("DROP TABLE IF EXISTS \"BoardMembersEntries_29D\"");
         }
 
         /// <inheritdoc />

@@ -1,4 +1,4 @@
-@model StrategicDashboard.Models.Staff
+@model OneJaxDashboard.Models.StaffSurvey_22D
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "My Profile";
@@ -52,17 +52,17 @@
                     </div>
 
                     <div class="mb-4">
-                        @Html.LabelFor(m => m.FullName, new { @class = "form-label fw-semibold" })
+                        @Html.LabelFor(m => m.Name, new { @class = "form-label fw-semibold" })
                         <div class="input-group">
                             <span class="input-group-text">
                                 <i class="bi bi-person"></i>
                             </span>
-                            @Html.TextBoxFor(m => m.FullName, new { @class = "form-control", placeholder = "Enter your full name" })
+                            @Html.TextBoxFor(m => m.Name, new { @class = "form-control", placeholder = "Enter your full name" })
                         </div>
-                        @Html.ValidationMessageFor(m => m.FullName, "", new { @class = "text-danger small" })
+                        @Html.ValidationMessageFor(m => m.Name, "", new { @class = "text-danger small" })
                     </div>
 
-                    <div class="mb-4">
+                    <div class="mb-3">
                         @Html.LabelFor(m => m.Email, new { @class = "form-label fw-semibold" })
                         <div class="input-group">
                             <span class="input-group-text">
@@ -71,6 +71,28 @@
                             @Html.TextBoxFor(m => m.Email, new { @class = "form-control", type = "email", placeholder = "your.email@example.com" })
                         </div>
                         @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="mb-3">
+                        @Html.LabelFor(m => m.SatisfactionRate, new { @class = "form-label fw-semibold" })
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-heart"></i>
+                            </span>
+                            @Html.TextBoxFor(m => m.SatisfactionRate, new { @type = "number", @class = "form-control", placeholder = "Enter satisfaction rate (0-100)", @min = "0", @max = "100" })
+                        </div>
+                        @Html.ValidationMessageFor(m => m.SatisfactionRate, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="mb-4">
+                        @Html.LabelFor(m => m.ProfessionalDevelopmentCount, new { @class = "form-label fw-semibold" })
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-book"></i>
+                            </span>
+                            @Html.TextBoxFor(m => m.ProfessionalDevelopmentCount, new { @type = "number", @class = "form-control", placeholder = "Enter professional development count", @min = "1" })
+                        </div>
+                        @Html.ValidationMessageFor(m => m.ProfessionalDevelopmentCount, "", new { @class = "text-danger small" })
                     </div>
 
                     <hr class="my-4">

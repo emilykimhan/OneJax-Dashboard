@@ -2,6 +2,8 @@
     ViewData["Title"] = "Admin Dashboard";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var staffCount = ViewData["StaffCount"] as int? ?? 0;
+    var totalEvents = ViewData["TotalEvents"] as int? ?? 0;
+    var assignedEvents = ViewData["AssignedEvents"] as int? ?? 0;
 }
 
 <div class="row mb-4">
@@ -49,21 +51,31 @@
                         <i class="bi bi-calendar-event-fill text-success" style="font-size: 1.5rem;"></i>
                     </div>
                     <div>
-                        <h5 class="card-title mb-0">Events</h5>
-                        <p class="text-muted small mb-0">Manage submissions</p>
+                        <h5 class="card-title mb-0">Events Management</h5>
+                        <p class="text-muted small mb-0">Assign & track events</p>
                     </div>
                 </div>
-                <p class="text-muted mb-3">Submit new events and track strategic initiatives</p>
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <div class="text-center">
+                            <p class="display-6 fw-bold mb-0" style="color:var(--onejax-navy);">@totalEvents</p>
+                            <small class="text-muted">Total Events</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-center">
+                            <p class="display-6 fw-bold mb-0 text-success">@assignedEvents</p>
+                            <small class="text-muted">Assigned</small>
+                        </div>
+                    </div>
+                </div>
                 <div class="mt-auto">
-                    <a href="/DataEntry/Index" class="btn btn-success w-100 mb-2">
-                        <i class="bi bi-calendar-plus me-1"></i>Submit Event
+                    <a href="/Admin/AssignEvent" class="btn btn-success w-100 mb-2">
+                        <i class="bi bi-calendar-plus me-1"></i>Assign Event
                     </a>
-                    <button class="btn btn-outline-secondary w-100" disabled title="Coming soon">
+                    <a href="/Admin/ManageEvents" class="btn btn-outline-success w-100">
                         <i class="bi bi-kanban me-1"></i>Manage Events
-                    </button>
-                    <small class="text-muted d-block mt-2">
-                        <i class="bi bi-info-circle me-1"></i>Event list management coming soon
-                    </small>
+                    </a>
                 </div>
             </div>
         </div>
@@ -132,14 +144,14 @@
                         </a>
                     </div>
                     <div class="col-md-6 col-lg-3">
-                        <a href="/DataEntry/Index" class="text-decoration-none">
+                        <a href="/Admin/AssignEvent" class="text-decoration-none">
                             <div class="d-flex align-items-center p-3 bg-light rounded hover-card">
                                 <div class="rounded-circle bg-success bg-opacity-25 p-2 me-3">
                                     <i class="bi bi-calendar-plus-fill text-success"></i>
                                 </div>
                                 <div>
-                                    <div class="fw-semibold text-dark">Submit Event</div>
-                                    <small class="text-muted">Log new activity</small>
+                                    <div class="fw-semibold text-dark">Assign Event</div>
+                                    <small class="text-muted">Assign to staff</small>
                                 </div>
                             </div>
                         </a>
