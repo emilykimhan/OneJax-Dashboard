@@ -18,5 +18,7 @@ namespace OneJaxDashboard.Models
         [Required(ErrorMessage = "Please enter the number of professional development activities.")]
         [Range(1, int.MaxValue, ErrorMessage = "Number of professional development activities must be a positive number.")]
         public int ProfessionalDevelopmentCount { get; set; }
+
+        
     }
 }
