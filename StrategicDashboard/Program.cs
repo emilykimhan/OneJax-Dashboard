@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using OneJaxDashboard.Data;
-
+OfficeOpenXml.ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
 var builder = WebApplication.CreateBuilder(args);
 
 
