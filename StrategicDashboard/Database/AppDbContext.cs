@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using StrategicDashboard.Models;
 using OneJaxDashboard.Models;
 using OneJax.StrategicDashboard.Models;
+using OneJax.StrategicDashboard.Models;
 
 namespace OneJaxDashboard.Data
 {
@@ -13,6 +14,7 @@ namespace OneJaxDashboard.Data
         {
         }
 
+        // Your friend's existing tables
         // Staff functionality commented out - will use existing tables instead
         // public DbSet<Staff> StaffMembers { get; set; }
         public DbSet<StaffSurvey_22D> StaffSurveys_22D { get; set; } = default!;
