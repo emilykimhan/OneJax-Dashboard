@@ -1,14 +1,14 @@
-// Purpose: Static helper class that holds your four main goals as a list of strings.
-// Usage: Used to get the list of goals anywhere in your app; these goals never change.
 
-public static class StrategicGoalsHelper
+namespace OneJax.StrategicDashboard.Models
 {
-    public static List<string> All { get; } = new List<string>
+    public static class StrategicGoalsHelper
     {
-        "Community Engagement",
-        "Financial Sustainability",
-        "Identify/Value Proposition",
-        "Organizational Building",
-
-    };
+        public static List<string> All { get; } = new List<string>
+        {
+            "Community Engagement",
+            "Financial Sustainability",
+            "Identify/Value Proposition",
+            "Organizational Building"
+        };
+    }
 }
