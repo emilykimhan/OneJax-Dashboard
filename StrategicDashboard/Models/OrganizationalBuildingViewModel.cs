@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace OneJaxDashboard.Models
+namespace StrategicDashboard.Models
 {
     public class OrganizationalBuildingViewModel
     {

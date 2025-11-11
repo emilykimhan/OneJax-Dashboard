@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using OneJaxDashboard.Models;
-using OneJaxDashboard.Data;
+using StrategicDashboard.Data;
 
 namespace OneJaxDashboard.Controllers
 {
@@ -20,33 +20,6 @@ namespace OneJaxDashboard.Controllers
         {
             ViewBag.StaffMembers = GetStaffMembers();
             return View(new ProfessionalDevelopment());
-        }
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Index(ProfessionalDevelopment model)
-        {
-            ViewBag.StaffMembers = GetStaffMembers();
-            
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    // Save to database
-                    _context.ProfessionalDevelopments.Add(model);
-                    await _context.SaveChangesAsync();
-                    
-                    TempData["Success"] = $"Professional development record for {model.Name} submitted successfully! Year 2026: {model.ProfessionalDevelopmentYear26} activities, Year 2027: {model.ProfessionalDevelopmentYear27} activities.";
-                    return RedirectToAction("Index");
-                }
-                catch (Exception)
-                {
-                    TempData["Error"] = "An error occurred while saving the professional development record. Please try again.";
-                    return View(model);
-                }
-            }
-
-           
-            return View(model);
         }
 
         private List<SelectListItem> GetStaffMembers()
