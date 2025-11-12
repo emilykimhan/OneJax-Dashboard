@@ -1,4 +1,4 @@
-@model OneJax.StrategicDashboard.Models.Event
+@model StrategicDashboard.Models.Event
 @{
     ViewData["Title"] = $"{Model.Title} - Event Details";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -115,7 +115,7 @@
                 <p class="lead mb-3">@Model.Type Event</p>
                 <div class="d-flex align-items-center gap-3">
                     <span class="status-badge status-@Model.Status.ToLower()">@Model.Status</span>
-                    <small style="opacity: 0.8;">@Model.Date.ToString("MMMM dd, yyyy")</small>
+                    <small style="opacity: 0.8;">@Model.DueDate?.ToString("MMMM dd, yyyy")</small>
                 </div>
             </div>
             <div class="col-md-4 text-end">
@@ -148,7 +148,7 @@
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <h6 style="color: var(--onejax-text); font-weight: 600;">Date & Time</h6>
-                        <p style="color: var(--onejax-text-muted); margin: 0;">@Model.Date.ToString("dddd, MMMM dd, yyyy")</p>
+                        <p style="color: var(--onejax-text-muted); margin: 0;">@Model.DueDate?.ToString("dddd, MMMM dd, yyyy")</p>
                     </div>
                     <div class="col-md-6 mb-3">
                         <h6 style="color: var(--onejax-text); font-weight: 600;">Event Type</h6>
@@ -227,7 +227,7 @@
                 {
                     <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 1rem; margin-top: 1rem;">
                         <h6 style="color: #92400e; margin-bottom: 0.5rem;">📅 Upcoming Event</h6>
-                        <small style="color: #92400e;">This event is scheduled for @Model.Date.ToString("MMMM dd, yyyy")</small>
+                        <small style="color: #92400e;">This event is scheduled for @Model.DueDate?.ToString("MMMM dd, yyyy")</small>
                     </div>
                 }
                 else if (Model.Status == "Active")
@@ -241,7 +241,7 @@
                 {
                     <div style="background: #dbeafe; border: 1px solid #3b82f6; border-radius: 8px; padding: 1rem; margin-top: 1rem;">
                         <h6 style="color: #1e40af; margin-bottom: 0.5rem;">✅ Successfully Completed</h6>
-                        <small style="color: #1e40af;">This event was completed on @Model.Date.ToString("MMMM dd, yyyy")</small>
+                        <small style="color: #1e40af;">This event was completed on @Model.DueDate?.ToString("MMMM dd, yyyy")</small>
                     </div>
                 }
             </div>

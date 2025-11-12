@@ -1,5 +1,6 @@
 @model DashboardViewModel
 @using OneJax.StrategicDashboard.Models
+@using StrategicDashboard.Models
 @{
     ViewData["Title"] = "OneJax Strategic Dashboard";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -824,13 +825,13 @@
                                                 <div class="card event-card" 
                                                      style="background-color:var(--onejax-white); border-radius:12px;"
                                                      data-status="@eventItem.Status"
-                                                     data-date="@eventItem.Date.ToString("yyyy-MM-dd")"
-                                                     data-quarter="@((eventItem.Date.Month - 1) / 3 + 1)"
-                                                     data-year="@eventItem.Date.Year">
+                                                     data-date="@eventItem.DueDate?.ToString("yyyy-MM-dd")"
+                                                     data-quarter="@((eventItem.DueDate?.Month - 1) / 3 + 1)"
+                                                     data-year="@eventItem.DueDate?.Year">
                                                     <div class="card-body">
                                                         <h6 class="card-title" style="color:var(--onejax-navy);">@eventItem.Title</h6>
                                                         <p class="card-text" style="color:var(--onejax-navy);">
-                                                            <strong>Date:</strong> @eventItem.Date.ToString("MMM dd, yyyy")<br />
+                                                            <strong>Date:</strong> @eventItem.DueDate?.ToString("MMM dd, yyyy")<br />
                                                             <strong>Type:</strong> @eventItem.Type<br />
                                                             <strong>Location:</strong> @eventItem.Location<br />
                                                             <strong>Status:</strong> <span class="badge 

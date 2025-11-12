@@ -261,7 +261,7 @@ public class HomeController : Controller
                 {
                     Id = 10,
                     Title = "Annual Staff Retreat",
-                    Date = new DateTime(2025, 8, 15),
+                    DueDate = new DateTime(2025, 8, 15),
                     Status = "Completed",
                     StrategicGoalId = 4,
                     Type = "Team Building",
@@ -273,7 +273,7 @@ public class HomeController : Controller
                 {
                     Id = 11,
                     Title = "Leadership Development Workshop",
-                    Date = new DateTime(2025, 11, 20),
+                    DueDate = new DateTime(2025, 11, 20),
                     Status = "Planned",
                     StrategicGoalId = 4,
                     Type = "Training",
@@ -490,7 +490,7 @@ public class HomeController : Controller
                         Title = $"Staff Survey Completed",
                         Type = "Assessment",
                         Notes = $"{staffSurveys.Count} staff members completed satisfaction surveys",
-                        Date = DateTime.Now.AddDays(-1),
+                        DueDate = DateTime.Now.AddDays(-1),
                         Status = "Completed",
                         StrategicGoalId = 1,
                         Attendees = staffSurveys.Count
@@ -505,7 +505,7 @@ public class HomeController : Controller
                         Title = $"Professional Development Plans Submitted",
                         Type = "Planning",
                         Notes = $"{profDev.Count} development plans for 2026-2027",
-                        Date = DateTime.Now.AddDays(-2),
+                        DueDate = DateTime.Now.AddDays(-2),
                         Status = "Completed",
                         StrategicGoalId = 1,
                         Attendees = profDev.Count

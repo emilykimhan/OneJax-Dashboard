@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OneJax.StrategicDashboard.Models;
 using OneJaxDashboard.Data;
+using StrategicDashboard.Models;
 
 namespace StrategicDashboard.Controllers
 {
@@ -110,7 +111,7 @@ namespace StrategicDashboard.Controllers
                         {
                             Id = 1,
                             Title = "Community Partnership Forum",
-                            Date = DateTime.Now.AddDays(30),
+                            DueDate = DateTime.Now.AddDays(30),
                             Status = "Planned",
                             StrategicGoalId = 1,
                             Type = "Workshop",
@@ -120,7 +121,7 @@ namespace StrategicDashboard.Controllers
                         {
                             Id = 2,
                             Title = "Youth Development Program",
-                            Date = DateTime.Now.AddDays(-15),
+                            DueDate = DateTime.Now.AddDays(-15),
                             Status = "Active",
                             StrategicGoalId = 1,
                             Type = "Program",
@@ -155,7 +156,7 @@ namespace StrategicDashboard.Controllers
                         {
                             Id = 3,
                             Title = "Brand Identity Launch",
-                            Date = DateTime.Now.AddDays(-60),
+                            DueDate = DateTime.Now.AddDays(-60),
                             Status = "Completed",
                             StrategicGoalId = 2,
                             Type = "Launch",
@@ -190,7 +191,7 @@ namespace StrategicDashboard.Controllers
                         {
                             Id = 4,
                             Title = "Fundraising Gala",
-                            Date = DateTime.Now.AddDays(45),
+                            DueDate = DateTime.Now.AddDays(45),
                             Status = "Planned",
                             StrategicGoalId = 3,
                             Type = "Fundraising",
@@ -225,7 +226,7 @@ namespace StrategicDashboard.Controllers
                         {
                             Id = 5,
                             Title = "Staff Development Workshop",
-                            Date = DateTime.Now.AddDays(-5),
+                            DueDate = DateTime.Now.AddDays(-5),
                             Status = "Completed",
                             StrategicGoalId = 4,
                             Type = "Training",

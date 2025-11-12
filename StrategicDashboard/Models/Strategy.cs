@@ -2,6 +2,9 @@
 // Properties: Id, Name, GoalName (which goal it belongs to).
 // Usage: Displayed and managed in the strategies view for each goal.
 
+using OneJax.StrategicDashboard.Models;
+using StrategicDashboard.Models;
+
 public class Strategy
 {
     public int Id { get; set; }
@@ -11,4 +14,6 @@ public class Strategy
     public List<Metric> Metrics { get; set; } = new(); 
     public string? Date { get; set; }  
     public string? Time { get; set; }
+
+    public StrategicGoal StrategicGoal { get; set; }
 }

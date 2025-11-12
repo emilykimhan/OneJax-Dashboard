@@ -1,4 +1,4 @@
-namespace StrategicDashboard.Models
+namespace OneJax.StrategicDashboard.Models
 {
     public class Metric
     {

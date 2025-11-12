@@ -11,6 +11,18 @@ namespace StrategicDashboard.Models
         [Display(Name = "Event Title")]
         public string Title { get; set; } = string.Empty;
 
+        public string Type { get; set; } = ""; // Workshop, Meeting, Training, etc.
+        public string Location { get; set; } = "";
+
+        public decimal? SatisfactionScore { get; set; }
+
+        public int Attendees { get; set; }
+
+        public string Notes { get; set; } = "";
+
+        public string PreAssessmentData { get; set; } = "";
+        public string PostAssessmentData { get; set; } = "";
+
         [Display(Name = "Description")]
         public string Description { get; set; } = string.Empty;
 
