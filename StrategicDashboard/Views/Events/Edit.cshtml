@@ -1,0 +1,175 @@
+@model StrategicDashboard.Models.Event
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Edit Event";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-10 col-lg-8">
+        <div class="mb-3">
+            <a href="/Events" class="text-decoration-none">
+                <i class="bi bi-arrow-left me-1"></i>Back to Events
+            </a>
+        </div>
+        
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white border-bottom py-3">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-warning bg-opacity-10 p-2 me-3">
+                        <i class="bi bi-pencil-fill text-warning" style="font-size: 1.5rem;"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0 fw-bold">Edit Event</h4>
+                        <p class="text-muted small mb-0">Update event details and strategic assignments</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                @using (Html.BeginForm("Edit", "Events", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.HiddenFor(m => m.Id)
+                    @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
+                    <div class="mb-4">
+                        @Html.LabelFor(m => m.Title, new { @class = "form-label fw-semibold" })
+                        <span class="text-danger">*</span>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-card-heading"></i>
+                            </span>
+                            @Html.TextBoxFor(m => m.Title, new { @class = "form-control", placeholder = "Enter event title" })
+                        </div>
+                        @Html.ValidationMessageFor(m => m.Title, "", new { @class = "text-danger small" })
+                    </div>
+                    
+                    <div class="mb-4">
+                        @Html.LabelFor(m => m.Description, new { @class = "form-label fw-semibold" })
+                        <div class="input-group">
+                            <span class="input-group-text align-items-start pt-2">
+                                <i class="bi bi-text-paragraph"></i>
+                            </span>
+                            @Html.TextAreaFor(m => m.Description, new { @class = "form-control", rows = 4, placeholder = "Describe the event..." })
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            @Html.LabelFor(m => m.StrategicGoalId, new { @class = "form-label fw-semibold" })
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-target"></i>
+                                </span>
+                                @Html.DropDownListFor(m => m.StrategicGoalId, ViewBag.StrategicGoals as SelectList, "Select Strategic Goal", new { @class = "form-select", id = "strategicGoalSelect" })
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            @Html.LabelFor(m => m.StrategyId, new { @class = "form-label fw-semibold" })
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-lightning"></i>
+                                </span>
+                                @Html.DropDownListFor(m => m.StrategyId, ViewBag.Strategies as SelectList, "Select Strategy", new { @class = "form-select", id = "strategySelect" })
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            @Html.LabelFor(m => m.Status, new { @class = "form-label fw-semibold" })
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-info-circle"></i>
+                                </span>
+                                @Html.DropDownListFor(m => m.Status, new SelectList(new[] { "Planned", "In Progress", "Completed" }, Model.Status), new { @class = "form-select" })
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            @Html.LabelFor(m => m.StartDate, new { @class = "form-label fw-semibold" })
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-calendar-event"></i>
+                                </span>
+                                @Html.TextBoxFor(m => m.StartDate, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            @Html.LabelFor(m => m.EndDate, new { @class = "form-label fw-semibold" })
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-calendar-check"></i>
+                                </span>
+                                @Html.TextBoxFor(m => m.EndDate, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-3 pt-3 border-top">
+                        <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold">
+                            <i class="bi bi-check-lg me-2"></i>Update Event
+                        </button>
+                        <a href="/Events" class="btn btn-outline-secondary px-4 py-2">
+                            <i class="bi bi-x-lg me-2"></i>Cancel
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            var initialGoalId = '@(Model.StrategicGoalId)';
+            var initialStrategyId = '@(Model.StrategyId)';
+            
+            // Load strategies for initial goal if one is selected
+            if (initialGoalId) {
+                loadStrategies(initialGoalId, initialStrategyId);
+            }
+            
+            // Handle strategic goal selection change
+            $('#strategicGoalSelect').change(function() {
+                var goalId = $(this).val();
+                loadStrategies(goalId);
+            });
+            
+            function loadStrategies(goalId, selectedStrategyId) {
+                var $strategySelect = $('#strategySelect');
+                
+                if (goalId) {
+                    // Enable strategy dropdown and fetch strategies for selected goal
+                    $strategySelect.prop('disabled', false);
+                    
+                    // Clear current options except placeholder
+                    $strategySelect.html('<option value="">Select Strategy</option>');
+                    
+                    // Fetch strategies for the selected goal
+                    $.get('/Events/GetStrategiesByGoal/' + goalId, function(data) {
+                        $.each(data, function(index, strategy) {
+                            var selected = selectedStrategyId && strategy.value == selectedStrategyId ? ' selected' : '';
+                            $strategySelect.append('<option value="' + strategy.value + '"' + selected + '>' + strategy.text + '</option>');
+                        });
+                    });
+                } else {
+                    // Disable strategy dropdown and reset
+                    $strategySelect.prop('disabled', true);
+                    $strategySelect.html('<option value="">Select Strategy</option>');
+                }
+            }
+        });
+    </script>
+    
+    <style>
+        .btn-primary {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2c5f7f 100%);
+            border: none;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(30, 58, 95, 0.3);
+        }
+    </style>
+}

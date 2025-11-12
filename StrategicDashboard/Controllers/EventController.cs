@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OneJax.StrategicDashboard.Models;
 using OneJaxDashboard.Data;
+using StrategicDashboard.Models;
 
 namespace StrategicDashboard.Controllers
 {
@@ -43,7 +44,7 @@ namespace StrategicDashboard.Controllers
             // Use the same logic as HomeController to get goals with events
             var allGoals = GetGoalsWithEvents();
             var sampleEvent = allGoals
-                .SelectMany(g => g.Events ?? new List<Event>())
+                .SelectMany(g => g.Events)
                 .FirstOrDefault(e => e.Id == id);
             
             if (sampleEvent != null)
@@ -60,7 +61,7 @@ namespace StrategicDashboard.Controllers
             {
                 Id = id,
                 Title = "Event Details",
-                Date = DateTime.Now,
+                DueDate = DateTime.Now,
                 Type = "General",
                 Location = "TBD",
                 StrategicGoalId = 1,
@@ -155,7 +156,7 @@ namespace StrategicDashboard.Controllers
                             Title = $"Staff Survey Completed",
                             Type = "Assessment",
                             Notes = $"{staffSurveys.Count} staff members completed satisfaction surveys",
-                            Date = DateTime.Now.AddDays(-1),
+                            DueDate = DateTime.Now.AddDays(-1),
                             Status = "Completed",
                             StrategicGoalId = 1,
                             Attendees = staffSurveys.Count
@@ -170,7 +171,7 @@ namespace StrategicDashboard.Controllers
                             Title = $"Professional Development Plans Submitted",
                             Type = "Planning",
                             Notes = $"{profDev.Count} development plans for 2026-2027",
-                            Date = DateTime.Now.AddDays(-2),
+                            DueDate = DateTime.Now.AddDays(-2),
                             Status = "Completed",
                             StrategicGoalId = 1,
                             Attendees = profDev.Count

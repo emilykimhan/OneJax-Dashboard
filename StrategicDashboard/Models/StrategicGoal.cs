@@ -2,6 +2,7 @@
 // Properties: GoalName, StatusColor, ProgressPercent (for display / styling).
 // Usage: Used for tabs and goal filtering in the dashboard.
 
+using StrategicDashboard.Models;
 
 namespace OneJax.StrategicDashboard.Models
 {
@@ -13,5 +14,7 @@ namespace OneJax.StrategicDashboard.Models
         public List<GoalMetric> Metrics { get; set; } = new(); // Track KPIs and metrics
         public string Description { get; set; } = "";
         public string Color { get; set; } = ""; // For dashboard styling
+
+        public List<Strategy> Strategies { get; set; } = new();
     }
 }

@@ -1,0 +1,123 @@
+@model OneJaxDashboard.Models.StaffSurvey_22D
+
+@{
+    ViewData["Title"] = "Create Staff Account";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-xl-6">
+            <div class="dashboard-card bg-white">
+                <div class="circle-bg"></div>
+                <div class="circle-bg2"></div>
+                
+                <div class="mb-4">
+                    <h2 class="headline mb-2" style="color: var(--onejax-dark-blue);">Create New Staff Account</h2>
+                    <p class="text-muted">Add a new staff member to the system</p>
+                </div>
+
+                @using (Html.BeginForm("Create", "Staff", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.ValidationSummary(true, "", new { @class = "alert alert-danger", role = "alert" })
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Username</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="bi bi-person"></i></span>
+                            @Html.TextBoxFor(m => m.Username, new { @class = "form-control", placeholder = "Enter username" })
+                        </div>
+                        @Html.ValidationMessageFor(m => m.Username, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="bi bi-lock"></i></span>
+                            @Html.PasswordFor(m => m.Password, new { @class = "form-control", placeholder = "Enter password" })
+                        </div>
+                        @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Full Name</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="bi bi-person-badge"></i></span>
+                            @Html.TextBoxFor(m => m.Name, new { @class = "form-control", placeholder = "Enter full name" })
+                        </div>
+                        @Html.ValidationMessageFor(m => m.Name, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Email</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="bi bi-envelope"></i></span>
+                            @Html.TextBoxFor(m => m.Email, new { @type = "email", @class = "form-control", placeholder = "Enter email address" })
+                        </div>
+                        @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Satisfaction Rate (%)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="bi bi-heart"></i></span>
+                            @Html.TextBoxFor(m => m.SatisfactionRate, new { @type = "number", @class = "form-control", placeholder = "Enter satisfaction rate (0-100)", @min = "0", @max = "100" })
+                        </div>
+                        @Html.ValidationMessageFor(m => m.SatisfactionRate, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Professional Development Count</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="bi bi-book"></i></span>
+                            @Html.TextBoxFor(m => m.ProfessionalDevelopmentCount, new { @type = "number", @class = "form-control", placeholder = "Enter professional development count", @min = "1" })
+                        </div>
+                        @Html.ValidationMessageFor(m => m.ProfessionalDevelopmentCount, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="d-flex gap-2 justify-content-end">
+                        <a href="/Staff/Index" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle me-1"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-onejax">
+                            <i class="bi bi-check-circle me-1"></i>Create Staff
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-onejax {
+        background: linear-gradient(90deg, var(--onejax-dark-blue), var(--onejax-blue));
+        border: none;
+        color: white;
+        padding: 0.6rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    .btn-onejax:hover {
+        background: linear-gradient(90deg, var(--onejax-blue), var(--onejax-dark-blue));
+        box-shadow: 0 4px 12px rgba(39, 138, 162, 0.3);
+        transform: translateY(-2px);
+    }
+    .input-group-text {
+        border-right: 0;
+        color: var(--onejax-dark-blue);
+    }
+    .input-group .form-control {
+        border-left: 0;
+    }
+    .input-group .form-control:focus {
+        border-color: var(--onejax-blue);
+        box-shadow: 0 0 0 0.2rem rgba(75, 180, 200, 0.25);
+    }
+</style>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

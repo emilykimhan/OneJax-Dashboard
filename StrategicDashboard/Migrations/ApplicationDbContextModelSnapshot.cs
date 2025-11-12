@@ -174,8 +174,14 @@ namespace StrategicDashboard.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("Email")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Name")
                         .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Password")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("ProfessionalDevelopmentCount")
@@ -184,7 +190,14 @@ namespace StrategicDashboard.Migrations
                     b.Property<int>("SatisfactionRate")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("Username")
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("Username")
+                        .IsUnique()
+                        .HasFilter("[Username] IS NOT NULL");
 
                     b.ToTable("StaffSurveys_22D");
                 });

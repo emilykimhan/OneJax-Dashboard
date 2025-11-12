@@ -1,25 +1,68 @@
-// Purpose: Represents an event in the dashboard
-// Usage: Events are organized under strategic goals for categorization
+using System.ComponentModel.DataAnnotations;
+using OneJax.StrategicDashboard.Models;
 
-namespace OneJax.StrategicDashboard.Models
+namespace StrategicDashboard.Models
 {
     public class Event
     {
         public int Id { get; set; }
-        public string Title { get; set; } = "";
-        public DateTime Date { get; set; }
+
+        [Required(ErrorMessage = "Title is required")]
+        [Display(Name = "Event Title")]
+        public string Title { get; set; } = string.Empty;
+
         public string Type { get; set; } = ""; // Workshop, Meeting, Training, etc.
         public string Location { get; set; } = "";
-        public int StrategicGoalId { get; set; } // Which goal this event supports
-        public string Status { get; set; } = "Planned"; // Planned, Active, Completed, Cancelled
-        
-        // Assessment data
+
+        public decimal? SatisfactionScore { get; set; }
+
+        public int Attendees { get; set; }
+
+        public string Notes { get; set; } = "";
+
         public string PreAssessmentData { get; set; } = "";
         public string PostAssessmentData { get; set; } = "";
-        
-        // Optional metrics
-        public int Attendees { get; set; }
-        public decimal? SatisfactionScore { get; set; }
-        public string Notes { get; set; } = "";
+
+        [Display(Name = "Description")]
+        public string Description { get; set; } = string.Empty;
+
+        [Display(Name = "Status")]
+        public string Status { get; set; } = "Planned"; // Planned, In Progress, Completed
+
+        [Display(Name = "Start Date")]
+        [DataType(DataType.Date)]
+        public DateTime? StartDate { get; set; }
+
+        [Display(Name = "End Date")]
+        [DataType(DataType.Date)]
+        public DateTime? EndDate { get; set; }
+
+        // Link to Strategic Goal and Strategy
+        [Display(Name = "Strategic Goal")]
+        public int? StrategicGoalId { get; set; }
+
+        [Display(Name = "Strategy")]
+        public int? StrategyId { get; set; }
+
+        // Ownership by username to align with current auth model
+        public string OwnerUsername { get; set; } = string.Empty;
+
+        // Admin assignment fields
+        [Display(Name = "Assigned By Admin")]
+        public bool IsAssignedByAdmin { get; set; } = false;
+
+        [Display(Name = "Admin Notes")]
+        public string AdminNotes { get; set; } = string.Empty;
+
+        [Display(Name = "Assignment Date")]
+        public DateTime? AssignmentDate { get; set; }
+
+        [Display(Name = "Due Date")]
+        [DataType(DataType.Date)]
+        public DateTime? DueDate { get; set; }
+
+        // Navigation properties (optional for display purposes)
+        public virtual StrategicGoal? StrategicGoal { get; set; }
+        public virtual Strategy? Strategy { get; set; }
     }
 }

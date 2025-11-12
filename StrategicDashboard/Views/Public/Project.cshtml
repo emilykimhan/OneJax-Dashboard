@@ -230,7 +230,7 @@
                 <div class="card" style="border-radius: 16px; border: 1px solid var(--onejax-border); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);">
                     <div class="card-body p-4">
                         <div class="activity-timeline">
-                            @foreach (var eventItem in Model.Events.OrderByDescending(e => e.Date))
+                            @foreach (var eventItem in Model.Events.OrderByDescending(e => e.DueDate))
                             {
                                 <div class="timeline-item">
                                     <div class="timeline-dot @eventItem.Status.ToLower()"></div>
@@ -238,7 +238,7 @@
                                         <div>
                                             <h6 style="color: var(--onejax-navy); font-weight: 600; margin-bottom: 0.5rem;">@eventItem.Title</h6>
                                             <p style="color: var(--onejax-text-muted); margin-bottom: 0.5rem;">
-                                                @eventItem.Date.ToString("MMMM dd, yyyy") • @eventItem.Type
+                                                @eventItem.DueDate?.ToString("MMMM dd, yyyy") • @eventItem.Type
                                                 @if (!string.IsNullOrEmpty(eventItem.Location))
                                                 {
                                                     <span> • @eventItem.Location</span>
