@@ -1,0 +1,121 @@
+@model StrategicDashboard.Models.Project
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Edit Project";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-10 col-lg-8">
+        <div class="mb-3">
+            <a href="/Projects" class="text-decoration-none">
+                <i class="bi bi-arrow-left me-1"></i>Back to Projects
+            </a>
+        </div>
+        
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white border-bottom py-3">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-3">
+                        <i class="bi bi-pencil-square text-primary" style="font-size: 1.5rem;"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0 fw-bold">Edit Project</h4>
+                        <p class="text-muted small mb-0">Update project details</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                @using (Html.BeginForm("Edit", "Projects", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.HiddenFor(m => m.Id)
+                    @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
+                    <div class="mb-4">
+                        @Html.LabelFor(m => m.Title, new { @class = "form-label fw-semibold" })
+                        <span class="text-danger">*</span>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-card-heading"></i>
+                            </span>
+                            @Html.TextBoxFor(m => m.Title, new { @class = "form-control", placeholder = "Enter project title" })
+                        </div>
+                        @Html.ValidationMessageFor(m => m.Title, "", new { @class = "text-danger small" })
+                    </div>
+                    
+                    <div class="mb-4">
+                        @Html.LabelFor(m => m.Description, new { @class = "form-label fw-semibold" })
+                        <div class="input-group">
+                            <span class="input-group-text align-items-start pt-2">
+                                <i class="bi bi-text-paragraph"></i>
+                            </span>
+                            @Html.TextAreaFor(m => m.Description, new { @class = "form-control", rows = 4, placeholder = "Describe your project goals and details..." })
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        @Html.LabelFor(m => m.Status, new { @class = "form-label fw-semibold" })
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-info-circle"></i>
+                            </span>
+                            <select name="Status" class="form-select">
+                                @if(Model.Status == "Planned") {
+                                    <option value="Planned" selected>Planned</option>
+                                } else {
+                                    <option value="Planned">Planned</option>
+                                }
+                                @if(Model.Status == "In Progress") {
+                                    <option value="In Progress" selected>In Progress</option>
+                                } else {
+                                    <option value="In Progress">In Progress</option>
+                                }
+                                @if(Model.Status == "Completed") {
+                                    <option value="Completed" selected>Completed</option>
+                                } else {
+                                    <option value="Completed">Completed</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                @Html.LabelFor(m => m.StartDate, new { @class = "form-label fw-semibold" })
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="bi bi-calendar-event"></i>
+                                    </span>
+                                    @Html.TextBoxFor(m => m.StartDate, new { @class = "form-control", type = "date" })
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                @Html.LabelFor(m => m.EndDate, new { @class = "form-label fw-semibold" })
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="bi bi-calendar-check"></i>
+                                    </span>
+                                    @Html.TextBoxFor(m => m.EndDate, new { @class = "form-control", type = "date" })
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-onejax">
+                            <i class="bi bi-check-lg me-1"></i>Save Changes
+                        </button>
+                        <a href="/Projects" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-lg me-1"></i>Cancel
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

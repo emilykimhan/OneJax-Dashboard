@@ -1,0 +1,112 @@
+@model IEnumerable<StrategicDashboard.Models.Project>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "My Projects";
+}
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="fw-bold mb-1" style="color:var(--onejax-navy);">
+                    <i class="bi bi-folder-fill me-2"></i>My Projects
+                </h2>
+                <p class="text-muted mb-0">Manage and track your projects</p>
+            </div>
+            <a class="btn btn-onejax" href="/Projects/Create">
+                <i class="bi bi-plus-lg me-1"></i>New Project
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th class="px-4 py-3 border-0">
+                            <i class="bi bi-card-heading me-1"></i>Title
+                        </th>
+                        <th class="py-3 border-0">
+                            <i class="bi bi-info-circle me-1"></i>Status
+                        </th>
+                        <th class="py-3 border-0">
+                            <i class="bi bi-calendar-event me-1"></i>Start
+                        </th>
+                        <th class="py-3 border-0">
+                            <i class="bi bi-calendar-check me-1"></i>End
+                        </th>
+                        <th class="px-4 py-3 border-0 text-center" style="width:160px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center py-5">
+                                <i class="bi bi-folder-x text-muted d-block mb-3" style="font-size: 3rem;"></i>
+                                <p class="text-muted mb-2">No projects yet.</p>
+                                <p class="text-muted small">Click "New Project" to get started</p>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var p in Model)
+                        {
+                            <tr>
+                                <td class="px-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded bg-primary bg-opacity-10 p-2 me-2">
+                                            <i class="bi bi-journal-text text-primary"></i>
+                                        </div>
+                                        <strong>@p.Title</strong>
+                                    </div>
+                                </td>
+                                <td>
+                                    @{
+                                        var badgeClass = p.Status == "Completed" ? "bg-success" : 
+                                                        p.Status == "In Progress" ? "bg-primary" : "bg-secondary";
+                                    }
+                                    <span class="badge @badgeClass">@p.Status</span>
+                                </td>
+                                <td>
+                                    @if (p.StartDate.HasValue)
+                                    {
+                                        <span><i class="bi bi-calendar3 me-1 text-muted"></i>@p.StartDate.Value.ToString("MMM dd, yyyy")</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (p.EndDate.HasValue)
+                                    {
+                                        <span><i class="bi bi-calendar3 me-1 text-muted"></i>@p.EndDate.Value.ToString("MMM dd, yyyy")</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                                <td class="px-4 text-center">
+                                    <div class="btn-group" role="group">
+                                        <a class="btn btn-sm btn-outline-primary" href="/Projects/Edit/@p.Id" title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a class="btn btn-sm btn-outline-danger" href="/Projects/Delete/@p.Id" title="Delete">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

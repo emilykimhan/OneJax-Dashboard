@@ -1,0 +1,70 @@
+@model StrategicDashboard.Models.Project
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Delete Project";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="mb-3">
+            <a href="/Projects" class="text-decoration-none">
+                <i class="bi bi-arrow-left me-1"></i>Back to Projects
+            </a>
+        </div>
+        
+        <div class="card shadow-sm border-0 border-danger" style="border-width: 2px !important;">
+            <div class="card-header bg-danger bg-opacity-10 border-bottom border-danger py-3">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-danger bg-opacity-25 p-2 me-3">
+                        <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size: 1.5rem;"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0 fw-bold text-danger">Delete Project</h4>
+                        <p class="text-muted small mb-0">This action cannot be undone</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <div class="alert alert-warning border-warning" role="alert">
+                    <i class="bi bi-info-circle-fill me-2"></i>
+                    <strong>Warning:</strong> You are about to permanently delete this project.
+                </div>
+                
+                <div class="bg-light rounded p-3 mb-4">
+                    <h5 class="mb-3">Project Details:</h5>
+                    <dl class="row mb-0">
+                        <dt class="col-sm-3">Title:</dt>
+                        <dd class="col-sm-9"><strong>@Model.Title</strong></dd>
+                        
+                        @if (!string.IsNullOrEmpty(Model.Description))
+                        {
+                            <dt class="col-sm-3">Description:</dt>
+                            <dd class="col-sm-9">@Model.Description</dd>
+                        }
+                        
+                        <dt class="col-sm-3">Status:</dt>
+                        <dd class="col-sm-9"><span class="badge bg-secondary">@Model.Status</span></dd>
+                    </dl>
+                </div>
+
+                <p class="text-muted mb-4">
+                    Are you sure you want to delete <strong>@Model.Title</strong>? All associated data will be permanently removed.
+                </p>
+
+                @using (Html.BeginForm("Delete", "Projects", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.HiddenFor(m => m.Id)
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash-fill me-1"></i>Yes, Delete Project
+                        </button>
+                        <a href="/Projects" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-lg me-1"></i>Cancel
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

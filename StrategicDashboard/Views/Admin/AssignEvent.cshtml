@@ -1,0 +1,171 @@
+@model StrategicDashboard.Models.Event
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Assign Event to Staff";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-10 col-lg-8">
+        <div class="mb-3">
+            <a href="/Admin/ManageEvents" class="text-decoration-none">
+                <i class="bi bi-arrow-left me-1"></i>Back to Manage Events
+            </a>
+        </div>
+        
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white border-bottom py-3">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-success bg-opacity-10 p-2 me-3">
+                        <i class="bi bi-calendar-plus-fill text-success" style="font-size: 1.5rem;"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0 fw-bold">Assign Event to Staff Member</h4>
+                        <p class="text-muted small mb-0">Create and assign a new event to a staff member</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                @using (Html.BeginForm("AssignEvent", "Admin", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
+                    <div class="mb-4">
+                        <label for="selectedStaffUsername" class="form-label fw-semibold">
+                            <i class="bi bi-person-fill me-1"></i>Assign to Staff Member
+                        </label>
+                        <span class="text-danger">*</span>
+                        @Html.DropDownList("selectedStaffUsername", ViewBag.StaffMembers as SelectList, 
+                            "Select a staff member...", new { @class = "form-select", @required = "required" })
+                    </div>
+
+                    <div class="mb-4">
+                        @Html.LabelFor(m => m.Title, new { @class = "form-label fw-semibold" })
+                        <span class="text-danger">*</span>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-card-heading"></i>
+                            </span>
+                            @Html.TextBoxFor(m => m.Title, new { @class = "form-control", placeholder = "Enter event title" })
+                        </div>
+                        @Html.ValidationMessageFor(m => m.Title, "", new { @class = "text-danger small" })
+                    </div>
+                    
+                    <div class="mb-4">
+                        @Html.LabelFor(m => m.Description, new { @class = "form-label fw-semibold" })
+                        <div class="input-group">
+                            <span class="input-group-text align-items-start pt-2">
+                                <i class="bi bi-text-paragraph"></i>
+                            </span>
+                            @Html.TextAreaFor(m => m.Description, new { @class = "form-control", @rows = "4", placeholder = "Describe the event objectives and requirements..." })
+                        </div>
+                        @Html.ValidationMessageFor(m => m.Description, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            @Html.LabelFor(m => m.StrategicGoalId, new { @class = "form-label fw-semibold" })
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-bullseye"></i>
+                                </span>
+                                @Html.DropDownListFor(m => m.StrategicGoalId, ViewBag.StrategicGoals as SelectList, 
+                                    "Select strategic goal...", new { @class = "form-select", @id = "strategicGoalSelect" })
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            @Html.LabelFor(m => m.StrategyId, new { @class = "form-label fw-semibold" })
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-flag-fill"></i>
+                                </span>
+                                @Html.DropDownListFor(m => m.StrategyId, ViewBag.Strategies as SelectList, 
+                                    "Select strategy...", new { @class = "form-select", @id = "strategySelect", @disabled = "disabled" })
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            @Html.LabelFor(m => m.StartDate, new { @class = "form-label fw-semibold" })
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-calendar-event"></i>
+                                </span>
+                                @Html.TextBoxFor(m => m.StartDate, new { @class = "form-control", @type = "date" })
+                            </div>
+                            @Html.ValidationMessageFor(m => m.StartDate, "", new { @class = "text-danger small" })
+                        </div>
+                        <div class="col-md-6">
+                            @Html.LabelFor(m => m.DueDate, new { @class = "form-label fw-semibold" })
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-calendar-check"></i>
+                                </span>
+                                @Html.TextBoxFor(m => m.DueDate, new { @class = "form-control", @type = "date" })
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        @Html.LabelFor(m => m.AdminNotes, new { @class = "form-label fw-semibold" })
+                        <div class="input-group">
+                            <span class="input-group-text align-items-start pt-2">
+                                <i class="bi bi-sticky"></i>
+                            </span>
+                            @Html.TextAreaFor(m => m.AdminNotes, new { @class = "form-control", @rows = "3", placeholder = "Add any notes or special instructions for the staff member..." })
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-3">
+                        <button type="submit" class="btn btn-success flex-grow-1">
+                            <i class="bi bi-check-lg me-1"></i>Assign Event
+                        </button>
+                        <a href="/Admin/ManageEvents" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-lg me-1"></i>Cancel
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const goalSelect = document.getElementById('strategicGoalSelect');
+        const strategySelect = document.getElementById('strategySelect');
+
+        goalSelect.addEventListener('change', function() {
+            const goalId = this.value;
+            
+            if (goalId) {
+                // Enable strategy dropdown
+                strategySelect.disabled = false;
+                
+                // Fetch strategies for the selected goal
+                fetch(`/Events/GetStrategiesByGoal?goalId=${goalId}`)
+                    .then(response => response.json())
+                    .then(strategies => {
+                        // Clear existing options
+                        strategySelect.innerHTML = '<option value="">Select strategy...</option>';
+                        
+                        // Add new options
+                        strategies.forEach(strategy => {
+                            const option = document.createElement('option');
+                            option.value = strategy.value;
+                            option.textContent = strategy.text;
+                            strategySelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error fetching strategies:', error);
+                    });
+            } else {
+                // Disable and clear strategy dropdown
+                strategySelect.disabled = true;
+                strategySelect.innerHTML = '<option value="">Select strategy...</option>';
+            }
+        });
+    });
+</script>

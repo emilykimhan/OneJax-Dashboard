@@ -7,7 +7,7 @@ namespace OneJaxDashboard.Models
     {
         [Required(ErrorMessage = "Event Name is required.")]
         [StringLength(100)]
-        public string EventName { get; set; }
+        public string EventName { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Event Date is required.")]
         [DataType(DataType.Date)]

@@ -1,0 +1,138 @@
+@model StrategicDashboard.Models.Event
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Delete Event";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="mb-3">
+            <a href="/Events" class="text-decoration-none">
+                <i class="bi bi-arrow-left me-1"></i>Back to Events
+            </a>
+        </div>
+        
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-danger bg-opacity-10 border-bottom py-3">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-danger bg-opacity-10 p-2 me-3">
+                        <i class="bi bi-trash-fill text-danger" style="font-size: 1.5rem;"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0 fw-bold text-danger">Delete Event</h4>
+                        <p class="text-muted small mb-0">This action cannot be undone</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <div class="alert alert-warning d-flex align-items-center mb-4" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <div>
+                        Are you sure you want to delete this event? This action cannot be undone.
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h5 class="fw-bold mb-3">Event Details:</h5>
+                    
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-semibold text-muted small">EVENT TITLE</label>
+                            <div class="bg-light p-3 rounded">@Model.Title</div>
+                        </div>
+                        
+                        @if (!string.IsNullOrEmpty(Model.Description))
+                        {
+                            <div class="col-12">
+                                <label class="form-label fw-semibold text-muted small">DESCRIPTION</label>
+                                <div class="bg-light p-3 rounded">@Model.Description</div>
+                            </div>
+                        }
+                        
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-muted small">STATUS</label>
+                            <div class="bg-light p-3 rounded">
+                                @{
+                                    string badgeClass = Model.Status switch
+                                    {
+                                        "Completed" => "bg-success",
+                                        "In Progress" => "bg-warning",
+                                        _ => "bg-secondary"
+                                    };
+                                }
+                                <span class="badge @badgeClass">@Model.Status</span>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-muted small">STRATEGIC ASSIGNMENT</label>
+                            <div class="bg-light p-3 rounded">
+                                @if (Model.StrategicGoalId.HasValue || Model.StrategyId.HasValue)
+                                {
+                                    <div class="small">
+                                        @if (Model.StrategicGoalId.HasValue)
+                                        {
+                                            <div><i class="bi bi-target me-1"></i> Goal: @Model.StrategicGoalId</div>
+                                        }
+                                        @if (Model.StrategyId.HasValue)
+                                        {
+                                            <div><i class="bi bi-lightning me-1"></i> Strategy: @Model.StrategyId</div>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">Not assigned</span>
+                                }
+                            </div>
+                        </div>
+                        
+                        @if (Model.StartDate.HasValue || Model.EndDate.HasValue)
+                        {
+                            <div class="col-12">
+                                <label class="form-label fw-semibold text-muted small">DATES</label>
+                                <div class="bg-light p-3 rounded">
+                                    @if (Model.StartDate.HasValue)
+                                    {
+                                        <div><i class="bi bi-calendar-event me-1"></i> Start: @Model.StartDate.Value.ToString("MMMM dd, yyyy")</div>
+                                    }
+                                    @if (Model.EndDate.HasValue)
+                                    {
+                                        <div><i class="bi bi-calendar-check me-1"></i> End: @Model.EndDate.Value.ToString("MMMM dd, yyyy")</div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                @using (Html.BeginForm("Delete", "Events", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.HiddenFor(m => m.Id)
+                    
+                    <div class="d-flex gap-3 pt-3 border-top">
+                        <button type="submit" class="btn btn-danger px-4 py-2 fw-semibold">
+                            <i class="bi bi-trash me-2"></i>Delete Event
+                        </button>
+                        <a href="/Events" class="btn btn-outline-secondary px-4 py-2">
+                            <i class="bi bi-x-lg me-2"></i>Cancel
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <style>
+        .btn-danger {
+            transition: all 0.3s ease;
+        }
+        .btn-danger:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+        }
+    </style>
+}

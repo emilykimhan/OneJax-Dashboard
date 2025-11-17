@@ -1,59 +1,86 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using OneJax.StrategicDashboard.Models;
 using System.Collections.Generic;
 using System.Linq;
 
 public class StrategyController : Controller
 {
-    // Temporary in-memory storage for strategies since no database is set up
-    private static List<Strategy> strategies = new()
+    private static List<Strategy> strategies = new();
+
+    private static readonly List<SelectListItem> Goals = new()
     {
-        // Add test data to verify the view works
-        new Strategy { Id = 1, Name = "Test Strategy 1", StrategicGoalId = 1, Metrics = new List<Metric>() },
-        new Strategy { Id = 2, Name = "Test Strategy 2", StrategicGoalId = 2, Metrics = new List<Metric>() }
+        new SelectListItem { Value = "1", Text = "Organizational Building" },
+        new SelectListItem { Value = "2", Text = "Financial Sustainability" },
+        new SelectListItem { Value = "3", Text = "Identity/Value Proposition" },
+        new SelectListItem { Value = "4", Text = "Community Engagement" }
     };
 
-    // Show strategies for a specific goal
-    public IActionResult Index(int goalId)
+    public IActionResult Index(int? goalId)
     {
-        var goalStrategies = strategies.Where(s => s.StrategicGoalId == goalId).ToList();
+        ViewBag.Goals = Goals;
+
+        var goalStrategies = goalId.HasValue
+            ? strategies.Where(s => s.StrategicGoalId == goalId.Value).ToList()
+            : strategies.ToList();
+
+        goalStrategies = goalStrategies.OrderByDescending(s => s.Id).ToList();
+
         ViewBag.GoalId = goalId;
+        ViewBag.SuccessMessage = TempData["SuccessMessage"]; // For toast display
+
         return View(goalStrategies);
     }
 
-    // Add a new strategy to a goal
     [HttpPost]
-    public IActionResult Add(int goalId, string strategyName)
+    public IActionResult Add(int goalId, string eventName, string eventDescription, string? eventDate, string? eventTime)
     {
-        Console.WriteLine($"Add called: goalId={goalId}, strategyName={strategyName}");
+        int newId = strategies.Any() ? strategies.Max(s => s.Id) + 1 : 1;
 
-        strategies.Add(new Strategy
+        var newEvent = new Strategy
         {
-            Id = strategies.Count + 1,
-            Name = strategyName,
+            Id = newId,
+            Name = eventName,
+            Description = eventDescription,
             StrategicGoalId = goalId,
-            Metrics = new List<Metric>()
-        });
+            Date = eventDate, 
+            Time = eventTime  
+        };
 
-        return RedirectToAction("Index", new { goalId });
+        strategies.Add(newEvent);
+
+        var goalName = Goals.FirstOrDefault(g => g.Value == goalId.ToString())?.Text ?? "Selected Goal";
+
+        TempData["SuccessMessage"] = $"Successfully added event under “{goalName}”";
+
+        return RedirectToAction("Index");
     }
 
-    // Add a metric to a strategy
     [HttpPost]
-    public IActionResult AddMetric(int strategyId, string description, string target, string progress, string status, string timePeriod)
+    public IActionResult Edit(int id, string eventName, string eventDescription, int goalId, string? eventDate, string? eventTime)
     {
-        var strategy = strategies.FirstOrDefault(s => s.Id == strategyId);
-        if (strategy != null)
+        var existingEvent = strategies.FirstOrDefault(s => s.Id == id);
+        if (existingEvent != null)
         {
-            strategy.Metrics.Add(new Metric
-            {
-                Id = strategy.Metrics.Count + 1,
-                Description = description,
-                Target = target,
-                Progress = progress,
-                Status = status,
-                TimePeriod = timePeriod
-            });
+            existingEvent.Name = eventName;
+            existingEvent.Description = eventDescription;
+            existingEvent.StrategicGoalId = goalId;
+            existingEvent.Date = eventDate;
+            existingEvent.Time = eventTime;
         }
-        return RedirectToAction("Index", new { goalId = strategy?.StrategicGoalId });
+
+        TempData["SuccessMessage"] = "Event updated successfully";
+        return RedirectToAction("Index");
+    }
+
+    [HttpPost]
+    public IActionResult Delete(int id)
+    {
+        var strategy = strategies.FirstOrDefault(s => s.Id == id);
+        if (strategy != null)
+            strategies.Remove(strategy);
+
+        TempData["SuccessMessage"] = "Event deleted successfully";
+        return RedirectToAction("Index");
     }
 }

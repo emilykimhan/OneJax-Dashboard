@@ -12,5 +12,8 @@ namespace StrategicDashboard.Models
         [DataType(DataType.Password)]
         [Display(Name = "Password")]
         public string Password { get; set; } = string.Empty;
+
+        [Display(Name = "Remember me?")]
+        public bool RememberMe { get; set; }
     }
 }

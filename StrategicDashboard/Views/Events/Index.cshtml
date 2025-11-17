@@ -1,0 +1,166 @@
+@model IEnumerable<StrategicDashboard.Models.Event>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "My Events";
+}
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="fw-bold mb-1" style="color:var(--onejax-navy);">
+                    <i class="bi bi-calendar-event-fill me-2"></i>My Events
+                </h2>
+                <p class="text-muted mb-0">Manage and track your events and their strategic assignments</p>
+            </div>
+            <a class="btn btn-onejax" href="/Events/Create">
+                <i class="bi bi-plus-lg me-1"></i>New Event
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th class="px-4 py-3 border-0">
+                            <i class="bi bi-card-heading me-1"></i>Title
+                        </th>
+                        <th class="py-3 border-0">
+                            <i class="bi bi-target me-1"></i>Strategic Goal
+                        </th>
+                        <th class="py-3 border-0">
+                            <i class="bi bi-lightning me-1"></i>Strategy
+                        </th>
+                        <th class="py-3 border-0">
+                            <i class="bi bi-info-circle me-1"></i>Status
+                        </th>
+                        <th class="py-3 border-0">
+                            <i class="bi bi-calendar-event me-1"></i>Start
+                        </th>
+                        <th class="py-3 border-0">
+                            <i class="bi bi-calendar-check me-1"></i>End
+                        </th>
+                        <th class="px-4 py-3 border-0 text-center" style="width:160px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-5">
+                                <i class="bi bi-calendar-x text-muted d-block mb-3" style="font-size: 3rem;"></i>
+                                <p class="text-muted mb-2">No events yet.</p>
+                                <p class="small text-muted">Create your first event to get started!</p>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="px-4 py-3">
+                                    <div class="fw-semibold text-dark">@item.Title</div>
+                                    @if (!string.IsNullOrEmpty(item.Description))
+                                    {
+                                        <div class="small text-muted text-truncate" style="max-width: 200px;">
+                                            @item.Description
+                                        </div>
+                                    }
+                                </td>
+                                <td class="py-3">
+                                    @if (item.StrategicGoalId.HasValue)
+                                    {
+                                        <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2">
+                                            Strategic Goal @item.StrategicGoalId
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small">Not assigned</span>
+                                    }
+                                </td>
+                                <td class="py-3">
+                                    @if (item.StrategyId.HasValue)
+                                    {
+                                        <span class="badge bg-success bg-opacity-10 text-success px-3 py-2">
+                                            Strategy @item.StrategyId
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small">Not assigned</span>
+                                    }
+                                </td>
+                                <td class="py-3">
+                                    @{
+                                        string badgeClass = item.Status switch
+                                        {
+                                            "Completed" => "bg-success",
+                                            "In Progress" => "bg-warning",
+                                            _ => "bg-secondary"
+                                        };
+                                    }
+                                    <span class="badge @badgeClass px-3 py-2">@item.Status</span>
+                                </td>
+                                <td class="py-3">
+                                    @if (item.StartDate.HasValue)
+                                    {
+                                        <span class="text-dark">@item.StartDate.Value.ToString("MMM dd, yyyy")</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                                <td class="py-3">
+                                    @if (item.EndDate.HasValue)
+                                    {
+                                        <span class="text-dark">@item.EndDate.Value.ToString("MMM dd, yyyy")</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                                <td class="px-4 py-3 text-center">
+                                    <div class="btn-group" role="group">
+                                        <a href="/Events/Edit/@item.Id" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a href="/Events/Delete/@item.Id" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <style>
+        .btn-onejax {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2c5f7f 100%);
+            border: none;
+            color: white;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        .btn-onejax:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(30, 58, 95, 0.3);
+            color: white;
+        }
+    </style>
+}

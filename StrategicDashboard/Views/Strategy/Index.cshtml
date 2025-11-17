@@ -1,59 +1,289 @@
 @model List<Strategy>
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var goalId = ViewBag.GoalId;
-    var goals = new List<SelectListItem>
-    {
-        new SelectListItem { Value = "1", Text = "Community Engagement" },
-        new SelectListItem { Value = "2", Text = "Education & Awareness" },
-        new SelectListItem { Value = "3", Text = "Leadership Development" },
-        new SelectListItem { Value = "4", Text = "Advocacy & Policy" }
-    };
+    var successMessage = TempData["SuccessMessage"] as string; 
+
+    var goals = new List<dynamic>
+{
+new { Id = 1, Name = "Organizational Building" },
+new { Id = 2, Name = "Financial Sustainability" },
+new { Id = 3, Name = "Identity/Value Proposition" },
+new { Id = 4, Name = "Community Engagement" }
+};
 }
 
-<div class="container mt-4">
-    <div class="card p-4 mb-4" style="background-color:var(--onejax-white); box-shadow:0 4px 24px rgba(0,0,0,0.08); border-radius:24px;">
-        <h2 class="mb-3" style="color:var(--onejax-navy);">Add a New Strategy</h2>
-        <form asp-action="Add" method="post" class="row g-3">
-            <div class="col-md-6">
-                <label for="strategyName" class="form-label">Strategy Name</label>
-                <input type="text" id="strategyName" name="strategyName" class="form-control" placeholder="New strategy name" required />
-            </div>
-            <div class="col-md-6">
-                <label for="goalId" class="form-label">Assign to Goal</label>
-                <select id="goalId" name="goalId" class="form-select" required>
-                    <option value="">Select a goal...</option>
-                    @foreach (var goal in goals)
-                    {
-                        <option value="@goal.Value">@goal.Text</option>
-                    }
-                </select>
-            </div>
-            <div class="col-12">
-                <button type="submit" class="btn btn-primary">Add Strategy</button>
-            </div>
-        </form>
+<!-- OneJax Color Theme -->
+<style>
+    :root {
+        --onejax-blue: #0070AD;
+        --onejax-teal: #00A3AD;
+        --onejax-navy: #102840;
+        --onejax-gold: #E6B500;
+        --onejax-light: #F7F9FB;
+    }
+
+    body {
+        background-color: var(--onejax-light);
+        font-family: 'Poppins', sans-serif;
+        color: var(--onejax-navy);
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5 {
+        color: var(--onejax-navy);
+        font-weight: 700;
+    }
+
+    .btn-primary {
+        background-color: var(--onejax-blue);
+        border-color: var(--onejax-blue);
+        border-radius: 50px;
+        font-weight: 500;
+        transition: all 0.3s ease-in-out;
+    }
+
+    .btn-primary:hover {
+        background-color: var(--onejax-teal);
+        border-color: var(--onejax-teal);
+        transform: scale(1.02);
+    }
+
+    .card {
+        background-color: #fff;
+        border-radius: 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        border: none;
+    }
+
+    .nav-pills .nav-link {
+        color: var(--onejax-navy);
+        border-radius: 25px;
+        background-color: #fff;
+        border: 1px solid transparent;
+        transition: all 0.3s ease-in-out;
+        padding: 8px 16px;
+    }
+
+    .nav-pills .nav-link.active {
+        background-color: var(--onejax-blue);
+        color: #fff;
+        box-shadow: 0 4px 10px rgba(0, 112, 173, 0.3);
+    }
+
+    .nav-pills .nav-link:hover {
+        background-color: var(--onejax-teal);
+        color: #fff;
+        transform: scale(1.03);
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: var(--onejax-navy);
+    }
+
+    .form-control {
+        border-radius: 10px;
+        border: 1px solid #d0d7de;
+    }
+
+    .toast-success {
+        background-color: var(--onejax-teal);
+        color: #fff;
+        border-radius: 10px;
+        font-weight: 500;
+    }
+
+    .toast-success::before {
+        content: "✅ ";
+    }
+
+    .event-card-date {
+        color: var(--onejax-blue);
+        font-weight: 500;
+    }
+
+    .event-card-goal {
+        color: var(--onejax-navy);
+        font-size: 0.9rem;
+    }
+
+    .success-text {
+        color: #00A676;
+        font-weight: 600;
+        font-size: 1rem;
+        letter-spacing: 0.5px;
+        animation: fadeInOut 4s ease-in-out forwards;
+    }
+
+    @@keyframes fadeInOut {
+        0% {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        10% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        90% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        100% {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+    }
+</style>
+
+
+<div class="container my-5">
+    <!-- Header -->
+    <div class="text-center mb-5">
+        <h1 class="fw-bold text-uppercase" style="color: var(--onejax-blue);">OneJax Strategic Dashboard</h1>
+        <p class="text-secondary fs-5">Track and manage events by strategic goals</p>
     </div>
 
-    <h3 class="mb-3" style="color:var(--onejax-navy);">Strategies</h3>
-    <div class="row">
-        @foreach (var strategy in Model)
-        {
-            <div class="col-md-6 mb-4">
-                <div class="card h-100" style="background-color:var(--onejax-blue); border-radius:16px;">
-                    <div class="card-body">
-                        <h5 class="card-title" style="color:var(--onejax-white);">@strategy.Name</h5>
-                        <p class="card-text" style="color:var(--onejax-white);">
-                            <strong>Goal:</strong>
-                            @{
-                                var goalName = goals.FirstOrDefault(g => g.Value == strategy.StrategicGoalId.ToString())?.Text ?? "Unknown";
-                            }
-                            @goalName
-                        </p>
-                        <!-- Metrics list can go here -->
-                    </div>
+    @if (ViewBag.SuccessMessage != null)
+    {
+        <div class="text-center mb-3">
+            <span class="success-text">@ViewBag.SuccessMessage</span>
+        </div>
+    }
+    <!-- Add New Event -->
+    <div class="card shadow-lg border-0 rounded-4 mb-5">
+        <div class="card-body p-4">
+            <h3 class="fw-bold text-uppercase mb-4" style="color: var(--onejax-blue);">Add a New Event</h3>
+
+            <form asp-action="Add" method="post" class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Event Name</label>
+                    <input type="text" name="eventName" class="form-control" placeholder="Enter event name" required />
                 </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Assign to Goal</label>
+                    <select name="goalId" class="form-select" required>
+                        <option value="">Select a Goal</option>
+                        @foreach (var goal in goals)
+                        {
+                            <option value="@goal.Id">@goal.Name</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Event Date </label>
+                    <input type="date" name="eventDate" class="form-control" />
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Event Time </label>
+                    <input type="time" name="eventTime" class="form-control" />
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Event Description</label>
+                    <textarea name="eventDescription" class="form-control" rows="2"
+                        placeholder="Enter description..."></textarea>
+                </div>
+
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-semibold">Add Event</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-4 justify-content-center border-0" id="goalTabs" role="tablist">
+        @foreach (var goal in goals)
+        {
+            <li class="nav-item" role="presentation">
+                <button class="nav-link px-4 py-2 mx-1 @(goal == goals.First() ? "active" : "")" id="goal-@goal.Id-tab"
+                    data-bs-toggle="tab" data-bs-target="#goal-@goal.Id" type="button" role="tab">
+                    @goal.Name
+                </button>
+            </li>
+        }
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="goalTabsContent">
+        @foreach (var goal in goals)
+        {
+            var goalEvents = Model.Where(e => e.StrategicGoalId == goal.Id).ToList();
+
+            <div class="tab-pane fade @(goal == goals.First() ? "show active" : "")" id="goal-@goal.Id" role="tabpanel">
+                @if (goalEvents.Any())
+                {
+                    <div class="row">
+                        @foreach (var e in goalEvents)
+                        {
+                            <div class="col-md-6 mb-4">
+                                <div class="card border-0 shadow-sm rounded-4 p-3 h-100">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <h5 class="event-card-title">@e.Name</h5>
+                                        <div class="dropdown">
+                                            <button class="btn btn-light btn-sm border-0" type="button" data-bs-toggle="dropdown">
+                                                <i class="bi bi-three-dots fs-5 text-dark"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                <li><a class="dropdown-item text-primary" data-bs-toggle="collapse"
+                                                        href="#editForm-@e.Id">Edit</a></li>
+                                                <li>
+                                                    <form asp-action="Delete" method="post">
+                                                        <input type="hidden" name="id" value="@e.Id" />
+                                                        <button type="submit" class="dropdown-item text-danger">Delete</button>
+                                                    </form>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <p class="text-secondary mt-2">@e.Description</p>
+
+                                    @if (!string.IsNullOrEmpty(e.Date) || !string.IsNullOrEmpty(e.Time))
+                                    {
+                                        <p class="small mb-0 text-highlight">
+                                            <i class="bi bi-calendar-event"></i>
+                                            @if (!string.IsNullOrEmpty(e.Date))
+                                            {
+                                                @e.Date
+                                            }
+                                            @if (!string.IsNullOrEmpty(e.Time))
+                                            {
+                                                <span> at @e.Time</span>
+                                            }
+                                        </p>
+                                    }
+
+                                    <p class="small text-muted mt-1"><i class="bi bi-bullseye"></i> @goal.Name</p>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center text-muted py-5">
+                        <i class="bi bi-inbox fs-1"></i>
+                        <p class="mt-3">No events yet for this goal. Add one above!</p>
+                    </div>
+                }
             </div>
         }
     </div>
 </div>
+
+<script>
+    const toastEl = document.querySelector('.toast');
+    if (toastEl) {
+        const toast = new bootstrap.Toast(toastEl, { delay: 4000 });
+        toast.show();
+    }
+</script>

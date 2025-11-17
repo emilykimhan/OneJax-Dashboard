@@ -1,0 +1,305 @@
+@model OneJax.StrategicDashboard.Models.StrategicGoal
+@{
+    ViewData["Title"] = $"{Model.Name} - Project Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    :root {
+        --onejax-navy: #1E3A8A;
+        --onejax-blue: #3B82F6;
+        --onejax-orange: #F59E0B;
+        --onejax-green: #10B981;
+        --onejax-white: #FFFFFF;
+        --onejax-light-bg: #f8fafc;
+        --onejax-border: #e2e8f0;
+        --onejax-text: #1e293b;
+        --onejax-text-muted: #64748b;
+    }
+    
+    .project-header {
+        background: linear-gradient(135deg, @Model.Color, @Model.Color + "CC");
+        color: white;
+        padding: 4rem 0;
+        margin-bottom: 3rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .project-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 300px;
+        height: 300px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+    }
+    
+    .status-indicator {
+        padding: 0.75rem 1.5rem;
+        border-radius: 25px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+    }
+    
+    .metric-card {
+        background: var(--onejax-white);
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid var(--onejax-border);
+        height: 100%;
+        transition: all 0.3s ease;
+    }
+    
+    .metric-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    }
+    
+    .activity-timeline {
+        position: relative;
+        padding-left: 2rem;
+    }
+    
+    .activity-timeline::before {
+        content: '';
+        position: absolute;
+        left: 1rem;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: var(--onejax-border);
+    }
+    
+    .timeline-item {
+        position: relative;
+        padding-bottom: 2rem;
+    }
+    
+    .timeline-dot {
+        position: absolute;
+        left: -2.75rem;
+        top: 0.5rem;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--onejax-blue);
+        border: 3px solid var(--onejax-white);
+        box-shadow: 0 0 0 3px var(--onejax-border);
+    }
+    
+    .timeline-dot.completed {
+        background: var(--onejax-green);
+    }
+    
+    .timeline-dot.planned {
+        background: var(--onejax-orange);
+    }
+    
+    .progress-circle {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: white;
+        background: linear-gradient(135deg, var(--onejax-blue), var(--onejax-navy));
+        box-shadow: 0 8px 30px rgba(59, 130, 246, 0.3);
+    }
+    
+    .back-button {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+    }
+    
+    .back-button:hover {
+        background: rgba(255, 255, 255, 0.3);
+        color: white;
+        text-decoration: none;
+        transform: translateX(-4px);
+    }
+</style>
+
+@{
+    var overallProgress = Model.Metrics?.Any() == true ? 
+        Model.Metrics.Average(m => (double)m.CurrentValue / (double.TryParse(m.Target, out double target) ? target : 1) * 100) : 0;
+    
+    var primaryStatus = "Active";
+    if (Model.Events?.Any() == true)
+    {
+        var statusCounts = Model.Events.GroupBy(e => e.Status).ToDictionary(g => g.Key, g => g.Count());
+        primaryStatus = statusCounts.OrderByDescending(kvp => kvp.Value).First().Key;
+    }
+}
+
+<div class="project-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <div class="mb-3">
+                    <a href="@Url.Action("Overview", "Public")" class="back-button">
+                        ← Back to Overview
+                    </a>
+                </div>
+                <h1 class="display-4 mb-3" style="font-weight: 700;">@Model.Name</h1>
+                <p class="lead mb-4">@Model.Description</p>
+                <div class="d-flex align-items-center gap-3">
+                    <span class="status-indicator">@primaryStatus Project</span>
+                    <small style="opacity: 0.8;">Last updated: @DateTime.Now.ToString("MMM dd, yyyy")</small>
+                </div>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="progress-circle">
+                    @Math.Round(overallProgress, 0)%
+                </div>
+                <div class="mt-3">
+                    <small style="opacity: 0.9;">Overall Progress</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Project Metrics -->
+    @if (Model.Metrics?.Any() == true)
+    {
+        <div class="row mb-5">
+            <div class="col-12">
+                <h3 style="color: var(--onejax-navy); margin-bottom: 2rem; font-weight: 600;">Key Performance Indicators</h3>
+            </div>
+            @foreach (var metric in Model.Metrics)
+            {
+                var progress = double.TryParse(metric.Target, out double target) && target > 0 
+                    ? ((double)metric.CurrentValue / target) * 100 
+                    : 0;
+                
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="metric-card">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h6 style="color: var(--onejax-navy); font-weight: 600; margin: 0;">@metric.Name</h6>
+                            <span class="badge @(metric.Status == "Active" ? "bg-success" : "bg-secondary")">@metric.Status</span>
+                        </div>
+                        
+                        <p style="color: var(--onejax-text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">
+                            @metric.Description
+                        </p>
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span style="color: var(--onejax-text); font-weight: 600;">Progress</span>
+                            <span class="badge bg-primary">@metric.CurrentValue @metric.Unit / @metric.Target @metric.Unit</span>
+                        </div>
+                        
+                        <div class="progress mb-3" style="height: 8px; border-radius: 4px;">
+                            <div class="progress-bar" style="width: @Math.Min(progress, 100)%; background: linear-gradient(90deg, @Model.Color, @Model.Color + "80");" role="progressbar"></div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <small style="color: var(--onejax-text-muted);">Target: @metric.TargetDate.ToString("MMM yyyy")</small>
+                            <small style="color: var(--onejax-navy); font-weight: 600;">@Math.Round(progress, 1)% Complete</small>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- Activity Timeline -->
+    @if (Model.Events?.Any() == true)
+    {
+        <div class="row">
+            <div class="col-12">
+                <h3 style="color: var(--onejax-navy); margin-bottom: 2rem; font-weight: 600;">Project Timeline & Activities</h3>
+                
+                <div class="card" style="border-radius: 16px; border: 1px solid var(--onejax-border); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);">
+                    <div class="card-body p-4">
+                        <div class="activity-timeline">
+                            @foreach (var eventItem in Model.Events.OrderByDescending(e => e.DueDate))
+                            {
+                                <div class="timeline-item">
+                                    <div class="timeline-dot @eventItem.Status.ToLower()"></div>
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 style="color: var(--onejax-navy); font-weight: 600; margin-bottom: 0.5rem;">@eventItem.Title</h6>
+                                            <p style="color: var(--onejax-text-muted); margin-bottom: 0.5rem;">
+                                                @eventItem.DueDate?.ToString("MMMM dd, yyyy") • @eventItem.Type
+                                                @if (!string.IsNullOrEmpty(eventItem.Location))
+                                                {
+                                                    <span> • @eventItem.Location</span>
+                                                }
+                                            </p>
+                                            @if (!string.IsNullOrEmpty(eventItem.Notes))
+                                            {
+                                                <p style="color: var(--onejax-text); font-size: 0.9rem; margin: 0;">@eventItem.Notes</p>
+                                            }
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="badge @(eventItem.Status == "Completed" ? "bg-success" : eventItem.Status == "Active" ? "bg-primary" : "bg-warning")">
+                                                @eventItem.Status
+                                            </span>
+                                            @if (eventItem.Attendees > 0)
+                                            {
+                                                <small class="text-muted">@eventItem.Attendees participants</small>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="text-center p-5" style="background: var(--onejax-light-bg); border-radius: 16px;">
+                    <h5 style="color: var(--onejax-navy);">Project Timeline Coming Soon</h5>
+                    <p style="color: var(--onejax-text-muted);">Activity timeline and milestones will be available as this project progresses.</p>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Contact & Support -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card" style="background: linear-gradient(135deg, var(--onejax-light-bg), var(--onejax-white)); border-radius: 16px; border: none;">
+                <div class="card-body text-center p-5">
+                    <h4 style="color: var(--onejax-navy); margin-bottom: 1rem;">Questions About This Project?</h4>
+                    <p style="color: var(--onejax-text-muted); font-size: 1.1rem; margin-bottom: 2rem;">
+                        Get more information or learn how you can support @Model.Name initiatives.
+                    </p>
+                    <div class="d-flex justify-content-center gap-3 flex-wrap">
+                        <a href="mailto:info@onejax.org" class="btn btn-primary btn-lg" style="border-radius: 12px;">
+                            Contact Project Team
+                        </a>
+                        <a href="@Url.Action("Overview", "Public")" class="btn btn-outline-primary btn-lg" style="border-radius: 12px;">
+                            View All Projects
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div style="margin-bottom: 3rem;"></div>
