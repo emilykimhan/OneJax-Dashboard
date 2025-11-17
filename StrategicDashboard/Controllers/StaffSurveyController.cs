@@ -52,10 +52,10 @@ namespace OneJaxDashboard.Controllers
                     TempData["SuccessMessage"] = "Survey submitted and saved successfully!";
                     return RedirectToAction("Index");
                 }
-                catch (Exception)
+                catch (Exception exception) 
                 {
                     // Log the error (if logging is set up)
-                    TempData["ErrorMessage"] = "An error occurred while saving the survey. Please try again.";
+                    TempData["ErrorMessage"] = exception.Message;
                     return View(model);
                 }
             }
