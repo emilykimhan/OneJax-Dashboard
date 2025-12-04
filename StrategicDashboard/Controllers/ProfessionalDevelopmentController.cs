@@ -1,20 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using OneJaxDashboard.Models;
-using StrategicDashboard.Data;
+using OneJaxDashboard.Data;
+using System;
 
 namespace OneJaxDashboard.Controllers
 {
     public class ProfessionalDevelopmentController : Controller
-    {
-        private readonly ApplicationDbContext _context;
-
-        public ProfessionalDevelopmentController(ApplicationDbContext context)
-        {
-            _context = context;
-        }
-
-        
+    {        
         [HttpGet]
         public IActionResult Index()
         {

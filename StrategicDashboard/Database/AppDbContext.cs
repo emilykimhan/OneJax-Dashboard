@@ -6,7 +6,7 @@ namespace OneJaxDashboard.Data
 {
     public class ApplicationDbContext : DbContext
     {
-        
+
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {
@@ -21,6 +21,7 @@ namespace OneJaxDashboard.Data
         public DbSet<GoalMetric> GoalMetrics { get; set; } = default!;
         public DbSet<Event> Events { get; set; } = default!;
         
+        public DbSet<Strategy> Strategies { get; set; }
       
     }
 }

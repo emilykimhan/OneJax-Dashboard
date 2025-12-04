@@ -1,15 +1,16 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StrategicDashboard.Models;
-using StrategicDashboard.Data;
+using OneJaxDashboard.Data;
+using System;
 
 namespace OneJaxDashboard.Controllers
 {
     public class DataEntryController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly DbContext _context;
 
-        public DataEntryController(ApplicationDbContext context)
+        public DataEntryController(DbContext context)
         {
             _context = context;
         }
