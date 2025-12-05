@@ -16,5 +16,14 @@ namespace OneJaxDashboard.Controllers
             _context = context;
         }
 
+        public IActionResult Index()
+        {
+            return View();
+        }
+
+        public IActionResult RecordHistory()
+        {
+            return View();
+        }
     }
 }
