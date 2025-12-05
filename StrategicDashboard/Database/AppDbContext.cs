@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using StrategicDashboard.Models;
 using OneJaxDashboard.Models;
 using OneJaxDashboard.Data;
 

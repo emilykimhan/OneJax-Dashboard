@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 //Talijah's
-
 namespace OneJaxDashboard.Models
 {
     public class Staff
