@@ -16,45 +16,21 @@
         <div class="tab-system">
             <!-- Tab Navigation -->
             <div class="tab-nav">
-                <a href="#identity" class="tab-link">Identity / Value Proposition</a>
-                <a href="#community" class="tab-link">Community Engagement</a>
-                <a href="#financial" class="tab-link">Financial Sustainability</a>
+                <!-- Identity / Value Proposition tab -->
+                <a class="tab-link external" asp-controller="Identity" asp-action="Index">Identity / Value Proposition</a>
+                <!-- Community Engagement tab -->
+                <a class="tab-link external" asp-controller="CommunityEngagement" asp-action="Index">Community Engagement</a>
+                <!-- Financial Sustainability tab -->
+                <a class="tab-link external" asp-controller="Financial" asp-action="Index">Financial Sustainability</a>
                <!-- Organizational Building tab -->
-                <a class="tab-link external"
-                   asp-controller="OrganizationalBuilding"
-                   asp-action="Index">Organizational Building</a>
-                <!-- Record History tab -->
-                 <a class="tab-link external"
-                   asp-controller="DataEntry"
-                   asp-action="RecordHistory">Record History</a>
+                <a class="tab-link external" asp-controller="OrganizationalBuilding"asp-action="Index">Organizational Building</a>
+               <!-- Record History tab -->
+                <a class="tab-link external" asp-controller="DataEntry" asp-action="RecordHistory">Record History</a>
             </div>
 
             <!-- Tab Content Panels -->
-            <div class="tab-panels">
-                <div id="identity" class="tab-panel">
-                    <div class="panel-content">
-                        <h4>Identity / Value Proposition</h4>
-                        <p>Content for Identity / Value Proposition will go here. This section focuses on 
-                           defining our core identity and unique value we bring to the community.</p>
-                    </div>
-                </div>
-
-                <div id="community" class="tab-panel">
-                    <div class="panel-content">
-                        <h4>Community Engagement</h4>
-                        <p>Hello! This is the Community Engagement section where we focus on building 
-                           strong relationships with our community partners and stakeholders.</p>
-                    </div>
-                </div>
-
-                <div id="financial" class="tab-panel">
-                    <div class="panel-content">
-                        <h4>Financial Sustainability</h4>
-                        <p>Content for Financial Sustainability will go here. This section covers our 
-                           financial planning and sustainability strategies.</p>
-                    </div>
-                </div>
-            </div>
+          
+          
         </div>
     </div>
 </div>

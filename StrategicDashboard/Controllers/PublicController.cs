@@ -2,14 +2,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OneJax.StrategicDashboard.Models;
 using OneJaxDashboard.Data;
-using StrategicDashboard.Models;
-
-namespace StrategicDashboard.Controllers
+using OneJaxDashboard.Models;
+//emily's
+namespace OneJaxDashboard.Controllers
 {
     public class PublicController : Controller
     {
         private readonly ApplicationDbContext _context;
-
         public PublicController(ApplicationDbContext context)
         {
             _context = context;

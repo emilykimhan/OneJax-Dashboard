@@ -1,6 +1,6 @@
-using StrategicDashboard.Models;
+using OneJaxDashboard.Models;
 
-namespace StrategicDashboard.Services
+namespace OneJaxDashboard.Services
 {
     public class EventsService
     {

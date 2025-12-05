@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
-
-namespace StrategicDashboard.Models
+//Emily's
+namespace OneJaxDashboard.Models
 {
     public class Project
     {

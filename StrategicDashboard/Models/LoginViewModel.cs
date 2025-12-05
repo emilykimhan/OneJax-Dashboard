@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
-
-namespace StrategicDashboard.Models
+//Talijah
+//view maybe
+namespace OneJaxDashboard.Models
 {
     public class LoginViewModel
     {
@@ -13,7 +14,5 @@ namespace StrategicDashboard.Models
         [Display(Name = "Password")]
         public string Password { get; set; } = string.Empty;
 
-        [Display(Name = "Remember me?")]
-        public bool RememberMe { get; set; }
     }
 }

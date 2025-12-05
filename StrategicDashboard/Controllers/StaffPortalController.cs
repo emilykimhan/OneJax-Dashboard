@@ -1,11 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OneJaxDashboard.Services;
 using OneJaxDashboard.Models;
-using StrategicDashboard.Models;
-using StrategicDashboard.Services;
 using OneJaxDashboard.Data;
-
-namespace StrategicDashboard.Controllers
+//Talijah might delete
+namespace OneJaxDashboard.Controllers
 {
     [Authorize(Roles = "Staff")]
     public class StaffPortalController : Controller
@@ -26,7 +25,7 @@ namespace StrategicDashboard.Controllers
             var username = User.Identity?.Name ?? string.Empty;
             var events = _eventsService.GetByOwner(username).ToList();
             var recent = _activityLog.GetRecent(username).ToList();
-            var staff = _db.StaffSurveys_22D.FirstOrDefault(s => s.Username == username);
+            var staff = _db.Staffauth.FirstOrDefault(s => s.Username == username);
 
             ViewData["EventCount"] = events.Count;
             ViewData["AssignedEvents"] = events.Count(e => e.IsAssignedByAdmin);
@@ -40,19 +39,17 @@ namespace StrategicDashboard.Controllers
         public IActionResult Profile()
         {
             var username = User.Identity?.Name ?? string.Empty;
-            var staff = _db.StaffSurveys_22D.FirstOrDefault(s => s.Username == username);
+            var staff = _db.Staffauth.FirstOrDefault(s => s.Username == username);
             if (staff == null)
             {
                 // Initialize a profile entry if admin hasn't created one yet
-                staff = new StaffSurvey_22D { 
+                staff = new Staffauth { 
                     Username = username, 
                     Name = string.Empty, 
                     Email = string.Empty, 
-                    Password = "",
-                    SatisfactionRate = 0,
-                    ProfessionalDevelopmentCount = 0
+                    Password = ""
                 };
-                _db.StaffSurveys_22D.Add(staff);
+                _db.Staffauth.Add(staff);
                 _db.SaveChanges();
             }
             return View(staff);
@@ -60,19 +57,18 @@ namespace StrategicDashboard.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Profile(StaffSurvey_22D model)
+        public IActionResult Profile(Staffauth model)
         {
             if (!ModelState.IsValid)
                 return View(model);
 
             var username = User.Identity?.Name ?? string.Empty;
-            var staff = _db.StaffSurveys_22D.FirstOrDefault(s => s.Username == username);
+            var staff = _db.Staffauth.FirstOrDefault(s => s.Username == username);
             if (staff != null)
             {
                 staff.Name = model.Name;
                 staff.Email = model.Email;
-                staff.SatisfactionRate = model.SatisfactionRate;
-                staff.ProfessionalDevelopmentCount = model.ProfessionalDevelopmentCount;
+            
                 _db.SaveChanges();
             }
             _activityLog.Log(username, "Updated Profile", "Profile", null, notes: $"Name={model.Name}; Email={model.Email}");
@@ -94,7 +90,7 @@ namespace StrategicDashboard.Controllers
                 return View(model);
 
             var username = User.Identity?.Name ?? string.Empty;
-            var staff = _db.StaffSurveys_22D.FirstOrDefault(s => s.Username == username);
+            var staff = _db.Staffauth.FirstOrDefault(s => s.Username == username);
 
             if (staff == null)
             {

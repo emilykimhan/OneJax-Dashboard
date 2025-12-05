@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using OneJax.StrategicDashboard.Models;
+using OneJaxDashboard.Models;
 using System.Collections.Generic;
 using System.Linq;
-
+//dina
 public class StrategyController : Controller
 {
     private static List<Strategy> strategies = new();

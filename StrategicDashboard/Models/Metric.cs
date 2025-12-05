@@ -1,4 +1,6 @@
-namespace OneJax.StrategicDashboard.Models
+
+//Emily's
+namespace OneJaxDashboard.Models
 {
     public class Metric
     {

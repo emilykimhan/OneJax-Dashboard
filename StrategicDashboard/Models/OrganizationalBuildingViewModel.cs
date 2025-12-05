@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-
+//Karrie's just a view model for the organizational building page
 namespace OneJaxDashboard.Models
 {
     public class OrganizationalBuildingViewModel

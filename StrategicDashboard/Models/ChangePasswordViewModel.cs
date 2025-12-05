@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
-
-namespace StrategicDashboard.Models
+//Talijah
+namespace OneJaxDashboard.Models
 {
     public class ChangePasswordViewModel
     {

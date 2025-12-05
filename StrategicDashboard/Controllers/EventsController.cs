@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using StrategicDashboard.Models;
-using StrategicDashboard.Services;
-
-namespace StrategicDashboard.Controllers
+using OneJaxDashboard.Models;
+using OneJaxDashboard.Services;
+//talijah
+namespace OneJaxDashboard.Controllers
 {
     [Authorize(Roles = "Staff")]
     public class EventsController : Controller

@@ -2,10 +2,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OneJax.StrategicDashboard.Models;
 using OneJaxDashboard.Data;
-using StrategicDashboard.Models;
+using OneJaxDashboard.Models;
 using System.Collections.Generic;
 using System.Linq;
-
+//emily
 public class HomeController : Controller
 {
     private readonly ApplicationDbContext _context;

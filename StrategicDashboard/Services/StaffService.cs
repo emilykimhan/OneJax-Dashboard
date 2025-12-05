@@ -1,6 +1,6 @@
-using StrategicDashboard.Models;
-
-namespace StrategicDashboard.Services
+using OneJaxDashboard.Models;
+//Talijah's 
+namespace OneJaxDashboard.Services
 {
     public class StaffService
     {

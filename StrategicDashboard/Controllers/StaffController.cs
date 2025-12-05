@@ -2,11 +2,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OneJaxDashboard.Data;
 using OneJaxDashboard.Models;
-using StrategicDashboard.Models;
 using Microsoft.EntityFrameworkCore;
-using StrategicDashboard.Services;
-
-namespace StrategicDashboard.Controllers
+using OneJaxDashboard.Services;
+//talijah's
+namespace OneJaxDashboard.Controllers
 {
     [Authorize(Roles = "Admin")]
     public class StaffController : Controller
@@ -21,52 +20,52 @@ namespace StrategicDashboard.Controllers
 
         public IActionResult Index()
         {
-            var staff = _db.StaffSurveys_22D.AsNoTracking().ToList();
+            var staff = _db.Staffauth.AsNoTracking().ToList();
             return View(staff);
         }
 
         public IActionResult Create() => View();
 
         [HttpPost]
-        public IActionResult Create(StaffSurvey_22D staff)
+        public IActionResult Create(Staffauth staff)
         {
             if (!ModelState.IsValid) return View(staff);
             // Prevent duplicate usernames
-            if (!string.IsNullOrEmpty(staff.Username) && _db.StaffSurveys_22D.Any(s => s.Username == staff.Username))
+            if (!string.IsNullOrEmpty(staff.Username) && _db.Staffauth.Any(s => s.Username == staff.Username))
             {
                 ModelState.AddModelError("Username", "Username is already taken");
                 return View(staff);
             }
             // Persist to database
-            _db.StaffSurveys_22D.Add(staff);
+            _db.Staffauth.Add(staff);
             _db.SaveChanges();
             return RedirectToAction("Index");
         }
 
         public IActionResult Edit(int id)
         {
-            var staff = _db.StaffSurveys_22D.AsNoTracking().FirstOrDefault(s => s.Id == id);
+            var staff = _db.Staffauth.AsNoTracking().FirstOrDefault(s => s.Id == id);
             if (staff == null) return NotFound();
             return View(staff);
         }
 
         [HttpPost]
-        public IActionResult Edit(StaffSurvey_22D staff)
+        public IActionResult Edit(Staffauth staff)
         {
-            var existing = _db.StaffSurveys_22D.FirstOrDefault(s => s.Id == staff.Id);
+            var existing = _db.Staffauth.FirstOrDefault(s => s.Id == staff.Id);
             if (existing == null) return NotFound();
 
             // Allow keeping current password if left blank
             if (string.IsNullOrWhiteSpace(staff.Password))
             {
                 // avoid validation error on Password
-                ModelState.Remove(nameof(StaffSurvey_22D.Password));
+                ModelState.Remove(nameof(Staffauth.Password));
                 staff.Password = existing.Password;
             }
 
             // Prevent duplicate usernames (exclude current)
             if (!string.IsNullOrEmpty(staff.Username) && 
-                _db.StaffSurveys_22D.Any(s => s.Username == staff.Username && s.Id != staff.Id))
+                _db.Staffauth.Any(s => s.Username == staff.Username && s.Id != staff.Id))
             {
                 ModelState.AddModelError("Username", "Username is already taken");
             }
@@ -77,8 +76,7 @@ namespace StrategicDashboard.Controllers
             existing.Username = staff.Username;
             existing.Password = staff.Password;
             existing.Email = staff.Email;
-            existing.SatisfactionRate = staff.SatisfactionRate;
-            existing.ProfessionalDevelopmentCount = staff.ProfessionalDevelopmentCount;
+           
 
             _db.SaveChanges();
             return RedirectToAction("Index");
@@ -86,7 +84,7 @@ namespace StrategicDashboard.Controllers
 
         public IActionResult Delete(int id)
         {
-            var staff = _db.StaffSurveys_22D.AsNoTracking().FirstOrDefault(s => s.Id == id);
+            var staff = _db.Staffauth.AsNoTracking().FirstOrDefault(s => s.Id == id);
             if (staff == null) return NotFound();
             return View(staff);
         }
@@ -94,10 +92,10 @@ namespace StrategicDashboard.Controllers
         [HttpPost, ActionName("Delete")]
         public IActionResult DeleteConfirmed(int id)
         {
-            var staff = _db.StaffSurveys_22D.FirstOrDefault(s => s.Id == id);
+            var staff = _db.Staffauth.FirstOrDefault(s => s.Id == id);
             if (staff != null)
             {
-                _db.StaffSurveys_22D.Remove(staff);
+                _db.Staffauth.Remove(staff);
                 _db.SaveChanges();
             }
             return RedirectToAction("Index");

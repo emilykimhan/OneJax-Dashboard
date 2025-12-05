@@ -1,7 +1,8 @@
 // Purpose: Represents a specific metric/KPI being tracked for a strategic goal
 // Usage: Tracks progress against targets with quarterly data support
 
-namespace OneJax.StrategicDashboard.Models
+//Emily
+namespace OneJaxDashboard.Models
 {
     public class GoalMetric
     {
