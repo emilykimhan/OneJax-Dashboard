@@ -11,7 +11,7 @@ using OneJaxDashboard.Data;
 namespace StrategicDashboard.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251205012701_InitialCreate")]
+    [Migration("20251205020304_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
