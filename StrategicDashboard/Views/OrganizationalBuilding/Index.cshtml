@@ -1,4 +1,20 @@
+@model OneJaxDashboard.Models.OrganizationalBuildingViewModel
+@{
+    ViewData["Title"] = Model.PageTitle;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
 <div class="container mt-4">
+    <!-- Back Button -->
+    <div class="mb-3">
+        <a href="/DataEntry" 
+           class="btn btn-outline-secondary"
+           style="border-radius: 8px;">
+            ← Back to the Goals
+        </a>
+    </div>
+    
     <div class="row">
         <!-- Left Box - Staff Survey -->
         <div class="col-md-6">
@@ -55,6 +71,17 @@
 </div>
 
 <style>
+    .btn-outline-secondary {
+        border-color: var(--onejax-navy);
+        color: var(--onejax-navy);
+    }
+    
+    .btn-outline-secondary:hover {
+        background-color: var(--onejax-navy);
+        border-color: var(--onejax-navy);
+        color: white;
+    }
+    
     /* Ensure equal height boxes */
     .row {
         display: flex;

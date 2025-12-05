@@ -1,36 +1,39 @@
 using Microsoft.EntityFrameworkCore;
-using StrategicDashboard.Models;
 using OneJaxDashboard.Models;
-using OneJax.StrategicDashboard.Models;
-using OneJax.StrategicDashboard.Models;
+using OneJaxDashboard.Data;
 
 namespace OneJaxDashboard.Data
 {
     public class ApplicationDbContext : DbContext
     {
-        
+        // migrations for everything, then update the database 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {
         }
 
-        // Your friend's existing tables
-        // Staff functionality commented out - will use existing tables instead
-        // public DbSet<Staff> StaffMembers { get; set; }
+        // Data entry tables
         public DbSet<StaffSurvey_22D> StaffSurveys_22D { get; set; } = default!;
         public DbSet<ProfessionalDevelopment> ProfessionalDevelopments { get; set; } = default!;
-        
-        // New entities for Events and Strategic Planning
-        public DbSet<Event> Events { get; set; } = default!;
-        public DbSet<StrategicGoal> StrategicGoals { get; set; } = default!;
-        public DbSet<Strategy> Strategies { get; set; } = default!;
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        // Dashboard tables
+        public DbSet<StrategicGoal> StrategicGoals { get; set; } = default!;
+        public DbSet<GoalMetric> GoalMetrics { get; set; } = default!;
+        public DbSet<Event> Events { get; set; } = default!;
+
+        // Core Strategies 
+        public DbSet<Strategy> Strategies { get; set; }
+
+        //Account tables
+        
+        
+        public DbSet<Staffauth> Staffauth { get; set; } = default!;
+           protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // Add unique index for username on StaffSurvey_22D table
-            modelBuilder.Entity<StaffSurvey_22D>()
+            // Add unique index for username on Staffauth table
+            modelBuilder.Entity<Staffauth>()
                 .HasIndex(s => s.Username)
                 .IsUnique()
                 .HasFilter("[Username] IS NOT NULL"); // Only enforce uniqueness for non-null usernames
@@ -55,5 +58,6 @@ namespace OneJaxDashboard.Data
                 .HasForeignKey(s => s.StrategicGoalId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
+
     }
 }

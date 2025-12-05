@@ -2,9 +2,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OneJax.StrategicDashboard.Models;
 using OneJaxDashboard.Data;
-using StrategicDashboard.Models;
-
-namespace StrategicDashboard.Controllers
+using OneJaxDashboard.Models;
+//talijah
+namespace OneJaxDashboard.Controllers
 {
     public class EventController : Controller
     {

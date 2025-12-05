@@ -2,8 +2,8 @@
 // Contains: Lists of StrategicGoal and Project (and possibly other dashboard data).
 //Usage: Passed from your controller to the dashboard view.
 
-
-using OneJax.StrategicDashboard.Models;
+//Emily
+using OneJaxDashboard.Models;
 
 public class DashboardViewModel
 {

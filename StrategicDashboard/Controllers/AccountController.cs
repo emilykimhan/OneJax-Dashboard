@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
-using StrategicDashboard.Models;
+using OneJaxDashboard.Models;
 using OneJaxDashboard.Data;
 using System.Security.Claims;
-
-namespace StrategicDashboard.Controllers
+//Talijah's
+namespace OneJaxDashboard.Controllers
 {
     public class AccountController : Controller
     {
@@ -56,11 +56,7 @@ namespace StrategicDashboard.Controllers
                 var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                 var principal = new ClaimsPrincipal(identity);
 
-                await HttpContext.SignInAsync(
-                    CookieAuthenticationDefaults.AuthenticationScheme, principal, new AuthenticationProperties
-                    {
-                        IsPersistent = model.RememberMe
-                    });
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
                 // If a local returnUrl is provided (e.g., redirected by [Authorize]), go there
                 if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
@@ -72,7 +68,7 @@ namespace StrategicDashboard.Controllers
             }
 
             // Staff login against database
-            var staff = _db.StaffSurveys_22D.FirstOrDefault(s => s.Username == model.Username);
+            var staff = _db.Staffauth.FirstOrDefault(s => s.Username == model.Username);
             if (staff != null && staff.Password == model.Password)
             {
                 var claims = new List<Claim>
@@ -85,11 +81,7 @@ namespace StrategicDashboard.Controllers
                 var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                 var principal = new ClaimsPrincipal(identity);
 
-                await HttpContext.SignInAsync(
-                    CookieAuthenticationDefaults.AuthenticationScheme, principal, new AuthenticationProperties
-                    {
-                        IsPersistent = model.RememberMe
-                    });
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
                 if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
                 {

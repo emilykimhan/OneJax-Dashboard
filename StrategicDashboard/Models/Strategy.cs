@@ -2,8 +2,9 @@
 // Properties: Id, Name, GoalName (which goal it belongs to).
 // Usage: Displayed and managed in the strategies view for each goal.
 
-using OneJax.StrategicDashboard.Models;
-using StrategicDashboard.Models;
+//Dina's
+
+using OneJaxDashboard.Models;
 
 public class Strategy
 {

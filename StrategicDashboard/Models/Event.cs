@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
-using OneJax.StrategicDashboard.Models;
-
-namespace StrategicDashboard.Models
+using OneJaxDashboard.Models;
+//Emily's
+namespace OneJaxDashboard.Models
 {
     public class Event
     {

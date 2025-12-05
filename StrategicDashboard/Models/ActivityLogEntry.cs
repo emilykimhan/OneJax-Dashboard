@@ -1,5 +1,6 @@
-namespace StrategicDashboard.Models
+namespace OneJaxDashboard.Models
 {
+    //Talijah 
     public class ActivityLogEntry
     {
         public int Id { get; set; }

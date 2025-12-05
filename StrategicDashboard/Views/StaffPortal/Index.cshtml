@@ -2,7 +2,7 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "My Dashboard";
     var eventCount = ViewData["EventCount"] as int? ?? 0;
-    var activities = ViewData["RecentActivities"] as IEnumerable<StrategicDashboard.Models.ActivityLogEntry> ?? Enumerable.Empty<StrategicDashboard.Models.ActivityLogEntry>();
+    var activities = ViewData["RecentActivities"] as IEnumerable<OneJaxDashboard.Models.ActivityLogEntry> ?? Enumerable.Empty<OneJaxDashboard.Models.ActivityLogEntry>();
 }
 
 @{

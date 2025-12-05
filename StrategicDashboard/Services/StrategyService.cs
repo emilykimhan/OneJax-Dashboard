@@ -1,7 +1,6 @@
-using StrategicDashboard.Models;
-using OneJax.StrategicDashboard.Models;
-
-namespace StrategicDashboard.Services
+using OneJaxDashboard.Models;
+//Dina's , ask for in case 
+namespace OneJaxDashboard.Services
 {
     public class StrategyService
     {

@@ -1,0 +1,98 @@
+@{
+    ViewData["Title"] = "Website Traffic";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card p-4"
+                 style="background-color:var(--onejax-white);
+                        box-shadow:0 4px 24px rgba(0,0,0,0.08);
+                        border-radius:24px;">
+                
+                <!-- Header -->
+                <div class="d-flex align-items-center mb-4">
+                <a href="/Identity" 
+                       class="btn btn-outline-secondary me-3"
+                       style="border-radius: 8px;">
+                        ← Back
+                    </a>
+                
+                <h2 class="mb-0" style="color:var(--onejax-navy);">Website Traffic</h2>
+                </div>
+                <p class="mb-4" style="color:var(--onejax-gray);">
+                    Track website clicks throughout the year
+                </p>
+                
+                <!-- Question -->
+                <div class="alert alert-info mb-4" style="border-radius: 12px; border-left: 4px solid var(--onejax-navy);">
+                    <strong>Question:</strong> How many clicks did the OneJax website obtain?
+                </div>
+
+                <!-- Quarterly Input Form -->
+                <form>
+                    <div class="row">
+                        <!-- Q1: July - September -->
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label fw-bold">July – September (Q1):</label>
+                            <input type="number" class="form-control" placeholder="Enter number of clicks" min="0" />
+                        </div>
+                        
+                        <!-- Q2: October - December -->
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label fw-bold">October – December (Q2):</label>
+                            <input type="number" class="form-control" placeholder="Enter number of clicks" min="0" />
+                        </div>
+                        
+                        <!-- Q3: January - March -->
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label fw-bold">January – March (Q3):</label>
+                            <input type="number" class="form-control" placeholder="Enter number of clicks" min="0" />
+                        </div>
+                        
+                        <!-- Q4: April - June -->
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label fw-bold">April – June (Q4):</label>
+                            <input type="number" class="form-control" placeholder="Enter number of clicks" min="0" />
+                        </div>
+                    </div>
+
+                    <!-- Total Display -->
+                    <div class="mt-4 p-3" style="background-color: #f8f9fa; border-radius: 12px;">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5 style="color:var(--onejax-navy);">Total Website Clicks:</h5>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <h5 style="color:var(--onejax-navy);"><strong>0</strong> clicks</h5>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-control:focus {
+        border-color: var(--onejax-navy);
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 191, 0.25);
+    }
+    
+    .form-label {
+        color: var(--onejax-navy);
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+    }
+    
+    .card {
+        border: none;
+    }
+    
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+        opacity: 1;
+    }
+</style>

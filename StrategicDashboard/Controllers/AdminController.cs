@@ -1,12 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using StrategicDashboard.Services;
-using StrategicDashboard.Models;
-using OneJaxDashboard.Data;
+using OneJaxDashboard.Services;
 using OneJaxDashboard.Models;
+using OneJaxDashboard.Data;
 
-namespace StrategicDashboard.Controllers
+
+namespace OneJaxDashboard.Controllers
 {
     [Authorize(Roles = "Admin")]
     public class AdminController : Controller
@@ -27,7 +27,7 @@ namespace StrategicDashboard.Controllers
         // GET: /Admin
         public IActionResult Index()
         {
-            var staffCount = _db.StaffSurveys_22D.Count();
+            var staffCount = _db.Staffauth.Count();
             var totalEvents = _eventsService.GetAll().Count();
             var assignedEvents = _eventsService.GetAll().Count(e => e.IsAssignedByAdmin);
 
@@ -146,7 +146,7 @@ namespace StrategicDashboard.Controllers
         private void PopulateStaffAndStrategiesDropdown()
         {
             // Get all staff members
-            var staffMembers = _db.StaffSurveys_22D.ToList();
+            var staffMembers = _db.Staffauth.ToList();
             ViewBag.StaffMembers = new SelectList(staffMembers, "Username", "Name");
 
             // Get strategic goals and strategies

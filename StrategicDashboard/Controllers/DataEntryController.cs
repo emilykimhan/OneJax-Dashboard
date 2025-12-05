@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
-using StrategicDashboard.Models;
-using StrategicDashboard.Data;
-
-namespace StrategicDashboard.Controllers
+using OneJaxDashboard.Models;
+using OneJaxDashboard.Data;
+//Karrie
+namespace OneJaxDashboard.Controllers
 {
     [Authorize(Roles = "Admin,Staff")]
     public class DataEntryController : Controller
@@ -16,5 +16,14 @@ namespace StrategicDashboard.Controllers
             _context = context;
         }
 
+        public IActionResult Index()
+        {
+            return View();
+        }
+
+        public IActionResult RecordHistory()
+        {
+            return View();
+        }
     }
 }

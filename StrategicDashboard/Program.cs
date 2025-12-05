@@ -16,13 +16,13 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.AccessDeniedPath = "/Account/AccessDenied";
     });
 
-builder.Services.AddSingleton<StrategicDashboard.Services.StaffService>();
-builder.Services.AddSingleton<StrategicDashboard.Services.EventsService>();
-builder.Services.AddSingleton<StrategicDashboard.Services.StrategyService>();
-builder.Services.AddSingleton<StrategicDashboard.Services.ActivityLogService>();
+builder.Services.AddSingleton<OneJaxDashboard.Services.StaffService>();
+builder.Services.AddSingleton<OneJaxDashboard.Services.EventsService>();
+builder.Services.AddSingleton<OneJaxDashboard.Services.StrategyService>();
+builder.Services.AddSingleton<OneJaxDashboard.Services.ActivityLogService>();
 
 // Keep ProjectsService for backward compatibility during transition
-builder.Services.AddSingleton<StrategicDashboard.Services.ProjectsService>();
+builder.Services.AddSingleton<OneJaxDashboard.Services.ProjectsService>();
 
 var app = builder.Build();
 

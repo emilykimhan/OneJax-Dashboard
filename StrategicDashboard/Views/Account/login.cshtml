@@ -1,4 +1,4 @@
-@model StrategicDashboard.Models.LoginViewModel
+@model OneJaxDashboard.Models.LoginViewModel
 
 @{
     ViewData["Title"] = "Log in";
@@ -59,23 +59,11 @@
                                 </div>
                                 @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger small" })
                             </div>
-
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <div class="form-check">
-                                    @Html.CheckBoxFor(m => m.RememberMe, new { @class = "form-check-input" })
-                                    <label class="form-check-label small" for="RememberMe">Remember Me</label>
-                                </div>
-                                <a href="/Account/ForgotPassword" class="small">Forgot Password?</a>
-                            </div>
-
-                            <div class="d-grid mb-3">
+                           <div class="d-grid mb-3">
                                 <button type="submit" class="btn btn-onejax btn-lg">Sign in</button>
                             </div>
 
-                            <div class="text-center login-footer">
-                                <span>Don't have an account?</span>
-                                <a href="/Account/Register" class="ms-2">Create one</a>
-                            </div>
+                       
                         }
                     </div>
                 </div>
