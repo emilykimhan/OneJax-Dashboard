@@ -1,3 +1,4 @@
+@model OneJaxDashboard.Models.MediaPlacements_3D
 @{
     ViewData["Title"] = "Identity / Value Proposition";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -30,97 +31,134 @@
                     <strong>Question:</strong> How many times was OneJax been mentioned in the media?
                 </div>
 
+                <!-- Grand Total Display -->
+                @if (ViewBag.GrandTotal != null)
+                {
+                    <div class="alert alert-success mb-4" style="border-radius: 12px; background-color: #d4edda; border: 2px solid #28a745;">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h5 class="mb-0" style="color: #155724;">
+                                    <strong>Total Media Mentions Across All Entries:</strong>
+                                </h5>
+                                <small class="text-muted">Based on @ViewBag.TotalEntries entry/entries in the database</small>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <h3 class="mb-0" style="color: #155724;">
+                                    <strong>@ViewBag.GrandTotal</strong>
+                                </h3>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success text-center">
+                        @TempData["Success"]
+                    </div>
+                }
+
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger text-center">
+                        @TempData["Error"]
+                    </div>
+                }
+
                 <!-- Monthly Input Form -->
-                <form>
+                <form asp-controller="MediaPlacements" asp-action="Index" method="post">
                     <div class="row">
                         <!-- January -->
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">January</label>
-                            <input type="number" class="form-control" placeholder="Enter number of mentions" min="0" />
+                            <label asp-for="January" class="form-label fw-bold">January</label>
+                            <input asp-for="January" type="number" class="form-control" placeholder="Enter number of mentions" min="0" />
+                            <span asp-validation-for="January" class="text-danger"></span>
                         </div>
                         
                         <!-- February -->
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">February</label>
-                            <input type="number" class="form-control" placeholder="Enter number of mentions" min="0" />
+                            <label asp-for="February" class="form-label fw-bold">February</label>
+                            <input asp-for="February" type="number" class="form-control" placeholder="Enter number of mentions" min="0" />
+                            <span asp-validation-for="February" class="text-danger"></span>
                         </div>
                         
                         <!-- March -->
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">March</label>
-                            <input type="number" class="form-control" placeholder="Enter number of mentions" min="0" />
+                            <label asp-for="March" class="form-label fw-bold">March</label>
+                            <input asp-for="March" type="number" class="form-control" placeholder="Enter number of mentions" min="0" />
+                            <span asp-validation-for="March" class="text-danger"></span>
                         </div>
                         
                         <!-- April -->
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">April</label>
-                            <input type="number" class="form-control" placeholder="Enter number of mentions" min="0" />
+                            <label asp-for="April" class="form-label fw-bold">April</label>
+                            <input asp-for="April" type="number" class="form-control" placeholder="Enter number of mentions" min="0" />
+                            <span asp-validation-for="April" class="text-danger"></span>
                         </div>
                         
                         <!-- May -->
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">May</label>
-                            <input type="number" class="form-control" placeholder="Enter number of mentions" min="0" />
+                            <label asp-for="May" class="form-label fw-bold">May</label>
+                            <input asp-for="May" type="number" class="form-control" placeholder="Enter number of mentions" min="0" />
+                            <span asp-validation-for="May" class="text-danger"></span>
                         </div>
                         
                         <!-- June -->
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">June</label>
-                            <input type="number" class="form-control" placeholder="Enter number of mentions" min="0" />
+                            <label asp-for="June" class="form-label fw-bold">June</label>
+                            <input asp-for="June" type="number" class="form-control" placeholder="Enter number of mentions" min="0" />
+                            <span asp-validation-for="June" class="text-danger"></span>
                         </div>
                         
                         <!-- July -->
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">July</label>
-                            <input type="number" class="form-control" placeholder="Enter number of mentions" min="0" />
+                            <label asp-for="July" class="form-label fw-bold">July</label>
+                            <input asp-for="July" type="number" class="form-control" placeholder="Enter number of mentions" min="0" />
+                            <span asp-validation-for="July" class="text-danger"></span>
                         </div>
                         
                         <!-- August -->
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">August</label>
-                            <input type="number" class="form-control" placeholder="Enter number of mentions" min="0" />
+                            <label asp-for="August" class="form-label fw-bold">August</label>
+                            <input asp-for="August" type="number" class="form-control" placeholder="Enter number of mentions" min="0" />
+                            <span asp-validation-for="August" class="text-danger"></span>
                         </div>
                         
                         <!-- September -->
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">September</label>
-                            <input type="number" class="form-control" placeholder="Enter number of mentions" min="0" />
+                            <label asp-for="September" class="form-label fw-bold">September</label>
+                            <input asp-for="September" type="number" class="form-control" placeholder="Enter number of mentions" min="0" />
+                            <span asp-validation-for="September" class="text-danger"></span>
                         </div>
                         
                         <!-- October -->
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">October</label>
-                            <input type="number" class="form-control" placeholder="Enter number of mentions" min="0" />
+                            <label asp-for="October" class="form-label fw-bold">October</label>
+                            <input asp-for="October" type="number" class="form-control" placeholder="Enter number of mentions" min="0" />
+                            <span asp-validation-for="October" class="text-danger"></span>
                         </div>
                         
                         <!-- November -->
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">November</label>
-                            <input type="number" class="form-control" placeholder="Enter number of mentions" min="0" />
+                            <label asp-for="November" class="form-label fw-bold">November</label>
+                            <input asp-for="November" type="number" class="form-control" placeholder="Enter number of mentions" min="0" />
+                            <span asp-validation-for="November" class="text-danger"></span>
                         </div>
                         
                         <!-- December -->
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">December</label>
-                            <input type="number" class="form-control" placeholder="Enter number of mentions" min="0" />
+                            <label asp-for="December" class="form-label fw-bold">December</label>
+                            <input asp-for="December" type="number" class="form-control" placeholder="Enter number of mentions" min="0" />
+                            <span asp-validation-for="December" class="text-danger"></span>
                         </div>
                     </div>
 
-                    <!-- Total Display -->
-                    <div class="mt-4 p-3" style="background-color: #f8f9fa; border-radius: 12px;">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h5 style="color:var(--onejax-navy);">Total Media Mentions:</h5>
-                            </div>
-                            <div class="col-md-6 text-end">
-                                <h5 style="color:var(--onejax-navy);"><strong>0</strong> / 12</h5>
-                            </div>
-                        </div>
-                        <div class="progress mt-2" style="height: 25px; border-radius: 12px;">
-                            <div class="progress-bar" role="progressbar" style="width: 0%; background-color: var(--onejax-navy);" aria-valuenow="0" aria-valuemin="0" aria-valuemax="12">
-                                0%
-                            </div>
-                        </div>
+                    <!-- Submit Button -->
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg px-5 py-3"
+                                style="background-color:var(--onejax-navy); border-color:var(--onejax-navy); border-radius: 12px; font-weight: 600;">
+                            Submit Media Placements
+                        </button>
                     </div>
                 </form>
             </div>
