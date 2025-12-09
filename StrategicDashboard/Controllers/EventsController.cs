@@ -23,25 +23,66 @@ namespace OneJaxDashboard.Controllers
         public IActionResult Index()
         {
             var username = User.Identity?.Name ?? string.Empty;
-            var items = _events.GetByOwner(username);
+            var items = _events.GetByOwner(username)
+                .Where(e => _strategyService.GetStrategy(e.StrategyTemplateId) != null)
+                .ToList();
             return View(items);
         }
 
-        public IActionResult Create()
+        public IActionResult Archived()
         {
-            PopulateStrategicGoalsAndStrategies();
-            return View(new Event());
+            var username = User.Identity?.Name ?? string.Empty;
+            var items = _events.GetArchivedByOwner(username)
+                .Where(e => _strategyService.GetStrategy(e.StrategyTemplateId) != null)
+                .ToList();
+            return View(items);
+        }
+
+        public IActionResult Create(int? strategyId)
+        {
+            Event eventModel = new Event();
+            
+            // If a strategy template is selected, load its data
+            if (strategyId.HasValue)
+            {
+                var strategy = _strategyService.GetStrategy(strategyId.Value);
+                if (strategy != null)
+                {
+                    eventModel.StrategyTemplateId = strategy.Id;
+                    eventModel.Title = strategy.Name;
+                    eventModel.Description = strategy.Description;
+                    eventModel.StrategicGoalId = strategy.StrategicGoalId;
+                    eventModel.StrategyId = strategy.Id;
+                }
+            }
+            
+            PopulateStrategicGoalsAndStrategies(strategyId);
+            return View(eventModel);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create(Event eventModel)
         {
-            if (!ModelState.IsValid) 
+            // Load the strategy template to get the title
+            var strategy = _strategyService.GetStrategy(eventModel.StrategyTemplateId);
+            if (strategy == null)
             {
-                PopulateStrategicGoalsAndStrategies();
+                ModelState.AddModelError("", "Please select an event.");
+                PopulateStrategicGoalsAndStrategies(null);
                 return View(eventModel);
             }
+            
+            if (!ModelState.IsValid) 
+            {
+                PopulateStrategicGoalsAndStrategies(null);
+                return View(eventModel);
+            }
+            
+            // Set title and related fields from the strategy template
+            eventModel.Title = strategy.Name;
+            eventModel.StrategicGoalId = strategy.StrategicGoalId;
+            eventModel.StrategyId = strategy.Id;
             
             var username = User.Identity?.Name ?? string.Empty;
             eventModel.OwnerUsername = username;
@@ -56,7 +97,7 @@ namespace OneJaxDashboard.Controllers
             if (eventModel == null) return NotFound();
             if (!IsOwner(eventModel)) return Forbid();
             
-            PopulateStrategicGoalsAndStrategies();
+            PopulateStrategicGoalsAndStrategies(null);
             return View(eventModel);
         }
 
@@ -70,14 +111,31 @@ namespace OneJaxDashboard.Controllers
             
             if (!ModelState.IsValid) 
             {
-                PopulateStrategicGoalsAndStrategies();
+                PopulateStrategicGoalsAndStrategies(null);
                 return View(eventModel);
             }
             
             // Keep owner unchanged
             eventModel.OwnerUsername = existing.OwnerUsername;
+            
+            // Log status changes specifically
+            var statusChanged = existing.Status != eventModel.Status;
+            var statusChangeNote = statusChanged ? $"Status changed from '{existing.Status}' to '{eventModel.Status}'" : null;
+            
+            // Auto-archive when status is Completed
+            if (eventModel.Status == "Completed")
+            {
+                eventModel.IsArchived = true;
+                eventModel.CompletionDate = DateTime.Now;
+            }
+            
             _events.Update(eventModel);
-            _activityLog.Log(existing.OwnerUsername, "Updated Event", "Event", eventModel.Id, notes: eventModel.Title);
+            
+            // Log the update with status change detail if applicable
+            var logAction = statusChanged ? "Changed Event Status" : "Updated Event";
+            var logNotes = statusChangeNote ?? eventModel.Title;
+            _activityLog.Log(existing.OwnerUsername, logAction, "Event", eventModel.Id, notes: logNotes);
+            
             return RedirectToAction("Index");
         }
 
@@ -101,26 +159,24 @@ namespace OneJaxDashboard.Controllers
             return RedirectToAction("Index");
         }
 
-        [HttpGet]
-        public IActionResult GetStrategiesByGoal(int goalId)
-        {
-            var strategies = _strategyService.GetStrategiesByGoal(goalId);
-            return Json(strategies.Select(s => new { value = s.Id, text = s.Name }));
-        }
-
         private bool IsOwner(Event e)
         {
             var username = User.Identity?.Name ?? string.Empty;
             return string.Equals(e.OwnerUsername, username, StringComparison.OrdinalIgnoreCase);
         }
 
-        private void PopulateStrategicGoalsAndStrategies()
+        private void PopulateStrategicGoalsAndStrategies(int? selectedStrategyId)
         {
             var goals = _strategyService.GetAllStrategicGoals();
             ViewBag.StrategicGoals = new SelectList(goals, "Id", "Name");
             
-            // Empty strategies list - will be populated via JavaScript based on selected goal
-            ViewBag.Strategies = new SelectList(Enumerable.Empty<Strategy>(), "Id", "Name");
+            // Get all strategies from Core Strategies to use as event templates
+            var allStrategies = _strategyService.GetAllStrategies();
+            ViewBag.StrategyTemplates = new SelectList(allStrategies, "Id", "Name", selectedStrategyId);
+            ViewBag.SelectedStrategyId = selectedStrategyId;
+            
+            // Load all strategies for display
+            ViewBag.Strategies = new SelectList(allStrategies, "Id", "Name");
         }
     }
 }

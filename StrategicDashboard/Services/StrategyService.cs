@@ -1,36 +1,63 @@
+using Microsoft.EntityFrameworkCore;
+using OneJaxDashboard.Data;
 using OneJaxDashboard.Models;
+
 //Dina's , ask for in case 
 namespace OneJaxDashboard.Services
 {
     public class StrategyService
     {
-        // Clean slate - data will come from database
-        private static readonly List<StrategicGoal> _strategicGoals = new();
-        private static readonly List<Strategy> _allStrategies = new();
+        private readonly ApplicationDbContext _context;
+
+        public StrategyService(ApplicationDbContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<IEnumerable<StrategicGoal>> GetAllStrategicGoalsAsync()
+        {
+            return await _context.StrategicGoals
+                .Include(g => g.Metrics)
+                .Include(g => g.Strategies)
+                .ToListAsync();
+        }
 
         public IEnumerable<StrategicGoal> GetAllStrategicGoals()
         {
-            return _strategicGoals;
+            return _context.StrategicGoals
+                .Include(g => g.Metrics)
+                .Include(g => g.Strategies)
+                .ToList();
         }
 
         public StrategicGoal? GetStrategicGoal(int id)
         {
-            return _strategicGoals.FirstOrDefault(g => g.Id == id);
+            return _context.StrategicGoals
+                .Include(g => g.Metrics)
+                .Include(g => g.Strategies)
+                .FirstOrDefault(g => g.Id == id);
         }
 
         public IEnumerable<Strategy> GetAllStrategies()
         {
-            return _allStrategies;
+            return _context.Strategies
+                .Include(s => s.StrategicGoal)
+                .ToList();
         }
 
         public IEnumerable<Strategy> GetStrategiesByGoal(int goalId)
         {
-            return _allStrategies.Where(s => s.StrategicGoalId == goalId);
+            return _context.Strategies
+                .Where(s => s.StrategicGoalId == goalId)
+                .Include(s => s.StrategicGoal)
+                .ToList();
         }
 
         public Strategy? GetStrategy(int id)
         {
-            return _allStrategies.FirstOrDefault(s => s.Id == id);
+            return _context.Strategies
+                .Include(s => s.StrategicGoal)
+                .FirstOrDefault(s => s.Id == id);
         }
 
         public string GetStrategyName(int? strategyId)

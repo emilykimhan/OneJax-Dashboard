@@ -30,6 +30,46 @@
                 {
                     @Html.AntiForgeryToken()
                     @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+                    @Html.HiddenFor(m => m.StrategyTemplateId)
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-bookmark-fill me-1"></i>Select an Event
+                        </label>
+                        <span class="text-danger">*</span>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-collection"></i>
+                            </span>
+                            <select class="form-select" onchange="window.location.href='/Admin/AssignEvent?strategyId=' + this.value;" required>
+                                <option value="">-- Select an event from Core Strategies --</option>
+                                @if (ViewBag.StrategyTemplates != null)
+                                {
+                                    foreach (SelectListItem item in (SelectList)ViewBag.StrategyTemplates)
+                                    {
+                                        if (item.Selected)
+                                        {
+                                            <option value="@item.Value" selected>@item.Text</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@item.Value">@item.Text</option>
+                                        }
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <small class="text-muted">This will set the event title and link to strategic goals</small>
+                        @Html.ValidationMessageFor(m => m.StrategyTemplateId, "", new { @class = "text-danger small" })
+                    </div>
+
+                    @if (Model.StrategyTemplateId > 0)
+                    {
+                        <div class="alert alert-info mb-4">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>Selected Event:</strong> @Model.Title
+                        </div>
+                    }
 
                     <div class="mb-4">
                         <label for="selectedStaffUsername" class="form-label fw-semibold">
@@ -38,18 +78,6 @@
                         <span class="text-danger">*</span>
                         @Html.DropDownList("selectedStaffUsername", ViewBag.StaffMembers as SelectList, 
                             "Select a staff member...", new { @class = "form-select", @required = "required" })
-                    </div>
-
-                    <div class="mb-4">
-                        @Html.LabelFor(m => m.Title, new { @class = "form-label fw-semibold" })
-                        <span class="text-danger">*</span>
-                        <div class="input-group">
-                            <span class="input-group-text">
-                                <i class="bi bi-card-heading"></i>
-                            </span>
-                            @Html.TextBoxFor(m => m.Title, new { @class = "form-control", placeholder = "Enter event title" }) 
-                        </div>
-                        @Html.ValidationMessageFor(m => m.Title, "", new { @class = "text-danger small" })
                     </div>
 
                     <div class="row mb-4">
@@ -80,12 +108,12 @@
                             <span class="input-group-text align-items-start pt-2">
                                 <i class="bi bi-sticky"></i>
                             </span>
-                            @Html.TextAreaFor(m => m.AdminNotes, new { @class = "form-control", @rows = "3", placeholder = "Add any notes or special instructions for the staff member..." })
+                            @Html.TextAreaFor(m => m.AdminNotes, new { @class = "form-control", @rows = "3", placeholder = "Add any notes or special instructions for the staff member...", id = "adminNotes" })
                         </div>
                     </div>
 
                     <div class="d-flex gap-3">
-                        <button type="submit" class="btn btn-success flex-grow-1">
+                        <button type="submit" class="btn btn-success flex-grow-1" @(Model.StrategyTemplateId <= 0 ? "disabled" : "")>
                             <i class="bi bi-check-lg me-1"></i>Assign Event
                         </button>
                         <a href="/Admin/ManageEvents" class="btn btn-outline-secondary">
@@ -98,44 +126,11 @@
     </div>
 </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const goalSelect = document.getElementById('strategicGoalSelect');
-        const strategySelect = document.getElementById('strategySelect');
-
-        goalSelect.addEventListener('change', function() {
-            const goalId = this.value;
-            
-            if (goalId) {
-                // Enable strategy dropdown
-                strategySelect.disabled = false;
-                
-                // Fetch strategies for the selected goal
-                fetch(`/Events/GetStrategiesByGoal?goalId=${goalId}`)
-                    .then(response => response.json())
-                    .then(strategies => {
-                        // Clear existing options
-                        strategySelect.innerHTML = '<option value="">Select strategy...</option>';
-                        
-                        // Add new options
-                        strategies.forEach(strategy => {
-                            const option = document.createElement('option');
-                            option.value = strategy.value;
-                            option.textContent = strategy.text;
-                            strategySelect.appendChild(option);
-                        });
-                    })
-                    .catch(error => {
-                        console.error('Error fetching strategies:', error);
-                    });
-            } else {
-                // Disable and clear strategy dropdown
-                strategySelect.disabled = true;
-                strategySelect.innerHTML = '<option value="">Select strategy...</option>';
-            }
-        });
-    });
-</script>
-
+<style>
+    .bg-light {
+        background-color: #f8f9fa !important;
+        border: 2px dashed #dee2e6;
+    }
+</style>
 
 <!--Talijah's -->

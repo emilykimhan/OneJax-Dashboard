@@ -7,8 +7,11 @@ namespace OneJaxDashboard.Models
     {
         public int Id { get; set; }
 
-        [Required(ErrorMessage = "Title is required")]
-        [Display(Name = "Event Title")]
+        // Reference to the Strategy (Core Strategy event) this is based on
+        [Display(Name = "Event")]
+        public int StrategyTemplateId { get; set; }
+
+        // The title comes from the Strategy, stored here for convenience
         public string Title { get; set; } = string.Empty;
 
         public string Type { get; set; } = ""; // Workshop, Meeting, Training, etc.
@@ -61,8 +64,16 @@ namespace OneJaxDashboard.Models
         [DataType(DataType.Date)]
         public DateTime? DueDate { get; set; }
 
+        // Archive field to separate active events from completed/archived ones
+        [Display(Name = "Archived")]
+        public bool IsArchived { get; set; } = false;
+
+        [Display(Name = "Completion Date")]
+        public DateTime? CompletionDate { get; set; }
+
         // Navigation properties (optional for display purposes)
         public virtual StrategicGoal? StrategicGoal { get; set; }
         public virtual Strategy? Strategy { get; set; }
+        public virtual Strategy? StrategyTemplate { get; set; }
     }
 }
