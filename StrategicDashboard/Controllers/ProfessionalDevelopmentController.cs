@@ -24,15 +24,8 @@ namespace OneJaxDashboard.Controllers
 
         private List<SelectListItem> GetStaffMembers()
         {
-            return new List<SelectListItem>
-            {
-                new SelectListItem { Value = "Elizabeth Andersen", Text = "Elizabeth Andersen" },
-                new SelectListItem { Value = "Cilicia Anderson", Text = "Cilicia Anderson" },
-                new SelectListItem { Value = "Jacey Kelly", Text = "Jacey Kelly" },
-                new SelectListItem { Value = "Deidre Lane", Text = "Deidre Lane" },
-                new SelectListItem { Value = "Jan Phillips", Text = "Jan Phillips" },
-                new SelectListItem { Value = "Rebekah Hutton", Text = "Rebekah Hutton" }
-            };
+            // Clean slate - staff data will come from database
+            return new List<SelectListItem>();
         }
     }
 }

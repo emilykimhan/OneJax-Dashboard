@@ -8,13 +8,8 @@ public class StrategyController : Controller
 {
     private static List<Strategy> strategies = new();
 
-    private static readonly List<SelectListItem> Goals = new()
-    {
-        new SelectListItem { Value = "1", Text = "Organizational Building" },
-        new SelectListItem { Value = "2", Text = "Financial Sustainability" },
-        new SelectListItem { Value = "3", Text = "Identity/Value Proposition" },
-        new SelectListItem { Value = "4", Text = "Community Engagement" }
-    };
+    // Clean slate - goals will come from database
+    private static readonly List<SelectListItem> Goals = new();
 
     public IActionResult Index(int? goalId)
     {

@@ -16,28 +16,10 @@ public class HomeController : Controller
     }
 
     // FIXED 3-YEAR STRATEGIC PLAN - These goals with sample events
-    private static readonly List<StrategicGoal> _threeYearPlan = new List<StrategicGoal>
-    {
-        new StrategicGoal
-        {
-            Id = 1,
-            Name = "Community Engagement",
-            Description = "Building partnerships and community connections",
-            Color = "var(--onejax-blue)",
-            Events = new List<Event>(),
-            Metrics = new List<GoalMetric>
-            {
-                new GoalMetric
-                {
-                    Id = 1,
-                    Name = "Joint Initiatives Partner Satisfaction",
-                    Description = "Launch a minimum of 3 joint initiatives with partner satisfaction ratings of at least 85%",
-                    StrategicGoalId = 1,
-                    Target = "85",
-                    CurrentValue = 85m, // Average satisfaction rating
-                    Unit = "% avg",
-                    Status = "Active",
-                    TargetDate = new DateTime(2026, 6, 30)
+    // Clean slate - all data will come from database
+    private static readonly List<StrategicGoal> _threeYearPlan = new List<StrategicGoal>();
+
+    public IActionResult Index(string status, string time, string goal)
                 },
                 new GoalMetric
                 {
