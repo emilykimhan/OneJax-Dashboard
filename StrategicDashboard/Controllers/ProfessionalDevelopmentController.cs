@@ -45,6 +45,8 @@ namespace OneJaxDashboard.Controllers
             return View(model);
         }
 
+
+//Replace GetStaffMembers with the staff database, when all the staff accounts have been made or started
         private List<SelectListItem> GetStaffMembers()
         {
             return new List<SelectListItem>

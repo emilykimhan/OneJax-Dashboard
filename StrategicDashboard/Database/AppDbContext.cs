@@ -16,6 +16,8 @@ namespace OneJaxDashboard.Data
         public DbSet<StaffSurvey_22D> StaffSurveys_22D { get; set; } = default!;
         public DbSet<ProfessionalDevelopment> ProfessionalDevelopments { get; set; } = default!;
         public DbSet<MediaPlacements_3D> MediaPlacements_3D { get; set; } = default!;
+        public DbSet<WebsiteTraffic_4D> WebsiteTraffic { get; set; } = default!;
+        
 
         // Dashboard tables
         public DbSet<StrategicGoal> StrategicGoals { get; set; } = default!;

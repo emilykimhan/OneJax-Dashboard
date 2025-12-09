@@ -39,6 +39,7 @@
                             <option value="staff-survey" selected="@(ViewBag.RecordType == "staff-survey" ? "selected" : null)">Staff Survey Only</option>
                             <option value="professional-development" selected="@(ViewBag.RecordType == "professional-development" ? "selected" : null)">Professional Development Only</option>
                             <option value="media-placements" selected="@(ViewBag.RecordType == "media-placements" ? "selected" : null)">Media Placements Only</option>
+                            <option value="website-traffic" selected="@(ViewBag.RecordType == "website-traffic" ? "selected" : null)">Website Traffic Only</option>
                         </select>
                     </div>
                     <div class="col-md-6 mb-3">
@@ -256,6 +257,66 @@
             else
             {
                 <p class="no-records">No Media Placements records found.</p>
+            }
+        </div>
+
+        <!-- Website Traffic Records -->
+        <div class="record-section">
+            <h5 class="section-title">Website Traffic Records</h5>
+            @if (ViewBag.WebsiteTraffic != null && ((List<OneJaxDashboard.Models.WebsiteTraffic_4D>)ViewBag.WebsiteTraffic).Any())
+            {
+                <div class="records-list">
+                    @foreach (var traffic in (List<OneJaxDashboard.Models.WebsiteTraffic_4D>)ViewBag.WebsiteTraffic)
+                    {
+                        <div class="record-item">
+                            <div class="record-header">
+                                <span class="record-type">Website Traffic</span>
+                                <span class="record-id">ID: @traffic.Id</span>
+                            </div>
+                            <div class="record-details">
+                                <div class="detail-item">
+                                    <strong>Created Date:</strong> @traffic.CreatedDate.ToString("MM/dd/yyyy")
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Total Clicks:</strong> @traffic.TotalClicks
+                                </div>
+                                <div class="monthly-breakdown">
+                                    <strong>Quarterly Breakdown:</strong>
+                                    <div class="months-grid">
+                                        @if (traffic.Q1_JulySeptember.HasValue && traffic.Q1_JulySeptember > 0)
+                                        {
+                                            <span class="month-badge">Q1 (Jul-Sep): @traffic.Q1_JulySeptember</span>
+                                        }
+                                        @if (traffic.Q2_OctoberDecember.HasValue && traffic.Q2_OctoberDecember > 0)
+                                        {
+                                            <span class="month-badge">Q2 (Oct-Dec): @traffic.Q2_OctoberDecember</span>
+                                        }
+                                        @if (traffic.Q3_JanuaryMarch.HasValue && traffic.Q3_JanuaryMarch > 0)
+                                        {
+                                            <span class="month-badge">Q3 (Jan-Mar): @traffic.Q3_JanuaryMarch</span>
+                                        }
+                                        @if (traffic.Q4_AprilJune.HasValue && traffic.Q4_AprilJune > 0)
+                                        {
+                                            <span class="month-badge">Q4 (Apr-Jun): @traffic.Q4_AprilJune</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="record-actions mt-3">
+                                <form asp-controller="DataEntry" asp-action="DeleteWebsiteTraffic" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                    <input type="hidden" name="id" value="@traffic.Id" />
+                                    <button type="submit" class="btn btn-danger btn-sm">
+                                        Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="no-records">No Website Traffic records found.</p>
             }
         </div>
 

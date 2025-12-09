@@ -27,11 +27,13 @@ namespace OneJaxDashboard.Controllers
             var allStaffSurveys = _context.StaffSurveys_22D.ToList();
             var allProfDev = _context.ProfessionalDevelopments.ToList();
             var allMediaPlacements = _context.MediaPlacements_3D.ToList();
+            var allWebsiteTraffic = _context.WebsiteTraffic.ToList();
             
             // Apply filters
             var filteredStaffSurveys = allStaffSurveys;
             var filteredProfDev = allProfDev;
             var filteredMediaPlacements = allMediaPlacements;
+            var filteredWebsiteTraffic = allWebsiteTraffic;
             
             // Filter by date
             DateTime filterStartDate = DateTime.MinValue;
@@ -70,6 +72,9 @@ namespace OneJaxDashboard.Controllers
                     filteredMediaPlacements = filteredMediaPlacements
                         .Where(m => m.CreatedDate >= filterStartDate && m.CreatedDate <= filterEndDate)
                         .ToList();
+                    filteredWebsiteTraffic = filteredWebsiteTraffic
+                        .Where(w => w.CreatedDate >= filterStartDate && w.CreatedDate <= filterEndDate)
+                        .ToList();
                 }
             }
             
@@ -78,28 +83,38 @@ namespace OneJaxDashboard.Controllers
             {
                 filteredProfDev = new List<ProfessionalDevelopment>();
                 filteredMediaPlacements = new List<MediaPlacements_3D>();
+                filteredWebsiteTraffic = new List<WebsiteTraffic_4D>();
             }
             else if (recordType == "professional-development")
             {
                 filteredStaffSurveys = new List<StaffSurvey_22D>();
                 filteredMediaPlacements = new List<MediaPlacements_3D>();
+                filteredWebsiteTraffic = new List<WebsiteTraffic_4D>();
             }
             else if (recordType == "media-placements")
             {
                 filteredStaffSurveys = new List<StaffSurvey_22D>();
                 filteredProfDev = new List<ProfessionalDevelopment>();
+                filteredWebsiteTraffic = new List<WebsiteTraffic_4D>();
+            }
+            else if (recordType == "website-traffic")
+            {
+                filteredStaffSurveys = new List<StaffSurvey_22D>();
+                filteredProfDev = new List<ProfessionalDevelopment>();
+                filteredMediaPlacements = new List<MediaPlacements_3D>();
             }
             
             // Set ViewBag data
             ViewBag.StaffSurveys = filteredStaffSurveys;
             ViewBag.ProfessionalDevelopments = filteredProfDev;
             ViewBag.MediaPlacements = filteredMediaPlacements;
+            ViewBag.WebsiteTraffic = filteredWebsiteTraffic;
             ViewBag.RecordType = recordType ?? "all";
             ViewBag.DateFilter = dateFilter ?? "all";
             ViewBag.StartDate = startDate?.ToString("yyyy-MM-dd");
             ViewBag.EndDate = endDate?.ToString("yyyy-MM-dd");
-            ViewBag.TotalCount = allStaffSurveys.Count + allProfDev.Count + allMediaPlacements.Count;
-            ViewBag.VisibleCount = filteredStaffSurveys.Count + filteredProfDev.Count + filteredMediaPlacements.Count;
+            ViewBag.TotalCount = allStaffSurveys.Count + allProfDev.Count + allMediaPlacements.Count + allWebsiteTraffic.Count;
+            ViewBag.VisibleCount = filteredStaffSurveys.Count + filteredProfDev.Count + filteredMediaPlacements.Count + filteredWebsiteTraffic.Count;
             
             return View();
         }
@@ -150,6 +165,24 @@ namespace OneJaxDashboard.Controllers
                 _context.MediaPlacements_3D.Remove(media);
                 _context.SaveChanges();
                 TempData["Success"] = "Media Placement record deleted successfully!";
+            }
+            else
+            {
+                TempData["Error"] = "Record not found.";
+            }
+            return RedirectToAction("RecordHistory");
+        }
+
+        // Delete Website Traffic
+        [HttpPost]
+        public IActionResult DeleteWebsiteTraffic(int id)
+        {
+            var traffic = _context.WebsiteTraffic.Find(id);
+            if (traffic != null)
+            {
+                _context.WebsiteTraffic.Remove(traffic);
+                _context.SaveChanges();
+                TempData["Success"] = "Website Traffic record deleted successfully!";
             }
             else
             {
