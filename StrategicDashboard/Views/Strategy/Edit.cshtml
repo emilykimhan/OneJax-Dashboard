@@ -1,0 +1,152 @@
+@model OneJaxDashboard.Models.Strategy
+@using System.Collections.Generic
+
+@{
+    var successMessage = TempData["SuccessMessage"] as string;
+}
+
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <div class="alert alert-success alert-dismissible fade show text-center mt-3" role="alert"
+         style="max-width: 600px; margin: 0 auto;">
+        @successMessage
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // same goals list as Index.cshtml
+    var goals = new List<dynamic>
+    {
+        new { Id = 1, Name = "Organizational Building" },
+        new { Id = 2, Name = "Financial Sustainability" },
+        new { Id = 3, Name = "Identity/Value Proposition" },
+        new { Id = 4, Name = "Community Engagement" }
+    };
+}
+
+<style>
+    :root {
+        --onejax-blue: #0070AD;
+        --onejax-teal: #00A3AD;
+        --onejax-navy: #102840;
+        --onejax-gold: #E6B500;
+        --onejax-light: #F7F9FB;
+    }
+
+    body {
+        background-color: var(--onejax-light);
+        font-family: 'Poppins', sans-serif;
+        color: var(--onejax-navy);
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5 {
+        color: var(--onejax-navy);
+        font-weight: 700;
+    }
+
+    .card {
+        background-color: #fff;
+        border-radius: 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        border: none;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: var(--onejax-navy);
+    }
+
+    .form-control {
+        border-radius: 10px;
+        border: 1px solid #d0d7de;
+    }
+
+    .btn-primary {
+        background-color: var(--onejax-blue);
+        border-color: var(--onejax-blue);
+        border-radius: 50px;
+        font-weight: 500;
+        transition: all 0.3s ease-in-out;
+    }
+
+    .btn-primary:hover {
+        background-color: var(--onejax-teal);
+        border-color: var(--onejax-teal);
+        transform: scale(1.02);
+    }
+</style>
+
+<div class="container my-5">
+    <!-- Header (matches other pages) -->
+    <div class="text-center mb-5">
+        <h1 class="fw-bold text-uppercase" style="color: var(--onejax-blue);">
+            OneJax Strategic Dashboard
+        </h1>
+        <p class="text-secondary fs-5">
+            Track and manage events by strategic goals
+        </p>
+    </div>
+
+    <!-- Edit Event Card -->
+    <div class="card shadow-lg border-0 rounded-4 mb-5">
+        <div class="card-body p-4">
+            <h3 class="fw-bold text-uppercase mb-4" style="color: var(--onejax-blue);">
+                Edit Event
+            </h3>
+
+            <form asp-action="Edit" asp-controller="Strategy" method="post" class="row g-3">
+                <input type="hidden" name="id" value="@Model.Id" />
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Event Name</label>
+                    <input type="text" name="eventName" class="form-control" value="@Model.Name" required />
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Assign to Goal</label>
+                    <select name="goalId" class="form-select" required>
+                        <option value="">Select a Goal</option>
+
+                        @foreach (var goal in goals)
+                        {
+                            <option value="@goal.Id" selected="@(goal.Id == Model.StrategicGoalId)">
+                                @goal.Name
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Event Date</label>
+                    <input type="date" name="eventDate" class="form-control" value="@Model.Date" />
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Event Time</label>
+                    <input type="time" name="eventTime" class="form-control" value="@Model.Time" />
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Event Description</label>
+                    <textarea name="eventDescription" class="form-control" rows="2">@Model.Description</textarea>
+                </div>
+
+                <div class="col-12 d-flex justify-content-between">
+                    <a asp-action="ViewEvents" asp-controller="Strategy" class="btn btn-outline-secondary">
+                        Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary px-5">
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,7 +1,7 @@
 @model List<Strategy>
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var successMessage = TempData["SuccessMessage"] as string; 
+    var successMessage = TempData["SuccessMessage"] as string;
 
     var goals = new List<dynamic>
 {
@@ -149,6 +149,14 @@ new { Id = 4, Name = "Community Engagement" }
         <p class="text-secondary fs-5">Track and manage events by strategic goals</p>
     </div>
 
+    <!-- View Events Button -->
+    <div class="text-center mb-4">
+        <a href="/Strategy/ViewEvents" class="btn" style="background-color: var(--onejax-blue); color: #fff; padding: 10px 22px; border-radius: 25px; 
+                  font-weight: 600; box-shadow: 0 3px 8px rgba(0,0,0,0.15);">
+            View Events
+        </a>
+    </div>
+
     @if (ViewBag.SuccessMessage != null)
     {
         <div class="text-center mb-3">
@@ -234,14 +242,16 @@ new { Id = 4, Name = "Community Engagement" }
                                                 <i class="bi bi-three-dots fs-5 text-dark"></i>
                                             </button>
                                             <ul class="dropdown-menu dropdown-menu-end">
-                                                <li><a class="dropdown-item text-primary" data-bs-toggle="collapse"
-                                                        href="#editForm-@e.Id">Edit</a></li>
                                                 <li>
-                                                    <form asp-action="Delete" method="post">
-                                                        <input type="hidden" name="id" value="@e.Id" />
-                                                        <button type="submit" class="dropdown-item text-danger">Delete</button>
-                                                    </form>
+                                                    <a class="dropdown-item text-primary" asp-controller="Strategy"
+                                                        asp-action="Edit" asp-route-id="@e.Id">
+                                                        Edit
+                                                    </a>
                                                 </li>
+                                                <button type="button" class="dropdown-item text-danger" data-bs-toggle="modal"
+                                                    data-bs-target="#deleteConfirmModal" data-event-id="@e.Id">
+                                                    Delete
+                                                </button>
                                             </ul>
                                         </div>
                                     </div>
@@ -279,6 +289,77 @@ new { Id = 4, Name = "Community Engagement" }
         }
     </div>
 </div>
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-semibold" id="deleteConfirmLabel">
+                    Delete Event?
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <p class="mb-2">
+                    You’re about to permanently delete this event. This action cannot be undone.
+                </p>
+                <p class="mb-3">
+                    Type <strong>delete</strong> in lowercase to confirm.
+                </p>
+
+                <form id="deleteConfirmForm" asp-action="Delete" asp-controller="Strategy" method="post">
+                    <!-- This will be filled dynamically when the modal opens -->
+                    <input type="hidden" id="deleteEventId" name="id" />
+
+                    <input type="text"
+                           id="deleteConfirmInput"
+                           class="form-control mb-3"
+                           placeholder='Type "delete" to continue' />
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-danger" id="deleteConfirmButton" disabled>
+                            Delete
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var deleteModal = document.getElementById('deleteConfirmModal');
+        var input = document.getElementById('deleteConfirmInput');
+        var button = document.getElementById('deleteConfirmButton');
+        var hiddenId = document.getElementById('deleteEventId');
+
+        if (!deleteModal) return;
+
+        // When the modal is about to be shown, get the event id from the button that opened it
+        deleteModal.addEventListener('show.bs.modal', function (event) {
+            var triggerButton = event.relatedTarget;
+            var eventId = triggerButton.getAttribute('data-event-id');
+
+            hiddenId.value = eventId;
+            input.value = '';
+            button.disabled = true;
+        });
+
+        // Enable Delete only when user typed "delete" in lowercase
+        input.addEventListener('input', function () {
+            if (input.value === 'delete') {
+                button.disabled = false;
+            } else {
+                button.disabled = true;
+            }
+        });
+    });
+</script>
 
 <script>
     const toastEl = document.querySelector('.toast');

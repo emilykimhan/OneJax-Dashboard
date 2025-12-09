@@ -129,7 +129,7 @@ namespace OneJaxDashboard.Controllers
                 ModelState.AddModelError("", "Please select an event.");
                 PopulateStaffAndStrategiesDropdown(null);
                 return View(eventModel);
-            }
+           }
 
             if (!ModelState.IsValid)
             {
