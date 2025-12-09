@@ -101,17 +101,9 @@
                                     <a class="user-dropdown-item" href="/StaffPortal/Index">My Dashboard</a>
                                     <a class="user-dropdown-item" href="/Events">My Events</a>
                                     <div class="user-dropdown-divider"></div>
-                                }
-                                @if (User.IsInRole("Staff"))
-                                {
-                                    <a class="user-dropdown-item" href="/StaffPortal/Profile">Profile</a>
                                     <a class="user-dropdown-item" href="/StaffPortal/ChangePassword">
                                         <i class="bi bi-shield-lock me-1"></i>Change Password
                                     </a>
-                                }
-                                else
-                                {
-                                    <a class="user-dropdown-item" href="#" style="color:#6c757d;">Profile</a>
                                 }
                                 <form method="post" action="/Account/Logout" style="margin:0;">
                                     @Html.AntiForgeryToken()
