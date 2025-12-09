@@ -1,3 +1,4 @@
+@model OneJaxDashboard.Models.WebsiteTraffic_4D
 @{
     ViewData["Title"] = "Website Traffic";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -30,31 +31,49 @@
                     <strong>Question:</strong> How many clicks did the OneJax website obtain?
                 </div>
 
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success text-center">
+                        @TempData["Success"]
+                    </div>
+                }
+
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger text-center">
+                        @TempData["Error"]
+                    </div>
+                }
+
                 <!-- Quarterly Input Form -->
-                <form>
+                <form asp-controller="WebsiteTraffic" asp-action="Index" method="post">
                     <div class="row">
                         <!-- Q1: July - September -->
                         <div class="col-md-6 mb-4">
-                            <label class="form-label fw-bold">July – September (Q1):</label>
-                            <input type="number" class="form-control" placeholder="Enter number of clicks" min="0" />
+                            <label asp-for="Q1_JulySeptember" class="form-label fw-bold">July – September (Q1):</label>
+                            <input asp-for="Q1_JulySeptember" type="number" class="form-control" placeholder="Enter number of clicks" min="0" />
+                            <span asp-validation-for="Q1_JulySeptember" class="text-danger"></span>
                         </div>
                         
                         <!-- Q2: October - December -->
                         <div class="col-md-6 mb-4">
-                            <label class="form-label fw-bold">October – December (Q2):</label>
-                            <input type="number" class="form-control" placeholder="Enter number of clicks" min="0" />
+                            <label asp-for="Q2_OctoberDecember" class="form-label fw-bold">October – December (Q2):</label>
+                            <input asp-for="Q2_OctoberDecember" type="number" class="form-control" placeholder="Enter number of clicks" min="0" />
+                            <span asp-validation-for="Q2_OctoberDecember" class="text-danger"></span>
                         </div>
                         
                         <!-- Q3: January - March -->
                         <div class="col-md-6 mb-4">
-                            <label class="form-label fw-bold">January – March (Q3):</label>
-                            <input type="number" class="form-control" placeholder="Enter number of clicks" min="0" />
+                            <label asp-for="Q3_JanuaryMarch" class="form-label fw-bold">January – March (Q3):</label>
+                            <input asp-for="Q3_JanuaryMarch" type="number" class="form-control" placeholder="Enter number of clicks" min="0" />
+                            <span asp-validation-for="Q3_JanuaryMarch" class="text-danger"></span>
                         </div>
                         
                         <!-- Q4: April - June -->
                         <div class="col-md-6 mb-4">
-                            <label class="form-label fw-bold">April – June (Q4):</label>
-                            <input type="number" class="form-control" placeholder="Enter number of clicks" min="0" />
+                            <label asp-for="Q4_AprilJune" class="form-label fw-bold">April – June (Q4):</label>
+                            <input asp-for="Q4_AprilJune" type="number" class="form-control" placeholder="Enter number of clicks" min="0" />
+                            <span asp-validation-for="Q4_AprilJune" class="text-danger"></span>
                         </div>
                     </div>
 
@@ -62,12 +81,39 @@
                     <div class="mt-4 p-3" style="background-color: #f8f9fa; border-radius: 12px;">
                         <div class="row">
                             <div class="col-md-6">
-                                <h5 style="color:var(--onejax-navy);">Total Website Clicks:</h5>
+                                <h5 style="color:var(--onejax-navy);">Total Website Clicks (This Entry):</h5>
                             </div>
                             <div class="col-md-6 text-end">
-                                <h5 style="color:var(--onejax-navy);"><strong>0</strong> clicks</h5>
+                                <h5 style="color:var(--onejax-navy);"><strong>@Model.TotalClicks</strong> clicks</h5>
                             </div>
                         </div>
+                    </div>
+
+                    @if (ViewBag.GrandTotal != null)
+                    {
+                        <div class="alert alert-success mt-3" style="border-radius: 12px;">
+                            <div class="row align-items-center">
+                                <div class="col-md-8">
+                                    <h5 class="mb-0" style="color: #155724;">
+                                        <strong>Grand Total Across All Entries:</strong>
+                                    </h5>
+                                    <small class="text-muted">Based on @ViewBag.TotalEntries entry/entries in the database</small>
+                                </div>
+                                <div class="col-md-4 text-end">
+                                    <h3 class="mb-0" style="color: #155724;">
+                                        <strong>@ViewBag.GrandTotal</strong> clicks
+                                    </h3>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Submit Button -->
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg px-5 py-3"
+                                style="background-color:var(--onejax-navy); border-color:var(--onejax-navy); border-radius: 12px; font-weight: 600;">
+                            Submit Website Traffic
+                        </button>
                     </div>
                 </form>
             </div>

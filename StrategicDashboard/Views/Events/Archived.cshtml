@@ -1,7 +1,7 @@
 @model IEnumerable<OneJaxDashboard.Models.Event>
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewData["Title"] = "My Events";
+    ViewData["Title"] = "Completed Events";
 }
 
 <div class="row mb-4">
@@ -9,18 +9,13 @@
         <div class="d-flex justify-content-between align-items-center">
             <div>
                 <h2 class="fw-bold mb-1" style="color:var(--onejax-navy);">
-                    <i class="bi bi-calendar-event-fill me-2"></i>My Events
+                    <i class="bi bi-archive-fill me-2"></i>Completed Events
                 </h2>
-                <p class="text-muted mb-0">Manage and track your events and their strategic assignments</p>
+                <p class="text-muted mb-0">View your archived and completed events</p>
             </div>
-            <div>
-                <a class="btn btn-outline-info me-2" href="/Events/Archived">
-                    <i class="bi bi-archive me-1"></i>Completed Events
-                </a>
-                <a class="btn btn-onejax" href="/Events/Create">
-                    <i class="bi bi-plus-lg me-1"></i>New Event
-                </a>
-            </div>
+            <a class="btn btn-outline-secondary" href="/Events">
+                <i class="bi bi-arrow-left me-1"></i>Back to Active Events
+            </a>
         </div>
     </div>
 </div>
@@ -41,13 +36,7 @@
                             <i class="bi bi-lightning me-1"></i>Strategy
                         </th>
                         <th class="py-3 border-0">
-                            <i class="bi bi-info-circle me-1"></i>Status
-                        </th>
-                        <th class="py-3 border-0">
-                            <i class="bi bi-calendar-event me-1"></i>Start
-                        </th>
-                        <th class="py-3 border-0">
-                            <i class="bi bi-calendar-check me-1"></i>End
+                            <i class="bi bi-calendar-check me-1"></i>Completion Date
                         </th>
                         <th class="px-4 py-3 border-0 text-center" style="width:160px;">Actions</th>
                     </tr>
@@ -56,16 +45,16 @@
                     @if (!Model.Any())
                     {
                         <tr>
-                            <td colspan="7" class="text-center py-5">
-                                <i class="bi bi-calendar-x text-muted d-block mb-3" style="font-size: 3rem;"></i>
-                                <p class="text-muted mb-2">No events yet.</p>
-                                <p class="small text-muted">Create your first event to get started!</p>
+                            <td colspan="5" class="text-center py-5">
+                                <i class="bi bi-archive text-muted d-block mb-3" style="font-size: 3rem;"></i>
+                                <p class="text-muted mb-2">No completed events yet.</p>
+                                <p class="small text-muted">Once you complete events, they'll appear here.</p>
                             </td>
                         </tr>
                     }
                     else
                     {
-                        @foreach (var item in Model)
+                        @foreach (var item in Model.OrderByDescending(e => e.CompletionDate))
                         {
                             <tr>
                                 <td class="px-4 py-3">
@@ -102,30 +91,9 @@
                                     }
                                 </td>
                                 <td class="py-3">
-                                    @{
-                                        string badgeClass = item.Status switch
-                                        {
-                                            "Completed" => "bg-success",
-                                            "In Progress" => "bg-warning",
-                                            _ => "bg-secondary"
-                                        };
-                                    }
-                                    <span class="badge @badgeClass px-3 py-2">@item.Status</span>
-                                </td>
-                                <td class="py-3">
-                                    @if (item.StartDate.HasValue)
+                                    @if (item.CompletionDate.HasValue)
                                     {
-                                        <span class="text-dark">@item.StartDate.Value.ToString("MMM dd, yyyy")</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">—</span>
-                                    }
-                                </td>
-                                <td class="py-3">
-                                    @if (item.EndDate.HasValue)
-                                    {
-                                        <span class="text-dark">@item.EndDate.Value.ToString("MMM dd, yyyy")</span>
+                                        <span class="text-dark">@item.CompletionDate.Value.ToString("MMM dd, yyyy")</span>
                                     }
                                     else
                                     {
@@ -135,10 +103,7 @@
                                 <td class="px-4 py-3 text-center">
                                     <div class="btn-group" role="group">
                                         <a href="/Events/Edit/@item.Id" class="btn btn-sm btn-outline-primary">
-                                            <i class="bi bi-pencil"></i>
-                                        </a>
-                                        <a href="/Events/Delete/@item.Id" class="btn btn-sm btn-outline-danger">
-                                            <i class="bi bi-trash"></i>
+                                            <i class="bi bi-eye"></i>
                                         </a>
                                     </div>
                                 </td>

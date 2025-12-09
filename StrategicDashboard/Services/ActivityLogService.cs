@@ -11,6 +11,13 @@ namespace OneJaxDashboard.Services
                        .OrderByDescending(e => e.Timestamp)
                        .Take(take);
 
+        public IEnumerable<ActivityLogEntry> GetAllEntries()
+            => _entries.OrderByDescending(e => e.Timestamp);
+
+        public IEnumerable<ActivityLogEntry> GetEntriesByEntityId(string entityType, int entityId)
+            => _entries.Where(e => e.EntityType == entityType && e.EntityId == entityId)
+                       .OrderByDescending(e => e.Timestamp);
+
         public void Log(string username, string action, string? entityType = null, int? entityId = null, string? notes = null)
         {
             _entries.Add(new ActivityLogEntry

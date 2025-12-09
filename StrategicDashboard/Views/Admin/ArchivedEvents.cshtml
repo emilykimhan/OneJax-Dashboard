@@ -1,0 +1,174 @@
+@model IEnumerable<OneJaxDashboard.Models.Event>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Archived Events";
+}
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="fw-bold mb-1" style="color:var(--onejax-navy);">
+                    <i class="bi bi-archive-fill me-2"></i>Archived Events
+                </h2>
+                <p class="text-muted mb-0">View completed and archived events</p>
+            </div>
+            <div>
+                <a class="btn btn-outline-secondary" href="/Admin/ManageEvents">
+                    <i class="bi bi-arrow-left me-1"></i>Back to Active Events
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle me-2"></i>@TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card bg-info bg-opacity-10 border-info">
+            <div class="card-body text-center">
+                <h3 class="fw-bold text-info">@Model.Count()</h3>
+                <p class="mb-0">Total Archived Events</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card bg-success bg-opacity-10 border-success">
+            <div class="card-body text-center">
+                <h3 class="fw-bold text-success">@Model.Count(e => e.Status == "Completed")</h3>
+                <p class="mb-0">Completed Events</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th class="px-4 py-3 border-0">
+                            <i class="bi bi-card-heading me-1"></i>Event Title
+                        </th>
+                        <th class="py-3 border-0">
+                            <i class="bi bi-person me-1"></i>Assigned To
+                        </th>
+                        <th class="py-3 border-0">
+                            <i class="bi bi-flag me-1"></i>Strategy
+                        </th>
+                        <th class="py-3 border-0">
+                            <i class="bi bi-info-circle me-1"></i>Status
+                        </th>
+                        <th class="py-3 border-0">
+                            <i class="bi bi-calendar-check me-1"></i>Completion Date
+                        </th>
+                        <th class="px-4 py-3 border-0 text-center" style="width:150px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-5">
+                                <i class="bi bi-archive text-muted d-block mb-3" style="font-size: 3rem;"></i>
+                                <p class="text-muted mb-2">No archived events yet.</p>
+                                <p class="small text-muted">Completed events will appear here.</p>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var eventItem in Model.OrderByDescending(e => e.CompletionDate))
+                        {
+                            <tr>
+                                <td class="px-4 py-3">
+                                    <div>
+                                        <div class="fw-semibold">@eventItem.Title</div>
+                                        @if (!string.IsNullOrEmpty(eventItem.Description))
+                                        {
+                                            <small class="text-muted">@(eventItem.Description.Length > 50 ? eventItem.Description.Substring(0, 50) + "..." : eventItem.Description)</small>
+                                        }
+                                    </div>
+                                </td>
+                                <td class="py-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-2">
+                                            <i class="bi bi-person-fill text-primary"></i>
+                                        </div>
+                                        <span class="fw-medium">@eventItem.OwnerUsername</span>
+                                    </div>
+                                </td>
+                                <td class="py-3">
+                                    @if (eventItem.StrategyId.HasValue)
+                                    {
+                                        <span class="badge bg-info bg-opacity-75">Strategy #@eventItem.StrategyId</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">No strategy</span>
+                                    }
+                                </td>
+                                <td class="py-3">
+                                    <span class="badge bg-success">@eventItem.Status</span>
+                                </td>
+                                <td class="py-3">
+                                    @if (eventItem.CompletionDate.HasValue)
+                                    {
+                                        <span class="text-nowrap">@eventItem.CompletionDate.Value.ToString("MMM dd, yyyy")</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                                <td class="px-4 py-3 text-center">
+                                    <div class="btn-group" role="group">
+                                        <a href="/Admin/EditAssignedEvent/@eventItem.Id" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#unarchiveModal@eventItem.Id">
+                                            <i class="bi bi-arrow-counterclockwise"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Unarchive Modal -->
+                            <div class="modal fade" id="unarchiveModal@eventItem.Id" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Reactivate Event</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>Are you sure you want to reactivate <strong>@eventItem.Title</strong>?</p>
+                                            <p class="text-muted small">This will move the event back to the active events list.</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <form action="/Admin/UnarchiveEvent/@eventItem.Id" method="post" style="display: inline;">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-warning">
+                                                    <i class="bi bi-arrow-counterclockwise me-1"></i>Reactivate
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

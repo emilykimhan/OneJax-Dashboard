@@ -13,6 +13,67 @@
                max-width:2000px;">
 
         <p class="mb-4">View all previously entered data records below.</p>
+        
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                @TempData["Success"]
+            </div>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                @TempData["Error"]
+            </div>
+        }
+
+        <!-- Filter/Search Section -->
+        <div class="filter-section mb-4">
+            <form method="get" asp-action="RecordHistory">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="recordType" class="form-label fw-bold">Filter by Record Type:</label>
+                        <select id="recordType" name="recordType" class="form-select">
+                            <option value="all" selected="@(ViewBag.RecordType == "all" ? "selected" : null)">All Records</option>
+                            <option value="staff-survey" selected="@(ViewBag.RecordType == "staff-survey" ? "selected" : null)">Staff Survey Only</option>
+                            <option value="professional-development" selected="@(ViewBag.RecordType == "professional-development" ? "selected" : null)">Professional Development Only</option>
+                            <option value="media-placements" selected="@(ViewBag.RecordType == "media-placements" ? "selected" : null)">Media Placements Only</option>
+                            <option value="website-traffic" selected="@(ViewBag.RecordType == "website-traffic" ? "selected" : null)">Website Traffic Only</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="dateFilter" class="form-label fw-bold">Filter by Date:</label>
+                        <select id="dateFilter" name="dateFilter" class="form-select">
+                            <option value="all" selected="@(ViewBag.DateFilter == "all" ? "selected" : null)">All Dates</option>
+                            <option value="today" selected="@(ViewBag.DateFilter == "today" ? "selected" : null)">Today</option>
+                            <option value="week" selected="@(ViewBag.DateFilter == "week" ? "selected" : null)">Last 7 Days</option>
+                            <option value="month" selected="@(ViewBag.DateFilter == "month" ? "selected" : null)">Last 30 Days</option>
+                            <option value="custom" selected="@(ViewBag.DateFilter == "custom" ? "selected" : null)">Custom Range</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row" id="customDateRange">
+                    <div class="col-md-6 mb-3">
+                        <label for="startDate" class="form-label fw-bold">Start Date (for Custom Range):</label>
+                        <input type="date" id="startDate" name="startDate" class="form-control" value="@ViewBag.StartDate">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="endDate" class="form-label fw-bold">End Date (for Custom Range):</label>
+                        <input type="date" id="endDate" name="endDate" class="form-control" value="@ViewBag.EndDate">
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Apply Filters</button>
+                    <a href="@Url.Action("RecordHistory")" class="btn btn-secondary">Clear Filters</a>
+                    @if (ViewBag.TotalCount != null)
+                    {
+                        <span class="align-self-center ms-3 text-muted">Showing @ViewBag.VisibleCount of @ViewBag.TotalCount records</span>
+                    }
+                </div>
+            </form>
+        </div>
+
         <div class="container">
     <h2>Record History</h2>
     
@@ -46,6 +107,14 @@
                                 <div class="detail-item">
                                     <strong>Professional Development Count:</strong> @survey.ProfessionalDevelopmentCount
                                 </div>
+                            </div>
+                            <div class="record-actions mt-3">
+                                <form asp-controller="DataEntry" asp-action="DeleteStaffSurvey" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                    <input type="hidden" name="id" value="@survey.Id" />
+                                    <button type="submit" class="btn btn-danger btn-sm">
+                                        Delete
+                                    </button>
+                                </form>
                             </div>
                         </div>
                     }
@@ -81,6 +150,14 @@
                                     <strong>2027 Activities:</strong> @profDev.ProfessionalDevelopmentYear27
                                 </div>
                             </div>
+                            <div class="record-actions mt-3">
+                                <form asp-controller="DataEntry" asp-action="DeleteProfessionalDevelopment" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                    <input type="hidden" name="id" value="@profDev.Id" />
+                                    <button type="submit" class="btn btn-danger btn-sm">
+                                        Delete
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     }
                 </div>
@@ -88,6 +165,158 @@
             else
             {
                 <p class="no-records">No Professional Development records found.</p>
+            }
+        </div>
+
+        <!-- Media Placements Records -->
+        <div class="record-section">
+            <h5 class="section-title">Media Placements Records</h5>
+            @if (ViewBag.MediaPlacements != null && ((List<OneJaxDashboard.Models.MediaPlacements_3D>)ViewBag.MediaPlacements).Any())
+            {
+                <div class="records-list">
+                    @foreach (var media in (List<OneJaxDashboard.Models.MediaPlacements_3D>)ViewBag.MediaPlacements)
+                    {
+                        <div class="record-item">
+                            <div class="record-header">
+                                <span class="record-type">Media Placements</span>
+                                <span class="record-id">ID: @media.Id</span>
+                            </div>
+                            <div class="record-details">
+                                <div class="detail-item">
+                                    <strong>Created Date:</strong> @media.CreatedDate.ToString("MM/dd/yyyy")
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Total Mentions:</strong> @media.TotalMentions
+                                </div>
+                                <div class="monthly-breakdown">
+                                    <strong>Monthly Breakdown:</strong>
+                                    <div class="months-grid">
+                                        @if (media.January.HasValue && media.January > 0)
+                                        {
+                                            <span class="month-badge">Jan: @media.January</span>
+                                        }
+                                        @if (media.February.HasValue && media.February > 0)
+                                        {
+                                            <span class="month-badge">Feb: @media.February</span>
+                                        }
+                                        @if (media.March.HasValue && media.March > 0)
+                                        {
+                                            <span class="month-badge">Mar: @media.March</span>
+                                        }
+                                        @if (media.April.HasValue && media.April > 0)
+                                        {
+                                            <span class="month-badge">Apr: @media.April</span>
+                                        }
+                                        @if (media.May.HasValue && media.May > 0)
+                                        {
+                                            <span class="month-badge">May: @media.May</span>
+                                        }
+                                        @if (media.June.HasValue && media.June > 0)
+                                        {
+                                            <span class="month-badge">Jun: @media.June</span>
+                                        }
+                                        @if (media.July.HasValue && media.July > 0)
+                                        {
+                                            <span class="month-badge">Jul: @media.July</span>
+                                        }
+                                        @if (media.August.HasValue && media.August > 0)
+                                        {
+                                            <span class="month-badge">Aug: @media.August</span>
+                                        }
+                                        @if (media.September.HasValue && media.September > 0)
+                                        {
+                                            <span class="month-badge">Sep: @media.September</span>
+                                        }
+                                        @if (media.October.HasValue && media.October > 0)
+                                        {
+                                            <span class="month-badge">Oct: @media.October</span>
+                                        }
+                                        @if (media.November.HasValue && media.November > 0)
+                                        {
+                                            <span class="month-badge">Nov: @media.November</span>
+                                        }
+                                        @if (media.December.HasValue && media.December > 0)
+                                        {
+                                            <span class="month-badge">Dec: @media.December</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="record-actions mt-3">
+                                <form asp-controller="DataEntry" asp-action="DeleteMediaPlacement" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                    <input type="hidden" name="id" value="@media.Id" />
+                                    <button type="submit" class="btn btn-danger btn-sm">
+                                        Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="no-records">No Media Placements records found.</p>
+            }
+        </div>
+
+        <!-- Website Traffic Records -->
+        <div class="record-section">
+            <h5 class="section-title">Website Traffic Records</h5>
+            @if (ViewBag.WebsiteTraffic != null && ((List<OneJaxDashboard.Models.WebsiteTraffic_4D>)ViewBag.WebsiteTraffic).Any())
+            {
+                <div class="records-list">
+                    @foreach (var traffic in (List<OneJaxDashboard.Models.WebsiteTraffic_4D>)ViewBag.WebsiteTraffic)
+                    {
+                        <div class="record-item">
+                            <div class="record-header">
+                                <span class="record-type">Website Traffic</span>
+                                <span class="record-id">ID: @traffic.Id</span>
+                            </div>
+                            <div class="record-details">
+                                <div class="detail-item">
+                                    <strong>Created Date:</strong> @traffic.CreatedDate.ToString("MM/dd/yyyy")
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Total Clicks:</strong> @traffic.TotalClicks
+                                </div>
+                                <div class="monthly-breakdown">
+                                    <strong>Quarterly Breakdown:</strong>
+                                    <div class="months-grid">
+                                        @if (traffic.Q1_JulySeptember.HasValue && traffic.Q1_JulySeptember > 0)
+                                        {
+                                            <span class="month-badge">Q1 (Jul-Sep): @traffic.Q1_JulySeptember</span>
+                                        }
+                                        @if (traffic.Q2_OctoberDecember.HasValue && traffic.Q2_OctoberDecember > 0)
+                                        {
+                                            <span class="month-badge">Q2 (Oct-Dec): @traffic.Q2_OctoberDecember</span>
+                                        }
+                                        @if (traffic.Q3_JanuaryMarch.HasValue && traffic.Q3_JanuaryMarch > 0)
+                                        {
+                                            <span class="month-badge">Q3 (Jan-Mar): @traffic.Q3_JanuaryMarch</span>
+                                        }
+                                        @if (traffic.Q4_AprilJune.HasValue && traffic.Q4_AprilJune > 0)
+                                        {
+                                            <span class="month-badge">Q4 (Apr-Jun): @traffic.Q4_AprilJune</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="record-actions mt-3">
+                                <form asp-controller="DataEntry" asp-action="DeleteWebsiteTraffic" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                    <input type="hidden" name="id" value="@traffic.Id" />
+                                    <button type="submit" class="btn btn-danger btn-sm">
+                                        Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="no-records">No Website Traffic records found.</p>
             }
         </div>
 
@@ -101,6 +330,31 @@
 </div>
 
 <style>
+    /* Filter Section Styles */
+    .filter-section {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 12px;
+        border: 1px solid #dee2e6;
+        margin-bottom: 2rem;
+    }
+
+    .filter-section .form-label {
+        color: var(--onejax-navy);
+        margin-bottom: 0.5rem;
+    }
+
+    .filter-section .form-control:focus,
+    .filter-section .form-select:focus {
+        border-color: var(--onejax-navy);
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 191, 0.25);
+    }
+
+    #recordCount {
+        font-size: 0.95rem;
+        font-weight: 500;
+    }
+
     /* Record History Styles */
     .record-section {
         margin-bottom: 3rem;
@@ -174,6 +428,54 @@
     .detail-item strong {
         color: var(--onejax-navy);
         font-weight: 600;
+    }
+
+    .record-actions {
+        display: flex;
+        gap: 0.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid #f1f3f4;
+    }
+
+    .record-actions .btn {
+        font-size: 0.875rem;
+        padding: 0.4rem 0.8rem;
+        border-radius: 6px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+
+    .record-actions .btn-danger {
+        background-color: #dc3545;
+        border-color: #dc3545;
+    }
+
+    .record-actions .btn-danger:hover {
+        background-color: #c82333;
+        border-color: #bd2130;
+        transform: translateY(-1px);
+    }
+
+    .monthly-breakdown {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #f1f3f4;
+    }
+
+    .months-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+
+    .month-badge {
+        background: var(--onejax-navy);
+        color: white;
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
     }
 
     .no-records {
