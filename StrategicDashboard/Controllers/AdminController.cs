@@ -65,7 +65,7 @@ namespace OneJaxDashboard.Controllers
             {
                 PopulateStaffAndStrategiesDropdown();
                 return View(eventModel);
-            }
+           }
 
             // Set admin assignment properties
             eventModel.OwnerUsername = selectedStaffUsername;

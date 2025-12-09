@@ -43,8 +43,8 @@ public class StrategyController : Controller
             Name = eventName,
             Description = eventDescription,
             StrategicGoalId = goalId,
-            Date = eventDate, 
-            Time = eventTime  
+            Date = eventDate,
+            Time = eventTime
         };
 
         strategies.Add(newEvent);
@@ -56,22 +56,42 @@ public class StrategyController : Controller
         return RedirectToAction("Index");
     }
 
-    [HttpPost]
-    public IActionResult Edit(int id, string eventName, string eventDescription, int goalId, string? eventDate, string? eventTime)
+// GET: /Strategy/Edit/5
+[HttpGet]
+public IActionResult Edit(int id)
+{
+    // your events are stored in the in-memory `strategies` list
+    var evt = strategies.FirstOrDefault(s => s.Id == id);
+    if (evt == null)
     {
-        var existingEvent = strategies.FirstOrDefault(s => s.Id == id);
-        if (existingEvent != null)
-        {
-            existingEvent.Name = eventName;
-            existingEvent.Description = eventDescription;
-            existingEvent.StrategicGoalId = goalId;
-            existingEvent.Date = eventDate;
-            existingEvent.Time = eventTime;
-        }
-
-        TempData["SuccessMessage"] = "Event updated successfully";
-        return RedirectToAction("Index");
+        return NotFound();
     }
+
+    return View(evt);   // will use Views/Strategy/Edit.cshtml
+}
+
+// POST: /Strategy/Edit
+[HttpPost]
+public IActionResult Edit(int id, string eventName, string eventDescription, int goalId, string? eventDate, string? eventTime)
+{
+    var evt = strategies.FirstOrDefault(s => s.Id == id);
+    if (evt == null)
+    {
+        return NotFound();
+    }
+
+    // Update fields
+    evt.Name = eventName;
+    evt.Description = eventDescription;
+    evt.StrategicGoalId = goalId;
+    evt.Date = eventDate;
+    evt.Time = eventTime;
+
+    TempData["SuccessMessage"] = "Event updated successfully!";
+
+    // after editing, send them back to View Events
+    return RedirectToAction("ViewEvents");
+}
 
     [HttpPost]
     public IActionResult Delete(int id)
@@ -83,4 +103,18 @@ public class StrategyController : Controller
         TempData["SuccessMessage"] = "Event deleted successfully";
         return RedirectToAction("Index");
     }
+    public IActionResult ViewEvents()
+    {
+        // Reuse the in-memory strategies list and the Goals list
+        ViewBag.Goals = Goals;
+
+        // All events, newest first
+        var allEvents = strategies
+            .OrderByDescending(s => s.Id)
+            .ToList();
+
+        return View(allEvents);
+    }
+
+ 
 }

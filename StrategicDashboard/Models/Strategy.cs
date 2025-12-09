@@ -3,8 +3,9 @@
 // Usage: Displayed and managed in the strategies view for each goal.
 
 //Dina's
+using System.Collections.Generic;
 
-using OneJaxDashboard.Models;
+namespace OneJaxDashboard.Models;
 
 public class Strategy
 {

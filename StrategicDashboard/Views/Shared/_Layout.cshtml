@@ -77,7 +77,19 @@
                     <li class="nav-item"><a class="nav-link" href="/Home/Index">Home</a></li>
                     @if (User?.Identity?.IsAuthenticated ?? false)
                     {
-                        <li class="nav-item"><a class="nav-link" href="/Strategy/Index?goalId=1">Core Strategies</a></li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="coreStrategiesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Core Strategies
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="coreStrategiesDropdown">
+                                <li>
+                                    <a class="dropdown-item" href="/Strategy/ViewEvents">View Events</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="/Strategy/Index">Create Event</a>
+                                </li>
+                            </ul>
+                        </li>
                         <li class="nav-item"><a class="nav-link" href="/DataEntry">Data Entry</a></li>
                     }
                     @if (User?.Identity?.IsAuthenticated ?? false)

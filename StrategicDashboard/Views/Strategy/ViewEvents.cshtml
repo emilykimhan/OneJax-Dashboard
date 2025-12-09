@@ -1,0 +1,365 @@
+@using System.Linq
+@using Microsoft.AspNetCore.Mvc.Rendering
+@model List<OneJaxDashboard.Models.Strategy>
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "View Events";
+    var goals = ViewBag.Goals as List<SelectListItem>;
+}
+
+<!-- OneJax Color Theme (reuse from Add Event for consistency) -->
+<style>
+    :root {
+        --onejax-blue: #0070AD;
+        --onejax-teal: #00A3AD;
+        --onejax-navy: #102840;
+        --onejax-gold: #E6B500;
+        --onejax-light: #F7F9FB;
+    }
+
+    body {
+        background-color: var(--onejax-light);
+        font-family: 'Poppins', sans-serif;
+        color: var(--onejax-navy);
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5 {
+        color: var(--onejax-navy);
+        font-weight: 700;
+    }
+
+    .card {
+        background-color: #fff;
+        border-radius: 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        border: none;
+    }
+
+    .event-card-title {
+        font-weight: 600;
+        color: var(--onejax-navy);
+    }
+
+    .event-card-meta {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+
+    .nav-pills {
+        border-bottom: none;
+    }
+
+    .nav-pills .nav-link {
+        color: var(--onejax-navy);
+        border-radius: 25px;
+        background-color: #fff;
+        border: 1px solid transparent;
+        transition: all 0.3s ease-in-out;
+        padding: 8px 16px;
+        margin: 0 4px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .nav-pills .nav-link.active {
+        background-color: var(--onejax-blue);
+        color: #fff;
+        box-shadow: 0 4px 10px rgba(0, 112, 173, 0.3);
+    }
+
+    .nav-pills .nav-link:hover {
+        background-color: var(--onejax-teal);
+        color: #fff;
+        transform: scale(1.02);
+    }
+
+    .badge-goal {
+        background-color: var(--onejax-gold);
+        color: #102840;
+        font-size: 0.75rem;
+        border-radius: 999px;
+        padding: 0.25rem 0.6rem;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 0;
+        color: #6c757d;
+    }
+
+    .empty-state i {
+        font-size: 2.5rem;
+        display: block;
+        margin-bottom: 0.75rem;
+    }
+</style>
+
+<div class="container my-5">
+
+    <div class="text-center mb-4">
+        <h2 class="fw-bold text-uppercase" style="color: var(--onejax-blue);">View Events</h2>
+        <p class="text-secondary mb-0">
+            Browse all events and manage them by strategic goal. Use the tabs below to filter.
+        </p>
+    </div>
+
+    <div class="text-center mb-4">
+        <a href="/Strategy/Index" class="btn"
+            style="background-color: var(--onejax-blue); color: #fff; padding: 10px 22px; border-radius: 25px; font-weight: 600; box-shadow: 0 3px 8px rgba(0,0,0,0.15);">
+            <span style="font-size: 1.2rem; margin-right: 6px;"></span> Create Event +
+        </a>
+    </div>
+
+    <!-- Tabs -->
+    <ul class="nav nav-pills justify-content-center mb-4" id="eventTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="all-events-tab" data-bs-toggle="tab" data-bs-target="#all-events"
+                type="button" role="tab">
+                All Events
+            </button>
+        </li>
+
+        @if (goals != null)
+        {
+            foreach (var goal in goals)
+            {
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="goal-@goal.Value-tab" data-bs-toggle="tab" data-bs-target="#goal-@goal.Value"
+                        type="button" role="tab">
+                        @goal.Text
+                    </button>
+                </li>
+            }
+        }
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="eventTabsContent">
+        <!-- All Events -->
+        <div class="tab-pane fade show active" id="all-events" role="tabpanel" aria-labelledby="all-events-tab">
+            @if (Model == null || !Model.Any())
+            {
+                <div class="empty-state">
+                    <i class="bi bi-inbox"></i>
+                    <p class="mb-0">No events have been created yet.</p>
+                </div>
+            }
+            else
+            {
+                <div class="row">
+                    @foreach (var e in Model.OrderByDescending(x => x.Id))
+                    {
+                        var goalName = goals?.FirstOrDefault(g => g.Value == e.StrategicGoalId.ToString())?.Text;
+
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card h-100 p-3">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h5 class="event-card-title mb-0">@e.Name</h5>
+
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-light border-0" type="button" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li>
+                                                <a class="dropdown-item text-primary" asp-controller="Strategy"
+                                                    asp-action="Edit" asp-route-id="@e.Id">
+                                                    Edit
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <button type="button"
+                                                        class="dropdown-item text-danger"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#deleteConfirmModal"
+                                                        data-event-id="@e.Id">
+                                                    Delete
+                                                </button>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <p class="event-card-meta mb-2">
+                                    @if (!string.IsNullOrEmpty(e.Date) || !string.IsNullOrEmpty(e.Time))
+                                    {
+                                        <span>
+                                            <i class="bi bi-calendar-event"></i>
+                                            @if (!string.IsNullOrEmpty(e.Date))
+                                            {
+                                                @e.Date
+                                            }
+                                            @if (!string.IsNullOrEmpty(e.Time))
+                                            {
+                                                <span> at @e.Time</span>
+                                            }
+                                        </span>
+                                    }
+                                </p>
+
+                                <p class="mb-2 text-secondary">@e.Description</p>
+
+                                <div class="mt-auto d-flex justify-content-between align-items-center">
+                                    <span class="badge badge-goal">
+                                        @goalName
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        <!-- Events by Goal -->
+        @if (goals != null)
+        {
+            foreach (var goal in goals)
+            {
+                var goalId = int.Parse(goal.Value);
+                var eventsForGoal = Model?.Where(e => e.StrategicGoalId == goalId).ToList() ?? new
+                List<OneJaxDashboard.Models.Strategy>();
+
+                <div class="tab-pane fade" id="goal-@goal.Value" role="tabpanel" aria-labelledby="goal-@goal.Value-tab">
+                    @if (!eventsForGoal.Any())
+                    {
+                        <div class="empty-state">
+                            <i class="bi bi-inbox"></i>
+                            <p class="mb-0">No events for this goal yet.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="row">
+                            @foreach (var e in eventsForGoal.OrderByDescending(x => x.Id))
+                            {
+                                <div class="col-md-6 col-lg-4 mb-4">
+                                    <div class="card h-100 p-3">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h5 class="event-card-title mb-0">@e.Name</h5>
+
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-light border-0" type="button" data-bs-toggle="dropdown">
+                                                    <i class="bi bi-three-dots-vertical"></i>
+                                                </button>
+                                                <ul class="dropdown-menu dropdown-menu-end">
+                                                    <li>
+                                                        <a class="dropdown-item text-primary" asp-controller="Strategy"
+                                                            asp-action="Edit" asp-route-id="@e.Id">
+                                                            Edit
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <button type="button" class="dropdown-item text-danger" data-bs-toggle="modal"
+                                                            data-bs-target="#deleteConfirmModal" data-event-id="@e.Id">
+                                                            Delete
+                                                        </button>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+
+                                        <p class="event-card-meta mb-2">
+                                            @if (!string.IsNullOrEmpty(e.Date) || !string.IsNullOrEmpty(e.Time))
+                                            {
+                                                <span>
+                                                    <i class="bi bi-calendar-event"></i>
+                                                    @if (!string.IsNullOrEmpty(e.Date))
+                                                    {
+                                                        @e.Date
+                                                    }
+                                                    @if (!string.IsNullOrEmpty(e.Time))
+                                                    {
+                                                        <span> at @e.Time</span>
+                                                    }
+                                                </span>
+                                            }
+                                        </p>
+
+                                        <p class="mb-2 text-secondary">@e.Description</p>
+
+                                        <div class="mt-auto d-flex justify-content-between align-items-center">
+                                            <span class="badge badge-goal">
+                                                @goal.Text
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        }
+    </div>
+</div>
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-semibold" id="deleteConfirmLabel">
+                    Delete Event?
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <p class="mb-2">
+                    You’re about to permanently delete this event. This action cannot be undone.
+                </p>
+                <p class="mb-3">
+                    Type <strong>delete</strong> in lowercase to confirm.
+                </p>
+
+                <form id="deleteConfirmForm" asp-action="Delete" asp-controller="Strategy" method="post">
+                    <input type="hidden" id="deleteEventId" name="id" />
+
+                    <input type="text" id="deleteConfirmInput" class="form-control mb-3"
+                        placeholder='Type "delete" to continue' />
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-danger" id="deleteConfirmButton" disabled>
+                            Delete
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var deleteModal = document.getElementById('deleteConfirmModal');
+        var input = document.getElementById('deleteConfirmInput');
+        var button = document.getElementById('deleteConfirmButton');
+        var hiddenId = document.getElementById('deleteEventId');
+
+        if (!deleteModal) return;
+
+        deleteModal.addEventListener('show.bs.modal', function (event) {
+            var triggerButton = event.relatedTarget;
+            var eventId = triggerButton.getAttribute('data-event-id');
+
+            hiddenId.value = eventId;
+            input.value = '';
+            button.disabled = true;
+        });
+
+        input.addEventListener('input', function () {
+            if (input.value === 'delete') {
+                button.disabled = false;
+            } else {
+                button.disabled = true;
+            }
+        });
+    });
+</script>
