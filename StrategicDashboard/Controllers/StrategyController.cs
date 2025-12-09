@@ -62,7 +62,7 @@ public class StrategyController : Controller
 public IActionResult Edit(int id)
 {
     // your events are stored in the in-memory `strategies` list
-    var evt = strategies.FirstOrDefault(s => s.Id == id);
+    var evt = Strategies.FirstOrDefault(s => s.Id == id);
     if (evt == null)
     {
         return NotFound();
@@ -75,7 +75,7 @@ public IActionResult Edit(int id)
 [HttpPost]
 public IActionResult Edit(int id, string eventName, string eventDescription, int goalId, string? eventDate, string? eventTime)
 {
-    var evt = strategies.FirstOrDefault(s => s.Id == id);
+    var evt = Strategies.FirstOrDefault(s => s.Id == id);
     if (evt == null)
     {
         return NotFound();
@@ -110,7 +110,7 @@ public IActionResult Edit(int id, string eventName, string eventDescription, int
         ViewBag.Goals = Goals;
 
         // All events, newest first
-        var allEvents = strategies
+        var allEvents = Strategies
             .OrderByDescending(s => s.Id)
             .ToList();
 
