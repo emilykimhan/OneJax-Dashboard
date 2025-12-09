@@ -147,12 +147,12 @@ namespace OneJaxDashboard.Controllers
             eventModel.IsAssignedByAdmin = true;
             eventModel.AssignmentDate = DateTime.Now;
 
-            var addedEvent = _eventsService.Add(eventModel);
+            _eventsService.Add(eventModel);
             
             // Log the assignment
             var adminUsername = User.Identity?.Name ?? string.Empty;
-            _activityLog.Log(adminUsername, "Assigned Event", "Event", addedEvent.Id, 
-                notes: $"Assigned '{addedEvent.Title}' to {selectedStaffUsername}");
+            _activityLog.Log(adminUsername, "Assigned Event", "Event", eventModel.Id, 
+                notes: $"Assigned '{eventModel.Title}' to {selectedStaffUsername}");
 
             TempData["SuccessMessage"] = $"Event '{eventModel.Title}' has been assigned to {selectedStaffUsername}.";
             return RedirectToAction("ManageEvents");

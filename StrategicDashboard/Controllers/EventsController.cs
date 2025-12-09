@@ -86,8 +86,8 @@ namespace OneJaxDashboard.Controllers
             
             var username = User.Identity?.Name ?? string.Empty;
             eventModel.OwnerUsername = username;
-            var added = _events.Add(eventModel);
-            _activityLog.Log(username, "Created Event", "Event", added.Id, notes: added.Title);
+            _events.Add(eventModel);
+            _activityLog.Log(username, "Created Event", "Event", eventModel.Id, notes: eventModel.Title);
             return RedirectToAction("Index");
         }
 
