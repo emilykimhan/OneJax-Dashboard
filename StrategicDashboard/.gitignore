@@ -6,6 +6,13 @@
 # dotenv files
 .env
 
+# Azure deployment artifacts
+LogFiles/
+deployments/
+deploy.zip
+webapp_logs.zip
+publish/
+
 # User-specific files
 *.rsuser
 *.suo
