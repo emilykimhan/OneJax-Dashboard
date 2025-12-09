@@ -4,8 +4,26 @@ using OneJaxDashboard.Data;
 OfficeOpenXml.ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
 var builder = WebApplication.CreateBuilder(args);
 
+// Configure database based on environment and provider setting
+var databaseProvider = builder.Configuration["DatabaseProvider"] ?? "Sqlite";
+var connectionString = databaseProvider.ToLower() switch
+{
+    "azure" or "sqlserver" => Environment.GetEnvironmentVariable("AZURE_DB_CONNECTION_STRING") 
+                              ?? builder.Configuration.GetConnectionString("AzureConnection"),
+    _ => builder.Configuration.GetConnectionString("DefaultConnection")
+};
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+{
+    if (databaseProvider.ToLower() == "azure" || databaseProvider.ToLower() == "sqlserver")
+    {
+        options.UseSqlServer(connectionString);
+    }
+    else
+    {
+        options.UseSqlite(connectionString);
+    }
+});
 
 builder.Services.AddControllersWithViews();
 
@@ -17,8 +35,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     });
 
 builder.Services.AddSingleton<OneJaxDashboard.Services.StaffService>();
-builder.Services.AddSingleton<OneJaxDashboard.Services.EventsService>();
-builder.Services.AddSingleton<OneJaxDashboard.Services.StrategyService>();
+builder.Services.AddScoped<OneJaxDashboard.Services.EventsService>();
+builder.Services.AddScoped<OneJaxDashboard.Services.StrategyService>();
 builder.Services.AddSingleton<OneJaxDashboard.Services.ActivityLogService>();
 
 // Keep ProjectsService for backward compatibility during transition

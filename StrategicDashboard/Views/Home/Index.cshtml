@@ -415,15 +415,43 @@
                             </select>
                         </div>
                         
-                        <div class="col-md-3">
+                        <div class="col-md-2">
+                            <label class="form-label" style="color: var(--onejax-navy); font-weight: 600;">
+                                Fiscal Year
+                            </label>
+                            <select class="form-select" id="fiscalYearFilter" name="fiscalYear" style="border-radius: 12px; border: 2px solid var(--onejax-border); padding: 12px;">
+                                <option value="" selected="@(string.IsNullOrEmpty(Context.Request.Query["fiscalYear"]))">All Years</option>
+                                <option value="2024" selected="@(Context.Request.Query["fiscalYear"] == "2024")">FY 2024</option>
+                                <option value="2025" selected="@(Context.Request.Query["fiscalYear"] == "2025")">FY 2025</option>
+                                <option value="2026" selected="@(Context.Request.Query["fiscalYear"] == "2026")">FY 2026</option>
+                                <option value="2027" selected="@(Context.Request.Query["fiscalYear"] == "2027")">FY 2027</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="form-label" style="color: var(--onejax-navy); font-weight: 600;">
+                                Quarter
+                            </label>
+                            <select class="form-select" id="quarterFilter" name="quarter" style="border-radius: 12px; border: 2px solid var(--onejax-border); padding: 12px;">
+                                <option value="" selected="@(string.IsNullOrEmpty(Context.Request.Query["quarter"]))">All Quarters</option>
+                                <option value="Q1" selected="@(Context.Request.Query["quarter"] == "Q1")">Q1 (Jul-Sep)</option>
+                                <option value="Q2" selected="@(Context.Request.Query["quarter"] == "Q2")">Q2 (Oct-Dec)</option>
+                                <option value="Q3" selected="@(Context.Request.Query["quarter"] == "Q3")">Q3 (Jan-Mar)</option>
+                                <option value="Q4" selected="@(Context.Request.Query["quarter"] == "Q4")">Q4 (Apr-Jun)</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-2">
                             <label class="form-label" style="color: var(--onejax-navy); font-weight: 600;">
                                 Time Period
                             </label>
                             <select class="form-select" id="timeFilter" name="time" style="border-radius: 12px; border: 2px solid var(--onejax-border); padding: 12px;">
                                 <option value="" selected="@(string.IsNullOrEmpty(selectedTime))">All Periods</option>
-                                <option value="This Quarter" selected="@(selectedTime == "This Quarter")">Q4 2025 (Current Quarter)</option>
-                                <option value="Next Quarter" selected="@(selectedTime == "Next Quarter")">Q1 2026 (Next Quarter)</option>
-                                <option value="This Year" selected="@(selectedTime == "This Year")">Fiscal Year 2025</option>
+                                <option value="Current-Quarter" selected="@(selectedTime == "Current-Quarter")">Current Quarter</option>
+                                <option value="Next-Quarter" selected="@(selectedTime == "Next-Quarter")">Next Quarter</option>
+                                <option value="Last-6-Months" selected="@(selectedTime == "Last-6-Months")">Last 6 Months</option>
+                                <option value="Next-6-Months" selected="@(selectedTime == "Next-6-Months")">Next 6 Months</option>
+                                <option value="3-Year-Plan" selected="@(selectedTime == "3-Year-Plan")">3-Year Strategic Plan</option>
                             </select>
                         </div>
 
