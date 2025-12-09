@@ -30,6 +30,7 @@
                 {
                     @Html.AntiForgeryToken()
                     @Html.HiddenFor(m => m.Id)
+                    @Html.HiddenFor(m => m.StrategyTemplateId)
                     @Html.HiddenFor(m => m.IsAssignedByAdmin)
                     @Html.HiddenFor(m => m.AssignmentDate)
                     @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
@@ -129,10 +130,13 @@
                         </div>
                     </div>
 
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle me-2"></i>
-                        <strong>Assignment Info:</strong> Originally assigned on @(Model.AssignmentDate?.ToString("MMMM dd, yyyy") ?? "Unknown date")
-                    </div>
+                    @if (Model.AssignmentDate.HasValue)
+                    {
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>Assignment Info:</strong> Originally assigned on @Model.AssignmentDate.Value.ToString("MMMM dd, yyyy")
+                        </div>
+                    }
 
                     <div class="d-flex gap-3">
                         <button type="submit" class="btn btn-primary flex-grow-1">
@@ -147,57 +151,3 @@
         </div>
     </div>
 </div>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const goalSelect = document.getElementById('strategicGoalSelect');
-        const strategySelect = document.getElementById('strategySelect');
-        
-        // Set the current staff member in dropdown
-        const staffSelect = document.querySelector('select[name="selectedStaffUsername"]');
-        if (staffSelect && '@currentStaff') {
-            staffSelect.value = '@currentStaff';
-        }
-
-        goalSelect.addEventListener('change', function() {
-            const goalId = this.value;
-            
-            if (goalId) {
-                // Fetch strategies for the selected goal
-                fetch(`/Events/GetStrategiesByGoal?goalId=${goalId}`)
-                    .then(response => response.json())
-                    .then(strategies => {
-                        const currentStrategyId = '@Model.StrategyId';
-                        
-                        // Clear existing options
-                        strategySelect.innerHTML = '<option value="">Select strategy...</option>';
-                        
-                        // Add new options
-                        strategies.forEach(strategy => {
-                            const option = document.createElement('option');
-                            option.value = strategy.value;
-                            option.textContent = strategy.text;
-                            
-                            // Restore selected strategy if it matches
-                            if (strategy.value == currentStrategyId) {
-                                option.selected = true;
-                            }
-                            
-                            strategySelect.appendChild(option);
-                        });
-                    })
-                    .catch(error => {
-                        console.error('Error fetching strategies:', error);
-                    });
-            } else {
-                // Clear strategy dropdown
-                strategySelect.innerHTML = '<option value="">Select strategy...</option>';
-            }
-        });
-
-        // Trigger change event on page load if a goal is selected
-        if (goalSelect.value) {
-            goalSelect.dispatchEvent(new Event('change'));
-        }
-    });
-</script>

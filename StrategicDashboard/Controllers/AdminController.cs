@@ -30,25 +30,86 @@ namespace OneJaxDashboard.Controllers
             var staffCount = _db.Staffauth.Count();
             var totalEvents = _eventsService.GetAll().Count();
             var assignedEvents = _eventsService.GetAll().Count(e => e.IsAssignedByAdmin);
+            var archivedEvents = _eventsService.GetArchived().Count();
 
             ViewData["StaffCount"] = staffCount;
             ViewData["TotalEvents"] = totalEvents;
             ViewData["AssignedEvents"] = assignedEvents;
+            ViewData["ArchivedEvents"] = archivedEvents;
+
+            // Get all activity log entries from all staff
+            var allEntries = _activityLog.GetAllEntries().OrderByDescending(e => e.Timestamp).Take(15).ToList();
+            var activityLogData = allEntries
+                .Select(e => (e.Username, e.Action, e.EntityType, e.EntityId, e.Timestamp, e.Notes))
+                .ToList();
+            ViewData["ActivityLog"] = activityLogData;
+
+            // Get event tracking data - recent activity on assigned events (only active ones)
+            var assignedEventsList = _eventsService.GetAll().Where(e => e.IsAssignedByAdmin).ToList();
+            var eventTrackingData = new List<(int EventId, string EventTitle, string CurrentStatus, List<(string Action, string? Notes, DateTime Timestamp)> History)>();
+            
+            foreach (var evt in assignedEventsList)
+            {
+                var eventActivityEntries = _activityLog.GetEntriesByEntityId("Event", evt.Id)
+                    .OrderByDescending(e => e.Timestamp)
+                    .ToList();
+                
+                var history = eventActivityEntries
+                    .Select(e => (e.Action, e.Notes, e.Timestamp))
+                    .ToList();
+                
+                eventTrackingData.Add((
+                    evt.Id,
+                    evt.Title,
+                    evt.Status,
+                    history
+                ));
+            }
+            
+            ViewData["EventTrackingLog"] = eventTrackingData;
+
             return View();
         }
 
         // GET: /Admin/ManageEvents
         public IActionResult ManageEvents()
         {
-            var events = _eventsService.GetAll();
-            return View(events);
+            var activeEvents = _eventsService.GetAll()
+                .Where(e => _strategyService.GetStrategy(e.StrategyTemplateId) != null)
+                .ToList();
+            return View(activeEvents);
+        }
+
+        // GET: /Admin/ArchivedEvents
+        public IActionResult ArchivedEvents()
+        {
+            var archivedEvents = _eventsService.GetArchived()
+                .Where(e => _strategyService.GetStrategy(e.StrategyTemplateId) != null)
+                .ToList();
+            return View(archivedEvents);
         }
 
         // GET: /Admin/AssignEvent
-        public IActionResult AssignEvent()
+        public IActionResult AssignEvent(int? strategyId)
         {
-            PopulateStaffAndStrategiesDropdown();
-            return View(new Event());
+            Event eventModel = new Event();
+            
+            // If a strategy template is selected, load its data
+            if (strategyId.HasValue)
+            {
+                var strategy = _strategyService.GetStrategy(strategyId.Value);
+                if (strategy != null)
+                {
+                    eventModel.StrategyTemplateId = strategy.Id;
+                    eventModel.Title = strategy.Name;
+                    eventModel.Description = strategy.Description;
+                    eventModel.StrategicGoalId = strategy.StrategicGoalId;
+                    eventModel.StrategyId = strategy.Id;
+                }
+            }
+            
+            PopulateStaffAndStrategiesDropdown(strategyId);
+            return View(eventModel);
         }
 
         // POST: /Admin/AssignEvent
@@ -61,11 +122,25 @@ namespace OneJaxDashboard.Controllers
                 ModelState.AddModelError("", "Please select a staff member to assign this event to.");
             }
 
-            if (!ModelState.IsValid)
+            // Load the strategy template to get the title
+            var strategy = _strategyService.GetStrategy(eventModel.StrategyTemplateId);
+            if (strategy == null)
             {
-                PopulateStaffAndStrategiesDropdown();
+                ModelState.AddModelError("", "Please select an event.");
+                PopulateStaffAndStrategiesDropdown(null);
                 return View(eventModel);
             }
+
+            if (!ModelState.IsValid)
+            {
+                PopulateStaffAndStrategiesDropdown(null);
+                return View(eventModel);
+            }
+
+            // Set title and related fields from the strategy template
+            eventModel.Title = strategy.Name;
+            eventModel.StrategicGoalId = strategy.StrategicGoalId;
+            eventModel.StrategyId = strategy.Id;
 
             // Set admin assignment properties
             eventModel.OwnerUsername = selectedStaffUsername;
@@ -89,7 +164,7 @@ namespace OneJaxDashboard.Controllers
             var eventModel = _eventsService.Get(id);
             if (eventModel == null) return NotFound();
 
-            PopulateStaffAndStrategiesDropdown();
+            PopulateStaffAndStrategiesDropdown(null);
             ViewBag.CurrentStaffUsername = eventModel.OwnerUsername;
             return View(eventModel);
         }
@@ -106,7 +181,7 @@ namespace OneJaxDashboard.Controllers
 
             if (!ModelState.IsValid)
             {
-                PopulateStaffAndStrategiesDropdown();
+                PopulateStaffAndStrategiesDropdown(null);
                 ViewBag.CurrentStaffUsername = eventModel.OwnerUsername;
                 return View(eventModel);
             }
@@ -143,7 +218,26 @@ namespace OneJaxDashboard.Controllers
             return RedirectToAction("ManageEvents");
         }
 
-        private void PopulateStaffAndStrategiesDropdown()
+        // POST: /Admin/UnarchiveEvent/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult UnarchiveEvent(int id)
+        {
+            var eventModel = _eventsService.Get(id);
+            if (eventModel == null) return NotFound();
+
+            _eventsService.Unarchive(id);
+
+            // Log the unarchive action
+            var adminUsername = User.Identity?.Name ?? string.Empty;
+            _activityLog.Log(adminUsername, "Reactivated Archived Event", "Event", id, 
+                notes: $"Reactivated '{eventModel.Title}'");
+
+            TempData["SuccessMessage"] = $"Event '{eventModel.Title}' has been reactivated.";
+            return RedirectToAction("ArchivedEvents");
+        }
+
+        private void PopulateStaffAndStrategiesDropdown(int? selectedStrategyId)
         {
             // Get all staff members
             var staffMembers = _db.Staffauth.ToList();
@@ -153,8 +247,13 @@ namespace OneJaxDashboard.Controllers
             var goals = _strategyService.GetAllStrategicGoals();
             ViewBag.StrategicGoals = new SelectList(goals, "Id", "Name");
             
-            // Empty strategies list - will be populated via JavaScript based on selected goal
-            ViewBag.Strategies = new SelectList(Enumerable.Empty<Strategy>(), "Id", "Name");
+            // Get all strategies from Core Strategies to use as event templates
+            var allStrategies = _strategyService.GetAllStrategies();
+            ViewBag.StrategyTemplates = new SelectList(allStrategies, "Id", "Name", selectedStrategyId);
+            ViewBag.SelectedStrategyId = selectedStrategyId;
+            
+            // Load all strategies for display
+            ViewBag.Strategies = new SelectList(allStrategies, "Id", "Name");
         }
     }
 }
