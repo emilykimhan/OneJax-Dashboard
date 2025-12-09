@@ -6,7 +6,8 @@ using System.Linq;
 //dina
 public class StrategyController : Controller
 {
-    private static List<Strategy> strategies = new();
+    // Make this public static so StrategyService can access it
+    public static List<Strategy> Strategies { get; set; } = new();
 
     private static readonly List<SelectListItem> Goals = new()
     {
@@ -21,8 +22,8 @@ public class StrategyController : Controller
         ViewBag.Goals = Goals;
 
         var goalStrategies = goalId.HasValue
-            ? strategies.Where(s => s.StrategicGoalId == goalId.Value).ToList()
-            : strategies.ToList();
+            ? Strategies.Where(s => s.StrategicGoalId == goalId.Value).ToList()
+            : Strategies.ToList();
 
         goalStrategies = goalStrategies.OrderByDescending(s => s.Id).ToList();
 
@@ -35,7 +36,7 @@ public class StrategyController : Controller
     [HttpPost]
     public IActionResult Add(int goalId, string eventName, string eventDescription, string? eventDate, string? eventTime)
     {
-        int newId = strategies.Any() ? strategies.Max(s => s.Id) + 1 : 1;
+        int newId = Strategies.Any() ? Strategies.Max(s => s.Id) + 1 : 1;
 
         var newEvent = new Strategy
         {
@@ -47,9 +48,9 @@ public class StrategyController : Controller
             Time = eventTime  
         };
 
-        strategies.Add(newEvent);
+        Strategies.Add(newEvent);
 
-        var goalName = Goals.FirstOrDefault(g => g.Value == goalId.ToString())?.Text ?? "Selected Goal";
+        string goalName = Goals.FirstOrDefault(g => g.Value == goalId.ToString())?.Text ?? "Unknown Goal";
 
         TempData["SuccessMessage"] = $"Successfully added event under “{goalName}”";
 
@@ -59,7 +60,7 @@ public class StrategyController : Controller
     [HttpPost]
     public IActionResult Edit(int id, string eventName, string eventDescription, int goalId, string? eventDate, string? eventTime)
     {
-        var existingEvent = strategies.FirstOrDefault(s => s.Id == id);
+        var existingEvent = Strategies.FirstOrDefault(s => s.Id == id);
         if (existingEvent != null)
         {
             existingEvent.Name = eventName;
@@ -76,9 +77,9 @@ public class StrategyController : Controller
     [HttpPost]
     public IActionResult Delete(int id)
     {
-        var strategy = strategies.FirstOrDefault(s => s.Id == id);
+        var strategy = Strategies.FirstOrDefault(s => s.Id == id);
         if (strategy != null)
-            strategies.Remove(strategy);
+            Strategies.Remove(strategy);
 
         TempData["SuccessMessage"] = "Event deleted successfully";
         return RedirectToAction("Index");

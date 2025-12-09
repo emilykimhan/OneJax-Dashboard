@@ -29,18 +29,46 @@
                 {
                     @Html.AntiForgeryToken()
                     @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+                    @Html.HiddenFor(m => m.StrategyTemplateId)
 
                     <div class="mb-4">
-                        @Html.LabelFor(m => m.Title, new { @class = "form-label fw-semibold" })
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-bookmark-fill me-1"></i>Select Event from Core Strategies
+                        </label>
                         <span class="text-danger">*</span>
                         <div class="input-group">
                             <span class="input-group-text">
-                                <i class="bi bi-card-heading"></i>
+                                <i class="bi bi-collection"></i>
                             </span>
-                            @Html.TextBoxFor(m => m.Title, new { @class = "form-control", placeholder = "Enter event title" })
+                            <select class="form-select" onchange="window.location.href='/Events/Create?strategyId=' + this.value;" required>
+                                <option value="">-- Select an event from Core Strategies --</option>
+                                @if (ViewBag.StrategyTemplates != null)
+                                {
+                                    foreach (SelectListItem item in (SelectList)ViewBag.StrategyTemplates)
+                                    {
+                                        if (item.Selected)
+                                        {
+                                            <option value="@item.Value" selected>@item.Text</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@item.Value">@item.Text</option>
+                                        }
+                                    }
+                                }
+                            </select>
                         </div>
-                        @Html.ValidationMessageFor(m => m.Title, "", new { @class = "text-danger small" })
+                        <small class="text-muted">This will set the event title and link to strategic goals</small>
+                        @Html.ValidationMessageFor(m => m.StrategyTemplateId, "", new { @class = "text-danger small" })
                     </div>
+
+                    @if (Model.StrategyTemplateId > 0)
+                    {
+                        <div class="alert alert-info mb-4">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>Selected Event:</strong> @Model.Title
+                        </div>
+                    }
                     
                     <div class="mb-4">
                         @Html.LabelFor(m => m.Description, new { @class = "form-label fw-semibold" })
@@ -48,30 +76,12 @@
                             <span class="input-group-text align-items-start pt-2">
                                 <i class="bi bi-text-paragraph"></i>
                             </span>
-                            @Html.TextAreaFor(m => m.Description, new { @class = "form-control", rows = 4, placeholder = "Describe the event..." })
+                            @Html.TextAreaFor(m => m.Description, new { @class = "form-control", rows = 4, placeholder = "Describe the event...", @readonly = "readonly" })
                         </div>
+                        <small class="text-muted">Description is from the Core Strategy event</small>
                     </div>
 
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            @Html.LabelFor(m => m.StrategicGoalId, new { @class = "form-label fw-semibold" })
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="bi bi-target"></i>
-                                </span>
-                                @Html.DropDownListFor(m => m.StrategicGoalId, ViewBag.StrategicGoals as SelectList, "Select Strategic Goal", new { @class = "form-select", id = "strategicGoalSelect" })
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            @Html.LabelFor(m => m.StrategyId, new { @class = "form-label fw-semibold" })
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="bi bi-lightning"></i>
-                                </span>
-                                @Html.DropDownListFor(m => m.StrategyId, ViewBag.Strategies as SelectList, "Select Strategy", new { @class = "form-select", id = "strategySelect", disabled = "disabled" })
-                            </div>
-                        </div>
-                    </div>
+
                     
                     <div class="row mb-4">
                         <div class="col-md-4">
@@ -104,7 +114,7 @@
                     </div>
 
                     <div class="d-flex gap-3 pt-3 border-top">
-                        <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold">
+                        <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold" @(Model.StrategyTemplateId <= 0 ? "disabled" : "")>
                             <i class="bi bi-check-lg me-2"></i>Create Event
                         </button>
                         <a href="/Events" class="btn btn-outline-secondary px-4 py-2">
@@ -118,36 +128,11 @@
 </div>
 
 @section Scripts {
-    <script>
-        $(document).ready(function() {
-            // Handle strategic goal selection change
-            $('#strategicGoalSelect').change(function() {
-                var goalId = $(this).val();
-                var $strategySelect = $('#strategySelect');
-                
-                if (goalId) {
-                    // Enable strategy dropdown and fetch strategies for selected goal
-                    $strategySelect.prop('disabled', false);
-                    
-                    // Clear current options except placeholder
-                    $strategySelect.html('<option value="">Select Strategy</option>');
-                    
-                    // Fetch strategies for the selected goal
-                    $.get('/Events/GetStrategiesByGoal/' + goalId, function(data) {
-                        $.each(data, function(index, strategy) {
-                            $strategySelect.append('<option value="' + strategy.value + '">' + strategy.text + '</option>');
-                        });
-                    });
-                } else {
-                    // Disable strategy dropdown and reset
-                    $strategySelect.prop('disabled', true);
-                    $strategySelect.html('<option value="">Select Strategy</option>');
-                }
-            });
-        });
-    </script>
-    
     <style>
+        .bg-light {
+            background-color: #f8f9fa !important;
+            border: 2px dashed #dee2e6;
+        }
         .btn-primary {
             background: linear-gradient(135deg, #1e3a5f 0%, #2c5f7f 100%);
             border: none;

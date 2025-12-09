@@ -29,6 +29,7 @@
                 {
                     @Html.AntiForgeryToken()
                     @Html.HiddenFor(m => m.Id)
+                    @Html.HiddenFor(m => m.StrategyTemplateId)
                     @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
 
                     <div class="mb-4">
@@ -53,26 +54,7 @@
                         </div>
                     </div>
 
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            @Html.LabelFor(m => m.StrategicGoalId, new { @class = "form-label fw-semibold" })
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="bi bi-target"></i>
-                                </span>
-                                @Html.DropDownListFor(m => m.StrategicGoalId, ViewBag.StrategicGoals as SelectList, "Select Strategic Goal", new { @class = "form-select", id = "strategicGoalSelect" })
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            @Html.LabelFor(m => m.StrategyId, new { @class = "form-label fw-semibold" })
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="bi bi-lightning"></i>
-                                </span>
-                                @Html.DropDownListFor(m => m.StrategyId, ViewBag.Strategies as SelectList, "Select Strategy", new { @class = "form-select", id = "strategySelect" })
-                            </div>
-                        </div>
-                    </div>
+
                     
                     <div class="row mb-4">
                         <div class="col-md-4">
@@ -119,48 +101,6 @@
 </div>
 
 @section Scripts {
-    <script>
-        $(document).ready(function() {
-            var initialGoalId = '@(Model.StrategicGoalId)';
-            var initialStrategyId = '@(Model.StrategyId)';
-            
-            // Load strategies for initial goal if one is selected
-            if (initialGoalId) {
-                loadStrategies(initialGoalId, initialStrategyId);
-            }
-            
-            // Handle strategic goal selection change
-            $('#strategicGoalSelect').change(function() {
-                var goalId = $(this).val();
-                loadStrategies(goalId);
-            });
-            
-            function loadStrategies(goalId, selectedStrategyId) {
-                var $strategySelect = $('#strategySelect');
-                
-                if (goalId) {
-                    // Enable strategy dropdown and fetch strategies for selected goal
-                    $strategySelect.prop('disabled', false);
-                    
-                    // Clear current options except placeholder
-                    $strategySelect.html('<option value="">Select Strategy</option>');
-                    
-                    // Fetch strategies for the selected goal
-                    $.get('/Events/GetStrategiesByGoal/' + goalId, function(data) {
-                        $.each(data, function(index, strategy) {
-                            var selected = selectedStrategyId && strategy.value == selectedStrategyId ? ' selected' : '';
-                            $strategySelect.append('<option value="' + strategy.value + '"' + selected + '>' + strategy.text + '</option>');
-                        });
-                    });
-                } else {
-                    // Disable strategy dropdown and reset
-                    $strategySelect.prop('disabled', true);
-                    $strategySelect.html('<option value="">Select Strategy</option>');
-                }
-            }
-        });
-    </script>
-    
     <style>
         .btn-primary {
             background: linear-gradient(135deg, #1e3a5f 0%, #2c5f7f 100%);
