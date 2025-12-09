@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OneJaxDashboard.Data;
 
@@ -10,9 +11,11 @@ using OneJaxDashboard.Data;
 namespace StrategicDashboard.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251208202328_AddMediaPlacementsTable")]
+    partial class AddMediaPlacementsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.0");
@@ -342,32 +345,6 @@ namespace StrategicDashboard.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("StrategicGoals");
-                });
-
-            modelBuilder.Entity("OneJaxDashboard.Models.WebsiteTraffic_4D", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int?>("Q1_JulySeptember")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("Q2_OctoberDecember")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("Q3_JanuaryMarch")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("Q4_AprilJune")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("WebsiteTraffic");
                 });
 
             modelBuilder.Entity("Strategy", b =>
