@@ -21,268 +21,174 @@ namespace OneJaxDashboard.Controllers
             return View();
         }
 
-        public IActionResult RecordHistory()
+        public IActionResult RecordHistory(string recordType, string dateFilter, DateTime? startDate, DateTime? endDate)
         {
+            // Load all records
+            var allStaffSurveys = _context.StaffSurveys_22D.ToList();
+            var allProfDev = _context.ProfessionalDevelopments.ToList();
+            var allMediaPlacements = _context.MediaPlacements_3D.ToList();
+            var allWebsiteTraffic = _context.WebsiteTraffic.ToList();
+            
+            // Apply filters
+            var filteredStaffSurveys = allStaffSurveys;
+            var filteredProfDev = allProfDev;
+            var filteredMediaPlacements = allMediaPlacements;
+            var filteredWebsiteTraffic = allWebsiteTraffic;
+            
+            // Filter by date
+            DateTime filterStartDate = DateTime.MinValue;
+            DateTime filterEndDate = DateTime.MaxValue;
+            
+            if (!string.IsNullOrEmpty(dateFilter))
+            {
+                switch (dateFilter)
+                {
+                    case "today":
+                        filterStartDate = DateTime.Today;
+                        filterEndDate = DateTime.Today.AddDays(1).AddSeconds(-1);
+                        break;
+                    case "week":
+                        filterStartDate = DateTime.Today.AddDays(-7);
+                        filterEndDate = DateTime.Now;
+                        break;
+                    case "month":
+                        filterStartDate = DateTime.Today.AddDays(-30);
+                        filterEndDate = DateTime.Now;
+                        break;
+                    case "custom":
+                        if (startDate.HasValue) filterStartDate = startDate.Value;
+                        if (endDate.HasValue) filterEndDate = endDate.Value.AddDays(1).AddSeconds(-1);
+                        break;
+                }
+                
+                if (dateFilter != "all")
+                {
+                    filteredStaffSurveys = filteredStaffSurveys
+                        .Where(s => s.CreatedDate >= filterStartDate && s.CreatedDate <= filterEndDate)
+                        .ToList();
+                    filteredProfDev = filteredProfDev
+                        .Where(p => p.CreatedDate >= filterStartDate && p.CreatedDate <= filterEndDate)
+                        .ToList();
+                    filteredMediaPlacements = filteredMediaPlacements
+                        .Where(m => m.CreatedDate >= filterStartDate && m.CreatedDate <= filterEndDate)
+                        .ToList();
+                    filteredWebsiteTraffic = filteredWebsiteTraffic
+                        .Where(w => w.CreatedDate >= filterStartDate && w.CreatedDate <= filterEndDate)
+                        .ToList();
+                }
+            }
+            
+            // Filter by record type
+            if (recordType == "staff-survey")
+            {
+                filteredProfDev = new List<ProfessionalDevelopment>();
+                filteredMediaPlacements = new List<MediaPlacements_3D>();
+                filteredWebsiteTraffic = new List<WebsiteTraffic_4D>();
+            }
+            else if (recordType == "professional-development")
+            {
+                filteredStaffSurveys = new List<StaffSurvey_22D>();
+                filteredMediaPlacements = new List<MediaPlacements_3D>();
+                filteredWebsiteTraffic = new List<WebsiteTraffic_4D>();
+            }
+            else if (recordType == "media-placements")
+            {
+                filteredStaffSurveys = new List<StaffSurvey_22D>();
+                filteredProfDev = new List<ProfessionalDevelopment>();
+                filteredWebsiteTraffic = new List<WebsiteTraffic_4D>();
+            }
+            else if (recordType == "website-traffic")
+            {
+                filteredStaffSurveys = new List<StaffSurvey_22D>();
+                filteredProfDev = new List<ProfessionalDevelopment>();
+                filteredMediaPlacements = new List<MediaPlacements_3D>();
+            }
+            
+            // Set ViewBag data
+            ViewBag.StaffSurveys = filteredStaffSurveys;
+            ViewBag.ProfessionalDevelopments = filteredProfDev;
+            ViewBag.MediaPlacements = filteredMediaPlacements;
+            ViewBag.WebsiteTraffic = filteredWebsiteTraffic;
+            ViewBag.RecordType = recordType ?? "all";
+            ViewBag.DateFilter = dateFilter ?? "all";
+            ViewBag.StartDate = startDate?.ToString("yyyy-MM-dd");
+            ViewBag.EndDate = endDate?.ToString("yyyy-MM-dd");
+            ViewBag.TotalCount = allStaffSurveys.Count + allProfDev.Count + allMediaPlacements.Count + allWebsiteTraffic.Count;
+            ViewBag.VisibleCount = filteredStaffSurveys.Count + filteredProfDev.Count + filteredMediaPlacements.Count + filteredWebsiteTraffic.Count;
+            
             return View();
         }
 
-        // Add Strategic Goals
-        public IActionResult AddStrategicGoal()
-        {
-            return View();
-        }
-
+        // Delete Staff Survey
         [HttpPost]
-        public async Task<IActionResult> AddStrategicGoal(StrategicGoal goal)
+        public IActionResult DeleteStaffSurvey(int id)
         {
-            if (ModelState.IsValid)
+            var survey = _context.StaffSurveys_22D.Find(id);
+            if (survey != null)
             {
-                _context.StrategicGoals.Add(goal);
-                await _context.SaveChangesAsync();
-                TempData["Success"] = "Strategic Goal added successfully!";
-                return RedirectToAction("ManageGoals");
-            }
-            return View(goal);
-        }
-
-        // Manage Strategic Goals
-        public async Task<IActionResult> ManageGoals()
-        {
-            var goals = await _context.StrategicGoals
-                .Include(g => g.Metrics)
-                .Include(g => g.Strategies)
-                .ToListAsync();
-            return View(goals);
-        }
-
-        // Add Metrics to Goals
-        public async Task<IActionResult> AddMetric(int goalId)
-        {
-            var goal = await _context.StrategicGoals.FindAsync(goalId);
-            if (goal == null)
-            {
-                return NotFound();
-            }
-            
-            var metric = new GoalMetric
-            {
-                StrategicGoalId = goalId
-            };
-            
-            ViewBag.GoalName = goal.Name;
-            return View(metric);
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> AddMetric(GoalMetric metric)
-        {
-            if (ModelState.IsValid)
-            {
-                _context.GoalMetrics.Add(metric);
-                await _context.SaveChangesAsync();
-                TempData["Success"] = "Metric added successfully!";
-                return RedirectToAction("ManageGoals");
-            }
-            
-            var goal = await _context.StrategicGoals.FindAsync(metric.StrategicGoalId);
-            ViewBag.GoalName = goal?.Name ?? "Unknown Goal";
-            return View(metric);
-        }
-
-        // Add Events
-        public async Task<IActionResult> AddEvent()
-        {
-            var goals = await _context.StrategicGoals.ToListAsync();
-            ViewBag.Goals = goals;
-            return View();
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> AddEvent(Event eventItem)
-        {
-            if (ModelState.IsValid)
-            {
-                _context.Events.Add(eventItem);
-                await _context.SaveChangesAsync();
-                TempData["Success"] = "Event added successfully!";
-                return RedirectToAction("ManageEvents");
-            }
-            
-            var goals = await _context.StrategicGoals.ToListAsync();
-            ViewBag.Goals = goals;
-            return View(eventItem);
-        }
-
-        // Manage Events
-        public async Task<IActionResult> ManageEvents()
-        {
-            var events = await _context.Events
-                .Include(e => e.StrategicGoal)
-                .Include(e => e.Strategy)
-                .ToListAsync();
-            return View(events);
-        }
-
-        // DEMO: Seed sample data to test database connection
-        public async Task<IActionResult> SeedSampleData()
-        {
-            // Check if data already exists
-            var existingGoals = await _context.StrategicGoals.CountAsync();
-            if (existingGoals > 0)
-            {
-                TempData["Info"] = "Sample data already exists. Use 'Clear All Data' first if you want to reseed.";
-                return RedirectToAction("ManageGoals");
-            }
-
-            // Create sample strategic goals
-            var goal1 = new StrategicGoal
-            {
-                Name = "Community Engagement",
-                Description = "Build stronger community partnerships and engagement",
-                Color = "var(--onejax-blue)"
-            };
-
-            var goal2 = new StrategicGoal
-            {
-                Name = "Financial Sustainability",
-                Description = "Achieve long-term financial stability",
-                Color = "var(--onejax-green)"
-            };
-
-            _context.StrategicGoals.AddRange(goal1, goal2);
-            await _context.SaveChangesAsync();
-
-            // Add metrics to goals
-            var metric1 = new GoalMetric
-            {
-                StrategicGoalId = goal1.Id,
-                Name = "Community Events Hosted",
-                Description = "Number of community events hosted per quarter",
-                Target = "12",
-                CurrentValue = 3m,
-                Unit = "events",
-                Status = "Active",
-                TargetDate = DateTime.Now.AddMonths(6)
-            };
-
-            var metric2 = new GoalMetric
-            {
-                StrategicGoalId = goal2.Id,
-                Name = "Annual Revenue",
-                Description = "Total annual revenue target",
-                Target = "100000",
-                CurrentValue = 25000m,
-                Unit = "$",
-                Status = "Active",
-                TargetDate = DateTime.Now.AddMonths(12)
-            };
-
-            _context.GoalMetrics.AddRange(metric1, metric2);
-
-            // Add sample events
-            var event1 = new Event
-            {
-                StrategicGoalId = goal1.Id,
-                Title = "Interfaith Community Dinner",
-                Type = "Community Event",
-                Status = "Completed",
-                DueDate = DateTime.Now.AddDays(-7),
-                Notes = "Successfully hosted dinner with 80 attendees",
-                Attendees = 80
-            };
-
-            var event2 = new Event
-            {
-                StrategicGoalId = goal2.Id,
-                Title = "Grant Application Submission",
-                Type = "Fundraising",
-                Status = "Pending",
-                DueDate = DateTime.Now.AddDays(14),
-                Notes = "Submitted application for community development grant"
-            };
-
-            _context.Events.AddRange(event1, event2);
-            await _context.SaveChangesAsync();
-
-            TempData["Success"] = "Sample data added successfully! Check the dashboard to see the results.";
-            return RedirectToAction("Index", "Home");
-        }
-
-        // Clear all dashboard data (for testing)
-        public async Task<IActionResult> ClearAllData()
-        {
-            _context.Events.RemoveRange(_context.Events);
-            _context.GoalMetrics.RemoveRange(_context.GoalMetrics);
-            _context.Strategies.RemoveRange(_context.Strategies);
-            _context.StrategicGoals.RemoveRange(_context.StrategicGoals);
-            
-            await _context.SaveChangesAsync();
-            
-            TempData["Success"] = "All dashboard data cleared successfully!";
-            return RedirectToAction("Index");
-        }
-
-        // Complete the 4-goal structure by adding missing goals
-        public async Task<IActionResult> Complete4Goals()
-        {
-            var existingGoals = await _context.StrategicGoals.ToListAsync();
-            var goalNames = existingGoals.Select(g => g.Name).ToList();
-
-            // Add missing strategic goals to complete the 4-goal structure
-            var goalsToAdd = new List<StrategicGoal>();
-
-            if (!goalNames.Contains("Community Engagement"))
-            {
-                goalsToAdd.Add(new StrategicGoal
-                {
-                    Name = "Community Engagement",
-                    Description = "Building partnerships and community connections",
-                    Color = "var(--onejax-blue)"
-                });
-            }
-
-            if (!goalNames.Contains("Identity/Value Proposition"))
-            {
-                goalsToAdd.Add(new StrategicGoal
-                {
-                    Name = "Identity/Value Proposition",
-                    Description = "Establishing and communicating OneJax's unique identity and value",
-                    Color = "var(--onejax-orange)"
-                });
-            }
-
-            if (!goalNames.Contains("Organizational Building"))
-            {
-                goalsToAdd.Add(new StrategicGoal
-                {
-                    Name = "Organizational Building",
-                    Description = "Building robust organizational capacity and sustainable infrastructure",
-                    Color = "var(--onejax-navy)"
-                });
-            }
-
-            if (!goalNames.Contains("Financial Sustainability"))
-            {
-                goalsToAdd.Add(new StrategicGoal
-                {
-                    Name = "Financial Sustainability",
-                    Description = "Ensuring sustainable financial operations and donor engagement",
-                    Color = "var(--onejax-green)"
-                });
-            }
-
-            if (goalsToAdd.Any())
-            {
-                _context.StrategicGoals.AddRange(goalsToAdd);
-                await _context.SaveChangesAsync();
-                TempData["Success"] = $"Added {goalsToAdd.Count} missing strategic goals. You now have all 4 main tabs!";
+                _context.StaffSurveys_22D.Remove(survey);
+                _context.SaveChanges();
+                TempData["Success"] = "Staff Survey record deleted successfully!";
             }
             else
             {
-                TempData["Info"] = "All 4 strategic goals already exist.";
+                TempData["Error"] = "Record not found.";
             }
+            return RedirectToAction("RecordHistory");
+        }
 
-            return RedirectToAction("Index", "Home");
+        // Delete Professional Development
+        [HttpPost]
+        public IActionResult DeleteProfessionalDevelopment(int id)
+        {
+            var profDev = _context.ProfessionalDevelopments.Find(id);
+            if (profDev != null)
+            {
+                _context.ProfessionalDevelopments.Remove(profDev);
+                _context.SaveChanges();
+                TempData["Success"] = "Professional Development record deleted successfully!";
+            }
+            else
+            {
+                TempData["Error"] = "Record not found.";
+            }
+            return RedirectToAction("RecordHistory");
+        }
+
+        // Delete Media Placement
+        [HttpPost]
+        public IActionResult DeleteMediaPlacement(int id)
+        {
+            var media = _context.MediaPlacements_3D.Find(id);
+            if (media != null)
+            {
+                _context.MediaPlacements_3D.Remove(media);
+                _context.SaveChanges();
+                TempData["Success"] = "Media Placement record deleted successfully!";
+            }
+            else
+            {
+                TempData["Error"] = "Record not found.";
+            }
+            return RedirectToAction("RecordHistory");
+        }
+
+        // Delete Website Traffic
+        [HttpPost]
+        public IActionResult DeleteWebsiteTraffic(int id)
+        {
+            var traffic = _context.WebsiteTraffic.Find(id);
+            if (traffic != null)
+            {
+                _context.WebsiteTraffic.Remove(traffic);
+                _context.SaveChanges();
+                TempData["Success"] = "Website Traffic record deleted successfully!";
+            }
+            else
+            {
+                TempData["Error"] = "Record not found.";
+            }
+            return RedirectToAction("RecordHistory");
         }
     }
 }

@@ -17,5 +17,7 @@ namespace OneJaxDashboard.Models
          [Required(ErrorMessage = "Please enter the number of professional development activities for the year 2027.")]
         [Range(1, int.MaxValue, ErrorMessage = "Number of professional development activities must be at least 1.")]
         public int ProfessionalDevelopmentYear27 { get; set; }
+
+        public DateTime CreatedDate { get; set; } = DateTime.Now;
     }
 }
