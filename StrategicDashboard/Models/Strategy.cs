@@ -16,6 +16,7 @@ public class Strategy
     public List<Metric> Metrics { get; set; } = new(); 
     public string? Date { get; set; }  
     public string? Time { get; set; }
+    public string EventType { get; set; } = "Community"; // Default to Community
 
     public StrategicGoal StrategicGoal { get; set; }
 }

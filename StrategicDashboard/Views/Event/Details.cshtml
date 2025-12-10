@@ -250,8 +250,8 @@
             <div class="info-card">
                 <h6 style="color: var(--onejax-navy); margin-bottom: 1rem;">Related Strategic Goal</h6>
                 <p style="color: var(--onejax-text-muted); margin-bottom: 1rem;">This event supports strategic goal #@Model.StrategicGoalId</p>
-                <a href="/?goal=@(ViewBag.GoalName ?? "Community Engagement")" class="btn btn-outline-primary w-100" style="border-radius: 8px;">
-                    View Strategic Goal
+                <a href="@Url.Action("Index", "Home")" class="btn btn-outline-primary w-100" style="border-radius: 8px;">
+                    Return to Dashboard
                 </a>
             </div>
         </div>

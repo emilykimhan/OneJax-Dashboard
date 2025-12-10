@@ -33,6 +33,9 @@ namespace StrategicDashboard.Migrations
                     b.Property<int>("Attendees")
                         .HasColumnType("INTEGER");
 
+                    b.Property<DateTime?>("CompletionDate")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -42,6 +45,9 @@ namespace StrategicDashboard.Migrations
 
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsArchived")
+                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("IsAssignedByAdmin")
                         .HasColumnType("INTEGER");
@@ -85,6 +91,9 @@ namespace StrategicDashboard.Migrations
                     b.Property<int?>("StrategyId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int?>("StrategyTemplateId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -100,6 +109,8 @@ namespace StrategicDashboard.Migrations
                     b.HasIndex("StrategicGoalId1");
 
                     b.HasIndex("StrategyId");
+
+                    b.HasIndex("StrategyTemplateId");
 
                     b.ToTable("Events");
                 });
@@ -344,6 +355,40 @@ namespace StrategicDashboard.Migrations
                     b.ToTable("StrategicGoals");
                 });
 
+            modelBuilder.Entity("OneJaxDashboard.Models.Strategy", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Date")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("StrategicGoalId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Time")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StrategicGoalId");
+
+                    b.ToTable("Strategies");
+                });
+
             modelBuilder.Entity("OneJaxDashboard.Models.WebsiteTraffic_4D", b =>
                 {
                     b.Property<int>("Id")
@@ -370,36 +415,6 @@ namespace StrategicDashboard.Migrations
                     b.ToTable("WebsiteTraffic");
                 });
 
-            modelBuilder.Entity("Strategy", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Date")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("StrategicGoalId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Time")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("StrategicGoalId");
-
-                    b.ToTable("Strategies");
-                });
-
             modelBuilder.Entity("OneJaxDashboard.Models.Event", b =>
                 {
                     b.HasOne("OneJaxDashboard.Models.StrategicGoal", "StrategicGoal")
@@ -411,14 +426,20 @@ namespace StrategicDashboard.Migrations
                         .WithMany("Events")
                         .HasForeignKey("StrategicGoalId1");
 
-                    b.HasOne("Strategy", "Strategy")
+                    b.HasOne("OneJaxDashboard.Models.Strategy", "Strategy")
                         .WithMany()
                         .HasForeignKey("StrategyId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("OneJaxDashboard.Models.Strategy", "StrategyTemplate")
+                        .WithMany()
+                        .HasForeignKey("StrategyTemplateId");
+
                     b.Navigation("StrategicGoal");
 
                     b.Navigation("Strategy");
+
+                    b.Navigation("StrategyTemplate");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.GoalMetric", b =>
@@ -432,14 +453,14 @@ namespace StrategicDashboard.Migrations
 
             modelBuilder.Entity("OneJaxDashboard.Models.Metric", b =>
                 {
-                    b.HasOne("Strategy", null)
+                    b.HasOne("OneJaxDashboard.Models.Strategy", null)
                         .WithMany("Metrics")
                         .HasForeignKey("StrategyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Strategy", b =>
+            modelBuilder.Entity("OneJaxDashboard.Models.Strategy", b =>
                 {
                     b.HasOne("OneJaxDashboard.Models.StrategicGoal", "StrategicGoal")
                         .WithMany("Strategies")
@@ -459,7 +480,7 @@ namespace StrategicDashboard.Migrations
                     b.Navigation("Strategies");
                 });
 
-            modelBuilder.Entity("Strategy", b =>
+            modelBuilder.Entity("OneJaxDashboard.Models.Strategy", b =>
                 {
                     b.Navigation("Metrics");
                 });

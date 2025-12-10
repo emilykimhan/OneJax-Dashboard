@@ -15,586 +15,660 @@ public class HomeController : Controller
         _context = context;
     }
 
-    // FIXED 3-YEAR STRATEGIC PLAN - These goals with sample events
-    private static readonly List<StrategicGoal> _threeYearPlan = new List<StrategicGoal>
-    {
-        new StrategicGoal
-        {
-            Id = 1,
-            Name = "Community Engagement",
-            Description = "Building partnerships and community connections",
-            Color = "var(--onejax-blue)",
-            Events = new List<Event>(),
-            Metrics = new List<GoalMetric>
-            {
-                new GoalMetric
-                {
-                    Id = 1,
-                    Name = "Joint Initiatives Partner Satisfaction",
-                    Description = "Launch a minimum of 3 joint initiatives with partner satisfaction ratings of at least 85%",
-                    StrategicGoalId = 1,
-                    Target = "85",
-                    CurrentValue = 85m, // Average satisfaction rating
-                    Unit = "% avg",
-                    Status = "Active",
-                    TargetDate = new DateTime(2026, 6, 30)
-                },
-                new GoalMetric
-                {
-                    Id = 2,
-                    Name = "Cross-Sector Collaborations Growth",
-                    Description = "Increase the number of unique cross-sector collaborations from 3 to 10 by end of FY 26-27",
-                    StrategicGoalId = 1,
-                    Target = "10",
-                    CurrentValue = 3m, // Current number of collaborations
-                    Unit = "collaborations",
-                    Status = "Active",
-                    TargetDate = new DateTime(2027, 6, 30),
-                    Q1Value = 3, // Quarterly tracking
-                    Q2Value = 0,
-                    Q3Value = 0,
-                    Q4Value = 0
-                },
-                new GoalMetric
-                {
-                    Id = 3,
-                    Name = "Interfaith Collaborative Events",
-                    Description = "Host at least 4 interfaith collaborative events during FY 25-26",
-                    StrategicGoalId = 1,
-                    Target = "4",
-                    CurrentValue = 5m, // Current events hosted
-                    Unit = "events",
-                    Status = "Active",
-                    TargetDate = new DateTime(2026, 6, 30)
-                },
-                new GoalMetric
-                {
-                    Id = 4,
-                    Name = "Event Attendee Satisfaction",
-                    Description = "Event attendee satisfaction over 85%",
-                    StrategicGoalId = 1,
-                    Target = "85",
-                    CurrentValue = 85m, // Average satisfaction rating
-                    Unit = "% avg",
-                    Status = "Active",
-                    TargetDate = new DateTime(2026, 6, 30)
-                },
-                new GoalMetric
-                {
-                    Id = 5,
-                    Name = "Faith Representation at Events",
-                    Description = "Ensure 3 faiths represented at 80% of community events",
-                    StrategicGoalId = 1,
-                    Target = "3",
-                    CurrentValue = 3m, // Average faiths represented
-                    Unit = "faiths avg",
-                    Status = "Active",
-                    TargetDate = new DateTime(2026, 6, 30)
-                },
-                new GoalMetric
-                {
-                    Id = 6,
-                    Name = "Clergy & Interfaith Network Expansion",
-                    Description = "Expand clergy and interfaith network contacts by 25% by end of FY 25-26",
-                    StrategicGoalId = 1,
-                    Target = "25",
-                    CurrentValue = 15m, // Current growth percentage
-                    Unit = "%",
-                    Status = "Active",
-                    TargetDate = new DateTime(2026, 6, 30),
-                    Q1Value = 255, // Total contacts - quarterly tracking
-                    Q2Value = 0,
-                    Q3Value = 0,
-                    Q4Value = 0
-                },
-                new GoalMetric
-                {
-                    Id = 7,
-                    Name = "Youth Attendance Growth",
-                    Description = "Increase youth attendance by at least 20% across programs",
-                    StrategicGoalId = 1,
-                    Target = "20",
-                    CurrentValue = 18m, // Current growth percentage
-                    Unit = "%",
-                    Status = "Active",
-                    TargetDate = new DateTime(2026, 6, 30),
-                    Q1Value = 226, // Total attendees: Metrotown(16) + MIAD(100) + Connect!(100) + LOUD(10)
-                    Q2Value = 0,
-                    Q3Value = 0,
-                    Q4Value = 0
-                },
-                new GoalMetric
-                {
-                    Id = 8,
-                    Name = "Youth Program Satisfaction",
-                    Description = "Secure an average participant satisfaction rating of 85% or higher through post-event surveys",
-                    StrategicGoalId = 1,
-                    Target = "85",
-                    CurrentValue = 85m, // Average satisfaction rating
-                    Unit = "% avg",
-                    Status = "Active",
-                    TargetDate = new DateTime(2026, 6, 30)
-                },
-                new GoalMetric
-                {
-                    Id = 9,
-                    Name = "Skills Assessment Improvement",
-                    Description = "Demonstrate at least a 10% improvement in pre- and post-program assessments of resilience and communication skills",
-                    StrategicGoalId = 1,
-                    Target = "10",
-                    CurrentValue = 90m, // Current improvement percentage (far exceeding target!)
-                    Unit = "%",
-                    Status = "Active",
-                    TargetDate = new DateTime(2026, 6, 30)
-                }
-            }
-        },
-        new StrategicGoal
-        {
-            Id = 2,
-            Name = "Identity/Value Proposition",
-            Description = "Establishing and communicating OneJax's unique identity and value",
-            Color = "var(--onejax-orange)",
-            Events = new List<Event>(),
-            Metrics = new List<GoalMetric>
-            {
-                new GoalMetric
-                {
-                    Id = 1,
-                    Name = "Earned Media Placements",
-                    Description = "Achieve a minimum of 12 earned media placements by December 2026",
-                    StrategicGoalId = 2,
-                    Target = "12",
-                    CurrentValue = 3,
-                    Unit = "placements",
-                    Status = "Active",
-                    TargetDate = new DateTime(2026, 12, 31)
-                },
-                new GoalMetric
-                {
-                    Id = 2,
-                    Name = "Website Traffic Growth",
-                    Description = "Increase overall website traffic by 25%",
-                    StrategicGoalId = 2,
-                    Target = "25",
-                    CurrentValue = 8.5m, // Current growth percentage based on quarterly data
-                    Unit = "%",
-                    Status = "Active",
-                    TargetDate = new DateTime(2025, 12, 31),
-                    Q1Value = 12450, // Website visitors in Q1
-                    Q2Value = 13200, // Website visitors in Q2 
-                    Q3Value = 14100, // Website visitors in Q3
-                    Q4Value = 0 // Q4 data not available yet (future quarter)
-                },
-                new GoalMetric
-                {
-                    Id = 3,
-                    Name = "Social Media Engagement Growth",
-                    Description = "Boost social media engagement by 30% within 12 months",
-                    StrategicGoalId = 2,
-                    Target = "30",
-                    CurrentValue = 12.5m, // Current engagement growth percentage
-                    Unit = "%",
-                    Status = "Active",
-                    TargetDate = new DateTime(2025, 10, 31),
-                    Q1Value = 0, // Engagement metrics Q1 - to be filled
-                    Q2Value = 0, // Engagement metrics Q2 - to be filled
-                    Q3Value = 0, // Engagement metrics Q3 - to be filled
-                    Q4Value = 0 // Engagement metrics Q4 - to be filled
-                },
-                new GoalMetric
-                {
-                    Id = 4,
-                    Name = "Key Plan Milestones Achievement",
-                    Description = "Achieve 75% of key plan milestones (content calendar, press releases, brand messaging) by the 6-month review",
-                    StrategicGoalId = 2,
-                    Target = "75",
-                    CurrentValue = 45m, // Current milestone completion percentage
-                    Unit = "%",
-                    Status = "Active",
-                    TargetDate = new DateTime(2025, 4, 30)
-                },
-                new GoalMetric
-                {
-                    Id = 5,
-                    Name = "Community Perception Survey Results",
-                    Description = "Conduct a community perception survey biannually, aiming for at least 70% of respondents to identify OneJax as a trusted leader by Q4 2025",
-                    StrategicGoalId = 2,
-                    Target = "70",
-                    CurrentValue = 70m, // Current average perception score
-                    Unit = "% avg",
-                    Status = "Active",
-                    TargetDate = new DateTime(2025, 12, 31)
-                },
-                new GoalMetric
-                {
-                    Id = 6,
-                    Name = "Participant Demographics Expansion",
-                    Description = "Expand program and event participant demographics to reflect at least a 20% increase in representation from underrepresented ZIP codes or demographic groups by end of 2025",
-                    StrategicGoalId = 2,
-                    Target = "20",
-                    CurrentValue = 8m, // Current increase in representation
-                    Unit = "%",
-                    Status = "Active",
-                    TargetDate = new DateTime(2025, 12, 31)
-                }
-            }
-        },
-        new StrategicGoal
-        {
-            Id = 3,
-            Name = "Financial Stability",
-            Description = "Ensuring sustainable financial health and growth",
-            Color = "var(--onejax-green)",
-            Events = new List<Event>(),
-            Metrics = new List<GoalMetric>()
-        },
-        new StrategicGoal
-        {
-            Id = 4,
-            Name = "Organizational Building",
-            Description = "Strengthening organizational structure and capacity",
-            Color = "var(--onejax-navy)",
-            Events = new List<Event>
-            {
-                new Event
-                {
-                    Id = 10,
-                    Title = "Annual Staff Retreat",
-                    DueDate = new DateTime(2025, 8, 15),
-                    Status = "Completed",
-                    StrategicGoalId = 4,
-                    Type = "Team Building",
-                    Location = "OneJax Conference Center",
-                    Attendees = 12,
-                    Notes = "Team building and strategic planning session"
-                },
-                new Event
-                {
-                    Id = 11,
-                    Title = "Leadership Development Workshop",
-                    DueDate = new DateTime(2025, 11, 20),
-                    Status = "Planned",
-                    StrategicGoalId = 4,
-                    Type = "Training",
-                    Location = "OneJax Office",
-                    Notes = "Professional development for management team"
-                }
-            },
-            Metrics = new List<GoalMetric>
-            {
-                new GoalMetric
-                {
-                    Id = 10,
-                    Name = "Staff Satisfaction Rate",
-                    Description = "Maintain staff satisfaction above 80% through annual surveys",
-                    StrategicGoalId = 4,
-                    Target = "80",
-                    CurrentValue = 78m,
-                    Unit = "%",
-                    Status = "Active",
-                    TargetDate = new DateTime(2026, 6, 30)
-                },
-                new GoalMetric
-                {
-                    Id = 11,
-                    Name = "Professional Development Hours",
-                    Description = "Provide minimum 40 hours of professional development per staff member annually",
-                    StrategicGoalId = 4,
-                    Target = "40",
-                    CurrentValue = 32m,
-                    Unit = "hours",
-                    Status = "Active",
-                    TargetDate = new DateTime(2026, 6, 30)
-                },
-                new GoalMetric
-                {
-                    Id = 12,
-                    Name = "Staff Retention Rate",
-                    Description = "Achieve 90% staff retention rate annually",
-                    StrategicGoalId = 4,
-                    Target = "90",
-                    CurrentValue = 85m,
-                    Unit = "%",
-                    Status = "Active",
-                    TargetDate = new DateTime(2026, 6, 30)
-                }
-            }
-        }
-    };
-
-    public IActionResult Index(string status, string time, string goal)
+    public IActionResult Index(string status, string time, string goal, string fiscalYear, string quarter)
     {
         try 
         {
-            // Try to get data from database first
-            var dbGoals = new List<StrategicGoal>();
+            // Create dashboard data from real database entries only
+            var dashboardData = BuildDashboardFromRealData();
             
-            // Check if StrategicGoals table exists and has data
-            try 
-            {
-                if (_context.StrategicGoals != null)
-                {
-                    dbGoals = _context.StrategicGoals
-                        .Include(g => g.Metrics)
-                        .Include(g => g.Events)
-                        .ToList();
-                }
-            }
-            catch 
-            {
-                // Table doesn't exist yet, fall back to hardcoded data
-                dbGoals = new List<StrategicGoal>();
-            }
+            // Apply filters
+            dashboardData = ApplyFilters(dashboardData, status, time, goal, fiscalYear, quarter);
 
-            // If no database data, try to generate from survey data
-            List<StrategicGoal> allGoals;
-            if (dbGoals.Any())
-            {
-                allGoals = dbGoals;
-                ViewBag.DataSource = "Database";
-            }
-            else
-            {
-                // Try to generate goals from survey and professional development data
-                var generatedGoals = GenerateGoalsFromSurveyData();
-                if (generatedGoals.Any())
-                {
-                    allGoals = generatedGoals;
-                    ViewBag.DataSource = "Generated from Survey Data";
-                    ViewBag.Message = "Displaying metrics generated from your submitted surveys and professional development data.";
-                }
-                else
-                {
-                    // Fall back to hardcoded data
-                    allGoals = GetHardcodedGoals();
-                    ViewBag.DataSource = "Hardcoded (sample data)";
-                    ViewBag.Message = "Using sample data. Submit surveys through Data Entry to see real metrics.";
-                }
-            }
-
-            // Filter goals if specific goal is requested
-            if (!string.IsNullOrEmpty(goal))
-            {
-                allGoals = allGoals.Where(g => g.Name == goal).ToList();
-            }
-
-            // Filter events by status and time period within each goal
-            foreach (var g in allGoals)
-            {
-                if (g.Events != null)
-                {
-                    g.Events = g.Events
-                        .Where(e => (string.IsNullOrEmpty(status) || e.Status == status))
-                        .ToList();
-                }
-            }
-
-            return View(new DashboardViewModel { StrategicGoals = allGoals });
+            return View(dashboardData);
         }
         catch (Exception ex)
         {
-            // Handle any errors gracefully by falling back to hardcoded data
-            ViewBag.Error = $"Error accessing database: {ex.Message}. Showing sample data.";
-            ViewBag.DataSource = "Hardcoded (fallback)";
-            return View(new DashboardViewModel { StrategicGoals = GetHardcodedGoals() });
+            // Show error message but with empty data to encourage real data entry
+            var errorData = new DashboardViewModel 
+            { 
+                StrategicGoals = new List<StrategicGoal>(),
+                HasError = true,
+                ErrorMessage = $"Error accessing database: {ex.Message}. Please ensure data has been entered through the data entry forms.",
+                DataSource = "Error - No Data"
+            };
+            
+            return View(errorData);
         }
     }
 
-    private List<StrategicGoal> GenerateGoalsFromSurveyData()
+    private DashboardViewModel ApplyFilters(DashboardViewModel dashboard, string status, string time, string goal, string fiscalYear, string quarter)
     {
-        var goals = new List<StrategicGoal>();
-
-        try
+        // Filter goals if specific goal is requested
+        if (!string.IsNullOrEmpty(goal))
         {
-            // Get staff survey data
-            var staffSurveys = _context.StaffSurveys_22D.ToList();
-            var profDev = _context.ProfessionalDevelopments.ToList();
+            dashboard.StrategicGoals = dashboard.StrategicGoals.Where(g => g.Name == goal).ToList();
+        }
 
-            if (staffSurveys.Any() || profDev.Any())
+        // Apply time-based filters
+        var timeFilter = GetTimeFilter(time, fiscalYear, quarter);
+
+        foreach (var g in dashboard.StrategicGoals)
+        {
+            if (g.Events != null)
             {
-                // Create Organizational Building goal from survey data
-                var orgGoal = new StrategicGoal
+                g.Events = g.Events
+                    .Where(e => 
+                    {
+                        // Status filter
+                        var statusMatch = string.IsNullOrEmpty(status) || e.Status == status;
+                        
+                        // Time filter
+                        var timeMatch = timeFilter == null || 
+                                       (e.DueDate >= timeFilter.Value.StartDate && e.DueDate <= timeFilter.Value.EndDate);
+                        
+                        return statusMatch && timeMatch;
+                    })
+                    .ToList();
+            }
+
+            // Apply time filters to metrics if they have date information
+            if (g.Metrics != null && timeFilter != null)
+            {
+                g.Metrics = g.Metrics
+                    .Where(m => m.TargetDate >= timeFilter.Value.StartDate && m.TargetDate <= timeFilter.Value.EndDate)
+                    .ToList();
+            }
+        }
+
+        return dashboard;
+    }
+
+    private (DateTime StartDate, DateTime EndDate)? GetTimeFilter(string time, string fiscalYear, string quarter)
+    {
+        var currentDate = DateTime.Now;
+        
+        // If specific fiscal year and quarter are provided
+        if (!string.IsNullOrEmpty(fiscalYear) && !string.IsNullOrEmpty(quarter))
+        {
+            if (int.TryParse(fiscalYear, out int year) && int.TryParse(quarter.Replace("Q", ""), out int q))
+            {
+                return GetFiscalQuarterRange(year, q);
+            }
+        }
+        
+        // If only fiscal year is provided
+        if (!string.IsNullOrEmpty(fiscalYear))
+        {
+            if (int.TryParse(fiscalYear, out int year))
+            {
+                return GetFiscalYearRange(year);
+            }
+        }
+        
+        // Legacy time filter support
+        if (!string.IsNullOrEmpty(time))
+        {
+            return time switch
+            {
+                "Current Quarter" => GetCurrentQuarter(currentDate),
+                "Q1 2025" => GetFiscalQuarterRange(2025, 1),
+                "Q2 2025" => GetFiscalQuarterRange(2025, 2),
+                "Q3 2025" => GetFiscalQuarterRange(2025, 3),
+                "Q4 2025" => GetFiscalQuarterRange(2025, 4),
+                "Q1 2026" => GetFiscalQuarterRange(2026, 1),
+                "FY 2025" => GetFiscalYearRange(2025),
+                "FY 2026" => GetFiscalYearRange(2026),
+                "This Year" => (new DateTime(currentDate.Year, 1, 1), new DateTime(currentDate.Year, 12, 31)),
+                _ => null
+            };
+        }
+        
+        return null;
+    }
+
+    private (DateTime StartDate, DateTime EndDate) GetFiscalYearRange(int fiscalYear)
+    {
+        // Assuming fiscal year starts July 1 and ends June 30
+        var startDate = new DateTime(fiscalYear - 1, 7, 1);
+        var endDate = new DateTime(fiscalYear, 6, 30);
+        return (startDate, endDate);
+    }
+
+    private (DateTime StartDate, DateTime EndDate) GetFiscalQuarterRange(int fiscalYear, int quarter)
+    {
+        var fyStart = new DateTime(fiscalYear - 1, 7, 1);
+        
+        return quarter switch
+        {
+            1 => (fyStart, fyStart.AddMonths(3).AddDays(-1)), // Q1: July-Sep
+            2 => (fyStart.AddMonths(3), fyStart.AddMonths(6).AddDays(-1)), // Q2: Oct-Dec  
+            3 => (fyStart.AddMonths(6), fyStart.AddMonths(9).AddDays(-1)), // Q3: Jan-Mar
+            4 => (fyStart.AddMonths(9), fyStart.AddMonths(12).AddDays(-1)), // Q4: Apr-Jun
+            _ => GetFiscalYearRange(fiscalYear)
+        };
+    }
+
+    private (DateTime StartDate, DateTime EndDate) GetCurrentQuarter(DateTime currentDate)
+    {
+        // Determine current fiscal quarter based on current date
+        var currentFiscalYear = currentDate.Month >= 7 ? currentDate.Year + 1 : currentDate.Year;
+        
+        var quarter = currentDate.Month switch
+        {
+            >= 7 and <= 9 => 1,   // July-Sep
+            >= 10 and <= 12 => 2, // Oct-Dec
+            >= 1 and <= 3 => 3,   // Jan-Mar
+            >= 4 and <= 6 => 4,   // Apr-Jun
+            _ => 1
+        };
+        
+        return GetFiscalQuarterRange(currentFiscalYear, quarter);
+    }
+
+    private DashboardViewModel BuildDashboardFromRealData()
+    {
+        var dashboard = new DashboardViewModel();
+        
+        // Build summary statistics from real data
+        dashboard.Summary = BuildDashboardSummary();
+        
+        // Build recent activities from real data
+        dashboard.RecentActivities = BuildRecentActivities();
+
+        // Only generate goals if we have real data entries
+        var generatedGoals = GenerateGoalsFromRealDataOnly();
+        
+        // Always ensure we have the four strategic goals as tabs, even if empty
+        var allGoals = EnsureFourStrategicGoals(generatedGoals);
+        
+        // Check if we have any data (database records OR strategy events)
+        var hasStrategyEvents = StrategyController.Strategies.Any();
+        
+        if (allGoals.Any(g => g.Metrics.Any() || g.Events.Any()) || hasStrategyEvents)
+        {
+            dashboard.StrategicGoals = allGoals;
+            dashboard.DataSource = hasStrategyEvents ? "Real Data Entries + Strategy Events" : "Real Data Entries";
+            dashboard.Message = hasStrategyEvents ? 
+                "Dashboard generated from your actual data entries and strategy events from the Core Strategies tab." :
+                "Dashboard generated from your actual data entries including staff surveys, professional development plans, media placements, and website traffic data.";
+        }
+        else
+        {
+            // Show empty goal structure to encourage data entry
+            dashboard.StrategicGoals = allGoals; // Will be empty goals but with proper structure
+            dashboard.DataSource = "No Data Available";
+            dashboard.Message = "No data entries found. Please submit data through the following forms: Staff Surveys, Professional Development, Media Placements, and Website Traffic to see your dashboard populate with real metrics.";
+        }
+
+        return dashboard;
+    }
+
+    private List<StrategicGoal> EnsureFourStrategicGoals(List<StrategicGoal> existingGoals)
+    {
+        var allGoals = new List<StrategicGoal>();
+        
+        // Define the four strategic goals structure (matching StrategyController mapping)
+        var goalTemplates = new List<(int Id, string Name, string Description, string Color)>
+        {
+            (1, "Organizational Building", "Strengthening organizational structure and capacity", "var(--onejax-navy)"),
+            (2, "Financial Sustainability", "Ensuring sustainable financial health and growth", "var(--onejax-green)"),
+            (3, "Identity/Value Proposition", "Establishing and communicating OneJax's unique identity and value", "var(--onejax-orange)"),
+            (4, "Community Engagement", "Building partnerships and community connections", "var(--onejax-blue)")
+        };
+
+        foreach (var template in goalTemplates)
+        {
+            // Find existing goal with data or create empty one
+            var existingGoal = existingGoals.FirstOrDefault(g => g.Id == template.Id || g.Name == template.Name);
+            
+            if (existingGoal != null)
+            {
+                // Use the goal with real data
+                existingGoal.Id = template.Id; // Ensure consistent ID
+                existingGoal.Name = template.Name; // Ensure consistent name
+                existingGoal.Color = template.Color; // Ensure consistent color
+                
+                // Add events from Strategy controller's static list
+                existingGoal.Events.AddRange(GetEventsFromStrategyController(template.Id));
+                
+                allGoals.Add(existingGoal);
+            }
+            else
+            {
+                // Create empty goal structure for tab consistency
+                var newGoal = new StrategicGoal
                 {
-                    Id = 1,
-                    Name = "Organizational Building",
-                    Description = "Staff development and organizational capacity",
-                    Color = "var(--onejax-navy)",
+                    Id = template.Id,
+                    Name = template.Name,
+                    Description = template.Description,
+                    Color = template.Color,
                     Events = new List<Event>(),
                     Metrics = new List<GoalMetric>()
                 };
+                
+                // Add events from Strategy controller's static list
+                newGoal.Events.AddRange(GetEventsFromStrategyController(template.Id));
+                
+                allGoals.Add(newGoal);
+            }
+        }
 
-                // Generate metrics from staff surveys
-                if (staffSurveys.Any())
+        return allGoals;
+    }
+
+    private List<Event> GetEventsFromStrategyController(int strategicGoalId)
+    {
+        var events = new List<Event>();
+        
+        // Get events from database first (persistent)
+        var dbEvents = _context.Events.Where(e => e.StrategicGoalId == strategicGoalId).ToList();
+        events.AddRange(dbEvents);
+        
+        // Also get events from StrategyController's static list (for backward compatibility)
+        var strategies = StrategyController.Strategies.Where(s => s.StrategicGoalId == strategicGoalId).ToList();
+        
+        foreach (var strategy in strategies)
+        {
+            // Only add if not already in database
+            if (!dbEvents.Any(e => e.Title == strategy.Name && e.Description == strategy.Description))
+            {
+                events.Add(new Event
                 {
-                    var avgSatisfaction = staffSurveys.Average(s => s.SatisfactionRate);
-                    var totalStaff = staffSurveys.Count;
-                    
-                    orgGoal.Metrics.Add(new GoalMetric
-                    {
-                        Id = 1,
-                        Name = "Staff Satisfaction Rate",
-                        Description = $"Based on {totalStaff} staff survey responses",
-                        StrategicGoalId = 1,
-                        Target = "85",
-                        CurrentValue = (decimal)Math.Round(avgSatisfaction, 1),
-                        Unit = "%",
-                        Status = "Active",
-                        TargetDate = DateTime.Now.AddMonths(6)
-                    });
-
-                    var totalProfDevFromSurveys = staffSurveys.Sum(s => s.ProfessionalDevelopmentCount);
-                    
-                    orgGoal.Metrics.Add(new GoalMetric
-                    {
-                        Id = 2,
-                        Name = "Professional Development Activities (Staff Survey)",
-                        Description = $"Activities reported by staff members",
-                        StrategicGoalId = 1,
-                        Target = "50",
-                        CurrentValue = totalProfDevFromSurveys,
-                        Unit = "activities",
-                        Status = "Active",
-                        TargetDate = DateTime.Now.AddMonths(6)
-                    });
-                }
-
-                // Generate metrics from professional development data
-                if (profDev.Any())
-                {
-                    var totalDev26 = profDev.Sum(p => p.ProfessionalDevelopmentYear26);
-                    var totalDev27 = profDev.Sum(p => p.ProfessionalDevelopmentYear27);
-                    
-                    orgGoal.Metrics.Add(new GoalMetric
-                    {
-                        Id = 3,
-                        Name = "Professional Development Planning",
-                        Description = $"Planned activities for 2026-2027",
-                        StrategicGoalId = 1,
-                        Target = "100",
-                        CurrentValue = totalDev26 + totalDev27,
-                        Unit = "activities",
-                        Status = "Active",
-                        TargetDate = DateTime.Now.AddMonths(12),
-                        Q1Value = totalDev26,
-                        Q2Value = totalDev27
-                    });
-                }
-
-                // Add some events based on recent submissions
-                if (staffSurveys.Any())
-                {
-                    orgGoal.Events.Add(new Event
-                    {
-                        Id = 1,
-                        Title = $"Staff Survey Completed",
-                        Type = "Assessment",
-                        Notes = $"{staffSurveys.Count} staff members completed satisfaction surveys",
-                        DueDate = DateTime.Now.AddDays(-1),
-                        Status = "Completed",
-                        StrategicGoalId = 1,
-                        Attendees = staffSurveys.Count
-                    });
-                }
-
-                if (profDev.Any())
-                {
-                    orgGoal.Events.Add(new Event
-                    {
-                        Id = 2,
-                        Title = $"Professional Development Plans Submitted",
-                        Type = "Planning",
-                        Notes = $"{profDev.Count} development plans for 2026-2027",
-                        DueDate = DateTime.Now.AddDays(-2),
-                        Status = "Completed",
-                        StrategicGoalId = 1,
-                        Attendees = profDev.Count
-                    });
-                }
-
-                goals.Add(orgGoal);
-
-                // Add other goal templates
-                goals.Add(new StrategicGoal
-                {
-                    Id = 2,
-                    Name = "Identity/Value Proposition",
-                    Description = "Establishing and communicating OneJax's unique identity and value",
-                    Color = "var(--onejax-orange)",
-                    Events = new List<Event>(),
-                    Metrics = new List<GoalMetric>()
-                });
-
-                goals.Add(new StrategicGoal
-                {
-                    Id = 3,
-                    Name = "Community Engagement",
-                    Description = "Building partnerships and community connections",
-                    Color = "var(--onejax-blue)",
-                    Events = new List<Event>(),
-                    Metrics = new List<GoalMetric>()
-                });
-
-                goals.Add(new StrategicGoal
-                {
-                    Id = 4,
-                    Name = "Financial Stability",
-                    Description = "Ensuring sustainable financial operations",
-                    Color = "var(--onejax-green)",
-                    Events = new List<Event>(),
-                    Metrics = new List<GoalMetric>()
+                    Id = strategy.Id,
+                    Title = strategy.Name,
+                    Description = strategy.Description,
+                    Type = strategy.EventType ?? "Community", // Use event type from strategy
+                    Status = "Planned", // Default status
+                    StrategicGoalId = strategicGoalId,
+                    DueDate = DateTime.TryParse(strategy.Date, out var date) ? date : DateTime.Now.AddDays(30),
+                    Notes = $"Added through Core Strategies tab. {(!string.IsNullOrEmpty(strategy.Time) ? $"Time: {strategy.Time}" : "")}",
+                    Attendees = 0
                 });
             }
         }
-        catch
+        
+        return events;
+    }
+
+    private DashboardSummary BuildDashboardSummary()
+    {
+        var summary = new DashboardSummary();
+        
+        try
         {
-            // If survey data can't be processed, return empty list
-            // This will fall back to hardcoded data
+            // Staff Surveys
+            var staffSurveys = _context.StaffSurveys_22D.ToList();
+            summary.TotalStaffSurveys = staffSurveys.Count;
+            summary.AverageStaffSatisfaction = staffSurveys.Any() ? 
+                (decimal)staffSurveys.Average(s => s.SatisfactionRate) : 0;
+
+            // Professional Development
+            summary.TotalProfessionalDevelopmentPlans = _context.ProfessionalDevelopments.Count();
+
+            // Media Placements
+            summary.TotalMediaPlacements = _context.MediaPlacements_3D.Count();
+
+            // Website Traffic
+            summary.TotalWebsiteTrafficEntries = _context.WebsiteTraffic.Count();
+
+            // Events (from database or generated)
+            try
+            {
+                summary.TotalEvents = _context.Events.Count();
+            }
+            catch
+            {
+                // Events table might not exist yet
+                summary.TotalEvents = 0;
+            }
+
+            // Calculate total activities
+            summary.TotalActivities = summary.TotalStaffSurveys + 
+                                    summary.TotalProfessionalDevelopmentPlans + 
+                                    summary.TotalMediaPlacements + 
+                                    summary.TotalWebsiteTrafficEntries +
+                                    summary.TotalEvents;
+
+            summary.LastUpdated = DateTime.Now;
+        }
+        catch (Exception)
+        {
+            // Return empty summary if database access fails
+        }
+
+        return summary;
+    }
+
+    private List<RecentActivity> BuildRecentActivities()
+    {
+        var activities = new List<RecentActivity>();
+
+        try
+        {
+            // Add recent staff surveys
+            var recentSurveys = _context.StaffSurveys_22D
+                .OrderByDescending(s => s.CreatedDate)
+                .Take(5)
+                .ToList();
+
+            foreach (var survey in recentSurveys)
+            {
+                activities.Add(new RecentActivity
+                {
+                    Type = "Staff Survey",
+                    Title = $"Staff Survey Completed",
+                    Description = $"{survey.Name} completed satisfaction survey (Rate: {survey.SatisfactionRate}%)",
+                    Date = survey.CreatedDate,
+                    Icon = "fas fa-user-check",
+                    Color = "var(--onejax-blue)",
+                    GoalName = "Organizational Building"
+                });
+            }
+
+            // Add recent professional development entries
+            var recentProfDev = _context.ProfessionalDevelopments
+                .OrderByDescending(p => p.CreatedDate)
+                .Take(5)
+                .ToList();
+
+            foreach (var profDev in recentProfDev)
+            {
+                activities.Add(new RecentActivity
+                {
+                    Type = "Professional Development",
+                    Title = "Development Plan Submitted",
+                    Description = $"{profDev.Name} planned {profDev.ProfessionalDevelopmentYear26 + profDev.ProfessionalDevelopmentYear27} activities",
+                    Date = profDev.CreatedDate,
+                    Icon = "fas fa-graduation-cap",
+                    Color = "var(--onejax-green)",
+                    GoalName = "Organizational Building"
+                });
+            }
+
+            // Add recent media placements
+            var recentMedia = _context.MediaPlacements_3D
+                .OrderByDescending(m => m.CreatedDate)
+                .Take(3)
+                .ToList();
+
+            foreach (var media in recentMedia)
+            {
+                var totalPlacements = (media.January ?? 0) + (media.February ?? 0) + 
+                                    (media.March ?? 0) + (media.April ?? 0) + 
+                                    (media.May ?? 0) + (media.June ?? 0) + 
+                                    (media.July ?? 0) + (media.August ?? 0) + 
+                                    (media.September ?? 0) + (media.October ?? 0) + 
+                                    (media.November ?? 0) + (media.December ?? 0);
+                
+                activities.Add(new RecentActivity
+                {
+                    Type = "Media Placement",
+                    Title = "Media Placements Updated",
+                    Description = $"Total of {totalPlacements} media placements recorded",
+                    Date = media.CreatedDate,
+                    Icon = "fas fa-newspaper",
+                    Color = "var(--onejax-orange)",
+                    GoalName = "Identity/Value Proposition"
+                });
+            }
+
+            // Add recent website traffic entries
+            var recentTraffic = _context.WebsiteTraffic
+                .OrderByDescending(w => w.CreatedDate)
+                .Take(3)
+                .ToList();
+
+            foreach (var traffic in recentTraffic)
+            {
+                activities.Add(new RecentActivity
+                {
+                    Type = "Website Traffic",
+                    Title = "Website Traffic Recorded",
+                    Description = $"Total clicks: {traffic.TotalClicks}",
+                    Date = traffic.CreatedDate,
+                    Icon = "fas fa-mouse-pointer",
+                    Color = "var(--onejax-navy)",
+                    GoalName = "Community Engagement"
+                });
+            }
+
+            // Sort all activities by date and take most recent
+            activities = activities.OrderByDescending(a => a.Date).Take(10).ToList();
+        }
+        catch (Exception)
+        {
+            // Return empty list if database access fails
+        }
+
+        return activities;
+    }
+
+    private List<StrategicGoal> GenerateGoalsFromRealDataOnly()
+    {
+        var goals = new List<StrategicGoal>();
+
+        // Get all data from database
+        var staffSurveys = _context.StaffSurveys_22D.ToList();
+        var profDev = _context.ProfessionalDevelopments.ToList();
+        var mediaPlacements = _context.MediaPlacements_3D.ToList();
+        var websiteTraffic = _context.WebsiteTraffic.ToList();
+
+        // Only create goals if we have real data
+        if (staffSurveys.Any() || profDev.Any() || mediaPlacements.Any() || websiteTraffic.Any())
+        {
+            // Goal 1: Organizational Building (only if we have staff/prof dev data)
+            if (staffSurveys.Any() || profDev.Any())
+            {
+                var orgGoal = CreateOrganizationalBuildingGoalFromRealData(staffSurveys, profDev);
+                goals.Add(orgGoal);
+            }
+
+            // Goal 2: Financial Sustainability (placeholder for now, no specific data yet)
+            // We'll create an empty goal for this when we have financial data
+
+            // Goal 3: Identity/Value Proposition (only if we have media placement data)
+            if (mediaPlacements.Any())
+            {
+                var identityGoal = CreateIdentityGoalFromRealData(mediaPlacements);
+                goals.Add(identityGoal);
+            }
+
+            // Goal 4: Community Engagement (only if we have website traffic data)
+            if (websiteTraffic.Any())
+            {
+                var communityGoal = CreateCommunityEngagementGoalFromRealData(websiteTraffic);
+                goals.Add(communityGoal);
+            }
+
+            // Goal 4: Financial Stability (only add if we eventually have financial data)
+            // For now, we'll skip this since we don't have financial form data yet
         }
 
         return goals;
     }
 
-    private List<StrategicGoal> GetHardcodedGoals()
+    private StrategicGoal CreateOrganizationalBuildingGoalFromRealData(List<StaffSurvey_22D> staffSurveys, List<ProfessionalDevelopment> profDev)
     {
-        // Return the original hardcoded data as a fallback
-        return _threeYearPlan.Select(g => new StrategicGoal
+        var goal = new StrategicGoal
         {
-            Id = g.Id,
-            Name = g.Name,
-            Description = g.Description,
-            Color = g.Color,
-            Events = g.Events?.ToList() ?? new List<Event>(),
-            Metrics = g.Metrics?.ToList() ?? new List<GoalMetric>()
-        }).ToList();
-    }
+            Id = 1,
+            Name = "Organizational Building",
+            Description = "Staff development and organizational capacity",
+            Color = "var(--onejax-navy)",
+            Events = new List<Event>(),
+            Metrics = new List<GoalMetric>()
+        };
 
-    // Static methods for other controllers to access the fixed plan
-    public static List<StrategicGoal> GetThreeYearPlan()
-    {
-        return _threeYearPlan;
-    }
-
-    public static Event? GetEvent(int eventId)
-    {
-        return _threeYearPlan.SelectMany(g => g.Events)
-                           .FirstOrDefault(e => e.Id == eventId);
-    }
-
-    public static void AddEventToGoal(int goalId, Event eventItem)
-    {
-        var goal = _threeYearPlan.FirstOrDefault(g => g.Id == goalId);
-        if (goal != null)
+        // Generate metrics from staff surveys
+        if (staffSurveys.Any())
         {
-            eventItem.Id = goal.Events.Any() ? goal.Events.Max(e => e.Id) + 1 : 1;
-            eventItem.StrategicGoalId = goalId;
-            goal.Events.Add(eventItem);
+            var avgSatisfaction = staffSurveys.Average(s => s.SatisfactionRate);
+            var totalStaff = staffSurveys.Count;
+            
+            goal.Metrics.Add(new GoalMetric
+            {
+                Id = 1,
+                Name = "Staff Satisfaction Rate",
+                Description = $"Based on {totalStaff} staff survey responses",
+                StrategicGoalId = 1,
+                Target = "85",
+                CurrentValue = (decimal)Math.Round(avgSatisfaction, 1),
+                Unit = "%",
+                Status = avgSatisfaction >= 85 ? "On Track" : "Needs Attention",
+                TargetDate = DateTime.Now.AddMonths(6)
+            });
+
+            var totalProfDevFromSurveys = staffSurveys.Sum(s => s.ProfessionalDevelopmentCount);
+            
+            goal.Metrics.Add(new GoalMetric
+            {
+                Id = 2,
+                Name = "Professional Development Activities (Staff Reported)",
+                Description = $"Activities reported by staff members",
+                StrategicGoalId = 1,
+                Target = "50",
+                CurrentValue = totalProfDevFromSurveys,
+                Unit = "activities",
+                Status = totalProfDevFromSurveys >= 50 ? "On Track" : "In Progress",
+                TargetDate = DateTime.Now.AddMonths(6)
+            });
+
+            // Metrics only - no automatic event creation for data entry
         }
+
+        // Generate metrics from professional development data
+        if (profDev.Any())
+        {
+            var totalDev26 = profDev.Sum(p => p.ProfessionalDevelopmentYear26);
+            var totalDev27 = profDev.Sum(p => p.ProfessionalDevelopmentYear27);
+            
+            goal.Metrics.Add(new GoalMetric
+            {
+                Id = 3,
+                Name = "Professional Development Planning",
+                Description = $"Planned activities for 2026-2027",
+                StrategicGoalId = 1,
+                Target = "100",
+                CurrentValue = totalDev26 + totalDev27,
+                Unit = "activities",
+                Status = (totalDev26 + totalDev27) >= 100 ? "On Track" : "In Progress",
+                TargetDate = DateTime.Now.AddMonths(12),
+                Q1Value = totalDev26,
+                Q2Value = totalDev27
+            });
+
+            // Metrics only - no automatic event creation for data entry
+        }
+
+        return goal;
     }
 
-    public static List<Event> GetEventsByGoal(int goalId)
+    private StrategicGoal CreateIdentityGoalFromRealData(List<MediaPlacements_3D> mediaPlacements)
     {
-        var goal = _threeYearPlan.FirstOrDefault(g => g.Id == goalId);
-        return goal?.Events ?? new List<Event>();
+        var goal = new StrategicGoal
+        {
+            Id = 3, // Changed from 2 to 3 to match StrategyController mapping
+            Name = "Identity/Value Proposition",
+            Description = "Establishing and communicating OneJax's unique identity and value",
+            Color = "var(--onejax-orange)",
+            Events = new List<Event>(),
+            Metrics = new List<GoalMetric>()
+        };
+
+        if (mediaPlacements.Any())
+        {
+            var totalPlacements = 0;
+
+            foreach (var placement in mediaPlacements)
+            {
+                var placementTotal = (placement.January ?? 0) + (placement.February ?? 0) + 
+                                   (placement.March ?? 0) + (placement.April ?? 0) + 
+                                   (placement.May ?? 0) + (placement.June ?? 0) + 
+                                   (placement.July ?? 0) + (placement.August ?? 0) + 
+                                   (placement.September ?? 0) + (placement.October ?? 0) + 
+                                   (placement.November ?? 0) + (placement.December ?? 0);
+                totalPlacements += placementTotal;
+            }
+
+            goal.Metrics.Add(new GoalMetric
+            {
+                Id = 4,
+                Name = "Media Placements",
+                Description = $"Total media placements across all channels",
+                StrategicGoalId = 3, // Changed from 2 to 3
+                Target = "200",
+                CurrentValue = totalPlacements,
+                Unit = "placements",
+                Status = totalPlacements >= 200 ? "On Track" : "In Progress",
+                TargetDate = DateTime.Now.AddMonths(6)
+            });
+
+            goal.Metrics.Add(new GoalMetric
+            {
+                Id = 5,
+                Name = "Media Coverage Frequency",
+                Description = "Average monthly media presence",
+                StrategicGoalId = 3, // Changed from 2 to 3
+                Target = "15",
+                CurrentValue = (decimal)(totalPlacements / 12.0),
+                Unit = "per month",
+                Status = (totalPlacements / 12.0) >= 15 ? "On Track" : "Needs Attention",
+                TargetDate = DateTime.Now.AddMonths(6)
+            });
+
+            // Metrics only - no automatic event creation for data entry
+        }
+
+        return goal;
+    }
+
+    private StrategicGoal CreateCommunityEngagementGoalFromRealData(List<WebsiteTraffic_4D> websiteTraffic)
+    {
+        var goal = new StrategicGoal
+        {
+            Id = 4, // Changed from 3 to 4 to match StrategyController mapping
+            Name = "Community Engagement",
+            Description = "Building partnerships and community connections",
+            Color = "var(--onejax-blue)",
+            Events = new List<Event>(),
+            Metrics = new List<GoalMetric>()
+        };
+
+        if (websiteTraffic.Any())
+        {
+            var totalClicks = websiteTraffic.Sum(w => w.TotalClicks);
+            var avgQuarterlyClicks = websiteTraffic.Average(w => w.TotalClicks);
+
+            goal.Metrics.Add(new GoalMetric
+            {
+                Id = 6,
+                Name = "Website Traffic",
+                Description = "Total website clicks across all quarters",
+                StrategicGoalId = 4, // Changed from 3 to 4
+                Target = "10000",
+                CurrentValue = totalClicks,
+                Unit = "clicks",
+                Status = totalClicks >= 10000 ? "On Track" : "In Progress",
+                TargetDate = DateTime.Now.AddMonths(6)
+            });
+
+            goal.Metrics.Add(new GoalMetric
+            {
+                Id = 7,
+                Name = "Digital Engagement Rate",
+                Description = "Average quarterly website engagement",
+                StrategicGoalId = 4, // Changed from 3 to 4
+                Target = "2500",
+                CurrentValue = (decimal)avgQuarterlyClicks,
+                Unit = "clicks/quarter",
+                Status = avgQuarterlyClicks >= 2500 ? "On Track" : "Needs Improvement",
+                TargetDate = DateTime.Now.AddMonths(3)
+            });
+
+            // Metrics only - no automatic event creation for data entry
+        }
+
+        return goal;
     }
 }

@@ -9,7 +9,7 @@ namespace OneJaxDashboard.Models
 
         // Reference to the Strategy (Core Strategy event) this is based on
         [Display(Name = "Event")]
-        public int StrategyTemplateId { get; set; }
+        public int? StrategyTemplateId { get; set; } // Nullable for events not based on strategy templates
 
         // The title comes from the Strategy, stored here for convenience
         public string Title { get; set; } = string.Empty;
