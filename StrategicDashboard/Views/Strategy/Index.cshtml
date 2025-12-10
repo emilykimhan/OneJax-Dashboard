@@ -186,6 +186,17 @@ new { Id = 4, Name = "Community Engagement" }
                 </div>
 
                 <div class="col-md-6">
+                    <label class="form-label fw-semibold">Event Type</label>
+                    <select name="eventType" class="form-select" required>
+                        <option value="">Select Event Type</option>
+                        <option value="Youth">Youth</option>
+                        <option value="Interfaith">Interfaith</option>
+                        <option value="Humanitarian">Humanitarian</option>
+                        <option value="Community">Community</option>
+                    </select>
+                </div>
+
+                <div class="col-md-6">
                     <label class="form-label fw-semibold">Event Date </label>
                     <input type="date" name="eventDate" class="form-control" />
                 </div>

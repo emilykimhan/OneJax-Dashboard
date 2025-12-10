@@ -6,6 +6,8 @@
     var selectedGoal = Context.Request.Query["goal"].ToString();
     var selectedStatus = Context.Request.Query["status"].ToString();
     var selectedTime = Context.Request.Query["time"].ToString();
+    var selectedFiscalYear = Context.Request.Query["fiscalYear"].ToString();
+    var selectedQuarter = Context.Request.Query["quarter"].ToString();
 }
 
 <style>
@@ -402,7 +404,7 @@
                 
                 <form onsubmit="applyFilters(); return false;">
                     <div class="row g-4 align-items-end">
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <label class="form-label" style="color: var(--onejax-navy); font-weight: 600;">
                                 Project Status
                             </label>
@@ -415,15 +417,46 @@
                             </select>
                         </div>
                         
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <label class="form-label" style="color: var(--onejax-navy); font-weight: 600;">
-                                Time Period
+                                Fiscal Year
+                            </label>
+                            <select class="form-select" id="fiscalYearFilter" name="fiscalYear" style="border-radius: 12px; border: 2px solid var(--onejax-border); padding: 12px;">
+                                <option value="" selected="@(string.IsNullOrEmpty(selectedFiscalYear))">All Years</option>
+                                <option value="2024" selected="@(selectedFiscalYear == "2024")">FY 2024</option>
+                                <option value="2025" selected="@(selectedFiscalYear == "2025")">FY 2025</option>
+                                <option value="2026" selected="@(selectedFiscalYear == "2026")">FY 2026</option>
+                                <option value="2027" selected="@(selectedFiscalYear == "2027")">FY 2027</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="form-label" style="color: var(--onejax-navy); font-weight: 600;">
+                                Quarter
+                            </label>
+                            <select class="form-select" id="quarterFilter" name="quarter" style="border-radius: 12px; border: 2px solid var(--onejax-border); padding: 12px;">
+                                <option value="" selected="@(string.IsNullOrEmpty(selectedQuarter))">All Quarters</option>
+                                <option value="Q1" selected="@(selectedQuarter == "Q1")">Q1 (Jul-Sep)</option>
+                                <option value="Q2" selected="@(selectedQuarter == "Q2")">Q2 (Oct-Dec)</option>
+                                <option value="Q3" selected="@(selectedQuarter == "Q3")">Q3 (Jan-Mar)</option>
+                                <option value="Q4" selected="@(selectedQuarter == "Q4")">Q4 (Apr-Jun)</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="form-label" style="color: var(--onejax-navy); font-weight: 600;">
+                                Legacy Time Period
                             </label>
                             <select class="form-select" id="timeFilter" name="time" style="border-radius: 12px; border: 2px solid var(--onejax-border); padding: 12px;">
-                                <option value="" selected="@(string.IsNullOrEmpty(selectedTime))">All Periods</option>
-                                <option value="This Quarter" selected="@(selectedTime == "This Quarter")">Q4 2025 (Current Quarter)</option>
-                                <option value="Next Quarter" selected="@(selectedTime == "Next Quarter")">Q1 2026 (Next Quarter)</option>
-                                <option value="This Year" selected="@(selectedTime == "This Year")">Fiscal Year 2025</option>
+                                <option value="" selected="@(string.IsNullOrEmpty(selectedTime))">None</option>
+                                <option value="Current Quarter" selected="@(selectedTime == "Current Quarter")">Current Quarter</option>
+                                <option value="This Year" selected="@(selectedTime == "This Year")">This Calendar Year</option>
+                                <option value="Q1 2025" selected="@(selectedTime == "Q1 2025")">Q1 2025</option>
+                                <option value="Q2 2025" selected="@(selectedTime == "Q2 2025")">Q2 2025</option>
+                                <option value="Q3 2025" selected="@(selectedTime == "Q3 2025")">Q3 2025</option>
+                                <option value="Q4 2025" selected="@(selectedTime == "Q4 2025")">Q4 2025</option>
+                                <option value="FY 2025" selected="@(selectedTime == "FY 2025")">FY 2025</option>
+                                <option value="FY 2026" selected="@(selectedTime == "FY 2026")">FY 2026</option>
                             </select>
                         </div>
 
@@ -438,8 +471,10 @@
                                 Reset
                             </button>
                         </div>
-                        
-                        <div class="col-md-2">
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-md-12">
                             <div class="d-flex gap-2 justify-content-end">
                                 <button type="button" class="btn btn-secondary-modern" onclick="exportToPDF()">
                                     PDF Report
@@ -840,7 +875,7 @@
                                                                 @eventItem.Status
                                                             </span>
                                                         </p>
-                                                        <a href="@Url.Action("Details", "Event", new { id = eventItem.Id })" 
+                                                        <a href="@Url.Action("Details", "Events", new { id = eventItem.Id })" 
                                                            class="btn btn-sm btn-outline-primary">View Details</a>
                                                     </div>
                                                 </div>
@@ -983,92 +1018,33 @@
 function applyFilters() {
     const statusFilter = document.getElementById('statusFilter').value;
     const timeFilter = document.getElementById('timeFilter').value;
+    const fiscalYearFilter = document.getElementById('fiscalYearFilter').value;
+    const quarterFilter = document.getElementById('quarterFilter').value;
     
-    // Get current date info for time filtering
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentQuarter = Math.floor((now.getMonth()) / 3) + 1;
-    const nextQuarter = currentQuarter === 4 ? 1 : currentQuarter + 1;
-    const nextQuarterYear = currentQuarter === 4 ? currentYear + 1 : currentYear;
-    
-    // Get all event cards and goal sections
-    const eventCards = document.querySelectorAll('.event-card');
-    const goalSections = document.querySelectorAll('.goal-section');
-    
-    let filteredCount = 0;
-    
-    // Filter event cards within goal sections
-    goalSections.forEach(section => {
-        const events = section.querySelectorAll('.event-card');
-        let sectionHasVisibleEvents = false;
-        
-        events.forEach(event => {
-            let shouldShow = true;
-            
-            // Check status filter
-            if (statusFilter && event.dataset.status) {
-                if (event.dataset.status !== statusFilter) {
-                    shouldShow = false;
-                }
-            }
-            
-            // Check time filter
-            if (timeFilter && shouldShow) {
-                const eventYear = parseInt(event.dataset.year);
-                const eventQuarter = parseInt(event.dataset.quarter);
-                
-                switch(timeFilter) {
-                    case 'This Quarter':
-                        if (eventYear !== currentYear || eventQuarter !== currentQuarter) {
-                            shouldShow = false;
-                        }
-                        break;
-                    case 'Next Quarter':
-                        if (eventYear !== nextQuarterYear || eventQuarter !== nextQuarter) {
-                            shouldShow = false;
-                        }
-                        break;
-                    case 'This Year':
-                        if (eventYear !== currentYear) {
-                            shouldShow = false;
-                        }
-                        break;
-                    // 'All Periods' shows everything, so no additional filtering needed
-                }
-            }
-            
-            if (shouldShow) {
-                event.closest('.col-md-6, .col-md-4, .mb-3')?.style.setProperty('display', 'block');
-                sectionHasVisibleEvents = true;
-                filteredCount++;
-            } else {
-                event.closest('.col-md-6, .col-md-4, .mb-3')?.style.setProperty('display', 'none');
-            }
-        });
-        
-        // Update goal section visibility based on whether it has visible events
-        if (section.dataset.goal !== 'summary') {
-            // Keep all goal sections visible for now, just filter content within them
-        }
-    });
-    
-    // Update URL without refresh
+    // Build query parameters for URL
     const params = new URLSearchParams();
     if (statusFilter) params.set('status', statusFilter);
     if (timeFilter) params.set('time', timeFilter);
+    if (fiscalYearFilter) params.set('fiscalYear', fiscalYearFilter);
+    if (quarterFilter) params.set('quarter', quarterFilter);
     
+    // Redirect to apply server-side filtering
     const newUrl = params.toString() ? 
         `${window.location.pathname}?${params.toString()}` : 
         window.location.pathname;
-    window.history.replaceState(null, '', newUrl);
     
-    // Show notification with time period info
+    // Show loading notification
     let filterText = [];
     if (statusFilter) filterText.push(`Status: ${statusFilter}`);
-    if (timeFilter) filterText.push(`Period: ${timeFilter}`);
-    const filterDescription = filterText.length > 0 ? filterText.join(', ') : 'All items';
+    if (fiscalYearFilter) filterText.push(`Fiscal Year: ${fiscalYearFilter}`);
+    if (quarterFilter) filterText.push(`Quarter: ${quarterFilter}`);
+    if (timeFilter) filterText.push(`Legacy Time: ${timeFilter}`);
     
-    showNotification('Filters Applied', `Showing: ${filterDescription} | Found ${filteredCount} matching events`, 'success');
+    const filterDescription = filterText.length > 0 ? filterText.join(', ') : 'All items';
+    showNotification('Applying Filters', `Filtering by: ${filterDescription}`, 'info');
+    
+    // Navigate to the new URL with filters
+    window.location.href = newUrl;
 }
 
 // Enhanced Export Functions with Visual Feedback
@@ -1095,6 +1071,8 @@ function resetFilters() {
     // Reset the select elements to their default values
     const statusFilter = document.getElementById('statusFilter');
     const timeFilter = document.getElementById('timeFilter');
+    const fiscalYearFilter = document.getElementById('fiscalYearFilter');
+    const quarterFilter = document.getElementById('quarterFilter');
     
     if (statusFilter) {
         statusFilter.value = '';
@@ -1102,12 +1080,18 @@ function resetFilters() {
     if (timeFilter) {
         timeFilter.value = '';
     }
+    if (fiscalYearFilter) {
+        fiscalYearFilter.value = '';
+    }
+    if (quarterFilter) {
+        quarterFilter.value = '';
+    }
     
-    // Apply the reset (show all items)
-    applyFilters();
-    
-    // Show notification
+    // Show notification and redirect to clear URL
     showNotification('Filters Reset', 'All filters have been cleared. Showing all projects.', 'info');
+    
+    // Navigate to the base URL without any filters
+    window.location.href = window.location.pathname;
 }
 
 // Enhanced Notification System

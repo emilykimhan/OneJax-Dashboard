@@ -75,7 +75,7 @@ namespace OneJaxDashboard.Controllers
         public IActionResult ManageEvents()
         {
             var activeEvents = _eventsService.GetAll()
-                .Where(e => _strategyService.GetStrategy(e.StrategyTemplateId) != null)
+                .Where(e => e.StrategyTemplateId.HasValue && _strategyService.GetStrategy(e.StrategyTemplateId.Value) != null)
                 .ToList();
             return View(activeEvents);
         }
@@ -84,7 +84,7 @@ namespace OneJaxDashboard.Controllers
         public IActionResult ArchivedEvents()
         {
             var archivedEvents = _eventsService.GetArchived()
-                .Where(e => _strategyService.GetStrategy(e.StrategyTemplateId) != null)
+                .Where(e => e.StrategyTemplateId.HasValue && _strategyService.GetStrategy(e.StrategyTemplateId.Value) != null)
                 .ToList();
             return View(archivedEvents);
         }
@@ -123,7 +123,7 @@ namespace OneJaxDashboard.Controllers
             }
 
             // Load the strategy template to get the title
-            var strategy = _strategyService.GetStrategy(eventModel.StrategyTemplateId);
+            var strategy = eventModel.StrategyTemplateId.HasValue ? _strategyService.GetStrategy(eventModel.StrategyTemplateId.Value) : null;
             if (strategy == null)
             {
                 ModelState.AddModelError("", "Please select an event.");

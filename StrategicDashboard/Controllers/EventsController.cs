@@ -1,43 +1,115 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using OneJaxDashboard.Data;
 using OneJaxDashboard.Models;
 using OneJaxDashboard.Services;
 //talijah
 namespace OneJaxDashboard.Controllers
 {
-    [Authorize(Roles = "Staff")]
     public class EventsController : Controller
     {
+        private readonly ApplicationDbContext _context;
         private readonly EventsService _events;
         private readonly StrategyService _strategyService;
         private readonly ActivityLogService _activityLog;
 
-        public EventsController(EventsService events, StrategyService strategyService, ActivityLogService activityLog)
+        public EventsController(ApplicationDbContext context, EventsService events, StrategyService strategyService, ActivityLogService activityLog)
         {
+            _context = context;
             _events = events;
             _strategyService = strategyService;
             _activityLog = activityLog;
         }
 
+        // GET: Events/Details/5 - Public access for dashboard
+        [AllowAnonymous]
+        public IActionResult Details(int id)
+        {
+            try
+            {
+                // Try to get event from database first
+                var eventFromDb = _context.Events?
+                    .Where(e => e.Id == id)
+                    .FirstOrDefault();
+                
+                if (eventFromDb != null)
+                {
+                    // Get the strategic goal name for ViewBag
+                    var strategicGoal = _context.StrategicGoals?
+                        .FirstOrDefault(g => g.Id == eventFromDb.StrategicGoalId);
+                    ViewBag.GoalName = strategicGoal?.Name ?? "Strategic Goal";
+                    
+                    return View(eventFromDb);
+                }
+                
+                // Check if this is an event from the StrategyController
+                var strategy = StrategyController.Strategies.FirstOrDefault(s => s.Id == id);
+                if (strategy != null)
+                {
+                    // Convert Strategy to Event for display
+                    var eventFromStrategy = new Event
+                    {
+                        Id = strategy.Id,
+                        Title = strategy.Name,
+                        Description = strategy.Description,
+                        Type = strategy.EventType ?? "Community", // Use the event type from strategy
+                        Status = "Planned",
+                        StrategicGoalId = strategy.StrategicGoalId,
+                        DueDate = DateTime.TryParse(strategy.Date, out var date) ? date : DateTime.Now.AddDays(30),
+                        Notes = $"Added through Core Strategies tab. {(!string.IsNullOrEmpty(strategy.Time) ? $"Time: {strategy.Time}" : "")}",
+                        Attendees = 0,
+                        Location = string.IsNullOrEmpty(strategy.Time) ? "TBD" : $"Time: {strategy.Time}"
+                    };
+                    
+                    // Get goal name for ViewBag
+                    var goalNames = new Dictionary<int, string>
+                    {
+                        {1, "Organizational Building"},
+                        {2, "Financial Sustainability"}, 
+                        {3, "Identity/Value Proposition"},
+                        {4, "Community Engagement"}
+                    };
+                    
+                    ViewBag.GoalName = goalNames.ContainsKey(strategy.StrategicGoalId) 
+                        ? goalNames[strategy.StrategicGoalId] 
+                        : "Strategic Goal";
+                    
+                    return View(eventFromStrategy);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log error but continue
+                Console.WriteLine($"[ERROR] EventsController.Details: {ex.Message}");
+            }
+            
+            // Event not found
+            return NotFound("Event not found. It may have been deleted or the ID is incorrect.");
+        }
+
+        [Authorize(Roles = "Staff")]
         public IActionResult Index()
         {
             var username = User.Identity?.Name ?? string.Empty;
             var items = _events.GetByOwner(username)
-                .Where(e => _strategyService.GetStrategy(e.StrategyTemplateId) != null)
+                .Where(e => e.StrategyTemplateId.HasValue && _strategyService.GetStrategy(e.StrategyTemplateId.Value) != null)
                 .ToList();
             return View(items);
         }
 
+        [Authorize(Roles = "Staff")]
         public IActionResult Archived()
         {
             var username = User.Identity?.Name ?? string.Empty;
             var items = _events.GetArchivedByOwner(username)
-                .Where(e => _strategyService.GetStrategy(e.StrategyTemplateId) != null)
+                .Where(e => e.StrategyTemplateId.HasValue && _strategyService.GetStrategy(e.StrategyTemplateId.Value) != null)
                 .ToList();
             return View(items);
         }
 
+        [Authorize(Roles = "Staff")]
         public IActionResult Create(int? strategyId)
         {
             Event eventModel = new Event();
@@ -62,10 +134,11 @@ namespace OneJaxDashboard.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Staff")]
         public IActionResult Create(Event eventModel)
         {
             // Load the strategy template to get the title
-            var strategy = _strategyService.GetStrategy(eventModel.StrategyTemplateId);
+            var strategy = eventModel.StrategyTemplateId.HasValue ? _strategyService.GetStrategy(eventModel.StrategyTemplateId.Value) : null;
             if (strategy == null)
             {
                 ModelState.AddModelError("", "Please select an event.");
@@ -91,6 +164,7 @@ namespace OneJaxDashboard.Controllers
             return RedirectToAction("Index");
         }
 
+        [Authorize(Roles = "Staff")]
         public IActionResult Edit(int id)
         {
             var eventModel = _events.Get(id);
@@ -103,6 +177,7 @@ namespace OneJaxDashboard.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Staff")]
         public IActionResult Edit(Event eventModel)
         {
             var existing = _events.Get(eventModel.Id);
@@ -139,6 +214,7 @@ namespace OneJaxDashboard.Controllers
             return RedirectToAction("Index");
         }
 
+        [Authorize(Roles = "Staff")]
         public IActionResult Delete(int id)
         {
             var eventModel = _events.Get(id);
@@ -149,6 +225,7 @@ namespace OneJaxDashboard.Controllers
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Staff")]
         public IActionResult DeleteConfirmed(int id)
         {
             var eventModel = _events.Get(id);
