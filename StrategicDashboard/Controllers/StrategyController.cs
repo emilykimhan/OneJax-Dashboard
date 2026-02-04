@@ -4,6 +4,7 @@ using OneJaxDashboard.Models;
 using OneJaxDashboard.Data;
 using System.Collections.Generic;
 using System.Linq;
+using DocumentFormat.OpenXml.Features;
 //dina
 public class StrategyController : Controller
 {
@@ -25,19 +26,22 @@ public class StrategyController : Controller
         new SelectListItem { Value = "4", Text = "Community Engagement" }
     };
 
+
     public IActionResult Index(int? goalId)
     {
         ViewBag.Goals = Goals;
 
         // Ensure existing strategies have a default EventType
-        foreach (var strategy in Strategies.Where(s => string.IsNullOrEmpty(s.EventType)))
+        var strategies = _context.Strategies.Where(s => string.IsNullOrEmpty(s.EventType)).ToList();
+        foreach (var strategy in strategies)
         {
             strategy.EventType = "Community";
         }
+        _context.SaveChanges();
 
         var goalStrategies = goalId.HasValue
-            ? Strategies.Where(s => s.StrategicGoalId == goalId.Value).ToList()
-            : Strategies.ToList();
+            ? _context.Strategies.Where(s => s.StrategicGoalId == goalId.Value).ToList()
+            : _context.Strategies.ToList();
 
         goalStrategies = goalStrategies.OrderByDescending(s => s.Id).ToList();
 
@@ -52,9 +56,9 @@ public class StrategyController : Controller
     {
         int newId = Strategies.Any() ? Strategies.Max(s => s.Id) + 1 : 1;
 
-        var newEvent = new Strategy
+        // Save to database for persistence - only set properties that don't have foreign key constraints
+        var dbEvent = new Strategy
         {
-            Id = newId,
             Name = eventName,
             Description = eventDescription,
             StrategicGoalId = goalId,
@@ -63,30 +67,7 @@ public class StrategyController : Controller
             EventType = eventType
         };
 
-        Strategies.Add(newEvent);
-        
-        // Save to database for persistence - only set properties that don't have foreign key constraints
-        var dbEvent = new Event
-        {
-            Title = eventName,
-            Description = eventDescription,
-            StrategicGoalId = goalId,
-            Status = "Planned",
-            StartDate = DateTime.TryParse(eventDate, out DateTime parsedDate) ? parsedDate : DateTime.Now,
-            OwnerUsername = User?.Identity?.Name ?? "system",
-            Type = eventType, // Use the selected event type
-            Location = "",
-            Notes = "",
-            AdminNotes = "",
-            PostAssessmentData = "",
-            PreAssessmentData = "",
-            Attendees = 0,
-            IsArchived = false,
-            IsAssignedByAdmin = false,
-            StrategyTemplateId = null // Leave null since Core Strategies events aren't based on templates
-        };
-        
-        _context.Events.Add(dbEvent);
+        _context.Strategies.Add(dbEvent);
         _context.SaveChanges();
 
         string goalName = Goals.FirstOrDefault(g => g.Value == goalId.ToString())?.Text ?? "Unknown Goal";
@@ -95,66 +76,71 @@ public class StrategyController : Controller
 
         return RedirectToAction("Index");
     }
+    // POST: /Strategy/Edit
 
-// GET: /Strategy/Edit/5
-[HttpGet]
-public IActionResult Edit(int id)
-{
-    // your events are stored in the in-memory `strategies` list
-    var evt = Strategies.FirstOrDefault(s => s.Id == id);
-    if (evt == null)
+    [HttpGet]
+    public IActionResult Edit(int id)
     {
-        return NotFound();
+        // Fetch the strategy from the database
+        var evt = _context.Strategies.FirstOrDefault(s => s.Id == id);
+        if (evt == null)
+        {
+            return NotFound(); // Return 404 if the strategy doesn't exist
+        }
+
+        ViewBag.Goals = Goals; // Pass goals for the dropdown
+        return View(evt); // Pass the strategy to the view
     }
-
-    return View(evt);   // will use Views/Strategy/Edit.cshtml
-}
-
-// POST: /Strategy/Edit
-[HttpPost]
-public IActionResult Edit(int id, string eventName, string eventDescription, int goalId, string? eventDate, string? eventTime)
-{
-    var evt = Strategies.FirstOrDefault(s => s.Id == id);
-    if (evt == null)
-    {
-        return NotFound();
-    }
-
-    // Update fields
-    evt.Name = eventName;
-    evt.Description = eventDescription;
-    evt.StrategicGoalId = goalId;
-    evt.Date = eventDate;
-    evt.Time = eventTime;
-
-    TempData["SuccessMessage"] = "Event updated successfully!";
-
-    // after editing, send them back to View Events
-    return RedirectToAction("ViewEvents");
-}
 
     [HttpPost]
-    public IActionResult Delete(int id)
+    public IActionResult Edit(int id, string eventName, string eventDescription, string eventDate, string eventTime, int goalId)
     {
-        var strategy = Strategies.FirstOrDefault(s => s.Id == id);
-        if (strategy != null)
-            Strategies.Remove(strategy);
+        // Fetch the strategy from the database
+        var evt = _context.Strategies.FirstOrDefault(s => s.Id == id);
+        if (evt == null)
+        {
+            return NotFound(); // Return 404 if the strategy doesn't exist
+        }
 
-        TempData["SuccessMessage"] = "Event deleted successfully";
+        // Update the strategy's properties
+        evt.Name = eventName;
+        evt.Description = eventDescription;
+        evt.Date = eventDate;
+        evt.Time = eventTime;
+        evt.StrategicGoalId = goalId;
+
+        // Save changes to the database
+        _context.SaveChanges();
+
+        TempData["SuccessMessage"] = "Event updated successfully!";
         return RedirectToAction("Index");
     }
+
+        [HttpPost]
+        [HttpPost]
+        public IActionResult Delete(int id)
+        {
+            // Fetch the strategy from the database
+            var strategy = _context.Strategies.FirstOrDefault(s => s.Id == id);
+            if (strategy == null)
+            {
+                return NotFound(); // Return 404 if the strategy doesn't exist
+            }
+
+            // Remove the strategy from the database
+            _context.Strategies.Remove(strategy);
+            _context.SaveChanges();
+
+            TempData["SuccessMessage"] = "Event deleted successfully!";
+            return RedirectToAction("ViewEvents");
+        }
     public IActionResult ViewEvents()
     {
-        // Reuse the in-memory strategies list and the Goals list
-        ViewBag.Goals = Goals;
+        // Fetch all events from the database
+        var events = _context.Strategies.ToList();
 
-        // All events, newest first
-        var allEvents = Strategies
-            .OrderByDescending(s => s.Id)
-            .ToList();
-
-        return View(allEvents);
+        // Pass the events to the view
+        return View(events);
     }
 
- 
 }

@@ -1,3 +1,4 @@
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -6,6 +7,7 @@ using OneJaxDashboard.Data;
 using OneJaxDashboard.Models;
 using OneJaxDashboard.Services;
 //talijah
+
 namespace OneJaxDashboard.Controllers
 {
     public class EventsController : Controller
@@ -33,17 +35,17 @@ namespace OneJaxDashboard.Controllers
                 var eventFromDb = _context.Events?
                     .Where(e => e.Id == id)
                     .FirstOrDefault();
-                
+
                 if (eventFromDb != null)
                 {
                     // Get the strategic goal name for ViewBag
                     var strategicGoal = _context.StrategicGoals?
                         .FirstOrDefault(g => g.Id == eventFromDb.StrategicGoalId);
                     ViewBag.GoalName = strategicGoal?.Name ?? "Strategic Goal";
-                    
+
                     return View(eventFromDb);
                 }
-                
+
                 // Check if this is an event from the StrategyController
                 var strategy = StrategyController.Strategies.FirstOrDefault(s => s.Id == id);
                 if (strategy != null)
@@ -62,20 +64,20 @@ namespace OneJaxDashboard.Controllers
                         Attendees = 0,
                         Location = string.IsNullOrEmpty(strategy.Time) ? "TBD" : $"Time: {strategy.Time}"
                     };
-                    
+
                     // Get goal name for ViewBag
                     var goalNames = new Dictionary<int, string>
                     {
                         {1, "Organizational Building"},
-                        {2, "Financial Sustainability"}, 
+                        {2, "Financial Sustainability"},
                         {3, "Identity/Value Proposition"},
                         {4, "Community Engagement"}
                     };
-                    
-                    ViewBag.GoalName = goalNames.ContainsKey(strategy.StrategicGoalId) 
-                        ? goalNames[strategy.StrategicGoalId] 
+
+                    ViewBag.GoalName = goalNames.ContainsKey(strategy.StrategicGoalId)
+                        ? goalNames[strategy.StrategicGoalId]
                         : "Strategic Goal";
-                    
+
                     return View(eventFromStrategy);
                 }
             }
@@ -84,7 +86,7 @@ namespace OneJaxDashboard.Controllers
                 // Log error but continue
                 Console.WriteLine($"[ERROR] EventsController.Details: {ex.Message}");
             }
-            
+
             // Event not found
             return NotFound("Event not found. It may have been deleted or the ID is incorrect.");
         }
@@ -113,7 +115,7 @@ namespace OneJaxDashboard.Controllers
         public IActionResult Create(int? strategyId)
         {
             Event eventModel = new Event();
-            
+
             // If a strategy template is selected, load its data
             if (strategyId.HasValue)
             {
@@ -127,7 +129,7 @@ namespace OneJaxDashboard.Controllers
                     eventModel.StrategyId = strategy.Id;
                 }
             }
-            
+
             PopulateStrategicGoalsAndStrategies(strategyId);
             return View(eventModel);
         }
@@ -145,18 +147,18 @@ namespace OneJaxDashboard.Controllers
                 PopulateStrategicGoalsAndStrategies(null);
                 return View(eventModel);
             }
-            
-            if (!ModelState.IsValid) 
+
+            if (!ModelState.IsValid)
             {
                 PopulateStrategicGoalsAndStrategies(null);
                 return View(eventModel);
             }
-            
+
             // Set title and related fields from the strategy template
             eventModel.Title = strategy.Name;
             eventModel.StrategicGoalId = strategy.StrategicGoalId;
             eventModel.StrategyId = strategy.Id;
-            
+
             var username = User.Identity?.Name ?? string.Empty;
             eventModel.OwnerUsername = username;
             var added = _events.Add(eventModel);
@@ -170,7 +172,7 @@ namespace OneJaxDashboard.Controllers
             var eventModel = _events.Get(id);
             if (eventModel == null) return NotFound();
             if (!IsOwner(eventModel)) return Forbid();
-            
+
             PopulateStrategicGoalsAndStrategies(null);
             return View(eventModel);
         }
@@ -183,34 +185,34 @@ namespace OneJaxDashboard.Controllers
             var existing = _events.Get(eventModel.Id);
             if (existing == null) return NotFound();
             if (!IsOwner(existing)) return Forbid();
-            
-            if (!ModelState.IsValid) 
+
+            if (!ModelState.IsValid)
             {
                 PopulateStrategicGoalsAndStrategies(null);
                 return View(eventModel);
             }
-            
+
             // Keep owner unchanged
             eventModel.OwnerUsername = existing.OwnerUsername;
-            
+
             // Log status changes specifically
             var statusChanged = existing.Status != eventModel.Status;
             var statusChangeNote = statusChanged ? $"Status changed from '{existing.Status}' to '{eventModel.Status}'" : null;
-            
+
             // Auto-archive when status is Completed
             if (eventModel.Status == "Completed")
             {
                 eventModel.IsArchived = true;
                 eventModel.CompletionDate = DateTime.Now;
             }
-            
+
             _events.Update(eventModel);
-            
+
             // Log the update with status change detail if applicable
             var logAction = statusChanged ? "Changed Event Status" : "Updated Event";
             var logNotes = statusChangeNote ?? eventModel.Title;
             _activityLog.Log(existing.OwnerUsername, logAction, "Event", eventModel.Id, notes: logNotes);
-            
+
             return RedirectToAction("Index");
         }
 
@@ -246,12 +248,12 @@ namespace OneJaxDashboard.Controllers
         {
             var goals = _strategyService.GetAllStrategicGoals();
             ViewBag.StrategicGoals = new SelectList(goals, "Id", "Name");
-            
+
             // Get all strategies from Core Strategies to use as event templates
             var allStrategies = _strategyService.GetAllStrategies();
             ViewBag.StrategyTemplates = new SelectList(allStrategies, "Id", "Name", selectedStrategyId);
             ViewBag.SelectedStrategyId = selectedStrategyId;
-            
+
             // Load all strategies for display
             ViewBag.Strategies = new SelectList(allStrategies, "Id", "Name");
         }
