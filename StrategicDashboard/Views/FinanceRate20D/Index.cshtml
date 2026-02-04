@@ -29,19 +29,12 @@
                 <!-- Statistics Display -->
                 @if (ViewBag.TotalEntries != null && ViewBag.TotalEntries > 0)
                 {
-                    <div class="alert alert-success mb-4" style="border-radius: 12px; background-color: #d4edda; border: 2px solid #28a745;">
-                        <div class="row align-items-center">
-                            <div class="col-md-8">
-                                <h5 class="mb-0" style="color: #155724;">
-                                    <strong>Overall Average Satisfaction:</strong>
-                                </h5>
-                                <small class="text-muted">Based on @ViewBag.TotalEntries entry/entries | Latest Year: @ViewBag.LatestYear</small>
-                            </div>
-                            <div class="col-md-4 text-end">
-                                <h3 class="mb-0" style="color: #155724;">
-                                    <strong>@String.Format("{0:F2}%", ViewBag.AverageSatisfaction)</strong>
-                                </h3>
-                            </div>
+                    <div class="alert alert-info mb-4" style="border-radius: 12px; background-color: #d1ecf1; border: 2px solid #17a2b8;">
+                        <div class="text-center">
+                            <h5 class="mb-1" style="color: #0c5460;">
+                                <strong>Total Entries: @ViewBag.TotalEntries</strong>
+                            </h5>
+                            <small class="text-muted">Latest Year: @ViewBag.LatestYear</small>
                         </div>
                     </div>
                 }
@@ -51,16 +44,6 @@
                     <div class="alert alert-success text-center">
                         @TempData["Success"]
                     </div>
-                    
-                    @if (ViewBag.ShowNewEntryButton == true)
-                    {
-                        <div class="text-center mb-3">
-                            <a href="@Url.Action("Index", "FinanceRate20D")" class="btn btn-primary"
-                               style="background-color:var(--onejax-navy); border-color:var(--onejax-navy); border-radius: 8px;">
-                                Add Another Entry
-                            </a>
-                        </div>
-                    }
                 }
 
                 @if (TempData["Error"] != null)

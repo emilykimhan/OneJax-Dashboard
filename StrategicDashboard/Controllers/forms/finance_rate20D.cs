@@ -23,7 +23,6 @@ namespace OneJaxDashboard.Controllers
             
             if (allEntries.Any())
             {
-                ViewBag.AverageSatisfaction = allEntries.Average(e => e.AverageCommunicationSatisfaction);
                 ViewBag.LatestYear = allEntries.Max(e => e.Year);
             }
             
@@ -45,7 +44,6 @@ namespace OneJaxDashboard.Controllers
                     // Recalculate statistics after adding new entry
                     var allEntries = _context.CommunicationRate.ToList();
                     ViewBag.TotalEntries = allEntries.Count;
-                    ViewBag.AverageSatisfaction = allEntries.Average(e => e.AverageCommunicationSatisfaction);
                     ViewBag.LatestYear = allEntries.Max(e => e.Year);
                     
                     TempData["Success"] = "Communication satisfaction record submitted successfully!";
