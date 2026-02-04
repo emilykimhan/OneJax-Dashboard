@@ -81,7 +81,14 @@ namespace OneJaxDashboard.Controllers
                 var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                 var principal = new ClaimsPrincipal(identity);
 
-                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+                var authProperties = new AuthenticationProperties
+                {
+                    IsPersistent = false,
+                    ExpiresUtc = DateTimeOffset.UtcNow.AddHours(2),
+                    AllowRefresh = true
+                };
+
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, authProperties);
 
                 if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
                 {
