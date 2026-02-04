@@ -1,0 +1,116 @@
+@model OneJaxDashboard.Models.Comm_rate20D
+@{
+    ViewData["Title"] = "Communication Satisfaction Rate";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card p-4"
+                 style="background-color:var(--onejax-white);
+                        box-shadow:0 4px 24px rgba(0,0,0,0.08);
+                        border-radius:24px;">
+                
+                <!-- Header -->
+                <div class="d-flex align-items-center mb-4">
+                    <a href="/Financial" 
+                       class="btn btn-outline-secondary me-3"
+                       style="border-radius: 8px;">
+                        ← Back
+                    </a>
+                    <h2 class="mb-0" style="color:var(--onejax-navy);">Communication Satisfaction Rate</h2>
+                </div>
+                
+                <p class="text-center mb-4" style="color:var(--onejax-gray);">
+                    Attain a communication satisfaction rating of 85% in annual survey
+                </p>
+
+                <!-- Statistics Display -->
+                @if (ViewBag.TotalEntries != null && ViewBag.TotalEntries > 0)
+                {
+                    <div class="alert alert-info mb-4" style="border-radius: 12px; background-color: #d1ecf1; border: 2px solid #17a2b8;">
+                        <div class="text-center">
+                            <h5 class="mb-1" style="color: #0c5460;">
+                                <strong>Total Entries: @ViewBag.TotalEntries</strong>
+                            </h5>
+                            <small class="text-muted">Latest Year: @ViewBag.LatestYear</small>
+                        </div>
+                    </div>
+                }
+
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success text-center">
+                        @TempData["Success"]
+                    </div>
+                }
+
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger text-center">
+                        @TempData["Error"]
+                    </div>
+                }
+
+                <!-- Input Form -->
+                <form asp-controller="FinanceRate20D" asp-action="Index" method="post">
+                    <div class="row">
+                        <!-- Year -->
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Year" class="form-label fw-bold">Year</label>
+                            <input asp-for="Year" type="number" class="form-control" 
+                                   placeholder="Enter year (e.g., 2025)" min="2020" max="2100" />
+                            <span asp-validation-for="Year" class="text-danger"></span>
+                        </div>
+
+                        <!-- Average Communication Satisfaction -->
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="AverageCommunicationSatisfaction" class="form-label fw-bold">
+                                Average Communication Satisfaction (%)
+                            </label>
+                            <input asp-for="AverageCommunicationSatisfaction" type="number" 
+                                   step="0.01" class="form-control" 
+                                   placeholder="Enter satisfaction rate (0-100)" 
+                                   min="0" max="100" />
+                            <span asp-validation-for="AverageCommunicationSatisfaction" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg px-5 py-3"
+                                style="background-color:var(--onejax-navy); border-color:var(--onejax-navy); border-radius: 12px; font-weight: 600;">
+                            Submit Communication Rate
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-control:focus {
+        border-color: var(--onejax-navy);
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 191, 0.25);
+    }
+    
+    .form-label {
+        color: var(--onejax-navy);
+        margin-bottom: 0.5rem;
+    }
+    
+    .card {
+        border: none;
+    }
+    
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+        opacity: 1;
+    }
+</style>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
