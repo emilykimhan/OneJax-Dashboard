@@ -1,0 +1,285 @@
+@{
+    ViewData["Title"] = "Dashboard Metrics Admin";
+    var identityMetrics = ViewBag.IdentityMetrics as List<OneJaxDashboard.Models.GoalMetric> ?? new List<OneJaxDashboard.Models.GoalMetric>();
+    var communityMetrics = ViewBag.CommunityMetrics as List<OneJaxDashboard.Models.GoalMetric> ?? new List<OneJaxDashboard.Models.GoalMetric>();
+    var financialMetrics = ViewBag.FinancialMetrics as List<OneJaxDashboard.Models.GoalMetric> ?? new List<OneJaxDashboard.Models.GoalMetric>();
+    var orgMetrics = ViewBag.OrganizationalMetrics as List<OneJaxDashboard.Models.GoalMetric> ?? new List<OneJaxDashboard.Models.GoalMetric>();
+}
+
+<style>
+    :root {
+        --onejax-navy: #1e3a8a;
+        --onejax-blue: #3b82f6;
+        --onejax-green: #10b981;
+        --onejax-orange: #f59e0b;
+        --onejax-white: #ffffff;
+        --onejax-border: #e5e7eb;
+    }
+
+    .metric-card {
+        border: 1px solid var(--onejax-border);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        background: var(--onejax-white);
+    }
+
+    .metric-manual {
+        background: #fef3c7;
+        border-left: 4px solid var(--onejax-orange);
+    }
+
+    .metric-form {
+        background: #dbeafe;
+        border-left: 4px solid var(--onejax-blue);
+    }
+
+    .metric-calculated {
+        background: #d1fae5;
+        border-left: 4px solid var(--onejax-green);
+    }
+
+    .metric-internal {
+        background: #f3f4f6;
+        border-left: 4px solid #6b7280;
+    }
+
+    .update-form {
+        display: inline-flex;
+        gap: 0.5rem;
+        align-items: center;
+        margin-top: 0.5rem;
+    }
+
+    .fiscal-year-selector {
+        background: var(--onejax-navy);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        margin-bottom: 2rem;
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div style="background: linear-gradient(135deg, var(--onejax-navy), var(--onejax-blue)); color: white; padding: 2rem; border-radius: 12px; margin-bottom: 2rem;">
+                <h1 style="margin: 0;">Dashboard Metrics Administration</h1>
+                <p style="margin: 0; opacity: 0.9;">Manage and update your strategic dashboard metrics</p>
+            </div>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+
+    <!-- Initialize/Seed Metrics -->
+    @if (!identityMetrics.Any() && !communityMetrics.Any() && !financialMetrics.Any() && !orgMetrics.Any())
+    {
+        <div class="alert alert-info">
+            <h4>No Metrics Found</h4>
+            <p>Click below to initialize your dashboard with all the metrics from your comprehensive list.</p>
+            <form method="post" asp-action="SeedMetrics" style="display: inline;">
+                <button type="submit" class="btn btn-primary btn-lg">Initialize Dashboard Metrics</button>
+            </form>
+        </div>
+    }
+
+    <!-- Fiscal Year Selector -->
+    <div class="fiscal-year-selector">
+        <label for="fiscalYearSelect">Fiscal Year:</label>
+        <select id="fiscalYearSelect" class="form-select d-inline-block" style="width: auto; margin-left: 0.5rem;">
+            <option value="2025-2026">2025-2026</option>
+            <option value="2026-2027">2026-2027</option>
+            <option value="2027-2028">2027-2028</option>
+        </select>
+    </div>
+
+    <!-- Identity/Value Proposition Metrics -->
+    @if (identityMetrics.Any())
+    {
+        <div class="row mb-5">
+            <div class="col-12">
+                <h2 style="color: var(--onejax-orange); margin-bottom: 1rem;">Identity/Value Proposition Metrics</h2>
+                @foreach (var metric in identityMetrics)
+                {
+                    <div class="metric-card @(metric.DataSource == "Manual" ? "metric-manual" : metric.DataSource == "Form" ? "metric-form" : "metric-calculated") @(!metric.IsPublic ? "metric-internal" : "")">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h5>@metric.Name @(!metric.IsPublic ? "(Internal Only)" : "")</h5>
+                                <p class="text-muted">@metric.Description</p>
+                                <div class="d-flex gap-3">
+                                    <span><strong>Target:</strong> @metric.Target @metric.Unit</span>
+                                    <span><strong>Current:</strong> @metric.CurrentValue @metric.Unit</span>
+                                    <span><strong>Progress:</strong> @Math.Round(metric.ProgressPercentage, 1)%</span>
+                                    <span><strong>Source:</strong> @metric.DataSource</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                @if (metric.DataSource == "Manual")
+                                {
+                                    <form method="post" asp-action="UpdateMetric" class="update-form">
+                                        <input type="hidden" name="metricId" value="@metric.Id" />
+                                        <input type="number" step="0.01" name="currentValue" value="@metric.CurrentValue" class="form-control form-control-sm" style="width: 100px;" />
+                                        <button type="submit" class="btn btn-sm btn-warning">Update</button>
+                                    </form>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <!-- Community Engagement Metrics -->
+    @if (communityMetrics.Any())
+    {
+        <div class="row mb-5">
+            <div class="col-12">
+                <h2 style="color: var(--onejax-blue); margin-bottom: 1rem;">Community Engagement Metrics</h2>
+                @foreach (var metric in communityMetrics)
+                {
+                    <div class="metric-card @(metric.DataSource == "Manual" ? "metric-manual" : metric.DataSource == "Form" ? "metric-form" : "metric-calculated") @(!metric.IsPublic ? "metric-internal" : "")">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h5>@metric.Name @(!metric.IsPublic ? "(Internal Only)" : "")</h5>
+                                <p class="text-muted">@metric.Description</p>
+                                <div class="d-flex gap-3">
+                                    <span><strong>Target:</strong> @metric.Target @metric.Unit</span>
+                                    <span><strong>Current:</strong> @metric.CurrentValue @metric.Unit</span>
+                                    <span><strong>Progress:</strong> @Math.Round(metric.ProgressPercentage, 1)%</span>
+                                    <span><strong>Source:</strong> @metric.DataSource</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                @if (metric.DataSource == "Manual")
+                                {
+                                    <form method="post" asp-action="UpdateMetric" class="update-form">
+                                        <input type="hidden" name="metricId" value="@metric.Id" />
+                                        <input type="number" step="0.01" name="currentValue" value="@metric.CurrentValue" class="form-control form-control-sm" style="width: 100px;" />
+                                        <button type="submit" class="btn btn-sm btn-warning">Update</button>
+                                    </form>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <!-- Financial Stability Metrics -->
+    @if (financialMetrics.Any())
+    {
+        <div class="row mb-5">
+            <div class="col-12">
+                <h2 style="color: var(--onejax-green); margin-bottom: 1rem;">Financial Stability Metrics</h2>
+                @foreach (var metric in financialMetrics)
+                {
+                    <div class="metric-card @(metric.DataSource == "Manual" ? "metric-manual" : metric.DataSource == "Form" ? "metric-form" : "metric-calculated") @(!metric.IsPublic ? "metric-internal" : "")">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h5>@metric.Name @(!metric.IsPublic ? "(Internal Only)" : "")</h5>
+                                <p class="text-muted">@metric.Description</p>
+                                <div class="d-flex gap-3">
+                                    <span><strong>Target:</strong> @metric.Target @metric.Unit</span>
+                                    <span><strong>Current:</strong> @metric.CurrentValue @metric.Unit</span>
+                                    <span><strong>Progress:</strong> @Math.Round(metric.ProgressPercentage, 1)%</span>
+                                    <span><strong>Source:</strong> @metric.DataSource</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                @if (metric.DataSource == "Manual")
+                                {
+                                    <form method="post" asp-action="UpdateMetric" class="update-form">
+                                        <input type="hidden" name="metricId" value="@metric.Id" />
+                                        <input type="number" step="0.01" name="currentValue" value="@metric.CurrentValue" class="form-control form-control-sm" style="width: 100px;" />
+                                        <button type="submit" class="btn btn-sm btn-warning">Update</button>
+                                    </form>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <!-- Organizational Building Metrics -->
+    @if (orgMetrics.Any())
+    {
+        <div class="row mb-5">
+            <div class="col-12">
+                <h2 style="color: var(--onejax-navy); margin-bottom: 1rem;">Organizational Building Metrics</h2>
+                @foreach (var metric in orgMetrics)
+                {
+                    <div class="metric-card @(metric.DataSource == "Manual" ? "metric-manual" : metric.DataSource == "Form" ? "metric-form" : "metric-calculated") @(!metric.IsPublic ? "metric-internal" : "")">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h5>@metric.Name @(!metric.IsPublic ? "(Internal Only)" : "")</h5>
+                                <p class="text-muted">@metric.Description</p>
+                                <div class="d-flex gap-3">
+                                    <span><strong>Target:</strong> @metric.Target @metric.Unit</span>
+                                    <span><strong>Current:</strong> @metric.CurrentValue @metric.Unit</span>
+                                    <span><strong>Progress:</strong> @Math.Round(metric.ProgressPercentage, 1)%</span>
+                                    <span><strong>Source:</strong> @metric.DataSource</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                @if (metric.DataSource == "Manual")
+                                {
+                                    <form method="post" asp-action="UpdateMetric" class="update-form">
+                                        <input type="hidden" name="metricId" value="@metric.Id" />
+                                        <input type="number" step="0.01" name="currentValue" value="@metric.CurrentValue" class="form-control form-control-sm" style="width: 100px;" />
+                                        <button type="submit" class="btn btn-sm btn-warning">Update</button>
+                                    </form>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <!-- Legend -->
+    <div class="row">
+        <div class="col-12">
+            <h4>Legend</h4>
+            <div class="d-flex gap-3 flex-wrap">
+                <div class="d-flex align-items-center gap-2">
+                    <div style="width: 20px; height: 20px; background: #fef3c7; border-left: 4px solid var(--onejax-orange);"></div>
+                    <span>Manual Entry Required</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <div style="width: 20px; height: 20px; background: #dbeafe; border-left: 4px solid var(--onejax-blue);"></div>
+                    <span>Form Data (Auto-populated)</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <div style="width: 20px; height: 20px; background: #d1fae5; border-left: 4px solid var(--onejax-green);"></div>
+                    <span>Calculated Metric</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <div style="width: 20px; height: 20px; background: #f3f4f6; border-left: 4px solid #6b7280;"></div>
+                    <span>Internal Only</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Fiscal year selector functionality
+document.getElementById('fiscalYearSelect').addEventListener('change', function() {
+    const fiscalYear = this.value;
+    fetch(`/MetricsAdmin/GetMetricsByFiscalYear?fiscalYear=${fiscalYear}`)
+        .then(response => response.json())
+        .then(data => {
+            // For now, just reload the page with the selected year
+            window.location.href = `/MetricsAdmin?fiscalYear=${fiscalYear}`;
+        });
+});
+</script>

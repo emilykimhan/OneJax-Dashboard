@@ -1,0 +1,409 @@
+@model List<OneJaxDashboard.Models.GoalMetric>
+
+@{
+    var strategicGoalName = ViewData["StrategicGoalName"]?.ToString() ?? "Strategic Goal";
+    var strategicGoalColor = ViewData["StrategicGoalColor"]?.ToString() ?? "var(--onejax-blue)";
+}
+
+<style>
+    .metrics-management-panel {
+        background: var(--onejax-white);
+        border-radius: 12px;
+        border: 1px solid var(--onejax-border);
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+    
+    .metrics-panel-header {
+        background: linear-gradient(135deg, @strategicGoalColor, rgba(59, 130, 246, 0.8));
+        color: white;
+        padding: 1.5rem;
+        position: relative;
+    }
+    
+    .metrics-panel-header h4 {
+        margin: 0;
+        font-weight: 600;
+    }
+    
+    .metrics-panel-header p {
+        margin: 0.25rem 0 0 0;
+        opacity: 0.9;
+        font-size: 0.9rem;
+    }
+    
+    .toggle-edit-mode {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        border-radius: 6px;
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+        transition: all 0.2s ease;
+    }
+    
+    .toggle-edit-mode:hover {
+        background: rgba(255, 255, 255, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .metrics-grid {
+        padding: 1.5rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1rem;
+    }
+    
+    .metric-item {
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 1rem;
+        transition: all 0.2s ease;
+        position: relative;
+    }
+    
+    .metric-item:hover {
+        border-color: @strategicGoalColor;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .metric-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 0.75rem;
+    }
+    
+    .metric-title {
+        color: var(--onejax-navy);
+        font-weight: 600;
+        font-size: 0.95rem;
+        margin: 0;
+        line-height: 1.3;
+    }
+    
+    .metric-source-badge {
+        padding: 0.2rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+    
+    .badge-form { background: #dbeafe; color: var(--onejax-blue); }
+    .badge-manual { background: #fef3c7; color: var(--onejax-orange); }
+    .badge-calculated { background: #d1fae5; color: var(--onejax-green); }
+    .badge-internal { background: #f3f4f6; color: #6b7280; }
+    
+    .metric-description {
+        color: var(--onejax-text-muted);
+        font-size: 0.8rem;
+        margin-bottom: 1rem;
+        line-height: 1.4;
+    }
+    
+    .metric-values {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        font-size: 0.85rem;
+    }
+    
+    .metric-value {
+        padding: 0.5rem;
+        background: #f8fafc;
+        border-radius: 4px;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .metric-value-label {
+        color: #64748b;
+        font-size: 0.75rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .metric-value-number {
+        color: var(--onejax-navy);
+        font-weight: 600;
+    }
+    
+    .progress-section {
+        margin-bottom: 1rem;
+    }
+    
+    .progress-bar-custom {
+        height: 6px;
+        border-radius: 3px;
+        background: rgba(59, 130, 246, 0.1);
+        overflow: hidden;
+    }
+    
+    .progress-fill-custom {
+        height: 100%;
+        background: @strategicGoalColor;
+        transition: width 0.3s ease;
+        border-radius: 3px;
+    }
+    
+    .inline-edit-form {
+        display: none;
+        margin-top: 1rem;
+        padding: 1rem;
+        background: #f8fafc;
+        border-radius: 6px;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .inline-edit-form.active {
+        display: block;
+    }
+    
+    .edit-form-row {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+    
+    .edit-input {
+        flex: 1;
+        padding: 0.4rem;
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        font-size: 0.85rem;
+    }
+    
+    .edit-btn {
+        padding: 0.4rem 0.8rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+    
+    .btn-update {
+        background: @strategicGoalColor;
+        color: white;
+        border: none;
+    }
+    
+    .btn-cancel {
+        background: #6b7280;
+        color: white;
+        border: none;
+    }
+    
+    .edit-mode .metric-item {
+        border-color: #fbbf24;
+        background: #fffbeb;
+    }
+    
+    .metric-links {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e5e7eb;
+    }
+    
+    .form-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        color: @strategicGoalColor;
+        text-decoration: none;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+    
+    .form-link:hover {
+        color: @strategicGoalColor;
+        text-decoration: underline;
+    }
+</style>
+
+<div class="metrics-management-panel">
+    <div class="metrics-panel-header">
+        <h4>@strategicGoalName Metrics</h4>
+        <p>Track progress and update values for your strategic initiatives</p>
+        <button class="toggle-edit-mode" onclick="toggleEditMode()" id="editModeToggle">
+            <i class="fas fa-edit"></i> Edit Mode
+        </button>
+    </div>
+    
+    <div class="metrics-grid" id="metricsGrid">
+        @if (Model?.Any() == true)
+        {
+            @foreach (var metric in Model)
+            {
+                <div class="metric-item" data-metric-id="@metric.Id">
+                    <!-- Metric Header -->
+                    <div class="metric-header">
+                        <h6 class="metric-title">@metric.Name</h6>
+                        <span class="metric-source-badge @(metric.DataSource == "Form" ? "badge-form" : metric.DataSource == "Manual" ? "badge-manual" : metric.DataSource == "Calculated" ? "badge-calculated" : "badge-internal")">
+                            @metric.DataSource
+                        </span>
+                    </div>
+                    
+                    <!-- Description -->
+                    <p class="metric-description">@metric.Description</p>
+                    
+                    <!-- Values Grid -->
+                    <div class="metric-values">
+                        <div class="metric-value">
+                            <div class="metric-value-label">Target</div>
+                            <div class="metric-value-number">@metric.Target @metric.Unit</div>
+                        </div>
+                        <div class="metric-value">
+                            <div class="metric-value-label">Current</div>
+                            <div class="metric-value-number">@metric.CurrentValue @metric.Unit</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Progress Bar -->
+                    <div class="progress-section">
+                        <div class="d-flex justify-content-between mb-1">
+                            <small class="text-muted">Progress</small>
+                            <small class="text-muted"><strong>@Math.Round(metric.ProgressPercentage, 1)%</strong></small>
+                        </div>
+                        <div class="progress-bar-custom">
+                            <div class="progress-fill-custom" style="width: @Math.Min(metric.ProgressPercentage, 100)%;"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Status and Date -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge @(metric.Status == "Active" ? "bg-success" : "bg-secondary")">@metric.Status</span>
+                        <small class="text-muted">Due: @metric.TargetDate.ToString("MMM yyyy")</small>
+                    </div>
+                    
+                    <!-- Inline Edit Form (only for manual metrics) -->
+                    @if (metric.DataSource == "Manual")
+                    {
+                        <div class="inline-edit-form" id="editForm-@metric.Id">
+                            <form asp-controller="MetricsAdmin" asp-action="UpdateMetric" method="post">
+                                <input type="hidden" name="metricId" value="@metric.Id" />
+                                <input type="hidden" name="returnUrl" value="/DashboardMetrics" />
+                                <div class="edit-form-row">
+                                    <label class="small fw-bold">New Value:</label>
+                                    <input type="number" step="0.01" name="currentValue" value="@metric.CurrentValue" class="edit-input" />
+                                    <button type="submit" class="btn edit-btn btn-update">
+                                        <i class="fas fa-save"></i> Update
+                                    </button>
+                                    <button type="button" class="btn edit-btn btn-cancel" onclick="cancelEdit('@metric.Id')">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    }
+                    
+                    <!-- Links to related forms -->
+                    @if (metric.DataSource == "Form")
+                    {
+                        <div class="metric-links">
+                            @if (metric.Name.Contains("Media"))
+                            {
+                                <a href="/MediaPlacements" class="form-link">
+                                    <i class="fas fa-newspaper"></i> Update Media Placements
+                                </a>
+                            }
+                            else if (metric.Name.Contains("Website") || metric.Name.Contains("Traffic"))
+                            {
+                                <a href="/WebsiteTraffic" class="form-link">
+                                    <i class="fas fa-chart-line"></i> Update Website Traffic
+                                </a>
+                            }
+                            else if (metric.Name.Contains("Event") || metric.Name.Contains("Interfaith"))
+                            {
+                                <a href="/InterfaithEvents" class="form-link">
+                                    <i class="fas fa-calendar-alt"></i> Manage Events
+                                </a>
+                            }
+                            else if (metric.Name.Contains("Youth"))
+                            {
+                                <a href="/YouthAttendance" class="form-link">
+                                    <i class="fas fa-users"></i> Youth Program Data
+                                </a>
+                            }
+                            else if (metric.Name.Contains("Staff") || metric.Name.Contains("Board"))
+                            {
+                                <a href="/StaffSurvey" class="form-link">
+                                    <i class="fas fa-poll"></i> Staff Survey
+                                </a>
+                            }
+                            else
+                            {
+                                <a href="/DataEntry" class="form-link">
+                                    <i class="fas fa-edit"></i> Data Entry Forms
+                                </a>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center text-muted py-5">
+                <i class="fas fa-chart-bar fa-3x mb-3" style="opacity: 0.3;"></i>
+                <h5>No Metrics Available</h5>
+                <p>Initialize your comprehensive metrics by visiting the <a href="/MetricsAdmin">Metrics Admin</a> panel.</p>
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+let editModeActive = false;
+
+function toggleEditMode() {
+    const grid = document.getElementById('metricsGrid');
+    const toggle = document.getElementById('editModeToggle');
+    const manualMetrics = document.querySelectorAll('[data-metric-id]');
+    
+    editModeActive = !editModeActive;
+    
+    if (editModeActive) {
+        grid.classList.add('edit-mode');
+        toggle.innerHTML = '<i class="fas fa-times"></i> Exit Edit Mode';
+        toggle.style.background = 'rgba(239, 68, 68, 0.8)';
+        
+        // Show edit forms for manual metrics
+        manualMetrics.forEach(item => {
+            const metricId = item.getAttribute('data-metric-id');
+            const editForm = document.getElementById('editForm-' + metricId);
+            if (editForm) {
+                editForm.classList.add('active');
+            }
+        });
+    } else {
+        grid.classList.remove('edit-mode');
+        toggle.innerHTML = '<i class="fas fa-edit"></i> Edit Mode';
+        toggle.style.background = 'rgba(255, 255, 255, 0.2)';
+        
+        // Hide all edit forms
+        document.querySelectorAll('.inline-edit-form').forEach(form => {
+            form.classList.remove('active');
+        });
+    }
+}
+
+function cancelEdit(metricId) {
+    const editForm = document.getElementById('editForm-' + metricId);
+    if (editForm) {
+        editForm.classList.remove('active');
+    }
+}
+
+// Auto-refresh after form submission
+document.querySelectorAll('form[asp-action="UpdateMetric"]').forEach(form => {
+    form.addEventListener('submit', function(e) {
+        // Add loading state
+        const submitBtn = form.querySelector('.btn-update');
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+        submitBtn.disabled = true;
+    });
+});
+</script>

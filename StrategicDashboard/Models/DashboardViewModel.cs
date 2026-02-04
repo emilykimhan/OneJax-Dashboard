@@ -15,6 +15,9 @@ public class DashboardViewModel
     // Summary Statistics
     public DashboardSummary Summary { get; set; } = new DashboardSummary();
     
+    // Chart Data
+    public ChartData Charts { get; set; } = new ChartData();
+    
     // Data source information
     public string DataSource { get; set; } = "Database";
     public string Message { get; set; } = "";
@@ -43,4 +46,41 @@ public class DashboardSummary
     public decimal AverageStaffSatisfaction { get; set; }
     public int TotalActivities { get; set; }
     public DateTime LastUpdated { get; set; } = DateTime.Now;
+}
+
+public class ChartData
+{
+    public GoalProgressData GoalProgress { get; set; } = new GoalProgressData();
+    public List<MonthlyTrendData> MonthlyTrends { get; set; } = new List<MonthlyTrendData>();
+    public List<MetricTypeData> MetricTypes { get; set; } = new List<MetricTypeData>();
+    public List<QuarterlyData> QuarterlyData { get; set; } = new List<QuarterlyData>();
+}
+
+public class GoalProgressData
+{
+    public decimal OrganizationalProgress { get; set; }
+    public decimal FinancialProgress { get; set; }
+    public decimal IdentityProgress { get; set; }
+    public decimal CommunityProgress { get; set; }
+}
+
+public class MonthlyTrendData
+{
+    public string Month { get; set; } = "";
+    public decimal OrganizationalValue { get; set; }
+    public decimal FinancialValue { get; set; }
+    public decimal IdentityValue { get; set; }
+    public decimal CommunityValue { get; set; }
+}
+
+public class MetricTypeData
+{
+    public string Type { get; set; } = "";
+    public int Count { get; set; }
+}
+
+public class QuarterlyData
+{
+    public string Quarter { get; set; } = "";
+    public decimal Value { get; set; }
 }

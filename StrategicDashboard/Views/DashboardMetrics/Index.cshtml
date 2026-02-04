@@ -1,0 +1,285 @@
+@{
+    ViewData["Title"] = "Dashboard Metrics Management";
+    var fiscalYear = ViewBag.FiscalYear as string ?? "2025-2026";
+    var identityMetrics = ViewBag.IdentityMetrics as List<OneJaxDashboard.Models.GoalMetric> ?? new List<OneJaxDashboard.Models.GoalMetric>();
+    var communityMetrics = ViewBag.CommunityMetrics as List<OneJaxDashboard.Models.GoalMetric> ?? new List<OneJaxDashboard.Models.GoalMetric>();
+    var financialMetrics = ViewBag.FinancialMetrics as List<OneJaxDashboard.Models.GoalMetric> ?? new List<OneJaxDashboard.Models.GoalMetric>();
+    var orgMetrics = ViewBag.OrganizationalMetrics as List<OneJaxDashboard.Models.GoalMetric> ?? new List<OneJaxDashboard.Models.GoalMetric>();
+    var totalMetrics = identityMetrics.Count + communityMetrics.Count + financialMetrics.Count + orgMetrics.Count;
+}
+
+<style>
+    :root {
+        --onejax-navy: #1e3a8a;
+        --onejax-blue: #3b82f6;
+        --onejax-green: #10b981;
+        --onejax-orange: #f59e0b;
+        --onejax-white: #ffffff;
+        --onejax-border: #e5e7eb;
+        --onejax-text-muted: #64748b;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, var(--onejax-navy), var(--onejax-blue));
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20"><defs><radialGradient id="a" cx="50%" cy="40%"><stop offset="0%" style="stop-color:rgb(255,255,255);stop-opacity:0.1" /><stop offset="100%" style="stop-color:rgb(255,255,255);stop-opacity:0" /></radialGradient></defs><rect width="100%" height="100%" fill="url(%23a)"/></svg>');
+        opacity: 0.3;
+    }
+
+    .metrics-summary {
+        background: var(--onejax-white);
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid var(--onejax-border);
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .summary-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        text-align: center;
+    }
+
+    .stat-item {
+        padding: 1rem;
+        border-radius: 8px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+    }
+
+    .stat-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--onejax-navy);
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        font-size: 0.85rem;
+        color: var(--onejax-text-muted);
+    }
+
+    .fiscal-year-selector {
+        background: var(--onejax-white);
+        border-radius: 8px;
+        padding: 1rem;
+        border: 1px solid var(--onejax-border);
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+    }
+
+    .quick-actions {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .quick-action-btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        border: none;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+    }
+
+    .btn-primary-action {
+        background: var(--onejax-blue);
+        color: white;
+    }
+
+    .btn-secondary-action {
+        background: #f3f4f6;
+        color: #374151;
+        border: 1px solid #d1d5db;
+    }
+
+    .btn-success-action {
+        background: var(--onejax-green);
+        color: white;
+    }
+
+    .quick-action-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        color: white;
+        text-decoration: none;
+    }
+</style>
+
+<div class="page-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 style="margin: 0; font-weight: 600;">📊 Strategic Metrics Management</h1>
+                <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">Update and track your comprehensive strategic metrics</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="/" class="quick-action-btn btn-secondary-action">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Metrics Summary -->
+    <div class="metrics-summary">
+        <h4 style="margin-bottom: 1rem; color: var(--onejax-navy);">Metrics Overview</h4>
+        <div class="summary-stats">
+            <div class="stat-item">
+                <div class="stat-number">@totalMetrics</div>
+                <div class="stat-label">Total Metrics</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">@(identityMetrics.Count + communityMetrics.Count + financialMetrics.Count + orgMetrics.Count - orgMetrics.Count(m => !m.IsPublic))</div>
+                <div class="stat-label">Public Metrics</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">@(identityMetrics.Count(m => m.DataSource == "Manual") + communityMetrics.Count(m => m.DataSource == "Manual") + financialMetrics.Count(m => m.DataSource == "Manual") + orgMetrics.Count(m => m.DataSource == "Manual"))</div>
+                <div class="stat-label">Manual Entry</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">@(identityMetrics.Count(m => m.DataSource == "Form") + communityMetrics.Count(m => m.DataSource == "Form") + financialMetrics.Count(m => m.DataSource == "Form") + orgMetrics.Count(m => m.DataSource == "Form"))</div>
+                <div class="stat-label">Form Data</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fiscal Year Selector -->
+    <div class="fiscal-year-selector">
+        <label for="fiscalYearSelect" style="font-weight: 600; color: var(--onejax-navy);">Fiscal Year:</label>
+        <select id="fiscalYearSelect" class="form-select" style="width: auto;">
+            <option value="2025-2026" selected="@(fiscalYear == "2025-2026")">2025-2026</option>
+            <option value="2026-2027" selected="@(fiscalYear == "2026-2027")">2026-2027</option>
+            <option value="2027-2028" selected="@(fiscalYear == "2027-2028")">2027-2028</option>
+        </select>
+        <button class="btn btn-primary btn-sm" onclick="changeFiscalYear()">Update View</button>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <a href="/DataEntry" class="quick-action-btn btn-primary-action">
+            <i class="fas fa-edit"></i> Data Entry Forms
+        </a>
+        <a href="/MetricsAdmin" class="quick-action-btn btn-secondary-action">
+            <i class="fas fa-cog"></i> Advanced Admin
+        </a>
+        <button class="quick-action-btn btn-success-action" onclick="exportMetrics()">
+            <i class="fas fa-download"></i> Export to Excel
+        </button>
+    </div>
+
+    <!-- Metrics Panels -->
+    @if (identityMetrics.Any())
+    {
+        ViewData["StrategicGoalName"] = "Identity/Value Proposition";
+        ViewData["StrategicGoalColor"] = "var(--onejax-orange)";
+        @await Html.PartialAsync("_MetricsManagementPanel", identityMetrics)
+    }
+
+    @if (communityMetrics.Any())
+    {
+        ViewData["StrategicGoalName"] = "Community Engagement";
+        ViewData["StrategicGoalColor"] = "var(--onejax-blue)";
+        @await Html.PartialAsync("_MetricsManagementPanel", communityMetrics)
+    }
+
+    @if (financialMetrics.Any())
+    {
+        ViewData["StrategicGoalName"] = "Financial Stability";
+        ViewData["StrategicGoalColor"] = "var(--onejax-green)";
+        @await Html.PartialAsync("_MetricsManagementPanel", financialMetrics)
+    }
+
+    @if (orgMetrics.Any())
+    {
+        ViewData["StrategicGoalName"] = "Organizational Building";
+        ViewData["StrategicGoalColor"] = "var(--onejax-navy)";
+        @await Html.PartialAsync("_MetricsManagementPanel", orgMetrics)
+    }
+
+    @if (!totalMetrics.Equals(0) && totalMetrics == 0)
+    {
+        <div class="text-center py-5">
+            <i class="fas fa-chart-bar fa-4x text-muted mb-3" style="opacity: 0.3;"></i>
+            <h3 class="text-muted">No Metrics Found</h3>
+            <p class="text-muted">Initialize your strategic metrics to get started.</p>
+            <a href="/MetricsAdmin" class="quick-action-btn btn-primary-action">
+                <i class="fas fa-plus"></i> Initialize Metrics
+            </a>
+        </div>
+    }
+</div>
+
+<!-- Success/Error Toast -->
+<div class="toast-container position-fixed top-0 end-0 p-3">
+    <div id="updateToast" class="toast" role="alert">
+        <div class="toast-header">
+            <strong class="me-auto">Metrics Update</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body" id="toastMessage">
+            <!-- Message will be inserted here -->
+        </div>
+    </div>
+</div>
+
+<script>
+function changeFiscalYear() {
+    const fiscalYear = document.getElementById('fiscalYearSelect').value;
+    window.location.href = `/DashboardMetrics?fiscalYear=${fiscalYear}`;
+}
+
+function exportMetrics() {
+    // Placeholder for export functionality
+    showToast('Export feature coming soon!', 'info');
+}
+
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('updateToast');
+    const toastMessage = document.getElementById('toastMessage');
+    
+    toastMessage.textContent = message;
+    
+    // Add appropriate classes based on type
+    toast.className = `toast ${type === 'success' ? 'bg-success' : type === 'error' ? 'bg-danger' : 'bg-info'} text-white`;
+    
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+}
+
+// Listen for form submissions and show success messages
+document.addEventListener('DOMContentLoaded', function() {
+    // Check for success message in URL params (after redirect)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('updated') === 'true') {
+        showToast('Metric updated successfully!');
+        // Remove the parameter from URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+});
+</script>
