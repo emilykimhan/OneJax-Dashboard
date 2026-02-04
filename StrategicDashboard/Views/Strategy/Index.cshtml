@@ -118,6 +118,27 @@ new { Id = 4, Name = "Community Engagement" }
         animation: fadeInOut 4s ease-in-out forwards;
     }
 
+    .create-event-btn {
+        background-color: #0d6efd;
+        /* your current blue */
+        color: #fff;
+        border: none;
+        transition: background-color 0.25s ease, transform 0.15s ease;
+    }
+
+    .create-event-btn:hover {
+        background-color: #19b88f;
+        /* green */
+        color: #fff;
+        transform: translateY(-1px);
+        /* subtle lift, optional */
+    }
+
+    .btn-primary:hover {
+        background-color: #19b88f !important;
+        border-color: #19b88f !important;
+    }
+
     @@keyframes fadeInOut {
         0% {
             opacity: 0;
@@ -323,10 +344,8 @@ new { Id = 4, Name = "Community Engagement" }
                     <!-- This will be filled dynamically when the modal opens -->
                     <input type="hidden" id="deleteEventId" name="id" />
 
-                    <input type="text"
-                           id="deleteConfirmInput"
-                           class="form-control mb-3"
-                           placeholder='Type "delete" to continue' />
+                    <input type="text" id="deleteConfirmInput" class="form-control mb-3"
+                        placeholder='Type "delete" to continue' />
 
                     <div class="d-flex justify-content-end gap-2">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">

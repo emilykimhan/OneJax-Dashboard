@@ -8,7 +8,7 @@
 @if (!string.IsNullOrEmpty(successMessage))
 {
     <div class="alert alert-success alert-dismissible fade show text-center mt-3" role="alert"
-         style="max-width: 600px; margin: 0 auto;">
+        style="max-width: 600px; margin: 0 auto;">
         @successMessage
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
@@ -19,12 +19,12 @@
 
     // same goals list as Index.cshtml
     var goals = new List<dynamic>
-    {
-        new { Id = 1, Name = "Organizational Building" },
-        new { Id = 2, Name = "Financial Sustainability" },
-        new { Id = 3, Name = "Identity/Value Proposition" },
-        new { Id = 4, Name = "Community Engagement" }
-    };
+{
+new { Id = 1, Name = "Organizational Building" },
+new { Id = 2, Name = "Financial Sustainability" },
+new { Id = 3, Name = "Identity/Value Proposition" },
+new { Id = 4, Name = "Community Engagement" }
+};
 }
 
 <style>
@@ -101,8 +101,8 @@
                 Edit Event
             </h3>
 
-            <form asp-action="Edit" asp-controller="Strategy" method="post" class="row g-3">
-                <input type="hidden" name="id" value="@Model.Id" />
+            <form asp-action="Edit" asp-controller="Strategy" method="post" class="row g-3"> <input type="hidden"
+                    name="id" value="@Model.Id" />
 
                 <div class="col-md-6">
                     <label class="form-label fw-semibold">Event Name</label>
@@ -113,7 +113,6 @@
                     <label class="form-label fw-semibold">Assign to Goal</label>
                     <select name="goalId" class="form-select" required>
                         <option value="">Select a Goal</option>
-
                         @foreach (var goal in goals)
                         {
                             <option value="@goal.Id" selected="@(goal.Id == Model.StrategicGoalId)">
@@ -135,16 +134,13 @@
 
                 <div class="col-12">
                     <label class="form-label fw-semibold">Event Description</label>
-                    <textarea name="eventDescription" class="form-control" rows="2">@Model.Description</textarea>
+                    <textarea name="eventDescription" class="form-control" rows="3"
+                        required>@Model.Description</textarea>
                 </div>
 
-                <div class="col-12 d-flex justify-content-between">
-                    <a asp-action="ViewEvents" asp-controller="Strategy" class="btn btn-outline-secondary">
-                        Cancel
-                    </a>
-                    <button type="submit" class="btn btn-primary px-5">
-                        Save Changes
-                    </button>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-semibold">Save
+                        Changes</button>
                 </div>
             </form>
         </div>

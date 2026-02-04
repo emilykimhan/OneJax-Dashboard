@@ -25,7 +25,7 @@ namespace OneJaxDashboard.Data
         public DbSet<Event> Events { get; set; } = default!;
 
         // Core Strategies 
-        public DbSet<Strategy> Strategies { get; set; }
+        public DbSet<Strategy> Strategies { get; set; } = default!;
 
         //Account tables
         
