@@ -1,0 +1,129 @@
+@model OneJaxDashboard.Models.CrossSector10D
+@{
+    ViewData["Title"] = "Cross-Sector Collaborations";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card p-4"
+                 style="background-color:var(--onejax-white);
+                        box-shadow:0 4px 24px rgba(0,0,0,0.08);
+                        border-radius:24px;">
+                
+                <!-- Header -->
+                <div class="d-flex align-items-center mb-4">
+                    <a href="/CommunityEngagement" 
+                       class="btn btn-outline-secondary me-3"
+                       style="border-radius: 8px;">
+                        ← Back
+                    </a>
+                    <h2 class="mb-0" style="color:var(--onejax-navy);">Cross-Sector Collaborations</h2>
+                </div>
+                
+                <p class="text-center mb-4" style="color:var(--onejax-gray);">
+                    Increase the number of unique cross-sector collaborations from 3 to 10 by end of FY 26-27 and maintain partner satisfaction ratings of 85%+
+                </p>
+
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success text-center">
+                        @TempData["Success"]
+                    </div>
+                }
+
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger text-center">
+                        @TempData["Error"]
+                    </div>
+                }
+
+                <!-- Input Form -->
+                <form asp-controller="CrossSector10D" asp-action="Index" method="post">
+                    <div class="row">
+                        <!-- Collaboration Name -->
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Name" class="form-label fw-bold">Collaboration Name</label>
+                            <input asp-for="Name" type="text" class="form-control" 
+                                   placeholder="Enter collaboration name" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+
+                        <!-- Year -->
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Year" class="form-label fw-bold">Year</label>
+                            <input asp-for="Year" type="number" class="form-control" 
+                                   placeholder="Enter year (e.g., 2026)" min="2020" max="2100" />
+                            <span asp-validation-for="Year" class="text-danger"></span>
+                        </div>
+
+                        <!-- Partner Satisfaction Rating -->
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="partner_satisfaction_ratings" class="form-label fw-bold">
+                                Partner Satisfaction Rating (%)
+                            </label>
+                            <input asp-for="partner_satisfaction_ratings" type="number" 
+                                   step="0.01" class="form-control" 
+                                   placeholder="Enter rating (0-100)" 
+                                   min="0" max="100" />
+                            <span asp-validation-for="partner_satisfaction_ratings" class="text-danger"></span>
+                        </div>
+
+                        <!-- Status -->
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Status" class="form-label fw-bold">Status</label>
+                            <select asp-for="Status" class="form-control">
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                            </select>
+                            <span asp-validation-for="Status" class="text-danger"></span>
+                        </div>
+
+                        <!-- Notes -->
+                        <div class="col-12 mb-3">
+                            <label asp-for="Notes" class="form-label fw-bold">Notes (Optional)</label>
+                            <textarea asp-for="Notes" class="form-control" rows="3" 
+                                      placeholder="Add any additional notes about this collaboration"></textarea>
+                            <span asp-validation-for="Notes" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg px-5 py-3"
+                                style="background-color:var(--onejax-navy); border-color:var(--onejax-navy); border-radius: 12px; font-weight: 600;">
+                            Submit Collaboration Data
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-control:focus, .form-select:focus {
+        border-color: var(--onejax-navy);
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 191, 0.25);
+    }
+    
+    .form-label {
+        color: var(--onejax-navy);
+        margin-bottom: 0.5rem;
+    }
+    
+    .card {
+        border: none;
+    }
+    
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+        opacity: 1;
+    }
+
+    textarea {
+        resize: vertical;
+    }
+</style>

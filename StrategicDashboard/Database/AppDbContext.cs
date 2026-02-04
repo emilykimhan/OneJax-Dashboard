@@ -18,6 +18,7 @@ namespace OneJaxDashboard.Data
         public DbSet<MediaPlacements_3D> MediaPlacements_3D { get; set; } = default!;
         public DbSet<WebsiteTraffic_4D> WebsiteTraffic { get; set; } = default!;
         public DbSet<Comm_rate20D> CommunicationRate { get; set; } = default!;
+        public DbSet<CrossSector10D> CrossSectorCollabs { get; set; } = default!;
         
 
         // Dashboard tables
