@@ -30,19 +30,52 @@ namespace OneJaxDashboard.Controllers
             var staffCount = _db.Staffauth.Count();
             var totalEvents = _eventsService.GetAll().Count();
             var assignedEvents = _eventsService.GetAll().Count(e => e.IsAssignedByAdmin);
-            var archivedEvents = _eventsService.GetArchived().Count();
 
             ViewData["StaffCount"] = staffCount;
             ViewData["TotalEvents"] = totalEvents;
             ViewData["AssignedEvents"] = assignedEvents;
-            ViewData["ArchivedEvents"] = archivedEvents;
 
             // Get all activity log entries from all staff
-            var allEntries = _activityLog.GetAllEntries().OrderByDescending(e => e.Timestamp).Take(15).ToList();
+            var allEntries = _activityLog.GetAllEntries().OrderByDescending(e => e.Timestamp).Take(50).ToList();
             var activityLogData = allEntries
                 .Select(e => (e.Username, e.Action, e.EntityType, e.EntityId, e.Timestamp, e.Notes))
                 .ToList();
             ViewData["ActivityLog"] = activityLogData;
+
+            //Get Data Entry specific activites for separate display 
+            var dataEntryActivities = allEntries
+                .Where(e => e.EntityType != null && (
+                    e.EntityType.Contains("MediaPlacement", StringComparison.OrdinalIgnoreCase) ||
+                    e.EntityType.Contains("WebsiteTraffic", StringComparison.OrdinalIgnoreCase) ||
+                    e.EntityType.Contains("ProfessionalDevelopment", StringComparison.OrdinalIgnoreCase) ||
+                    e.EntityType.Contains("StaffSurvey", StringComparison.OrdinalIgnoreCase) ||
+                    e.EntityType.Contains("Youth") ||
+                    e.EntityType.Contains("Interfaith") ||
+                    e.EntityType.Contains("Community") ||
+                    e.EntityType.Contains("Donor") ||
+                    e.EntityType.Contains("Identity") ||
+                    e.EntityType.Contains("Financial") ||
+                    e.EntityType.Contains("Organization")
+                ))
+                .Take(30)
+                .Select(e => (e.Username, e.Action, e.EntityType, e.EntityId, e.Timestamp, e.Notes))
+                .ToList();
+            ViewData["DataEntryActivities"] = dataEntryActivities;
+
+            //Count dataentry activites by type for statistics 
+            var dataEntryStats = new Dictionary<string, int>
+            {
+                 ["MediaPlacements"] = allEntries.Count(e => e.EntityType != null && e.EntityType.Equals("MediaPlacement", StringComparison.OrdinalIgnoreCase)),
+                ["WebsiteTraffic"] = allEntries.Count(e => e.EntityType != null && e.EntityType.Equals("WebsiteTraffic", StringComparison.OrdinalIgnoreCase)),
+                ["ProfessionalDevelopment"] = allEntries.Count(e => e.EntityType != null && e.EntityType.Equals("ProfessionalDevelopment", StringComparison.OrdinalIgnoreCase)),
+                ["StaffSurveys"] = allEntries.Count(e => e.EntityType != null && e.EntityType.Equals("StaffSurvey", StringComparison.OrdinalIgnoreCase)),
+                ["Other"] = allEntries.Count(e => e.EntityType != null && 
+                    (e.EntityType.Contains("Youth") || e.EntityType.Contains("Interfaith") || 
+                     e.EntityType.Contains("Community") || e.EntityType.Contains("Donor") ||
+                     e.EntityType.Contains("Identity") || e.EntityType.Contains("Financial") ||
+                     e.EntityType.Contains("Organization")))
+            };
+            ViewData["DataEntryStats"] = dataEntryStats;
 
             // Get event tracking data - recent activity on assigned events (only active ones)
             var assignedEventsList = _eventsService.GetAll().Where(e => e.IsAssignedByAdmin).ToList();
@@ -78,15 +111,6 @@ namespace OneJaxDashboard.Controllers
                 .Where(e => e.StrategyTemplateId.HasValue && _strategyService.GetStrategy(e.StrategyTemplateId.Value) != null)
                 .ToList();
             return View(activeEvents);
-        }
-
-        // GET: /Admin/ArchivedEvents
-        public IActionResult ArchivedEvents()
-        {
-            var archivedEvents = _eventsService.GetArchived()
-                .Where(e => e.StrategyTemplateId.HasValue && _strategyService.GetStrategy(e.StrategyTemplateId.Value) != null)
-                .ToList();
-            return View(archivedEvents);
         }
 
         // GET: /Admin/AssignEvent
@@ -150,7 +174,7 @@ namespace OneJaxDashboard.Controllers
             var addedEvent = _eventsService.Add(eventModel);
             
             // Log the assignment
-            var adminUsername = User.Identity?.Name ?? string.Empty;
+            var adminUsername = User.Identity?.Name ?? "Admin";
             _activityLog.Log(adminUsername, "Assigned Event", "Event", addedEvent.Id, 
                 notes: $"Assigned '{addedEvent.Title}' to {selectedStaffUsername}");
 
@@ -191,7 +215,7 @@ namespace OneJaxDashboard.Controllers
             _eventsService.Update(eventModel);
 
             // Log the update
-            var adminUsername = User.Identity?.Name ?? string.Empty;
+            var adminUsername = User.Identity?.Name ?? "Admin";
             _activityLog.Log(adminUsername, "Updated Assigned Event", "Event", eventModel.Id, 
                 notes: $"Updated '{eventModel.Title}' for {selectedStaffUsername}");
 
@@ -210,31 +234,12 @@ namespace OneJaxDashboard.Controllers
             _eventsService.Remove(id);
 
             // Log the deletion
-            var adminUsername = User.Identity?.Name ?? string.Empty;
+            var adminUsername = User.Identity?.Name ?? "Admin";
             _activityLog.Log(adminUsername, "Deleted Assigned Event", "Event", id, 
                 notes: $"Deleted '{eventModel.Title}' assigned to {eventModel.OwnerUsername}");
 
             TempData["SuccessMessage"] = "Event has been deleted.";
             return RedirectToAction("ManageEvents");
-        }
-
-        // POST: /Admin/UnarchiveEvent/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult UnarchiveEvent(int id)
-        {
-            var eventModel = _eventsService.Get(id);
-            if (eventModel == null) return NotFound();
-
-            _eventsService.Unarchive(id);
-
-            // Log the unarchive action
-            var adminUsername = User.Identity?.Name ?? string.Empty;
-            _activityLog.Log(adminUsername, "Reactivated Archived Event", "Event", id, 
-                notes: $"Reactivated '{eventModel.Title}'");
-
-            TempData["SuccessMessage"] = $"Event '{eventModel.Title}' has been reactivated.";
-            return RedirectToAction("ArchivedEvents");
         }
 
         private void PopulateStaffAndStrategiesDropdown(int? selectedStrategyId)
@@ -257,3 +262,4 @@ namespace OneJaxDashboard.Controllers
         }
     }
 }
+
