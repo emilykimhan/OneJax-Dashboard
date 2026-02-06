@@ -13,286 +13,6 @@
     var hasEnhancedMetrics = Model.StrategicGoals?.Any(g => g.Metrics?.Any(m => !string.IsNullOrEmpty(m.DataSource)) == true) == true;
 }
 
-<style>
-    :root {
-        --onejax-navy: #1E3A8A;
-        --onejax-blue: #3B82F6;
-        --onejax-orange: #F59E0B;
-        --onejax-green: #10B981;
-        --onejax-white: #FFFFFF;
-        --onejax-light-bg: #f8fafc;
-        --onejax-border: #e2e8f0;
-        --onejax-text: #1e293b;
-        --onejax-text-muted: #64748b;
-        --gradient-primary: linear-gradient(135deg, var(--onejax-navy), var(--onejax-blue));
-        --gradient-secondary: linear-gradient(135deg, var(--onejax-blue), var(--onejax-green));
-        --gradient-accent: linear-gradient(135deg, var(--onejax-orange), #ea580c);
-        --shadow-soft: 0 4px 20px rgba(30, 58, 138, 0.1);
-        --shadow-medium: 0 8px 30px rgba(0, 0, 0, 0.12);
-        --shadow-strong: 0 15px 35px rgba(30, 58, 138, 0.2);
-    }
-
-    body {
-        background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-        min-height: 100vh;
-    }
-
-    .dashboard-header {
-        background: var(--gradient-primary);
-        position: relative;
-        overflow: hidden;
-        box-shadow: var(--shadow-strong);
-    }
-
-    .dashboard-header::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
-        opacity: 0.3;
-    }
-
-    .dashboard-header .container {
-        position: relative;
-        z-index: 2;
-    }
-
-    .floating-card {
-        background: var(--onejax-white);
-        border-radius: 20px;
-        box-shadow: var(--shadow-soft);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        backdrop-filter: blur(10px);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-        overflow: hidden;
-    }
-
-    .floating-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: var(--gradient-accent);
-        border-radius: 20px 20px 0 0;
-    }
-
-    .floating-card:hover {
-        transform: translateY(-8px);
-        box-shadow: var(--shadow-medium);
-    }
-
-    .nav-tabs-modern {
-        border: none;
-        background: var(--onejax-white);
-        border-radius: 15px;
-        padding: 8px;
-        box-shadow: var(--shadow-soft);
-        margin-bottom: 2rem;
-    }
-
-    .nav-tabs-modern .nav-link {
-        border: none;
-        border-radius: 12px;
-        padding: 12px 24px;
-        font-weight: 600;
-        color: var(--onejax-text-muted);
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .nav-tabs-modern .nav-link:hover {
-        color: var(--onejax-navy);
-        background: rgba(59, 130, 246, 0.1);
-        transform: translateY(-2px);
-    }
-
-    .nav-tabs-modern .nav-link.active {
-        background: var(--gradient-primary);
-        color: white;
-        box-shadow: 0 4px 15px rgba(30, 58, 138, 0.3);
-    }
-
-    .metric-card {
-        background: var(--onejax-white);
-        border-radius: 16px;
-        padding: 1.5rem;
-        box-shadow: var(--shadow-soft);
-        border: 1px solid var(--onejax-border);
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .metric-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 3px;
-        background: var(--gradient-secondary);
-    }
-
-    .metric-card:hover {
-        transform: translateY(-5px);
-        box-shadow: var(--shadow-medium);
-    }
-
-    .progress-modern {
-        height: 8px;
-        background: rgba(59, 130, 246, 0.1);
-        border-radius: 10px;
-        overflow: hidden;
-        position: relative;
-    }
-
-    .progress-modern .progress-bar {
-        background: var(--gradient-secondary);
-        border-radius: 10px;
-        transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-        overflow: hidden;
-    }
-
-    .progress-modern .progress-bar::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-        animation: shimmer 2s infinite;
-    }
-
-    @@keyframes shimmer {
-        0% { left: -100%; }
-        100% { left: 100%; }
-    }
-
-    .stat-card-modern {
-        background: var(--onejax-white);
-        border-radius: 20px;
-        padding: 2rem;
-        text-align: center;
-        box-shadow: var(--shadow-soft);
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .stat-card-modern::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 6px;
-        background: var(--gradient-accent);
-        border-radius: 20px 20px 0 0;
-    }
-
-    .stat-card-modern:hover {
-        transform: translateY(-10px);
-        box-shadow: var(--shadow-strong);
-    }
-
-    .pulse-animation {
-        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-    }
-
-    @@keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.7; }
-    }
-
-    .fade-in {
-        animation: fadeIn 0.8s ease-out;
-    }
-
-    @@keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    .slide-in-left {
-        animation: slideInLeft 0.6s ease-out;
-    }
-
-    @@keyframes slideInLeft {
-        from { opacity: 0; transform: translateX(-50px); }
-        to { opacity: 1; transform: translateX(0); }
-    }
-
-    .slide-in-right {
-        animation: slideInRight 0.6s ease-out;
-    }
-
-    @@keyframes slideInRight {
-        from { opacity: 0; transform: translateX(50px); }
-        to { opacity: 1; transform: translateX(0); }
-    }    .badge-modern {
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .btn-modern {
-        border-radius: 12px;
-        padding: 12px 24px;
-        font-weight: 600;
-        border: none;
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .btn-modern:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-    }
-
-    .btn-primary-modern {
-        background: var(--gradient-primary);
-        color: white;
-    }
-
-    .btn-secondary-modern {
-        background: var(--onejax-white);
-        color: var(--onejax-navy);
-        border: 2px solid var(--onejax-border);
-    }
-
-    .icon-float {
-        display: inline-block;
-        transition: transform 0.3s ease;
-    }
-
-    .icon-float:hover {
-        transform: translateY(-3px);
-    }
-
-    .hover-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 25px rgba(30, 58, 138, 0.15);
-        border-color: var(--onejax-blue);
-    }
-
-    .goal-section {
-        transition: opacity 0.3s ease-in-out;
-    }
-</style>
-
 <!-- Enhanced Header Section -->
 <div class="dashboard-header" style="padding: 4rem 0; margin-bottom: 3rem;">
     <div class="container">
@@ -622,21 +342,6 @@
                             </div>
                         </div>
                         
-                        <!-- Additional Charts Row 3 -->
-                        <div class="row mb-4">
-                            <!-- Quarterly Performance -->
-                            <div class="col-md-12 mb-4">
-                                <div class="card" style="border-radius: 12px; border: 1px solid var(--onejax-border); box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-                                    <div class="card-header" style="background: linear-gradient(135deg, var(--onejax-navy), var(--onejax-blue)); color: white; border-radius: 12px 12px 0 0;">
-                                        <h6 class="mb-0">📅 Quarterly Performance Overview</h6>
-                                    </div>
-                                    <div class="card-body">
-                                        <canvas id="quarterlyChart" width="800" height="250"></canvas>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
                         <!-- Export Button Row -->
                         <div class="row mt-3">
                             <div class="col-12 text-center">
@@ -835,44 +540,7 @@
                                             }
                                             else if (metric.Name.Contains("Website Traffic"))
                                             {
-                                                <!-- Professional Quarterly Data Chart -->
-                                                <div class="col-md-6 mb-3">
-                                                    <div class="card" style="background:var(--onejax-white); border:1px solid #e5e7eb; border-radius:8px;">
-                                                        <div class="card-body">
-                                                            <h6 class="card-title" style="color:var(--onejax-navy); font-weight:600;">@metric.Name</h6>
-                                                            <div class="row text-center mb-3">
-                                                                <div class="col-3">
-                                                                    <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:10px; border-radius:6px;">
-                                                                        <div style="font-size:0.9em; font-weight:600; color:var(--onejax-navy);">Q1</div>
-                                                                        <div style="font-size:0.8em; color:#64748b;">@metric.Q1Value.ToString("N0")</div>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-3">
-                                                                    <div style="background:#f1f5f9; border:1px solid #cbd5e1; padding:10px; border-radius:6px;">
-                                                                        <div style="font-size:0.9em; font-weight:600; color:var(--onejax-navy);">Q2</div>
-                                                                        <div style="font-size:0.8em; color:#64748b;">@metric.Q2Value.ToString("N0")</div>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-3">
-                                                                    <div style="background:#e2e8f0; border:1px solid #94a3b8; padding:10px; border-radius:6px;">
-                                                                        <div style="font-size:0.9em; font-weight:600; color:var(--onejax-navy);">Q3</div>
-                                                                        <div style="font-size:0.8em; color:#64748b;">@metric.Q3Value.ToString("N0")</div>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-3">
-                                                                    <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:10px; border-radius:6px;">
-                                                                        <div style="font-size:0.9em; font-weight:600; color:var(--onejax-navy);">Q4</div>
-                                                                        <div style="font-size:0.8em; color:#64748b;">@metric.Q4Value.ToString("N0")</div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <div class="text-center">
-                                                                <div class="h4 mb-0" style="color:var(--onejax-navy);">@metric.CurrentValue%</div>
-                                                                <small class="text-muted">Target: @metric.Target% Growth</small>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                                // Skip Website Traffic metrics since we have the quarterly chart
                                             }
                                             else if (metric.Name.Contains("Social Media"))
                                             {
@@ -948,6 +616,21 @@
                                                 </div>
                                             }
                                         }
+                                    </div>
+                                </div>
+                            }
+                            
+                            <!-- Quarterly Performance Overview Chart -->
+                            @if (goal.Name.Contains("Identity") || goal.Name.Contains("Value"))
+                            {
+                                <div class="mb-4">
+                                    <div class="card" style="border-radius: 12px; border: 1px solid var(--onejax-border); box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                                        <div class="card-header" style="background: linear-gradient(135deg, var(--onejax-navy), var(--onejax-blue)); color: white; border-radius: 12px 12px 0 0;">
+                                            <h6 class="mb-0">📅 Quarterly Performance Overview</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <canvas id="quarterlyChart" width="800" height="280" style="max-height: 280px;"></canvas>
+                                        </div>
                                     </div>
                                 </div>
                             }
@@ -1297,6 +980,47 @@
 
 <!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+<!-- OneJax Dashboard Scripts -->
+<script src="~/js/dashboard-charts.js"></script>
+<script src="~/js/dashboard-interactions.js"></script>
+
+<!-- Dashboard Data Setup -->
+<script>
+    // Set up data for external JavaScript files
+    window.chartData = {
+        goalProgress: [@Model.Charts.GoalProgress.OrganizationalProgress, @Model.Charts.GoalProgress.FinancialProgress, @Model.Charts.GoalProgress.IdentityProgress, @Model.Charts.GoalProgress.CommunityProgress],
+        activitySummary: [@Model.Summary.TotalStaffSurveys, @Model.Summary.TotalProfessionalDevelopmentPlans, @Model.Summary.TotalMediaPlacements, @Model.Summary.TotalWebsiteTrafficEntries, @Model.Summary.TotalEvents],
+        monthlyTrends: {
+            labels: [@Html.Raw(string.Join(",", Model.Charts.MonthlyTrends.Select(t => $"'{t.Month}'")))],
+            organizational: [@Html.Raw(string.Join(",", Model.Charts.MonthlyTrends.Select(t => t.OrganizationalValue.ToString())))],
+            community: [@Html.Raw(string.Join(",", Model.Charts.MonthlyTrends.Select(t => t.CommunityValue.ToString())))],
+            financial: [@Html.Raw(string.Join(",", Model.Charts.MonthlyTrends.Select(t => t.FinancialValue.ToString())))],
+            identity: [@Html.Raw(string.Join(",", Model.Charts.MonthlyTrends.Select(t => t.IdentityValue.ToString())))],
+        },
+        metricTypes: {
+            labels: [@Html.Raw(string.Join(",", Model.Charts.MetricTypes.Select(mt => $"'{mt.Type}'")))],
+            values: [@Html.Raw(string.Join(",", Model.Charts.MetricTypes.Select(mt => mt.Count.ToString())))]
+        },
+        radarCurrent: [@Model.Charts.GoalProgress.OrganizationalProgress, @Model.Charts.GoalProgress.FinancialProgress, @Model.Charts.GoalProgress.IdentityProgress, @Model.Charts.GoalProgress.CommunityProgress, @((Model.Summary.AverageStaffSatisfaction > 0 ? Model.Summary.AverageStaffSatisfaction : 0)), @((Model.Summary.TotalWebsiteTrafficEntries > 0 ? Math.Min(Model.Summary.TotalWebsiteTrafficEntries * 10, 100) : 0))],
+        quarterly: {
+            labels: [@Html.Raw(string.Join(",", Model.Charts.QuarterlyData.Select(q => $"'{q.Quarter}'")))],
+            values: [@Html.Raw(string.Join(",", Model.Charts.QuarterlyData.Select(q => q.Value.ToString())))]
+        }
+    };
+
+    window.summaryData = {
+        totalStaffSurveys: @Model.Summary.TotalStaffSurveys,
+        totalProfessionalDevelopmentPlans: @Model.Summary.TotalProfessionalDevelopmentPlans,
+        totalMediaPlacements: @Model.Summary.TotalMediaPlacements,
+        totalWebsiteTrafficEntries: @Model.Summary.TotalWebsiteTrafficEntries,
+        totalEvents: @Model.Summary.TotalEvents,
+        totalActivities: @Model.Summary.TotalActivities
+    };
+
+    window.userAuthenticated = @User.Identity.IsAuthenticated.ToString().ToLower();
+</script>
 
 <script>
 // Apply Filters Function (No Page Refresh)
@@ -1515,6 +1239,9 @@ function editMetric(metricId) {
 
 // Enhanced Interactive Features
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize charts first
+    initializeDashboardCharts();
+    
     // Initialize animations and interactions
     initializeAnimations();
     
@@ -1961,6 +1688,7 @@ function initializeDashboardCharts() {
                     }
                 ]
             },
+            plugins: [ChartDataLabels],
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
@@ -1975,6 +1703,24 @@ function initializeDashboardCharts() {
                                 return context.dataset.label + ': ' + context.raw.toLocaleString() + ' clicks';
                             }
                         }
+                    },
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'top',
+                        offset: 5,
+                        formatter: function(value, context) {
+                            return value.toLocaleString() + ' clicks';
+                        },
+                        color: '#1f2937',
+                        font: {
+                            weight: 'bold',
+                            size: 12
+                        },
+                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                        borderColor: '#d1d5db',
+                        borderWidth: 1,
+                        borderRadius: 4,
+                        padding: 4
                     }
                 },
                 scales: {
@@ -2023,9 +1769,4 @@ function exportDashboard() {
     linkElement.setAttribute('download', exportFileName);
     linkElement.click();
 }
-
-// Initialize charts when page loads
-document.addEventListener('DOMContentLoaded', function() {
-    initializeDashboardCharts();
-});
 </script>
