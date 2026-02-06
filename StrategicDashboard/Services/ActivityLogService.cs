@@ -1,35 +1,50 @@
 using OneJaxDashboard.Models;
+using OneJaxDashboard.Data;
+using Microsoft.EntityFrameworkCore;
 //Talijah's
 namespace OneJaxDashboard.Services
 {
     public class ActivityLogService
     {
-        private static readonly List<ActivityLogEntry> _entries = new();
+        private readonly ApplicationDbContext _context;
+
+        public ActivityLogService(ApplicationDbContext context)
+        {
+            _context = context;
+        }
 
         public IEnumerable<ActivityLogEntry> GetRecent(string username, int take = 10)
-            => _entries.Where(e => string.Equals(e.Username, username, StringComparison.OrdinalIgnoreCase))
+            => _context.ActivityLogs
+                       .Where(e => string.Equals(e.Username, username, StringComparison.OrdinalIgnoreCase))
                        .OrderByDescending(e => e.Timestamp)
-                       .Take(take);
+                       .Take(take)
+                       .ToList();
 
         public IEnumerable<ActivityLogEntry> GetAllEntries()
-            => _entries.OrderByDescending(e => e.Timestamp);
+            => _context.ActivityLogs
+                       .OrderByDescending(e => e.Timestamp)
+                       .ToList();
 
         public IEnumerable<ActivityLogEntry> GetEntriesByEntityId(string entityType, int entityId)
-            => _entries.Where(e => e.EntityType == entityType && e.EntityId == entityId)
-                       .OrderByDescending(e => e.Timestamp);
+            => _context.ActivityLogs
+                       .Where(e => e.EntityType == entityType && e.EntityId == entityId)
+                       .OrderByDescending(e => e.Timestamp)
+                       .ToList();
 
         public void Log(string username, string action, string? entityType = null, int? entityId = null, string? notes = null)
         {
-            _entries.Add(new ActivityLogEntry
+            var entry = new ActivityLogEntry
             {
-                Id = _entries.Count > 0 ? _entries.Max(e => e.Id) + 1 : 1,
                 Username = username,
                 Action = action,
                 EntityType = entityType,
                 EntityId = entityId,
                 Timestamp = DateTime.UtcNow,
                 Notes = notes
-            });
+            };
+
+            _context.ActivityLogs.Add(entry);
+            _context.SaveChanges();
         }
     }
 }

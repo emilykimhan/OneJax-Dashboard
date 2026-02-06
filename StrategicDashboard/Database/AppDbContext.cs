@@ -29,6 +29,9 @@ namespace OneJaxDashboard.Data
         // Core Strategies 
         public DbSet<Strategy> Strategies { get; set; } = default!;
 
+        // Logging tables
+        public DbSet<ActivityLogEntry> ActivityLogs { get; set; } = default!;
+
         //Account tables
         
         

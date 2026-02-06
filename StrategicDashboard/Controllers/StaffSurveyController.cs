@@ -3,16 +3,19 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using OneJaxDashboard.Models;
 using OneJaxDashboard.Data;
+using OneJaxDashboard.Services;
 //karrie 
 namespace OneJaxDashboard.Controllers
 {
     public class StaffSurveyController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ActivityLogService _activityLog;
 
-        public StaffSurveyController(ApplicationDbContext context)
+        public StaffSurveyController(ApplicationDbContext context, ActivityLogService activityLog)
         {
             _context = context;
+            _activityLog = activityLog;
         }
         private List<SelectListItem> GetStaffMembers()
         {
@@ -47,6 +50,10 @@ namespace OneJaxDashboard.Controllers
                     // Add the survey data to the database
                     _context.StaffSurveys_22D.Add(model);
                     await _context.SaveChangesAsync();
+                    
+                    // Log the activity
+                    var username = User.Identity?.Name ?? "Unknown";
+                    _activityLog.Log(username, "Created Staff Survey", "StaffSurvey_22D", model.Id, $"Survey for {model.Name}");
                     
                     TempData["SuccessMessage"] = "Survey submitted and saved successfully!";
                     return RedirectToAction("Index");

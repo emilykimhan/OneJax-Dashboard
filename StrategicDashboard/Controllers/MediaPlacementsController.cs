@@ -1,16 +1,19 @@
 using Microsoft.AspNetCore.Mvc;
 using OneJaxDashboard.Data;
 using OneJaxDashboard.Models;
+using OneJaxDashboard.Services;
 //karrie's
 namespace OneJaxDashboard.Controllers
 {
     public class MediaPlacementsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ActivityLogService _activityLog;
 
-        public MediaPlacementsController(ApplicationDbContext context)
+        public MediaPlacementsController(ApplicationDbContext context, ActivityLogService activityLog)
         {
             _context = context;
+            _activityLog = activityLog;
         }
 
         // GET: MediaPlacements/Index
@@ -38,6 +41,10 @@ namespace OneJaxDashboard.Controllers
                 {
                     _context.MediaPlacements_3D.Add(model);
                     _context.SaveChanges();
+                    
+                    // Log the activity
+                    var username = User.Identity?.Name ?? "Unknown";
+                    _activityLog.Log(username, "Created Media Placement", "MediaPlacements_3D", model.Id, $"Total Mentions: {model.TotalMentions}");
                     
                     // Recalculate grand total after adding new entry
                     var allEntries = _context.MediaPlacements_3D.ToList();

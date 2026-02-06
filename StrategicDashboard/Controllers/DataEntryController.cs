@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using OneJaxDashboard.Models;
 using OneJaxDashboard.Data;
+using OneJaxDashboard.Services;
 //Karrie
 namespace OneJaxDashboard.Controllers
 {
@@ -10,10 +11,12 @@ namespace OneJaxDashboard.Controllers
     public class DataEntryController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ActivityLogService _activityLog;
 
-        public DataEntryController(ApplicationDbContext context)
+        public DataEntryController(ApplicationDbContext context, ActivityLogService activityLog)
         {
             _context = context;
+            _activityLog = activityLog;
         }
 
         public IActionResult Index()
@@ -126,8 +129,13 @@ namespace OneJaxDashboard.Controllers
             var survey = _context.StaffSurveys_22D.Find(id);
             if (survey != null)
             {
+                var username = User.Identity?.Name ?? "Unknown";
                 _context.StaffSurveys_22D.Remove(survey);
                 _context.SaveChanges();
+                
+                // Log the activity
+                _activityLog.Log(username, "Deleted Staff Survey", "StaffSurvey_22D", id, $"Survey for {survey.Name}");
+                
                 TempData["Success"] = "Staff Survey record deleted successfully!";
             }
             else
@@ -139,8 +147,13 @@ namespace OneJaxDashboard.Controllers
 
         // Delete Professional Development
         [HttpPost]
-        public IActionResult DeleteProfessionalDevelopment(int id)
-        {
+        public Ivar username = User.Identity?.Name ?? "Unknown";
+                _context.ProfessionalDevelopments.Remove(profDev);
+                _context.SaveChanges();
+                
+                // Log the activity
+                _activityLog.Log(username, "Deleted Professional Development", "ProfessionalDevelopment", id, $"{profDev.TrainingType}");
+                
             var profDev = _context.ProfessionalDevelopments.Find(id);
             if (profDev != null)
             {
@@ -152,8 +165,13 @@ namespace OneJaxDashboard.Controllers
             {
                 TempData["Error"] = "Record not found.";
             }
-            return RedirectToAction("RecordHistory");
-        }
+            retuvar username = User.Identity?.Name ?? "Unknown";
+                _context.MediaPlacements_3D.Remove(media);
+                _context.SaveChanges();
+                
+                // Log the activity
+                _activityLog.Log(username, "Deleted Media Placement", "MediaPlacements_3D", id, $"Total Mentions: {media.TotalMentions}");
+                
 
         // Delete Media Placement
         [HttpPost]
@@ -165,8 +183,13 @@ namespace OneJaxDashboard.Controllers
                 _context.MediaPlacements_3D.Remove(media);
                 _context.SaveChanges();
                 TempData["Success"] = "Media Placement record deleted successfully!";
-            }
-            else
+            }var username = User.Identity?.Name ?? "Unknown";
+                _context.WebsiteTraffic.Remove(traffic);
+                _context.SaveChanges();
+                
+                // Log the activity
+                _activityLog.Log(username, "Deleted Website Traffic", "WebsiteTraffic_4D", id, $"Total Clicks: {traffic.TotalClicks}");
+                
             {
                 TempData["Error"] = "Record not found.";
             }

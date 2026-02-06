@@ -1,16 +1,19 @@
 using Microsoft.AspNetCore.Mvc;
 using OneJaxDashboard.Data;
 using OneJaxDashboard.Models;
+using OneJaxDashboard.Services;
 //Karrie's
 namespace OneJaxDashboard.Controllers
 {
     public class WebsiteTrafficController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ActivityLogService _activityLog;
 
-        public WebsiteTrafficController(ApplicationDbContext context)
+        public WebsiteTrafficController(ApplicationDbContext context, ActivityLogService activityLog)
         {
             _context = context;
+            _activityLog = activityLog;
         }
 
         // GET: WebsiteTraffic/Index
@@ -38,6 +41,10 @@ namespace OneJaxDashboard.Controllers
                 {
                     _context.WebsiteTraffic.Add(model);
                     _context.SaveChanges();
+                    
+                    // Log the activity
+                    var username = User.Identity?.Name ?? "Unknown";
+                    _activityLog.Log(username, "Created Website Traffic", "WebsiteTraffic_4D", model.Id, $"Total Clicks: {model.TotalClicks}");
                     
                     // Recalculate grand total after adding new entry
                     var allEntries = _context.WebsiteTraffic.ToList();

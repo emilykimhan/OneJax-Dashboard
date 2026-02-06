@@ -1,11 +1,22 @@
 using Microsoft.AspNetCore.Mvc;
 using OneJaxDashboard.Models;
+using OneJaxDashboard.Data;
+using OneJaxDashboard.Services;
+
 //karrie's
 namespace OneJaxDashboard.Controllers
 {
     public class OrganizationalBuildingController : Controller
     {
-       
+        private readonly ApplicationDbContext _context;
+        private readonly ActivityLogService _activityLog;
+
+        public OrganizationalBuildingController(ApplicationDbContext context, ActivityLogService activityLog)
+        {
+            _context = context;
+            _activityLog = activityLog;
+        }
+
         [HttpGet]
         public IActionResult Index()
         {

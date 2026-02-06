@@ -1,16 +1,19 @@
 using Microsoft.AspNetCore.Mvc;
 using OneJaxDashboard.Data;
 using OneJaxDashboard.Models;
+using OneJaxDashboard.Services;
 //Karrie's
 namespace OneJaxDashboard.Controllers
 {
     public class CrossSector10DController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ActivityLogService _activityLog;
 
-        public CrossSector10DController(ApplicationDbContext context)
+        public CrossSector10DController(ApplicationDbContext context, ActivityLogService activityLog)
         {
             _context = context;
+            _activityLog = activityLog;
         }
 
         // GET: CrossSector10D/Index
@@ -52,6 +55,10 @@ namespace OneJaxDashboard.Controllers
 
                     _context.CrossSectorCollabs.Add(model);
                     _context.SaveChanges();
+                    
+                    // Log the activity
+                    var username = User.Identity?.Name ?? "Unknown";
+                    _activityLog.Log(username, "Created Cross-Sector Collaboration", "CrossSector10D", model.Id, $"{model.Name} - {model.Status}");
                     
                     // Recalculate statistics after adding new entry
                     var allEntries = _context.CrossSectorCollabs.ToList();
