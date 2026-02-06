@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OneJaxDashboard.Data;
 
@@ -10,12 +11,14 @@ using OneJaxDashboard.Data;
 namespace StrategicDashboard.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260206053035_AddPlanIssue25DTable")]
+    partial class AddPlanIssue25DTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "9.0.10");
+            modelBuilder.HasAnnotation("ProductVersion", "9.0.0");
 
             modelBuilder.Entity("OneJaxDashboard.Models.Annual_average_7D", b =>
                 {
@@ -205,22 +208,7 @@ namespace StrategicDashboard.Migrations
                     b.Property<decimal>("CurrentValue")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("DataSource")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("FiscalYear")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<bool>("IsPublic")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("MetricType")
                         .IsRequired()
                         .HasColumnType("TEXT");
 

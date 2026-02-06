@@ -1,0 +1,184 @@
+@model OneJaxDashboard.Models.planIssue_25D
+@{
+    ViewData["Title"] = "Framework Compliance Tracking";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card p-4"
+                 style="background-color:var(--onejax-white);
+                        box-shadow:0 4px 24px rgba(0,0,0,0.08);
+                        border-radius:24px;">
+                
+                <!-- Header -->
+                <div class="d-flex align-items-center mb-4">
+                    <a href="/Identity" 
+                       class="btn btn-outline-secondary me-3"
+                       style="border-radius: 8px;">
+                        ← Back
+                    </a>
+                    <h2 class="mb-0" style="color:var(--onejax-navy);">Framework Compliance Tracking</h2>
+                </div>
+                
+                <p class="text-center mb-4" style="color:var(--onejax-gray);">
+                    Ensure compliance with framework for no less than 90% of incidents
+                </p>
+
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success text-center" style="border-radius: 12px;">
+                        @TempData["Success"]
+                    </div>
+                    
+                    @if (ViewBag.ShowNewEntryButton == true)
+                    {
+                        <div class="text-center mb-4">
+                            <a href="/identityIssuePlan_25D/Index" class="btn btn-primary btn-lg"
+                               style="background-color:var(--onejax-navy); border-color:var(--onejax-navy); border-radius: 12px;">
+                                Add New Incident
+                            </a>
+                        </div>
+                    }
+                }
+
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger text-center" style="border-radius: 12px;">
+                        @TempData["Error"]
+                    </div>
+                }
+
+                <!-- Input Form -->
+                @if (ViewBag.ShowNewEntryButton != true)
+                {
+                    <form asp-controller="identityIssuePlan_25D" asp-action="Index" method="post">
+                        <div class="row">
+                            <!-- Framework Plan Dropdown -->
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="PlanId" class="form-label fw-bold">Framework Plan</label>
+                                <select asp-for="PlanId" class="form-select" asp-items="ViewBag.Plans" required>
+                                    <option value="">-- Select Framework Plan --</option>
+                                </select>
+                                <span asp-validation-for="PlanId" class="text-danger"></span>
+                            </div>
+
+                            <!-- Year -->
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Year" class="form-label fw-bold">Year</label>
+                                <input asp-for="Year" type="number" class="form-control" 
+                                       placeholder="Enter year (e.g., 2026)" min="2020" max="2100" required />
+                                <span asp-validation-for="Year" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Issue Name -->
+                            <div class="col-12 mb-3">
+                                <label asp-for="IssueName" class="form-label fw-bold">Issue Name</label>
+                                <input asp-for="IssueName" type="text" class="form-control" 
+                                       placeholder="Enter the name of the incident/issue" 
+                                       maxlength="200" required />
+                                <span asp-validation-for="IssueName" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Crisis Description -->
+                            <div class="col-12 mb-3">
+                                <label asp-for="CrisisDescription" class="form-label fw-bold">Crisis Description</label>
+                                <textarea asp-for="CrisisDescription" class="form-control" rows="4" 
+                                          placeholder="Describe the crisis or incident in detail" 
+                                          maxlength="1000" required></textarea>
+                                <span asp-validation-for="CrisisDescription" class="text-danger"></span>
+                                <small class="form-text text-muted">Maximum 1000 characters</small>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Compliance Checkbox -->
+                            <div class="col-12 mb-3">
+                                <div class="form-check">
+                                    <input asp-for="IsCompliant" type="checkbox" class="form-check-input" id="complianceCheck" />
+                                    <label asp-for="IsCompliant" class="form-check-label fw-bold" for="complianceCheck">
+                                        This incident was handled in compliance with the framework
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Notes -->
+                            <div class="col-12 mb-3">
+                                <label asp-for="Notes" class="form-label fw-bold">Notes (Optional)</label>
+                                <textarea asp-for="Notes" class="form-control" rows="3" 
+                                          placeholder="Add any additional notes or context" 
+                                          maxlength="500"></textarea>
+                                <span asp-validation-for="Notes" class="text-danger"></span>
+                                <small class="form-text text-muted">Maximum 500 characters</small>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg px-5 py-3"
+                                    style="background-color:var(--onejax-navy); border-color:var(--onejax-navy); border-radius: 12px; font-weight: 600;">
+                                Submit Incident Data
+                            </button>
+                        </div>
+                    </form>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-control:focus,
+    .form-select:focus {
+        border-color: var(--onejax-navy);
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 191, 0.25);
+    }
+    
+    .form-label {
+        color: var(--onejax-navy);
+        margin-bottom: 0.5rem;
+    }
+    
+    .card {
+        border: none;
+    }
+    
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+        opacity: 1;
+    }
+
+    textarea.form-control {
+        resize: vertical;
+    }
+
+    .form-select {
+        cursor: pointer;
+    }
+
+    .form-check-input:checked {
+        background-color: var(--onejax-navy);
+        border-color: var(--onejax-navy);
+    }
+
+    .form-check-input:focus {
+        border-color: var(--onejax-navy);
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 191, 0.25);
+    }
+
+    .alert h6 {
+        margin-bottom: 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    .alert h4 {
+        font-weight: bold;
+    }
+</style>
