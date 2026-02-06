@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using OneJaxDashboard.Models;
 //Emily's
 namespace OneJaxDashboard.Models
@@ -72,8 +73,13 @@ namespace OneJaxDashboard.Models
         public DateTime? CompletionDate { get; set; }
 
         // Navigation properties (optional for display purposes)
+        [ForeignKey("StrategicGoalId")]
         public virtual StrategicGoal? StrategicGoal { get; set; }
+        
+        [ForeignKey("StrategyId")]
         public virtual Strategy? Strategy { get; set; }
+        
+        [ForeignKey("StrategyTemplateId")]
         public virtual Strategy? StrategyTemplate { get; set; }
     }
 }
