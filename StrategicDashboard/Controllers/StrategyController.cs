@@ -79,9 +79,8 @@ public class StrategyController : Controller
         _context.Strategies.Add(dbEvent);
         // Log the activity
         var username = User.Identity?.Name ?? "Unknown";
-        _activityLog.Log(username, "Created Strategy Event", "Strategy", dbEvent.Id, $"{eventName} - {goalName}");
-
         string goalName = Goals.FirstOrDefault(g => g.Value == goalId.ToString())?.Text ?? "Unknown Goal";
+        _activityLog.Log(username, "Created Strategy Event", "Strategy", dbEvent.Id, $"{eventName} - {goalName}");
 
         TempData["SuccessMessage"] = $"Successfully added event under “{goalName}”";
 
