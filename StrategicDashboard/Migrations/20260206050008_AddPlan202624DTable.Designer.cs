@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OneJaxDashboard.Data;
 
@@ -10,9 +11,11 @@ using OneJaxDashboard.Data;
 namespace StrategicDashboard.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260206050008_AddPlan202624DTable")]
+    partial class AddPlan202624DTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.0");
@@ -353,11 +356,6 @@ namespace StrategicDashboard.Migrations
                     b.Property<bool>("GoalMet")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("Notes")
                         .HasMaxLength(500)
                         .HasColumnType("TEXT");
@@ -566,45 +564,6 @@ namespace StrategicDashboard.Migrations
                     b.ToTable("demographics_8D");
                 });
 
-            modelBuilder.Entity("OneJaxDashboard.Models.planIssue_25D", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("CrisisDescription")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("TEXT");
-
-                    b.Property<bool>("IsCompliant")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("IssueName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Notes")
-                        .HasMaxLength(500)
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("PlanId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("Year")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PlanId");
-
-                    b.ToTable("planIssue_25D");
-                });
-
             modelBuilder.Entity("OneJaxDashboard.Models.Event", b =>
                 {
                     b.HasOne("OneJaxDashboard.Models.StrategicGoal", "StrategicGoal")
@@ -670,17 +629,6 @@ namespace StrategicDashboard.Migrations
                         .IsRequired();
 
                     b.Navigation("Strategy");
-                });
-
-            modelBuilder.Entity("OneJaxDashboard.Models.planIssue_25D", b =>
-                {
-                    b.HasOne("OneJaxDashboard.Models.Plan2026_24D", "Plan")
-                        .WithMany()
-                        .HasForeignKey("PlanId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Plan");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.StrategicGoal", b =>

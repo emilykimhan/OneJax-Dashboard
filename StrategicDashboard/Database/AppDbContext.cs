@@ -21,6 +21,8 @@ namespace OneJaxDashboard.Data
         public DbSet<CrossSector10D> CrossSectorCollabs { get; set; } = default!;
         public DbSet<Annual_average_7D> Annual_average_7D { get; set; } = default!;
         public DbSet<demographics_8D> demographics_8D { get; set; } = default!;
+        public DbSet<Plan2026_24D> Plan2026_24D { get; set; } = default!;
+        public DbSet<planIssue_25D> planIssue_25D { get; set; } = default!;
         
 
         // Dashboard tables
