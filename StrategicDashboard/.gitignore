@@ -489,3 +489,5 @@ $RECYCLE.BIN/
 *.db-shm
 *.db-wal
 
+#MAC System .DS_STORE file
+.DS_Store
