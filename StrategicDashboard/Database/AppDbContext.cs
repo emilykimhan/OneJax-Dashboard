@@ -19,6 +19,7 @@ namespace OneJaxDashboard.Data
         public DbSet<WebsiteTraffic_4D> WebsiteTraffic { get; set; } = default!;
         public DbSet<Comm_rate20D> CommunicationRate { get; set; } = default!;
         public DbSet<CrossSector10D> CrossSectorCollabs { get; set; } = default!;
+        public DbSet<Annual_average_7D> Annual_average_7D { get; set; } = default!;
         
 
         // Dashboard tables
