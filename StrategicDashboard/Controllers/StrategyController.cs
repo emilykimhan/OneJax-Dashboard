@@ -11,6 +11,12 @@ public class StrategyController : Controller
 {
     private readonly ApplicationDbContext _context;
     private readonly ActivityLogService _activityLog;
+    private readonly StrategyService _strategyService;
+    public StrategyController(StrategyService strategyService, ActivityLogService activityLog)
+    {
+        _strategyService = strategyService;
+        _activityLog = activityLog;
+    }
 
     // Keep the static list for backward compatibility, but also save to database
     public static List<Strategy> Strategies { get; set; } = new();
