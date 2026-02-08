@@ -10,13 +10,13 @@ namespace OneJaxDashboard.Models;
 public class Strategy
 {
     public int Id { get; set; }
-    public string Name { get; set; } 
+    public required string Name { get; set; } 
     public int StrategicGoalId { get; set; } 
-    public string Description { get; set; }
+    public string Description { get; set; } = string.Empty;
     public List<Metric> Metrics { get; set; } = new(); 
     public string? Date { get; set; }  
     public string? Time { get; set; }
     public string EventType { get; set; } = "Community"; // Default to Community
 
-    public StrategicGoal StrategicGoal { get; set; }
+    public StrategicGoal? StrategicGoal { get; set; }
 }

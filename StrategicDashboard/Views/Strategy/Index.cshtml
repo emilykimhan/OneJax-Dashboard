@@ -18,7 +18,7 @@ new { Id = 4, Name = "Community Engagement" }
         --onejax-blue: #0070AD;
         --onejax-teal: #00A3AD;
         --onejax-navy: #102840;
-        --onejax-gold: #E6B500;
+        --onejax-gold: #93d2de;
         --onejax-light: #F7F9FB;
     }
 
@@ -58,6 +58,64 @@ new { Id = 4, Name = "Community Engagement" }
         border: none;
     }
 
+    .event-card-title {
+        font-weight: 700;
+        color: var(--onejax-navy);
+        margin: 0;
+    }
+
+    .event-card-desc {
+        color: #6c757d;
+        margin: 0.35rem 0 0.75rem 0;
+        line-height: 1.35;
+    }
+
+    .event-meta-row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+        margin-top: 0.25rem;
+    }
+
+    .badge-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 0.28rem 0.65rem;
+        border-radius: 999px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .badge-goal {
+        background-color: var(--onejax-gold);
+        color: var(--onejax-navy);
+    }
+
+    .badge-type {
+        background-color: var(--onejax-teal);
+        color: #fff;
+    }
+
+    .event-datetime {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--onejax-blue);
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .event-card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-top: 0.25rem;
+    }
+
     .nav-pills .nav-link {
         color: var(--onejax-navy);
         border-radius: 25px;
@@ -79,14 +137,25 @@ new { Id = 4, Name = "Community Engagement" }
         transform: scale(1.03);
     }
 
-    .form-label {
-        font-weight: 600;
-        color: var(--onejax-navy);
+    .form-control,
+    .form-select {
+        border-radius: 12px;
+        border: 1px solid #d0d7de;
+        padding: 0.7rem 0.9rem;
+        background-color: #ffffff;
+        box-shadow: 0 1px 0 rgba(16, 40, 64, 0.03);
     }
 
-    .form-control {
-        border-radius: 10px;
-        border: 1px solid #d0d7de;
+    .form-control:focus,
+    .form-select:focus {
+        border-color: rgba(0, 112, 173, 0.55);
+        box-shadow: 0 0 0 0.2rem rgba(0, 112, 173, 0.15);
+    }
+
+    .form-label {
+        font-weight: 700;
+        color: var(--onejax-navy);
+        letter-spacing: 0.2px;
     }
 
     .toast-success {
@@ -159,7 +228,20 @@ new { Id = 4, Name = "Community Engagement" }
             opacity: 0;
             transform: translateY(-10px);
         }
-    }
+</style>
+
+<style>
+    /* Goal badge colors */
+    .goal-youth { background-color: #a0ce3f; color: #fff; }
+    .goal-humanitarian { background-color: #ad3385; color: #fff; }
+    .goal-interfaith { background-color: #8d478a; color: #fff; }
+    .goal-community { background-color: #b48a78; color: #fff; }
+
+    /* Event type badge colors */
+    .type-youth { background-color: #a0ce3f; color: #fff; }
+    .type-humanitarian { background-color: #ad3385; color: #fff; }
+    .type-interfaith { background-color: #8d478a; color: #fff; }
+    .type-community { background-color: #b48a78; color: #fff; }
 </style>
 
 
@@ -190,52 +272,65 @@ new { Id = 4, Name = "Community Engagement" }
             <h3 class="fw-bold text-uppercase mb-4" style="color: var(--onejax-blue);">Add a New Event</h3>
 
             <form asp-action="Add" method="post" class="row g-3">
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold">Event Name</label>
-                    <input type="text" name="eventName" class="form-control" placeholder="Enter event name" required />
-                </div>
+<div class="col-md-6">
+    <label class="form-label fw-semibold">Event Name</label>
+    <input type="text" name="eventName" class="form-control" placeholder="Enter event name" required />
+</div>
 
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold">Assign to Goal</label>
-                    <select name="goalId" class="form-select" required>
-                        <option value="">Select a Goal</option>
-                        @foreach (var goal in goals)
-                        {
-                            <option value="@goal.Id">@goal.Name</option>
-                        }
-                    </select>
-                </div>
+<div class="col-md-6">
+    <label class="form-label fw-semibold">Event Type</label>
+    <select name="eventType" class="form-select" required>
+        <option value="" selected disabled>Select Event Type</option>
+        <option value="Youth">Youth</option>
+        <option value="Interfaith">Interfaith</option>
+        <option value="Humanitarian">Humanitarian</option>
+        <option value="Community">Community</option>
+    </select>
+</div>
 
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold">Event Type</label>
-                    <select name="eventType" class="form-select" required>
-                        <option value="">Select Event Type</option>
-                        <option value="Youth">Youth</option>
-                        <option value="Interfaith">Interfaith</option>
-                        <option value="Humanitarian">Humanitarian</option>
-                        <option value="Community">Community</option>
-                    </select>
-                </div>
+<div class="col-md-6">
+    <label class="form-label fw-semibold">Assign to a Goal</label>
+    <select name="goalId" class="form-select" required>
+        <option value="" selected disabled>Select a Goal</option>
+        @foreach (var goal in goals)
+        {
+            <option value="@goal.Id">@goal.Name</option>
+        }
+    </select>
+</div>
 
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold">Event Date </label>
-                    <input type="date" name="eventDate" class="form-control" />
-                </div>
+<div class="col-md-6">
+    <label class="form-label fw-semibold">Fiscal Year</label>
+    <select name="fiscalYear" class="form-select" required>
+        <option value="" selected disabled>Select Fiscal Year</option>
+        <option value="25/26">25/26</option>
+        <option value="26/27">26/27</option>
+        <option value="27/28">27/28</option>
+    </select>
+</div>
 
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold">Event Time </label>
-                    <input type="time" name="eventTime" class="form-control" />
-                </div>
+<div class="col-md-6">
+    <label class="form-label fw-semibold">Event Date</label>
+    <input type="date" name="eventDate" class="form-control" />
+</div>
 
-                <div class="col-12">
-                    <label class="form-label fw-semibold">Event Description</label>
-                    <textarea name="eventDescription" class="form-control" rows="2"
-                        placeholder="Enter description..."></textarea>
-                </div>
+<div class="col-md-6">
+    <label class="form-label fw-semibold">Event Time</label>
+    <input type="time" name="eventTime" class="form-control" />
+</div>
 
-                <div class="col-12">
-                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-semibold">Add Event</button>
-                </div>
+<div class="col-12">
+    <label class="form-label fw-semibold">Description</label>
+    <textarea name="eventDescription"
+              class="form-control"
+              rows="3"
+              placeholder="Enter description..."
+              required></textarea>
+</div>
+
+<div class="col-12">
+    <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-semibold">Add Event</button>
+</div>
             </form>
         </div>
     </div>
@@ -267,8 +362,30 @@ new { Id = 4, Name = "Community Engagement" }
                         {
                             <div class="col-md-6 mb-4">
                                 <div class="card border-0 shadow-sm rounded-4 p-3 h-100">
+                                    @{
+                                        // Goal name for this event
+                                        var goalName = goal?.Name?.ToString();
+
+                                        // Format date as MM/dd/yyyy when possible
+                                        var dateDisplay = e.Date;
+                                        if (!string.IsNullOrWhiteSpace(e.Date) && DateTime.TryParse(e.Date, out var parsedDate))
+                                        {
+                                            dateDisplay = parsedDate.ToString("MM/dd/yyyy");
+                                        }
+
+                                        // Format time as h:mm AM/PM when possible
+                                        var timeDisplay = e.Time;
+                                        if (!string.IsNullOrWhiteSpace(e.Time) && DateTime.TryParse(e.Time, out var parsedTime))
+                                        {
+                                            timeDisplay = parsedTime.ToString("h:mm tt");
+                                        }
+
+                                        var showDateTime = !string.IsNullOrWhiteSpace(dateDisplay) || !string.IsNullOrWhiteSpace(timeDisplay);
+                                    }
+
                                     <div class="d-flex justify-content-between align-items-start">
                                         <h5 class="event-card-title">@e.Name</h5>
+
                                         <div class="dropdown">
                                             <button class="btn btn-light btn-sm border-0" type="button" data-bs-toggle="dropdown">
                                                 <i class="bi bi-three-dots fs-5 text-dark"></i>
@@ -276,35 +393,54 @@ new { Id = 4, Name = "Community Engagement" }
                                             <ul class="dropdown-menu dropdown-menu-end">
                                                 <li>
                                                     <a class="dropdown-item text-primary" asp-controller="Strategy"
-                                                        asp-action="Edit" asp-route-id="@e.Id">
+                                                       asp-action="Edit" asp-route-id="@e.Id">
                                                         Edit
                                                     </a>
                                                 </li>
-                                                <button type="button" class="dropdown-item text-danger" data-bs-toggle="modal"
-                                                    data-bs-target="#deleteConfirmModal" data-event-id="@e.Id">
-                                                    Delete
-                                                </button>
+                                                <li>
+                                                    <button type="button" class="dropdown-item text-danger" data-bs-toggle="modal"
+                                                            data-bs-target="#deleteConfirmModal" data-event-id="@e.Id">
+                                                        Delete
+                                                    </button>
+                                                </li>
                                             </ul>
                                         </div>
                                     </div>
-                                    <p class="text-secondary mt-2">@e.Description</p>
 
-                                    @if (!string.IsNullOrEmpty(e.Date) || !string.IsNullOrEmpty(e.Time))
-                                    {
-                                        <p class="small mb-0 text-highlight">
-                                            <i class="bi bi-calendar-event"></i>
-                                            @if (!string.IsNullOrEmpty(e.Date))
-                                            {
-                                                @e.Date
-                                            }
-                                            @if (!string.IsNullOrEmpty(e.Time))
-                                            {
-                                                <span> at @e.Time</span>
-                                            }
-                                        </p>
-                                    }
+                                    <p class="event-card-desc">@e.Description</p>
 
-                                    <p class="small text-muted mt-1"><i class="bi bi-bullseye"></i> @goal.Name</p>
+                                    <div class="event-card-footer">
+                                        <div class="event-meta-row">
+                                            @if (!string.IsNullOrWhiteSpace(goalName))
+                                            {
+                                                <span class="badge-pill badge-goal goal-@(goal?.Name != null ? goal.Name.Replace(" ", "").ToLower() : "")">
+                                                    <i class="bi bi-bullseye"></i> @goal?.Name
+                                                </span>
+                                            }
+
+                                            @if (!string.IsNullOrWhiteSpace(e.EventType))
+                                            {
+                                                <span class="badge-pill badge-type type-@e.EventType.ToLower()">
+                                                    <i class="bi bi-tag"></i> @e.EventType
+                                                </span>
+                                            }
+                                        </div>
+
+                                        @if (showDateTime)
+                                        {
+                                            <span class="event-datetime">
+                                                <i class="bi bi-calendar-event"></i>
+                                                @if (!string.IsNullOrWhiteSpace(dateDisplay))
+                                                {
+                                                    <span>@dateDisplay</span>
+                                                }
+                                                @if (!string.IsNullOrWhiteSpace(timeDisplay))
+                                                {
+                                                    <span>@timeDisplay</span>
+                                                }
+                                            </span>
+                                        }
+                                    </div>
                                 </div>
                             </div>
                         }
