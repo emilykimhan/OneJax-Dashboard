@@ -17,6 +17,6 @@ public class Strategy
     public string? Date { get; set; }  
     public string? Time { get; set; }
     public string EventType { get; set; } = "Community"; // Default to Community
-
+    public string EventFYear { get; set; } = string.Empty;
     public StrategicGoal? StrategicGoal { get; set; }
 }
