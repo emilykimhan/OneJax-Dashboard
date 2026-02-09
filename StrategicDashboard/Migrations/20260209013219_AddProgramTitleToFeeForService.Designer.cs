@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OneJaxDashboard.Data;
 
@@ -10,12 +11,14 @@ using OneJaxDashboard.Data;
 namespace StrategicDashboard.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260209013219_AddProgramTitleToFeeForService")]
+    partial class AddProgramTitleToFeeForService
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "9.0.10");
+            modelBuilder.HasAnnotation("ProductVersion", "9.0.0");
 
             modelBuilder.Entity("OneJaxDashboard.Models.Annual_average_7D", b =>
                 {
@@ -45,59 +48,6 @@ namespace StrategicDashboard.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Annual_average_7D");
-                });
-
-            modelBuilder.Entity("OneJaxDashboard.Models.BudgetTracking_28D", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<decimal?>("CommunityEvents")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal?>("CommunityPrograms")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal?>("CorporateGiving")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal?>("GrantsFoundations")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal?>("HumanitarianEvent")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal?>("IndividualGiving")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal?>("InterfaithPrograms")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Notes")
-                        .HasMaxLength(1000)
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal?>("OneYouthPrograms")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal?>("PeopleCultureWorkshops")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Quarter")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Year")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("BudgetTracking_28D");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.Comm_rate20D", b =>
@@ -287,22 +237,7 @@ namespace StrategicDashboard.Migrations
                     b.Property<decimal>("CurrentValue")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("DataSource")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("FiscalYear")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<bool>("IsPublic")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("MetricType")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -731,37 +666,6 @@ namespace StrategicDashboard.Migrations
                     b.HasIndex("StrategyId");
 
                     b.ToTable("FeeForServices_21D");
-                });
-
-            modelBuilder.Entity("OneJaxDashboard.Models.income_27D", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("IncomeSource")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Month")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Notes")
-                        .HasMaxLength(1000)
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("income_27D");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.planIssue_25D", b =>
