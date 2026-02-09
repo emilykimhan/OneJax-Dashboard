@@ -120,13 +120,28 @@
         white-space: nowrap;
     }
 
-    /* Goal badge (gold like your screenshot) */
+    /* Goal badge base */
     .badge-goal {
-        background-color: var(--onejax-gold);
         color: var(--onejax-navy);
+        font-weight: 600;
     }
 
-    /* Event type badge colors (your exact hex codes) */
+    /* Goal-specific colors (match your legend) */
+    .goal-organizational-building {
+        background-color: #fbe4d5;
+    }
+
+    .goal-identity-value-proposition {
+        background-color: #f1d7f5;
+    }
+
+    .goal-financial-sustainability {
+        background-color: #c9f5d3;
+    }
+
+    .goal-community-engagement {
+        background-color: #cfe9f6;
+    }
     .badge-type { color: #fff; }
     .type-youth { background-color: #a0ce3f; }
     .type-humanitarian { background-color: #ad3385; }
@@ -157,7 +172,7 @@
     }
 
     .empty-state {
-        text-align: center;
+        text-align: center; 
         padding: 3rem 0;
         color: #6c757d;
     }
@@ -247,6 +262,11 @@
 
                                     var showDateTime = !string.IsNullOrWhiteSpace(dateDisplay) || !string.IsNullOrWhiteSpace(timeDisplay);
                                     var typeClass = (e.EventType ?? string.Empty).Trim().ToLowerInvariant();
+                                    var goalClass = (goalName ?? string.Empty)
+                                        .Trim()
+                                        .ToLowerInvariant()
+                                        .Replace(" ", "-")
+                                        .Replace("/", "-");
                                 }
 
                                 <div class="d-flex justify-content-between align-items-start mb-2">
@@ -297,7 +317,7 @@
                                 <div class="event-meta-row">
                                     @if (!string.IsNullOrWhiteSpace(goalName))
                                     {
-                                        <span class="badge-pill badge-goal"><i class="bi bi-bullseye"></i> @goalName</span>
+                                        <span class="badge-pill badge-goal goal-@goalClass"><i class="bi bi-bullseye"></i> @goalName</span>
                                     }
 
                                     @if (!string.IsNullOrWhiteSpace(e.EventType))
@@ -352,6 +372,11 @@
 
                                             var showDateTime = !string.IsNullOrWhiteSpace(dateDisplay) || !string.IsNullOrWhiteSpace(timeDisplay);
                                             var typeClass = (e.EventType ?? string.Empty).Trim().ToLowerInvariant();
+                                            var goalClass = (goal.Text ?? string.Empty)
+                                                .Trim()
+                                                .ToLowerInvariant()
+                                                .Replace(" ", "-")
+                                                .Replace("/", "-");
                                         }
 
                                         <div class="d-flex justify-content-between align-items-start mb-2">
@@ -400,7 +425,7 @@
                                         }
 
                                         <div class="event-meta-row">
-                                            <span class="badge-pill badge-goal"><i class="bi bi-bullseye"></i> @goal.Text</span>
+                                            <span class="badge-pill badge-goal goal-@goalClass"><i class="bi bi-bullseye"></i> @goal.Text</span>
 
                                             @if (!string.IsNullOrWhiteSpace(e.EventType))
                                             {
