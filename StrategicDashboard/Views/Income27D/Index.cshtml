@@ -1,0 +1,150 @@
+@model OneJaxDashboard.Models.income_27D
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    ViewData["Title"] = "Earned Income Tracking";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card p-4"
+                 style="background-color:var(--onejax-white);
+                        box-shadow:0 4px 24px rgba(0,0,0,0.08);
+                        border-radius:24px;">
+                
+                <!-- Header with back button -->
+                <div class="d-flex align-items-center mb-4">
+                    <a href="/Financial" 
+                       class="btn btn-outline-secondary me-3"
+                       style="border-radius: 8px;">
+                        ← Back
+                    </a>
+                    <h2 class="mb-0" style="color:var(--onejax-navy);">Earned Income Tracking</h2>
+                </div>
+                
+                <p class="text-center mb-4" style="color:var(--onejax-gray);">
+                    Generate cumulative $50,000 in earned income by the end of FY 26-27
+                </p>
+
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success text-center">
+                        @TempData["Success"]
+                    </div>
+                }
+
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger text-center">
+                        @TempData["Error"]
+                    </div>
+                }
+
+                <!-- Income Entry Form -->
+                <div class="survey-form">
+                    <h4 class="mb-4 text-center" style="color:var(--onejax-navy);">Income Entry Form</h4>
+
+                    <form asp-controller="Income27D" asp-action="Index" method="post" novalidate>
+                        
+                        <div class="mb-3">
+                            <label asp-for="IncomeSource" class="form-label fw-bold">Income Source:</label>
+                            <input asp-for="IncomeSource" type="text" class="form-control" 
+                                   placeholder="e.g., Workshop fee, Consulting services, Training program" />
+                            <span asp-validation-for="IncomeSource" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Amount" class="form-label fw-bold">Amount:</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input asp-for="Amount" type="number" min="0.01" step="0.01" 
+                                           class="form-control" placeholder="0.00" />
+                                </div>
+                                <span asp-validation-for="Amount" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Month" class="form-label fw-bold">Month:</label>
+                                <select asp-for="Month" class="form-select" asp-items="ViewBag.Months">
+                                    <option value="">-- Select Month --</option>
+                                </select>
+                                <span asp-validation-for="Month" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Notes" class="form-label fw-bold">Notes (Optional):</label>
+                            <textarea asp-for="Notes" class="form-control" rows="3" 
+                                      placeholder="Add any additional details or context..."></textarea>
+                            <span asp-validation-for="Notes" class="text-danger"></span>
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary px-5 py-2" 
+                                    style="background-color:var(--onejax-navy); border-color:var(--onejax-navy);">
+                                Submit Income Entry
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-outline-secondary {
+        border-color: var(--onejax-navy);
+        color: var(--onejax-navy);
+    }
+    
+    .btn-outline-secondary:hover {
+        background-color: var(--onejax-navy);
+        border-color: var(--onejax-navy);
+        color: white;
+    }
+    
+    .card {
+        border: none;
+    }
+
+    .survey-form {
+        padding: 1.5rem;
+        background: #f8f9fa;
+        border-radius: 12px;
+        margin-top: 1rem;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--onejax-navy);
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 191, 0.25);
+    }
+
+    .btn:hover {
+        background-color: #1a365d !important;
+        border-color: #1a365d !important;
+    }
+
+    .alert {
+        border: none;
+        border-radius: 8px;
+    }
+
+    .text-danger {
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        display: block;
+    }
+
+    .input-group-text {
+        background-color: var(--onejax-navy);
+        color: white;
+        border-color: var(--onejax-navy);
+    }
+</style>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
