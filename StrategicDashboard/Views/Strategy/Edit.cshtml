@@ -3,6 +3,14 @@
 
 @{
     var successMessage = TempData["SuccessMessage"] as string;
+
+    // Safely read FiscalYear if/when the model has it (won't crash if the property doesn't exist yet)
+    var fiscalYearValue = "";
+    var fyProp = Model?.GetType().GetProperty("FiscalYear");
+    if (fyProp != null)
+    {
+        fiscalYearValue = fyProp.GetValue(Model)?.ToString() ?? "";
+    }
 }
 
 @if (!string.IsNullOrEmpty(successMessage))
@@ -58,14 +66,25 @@ new { Id = 4, Name = "Community Engagement" }
         border: none;
     }
 
-    .form-label {
-        font-weight: 600;
-        color: var(--onejax-navy);
+    .form-control,
+    .form-select {
+        border-radius: 12px;
+        border: 1px solid #d0d7de;
+        padding: 0.7rem 0.9rem;
+        background-color: #ffffff;
+        box-shadow: 0 1px 0 rgba(16, 40, 64, 0.03);
     }
 
-    .form-control {
-        border-radius: 10px;
-        border: 1px solid #d0d7de;
+    .form-control:focus,
+    .form-select:focus {
+        border-color: rgba(0, 112, 173, 0.55);
+        box-shadow: 0 0 0 0.2rem rgba(0, 112, 173, 0.15);
+    }
+
+    .form-label {
+        font-weight: 700;
+        color: var(--onejax-navy);
+        letter-spacing: 0.2px;
     }
 
     .btn-primary {
@@ -101,12 +120,23 @@ new { Id = 4, Name = "Community Engagement" }
                 Edit Event
             </h3>
 
-            <form asp-action="Edit" asp-controller="Strategy" method="post" class="row g-3"> <input type="hidden"
-                    name="id" value="@Model.Id" />
+            <form asp-action="Edit" asp-controller="Strategy" method="post" class="row g-3">
+                <input type="hidden" name="id" value="@Model?.Id" />
 
                 <div class="col-md-6">
                     <label class="form-label fw-semibold">Event Name</label>
-                    <input type="text" name="eventName" class="form-control" value="@Model.Name" required />
+                    <input type="text" name="eventName" class="form-control" value="@Model?.Name" required />
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Event Type</label>
+                    <select name="eventType" class="form-select" required>
+                        <option value="" disabled selected="@(string.IsNullOrWhiteSpace(Model?.EventType))">Select Event Type</option>
+                        <option value="Youth" selected="@(Model?.EventType == "Youth")">Youth</option>
+                        <option value="Humanitarian" selected="@(Model?.EventType == "Humanitarian")">Humanitarian</option>
+                        <option value="Interfaith" selected="@(Model?.EventType == "Interfaith")">Interfaith</option>
+                        <option value="Community" selected="@(Model?.EventType == "Community")">Community</option>
+                    </select>
                 </div>
 
                 <div class="col-md-6">
@@ -115,7 +145,7 @@ new { Id = 4, Name = "Community Engagement" }
                         <option value="">Select a Goal</option>
                         @foreach (var goal in goals)
                         {
-                            <option value="@goal.Id" selected="@(goal.Id == Model.StrategicGoalId)">
+                            <option value="@goal.Id" selected="@(goal.Id == Model?.StrategicGoalId)">
                                 @goal.Name
                             </option>
                         }
@@ -123,19 +153,29 @@ new { Id = 4, Name = "Community Engagement" }
                 </div>
 
                 <div class="col-md-6">
+                    <label class="form-label fw-semibold">Fiscal Year</label>
+                    <select name="fiscalYear" class="form-select" required>
+                        <option value="" selected="@(string.IsNullOrWhiteSpace(fiscalYearValue))" disabled>Select Fiscal Year</option>
+                        <option value="25/26" selected="@(fiscalYearValue == "25/26")">25/26</option>
+                        <option value="26/27" selected="@(fiscalYearValue == "26/27")">26/27</option>
+                        <option value="27/28" selected="@(fiscalYearValue == "27/28")">27/28</option>
+                    </select>
+                </div>
+
+                <div class="col-md-6">
                     <label class="form-label fw-semibold">Event Date</label>
-                    <input type="date" name="eventDate" class="form-control" value="@Model.Date" />
+                    <input type="date" name="eventDate" class="form-control" value="@Model?.Date" />
                 </div>
 
                 <div class="col-md-6">
                     <label class="form-label fw-semibold">Event Time</label>
-                    <input type="time" name="eventTime" class="form-control" value="@Model.Time" />
+                    <input type="time" name="eventTime" class="form-control" value="@Model?.Time" />
                 </div>
 
                 <div class="col-12">
                     <label class="form-label fw-semibold">Event Description</label>
                     <textarea name="eventDescription" class="form-control" rows="3"
-                        required>@Model.Description</textarea>
+                        required>@Model?.Description</textarea>
                 </div>
 
                 <div class="col-12">
