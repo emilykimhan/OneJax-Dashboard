@@ -20,6 +20,9 @@ namespace OneJaxDashboard.Models
         [Range(0, 100, ErrorMessage = "Event satisfaction rating must be between 0 and 100.")]
         public int EventSatisfactionRating { get; set; }
 
+        [StringLength(100)]
+        public string? CreatedBy { get; set; }
+
         public DateTime CreatedDate { get; set; } = DateTime.Now;
     }
 }
