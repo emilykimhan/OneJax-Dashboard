@@ -318,6 +318,15 @@ public class HomeController : Controller
             // Website Traffic
             summary.TotalWebsiteTrafficEntries = _context.WebsiteTraffic.Count();
 
+            // Cross Sector Collaborations
+            summary.TotalCrossSectorCollabs = _context.CrossSectorCollabs.Count();
+            var activeCrossSectorCollabs = _context.CrossSectorCollabs
+                .Where(c => c.Status == "Active")
+                .ToList();
+            summary.ActiveCrossSectorCollabs = activeCrossSectorCollabs.Count;
+            summary.AverageCrossSectorSatisfaction = activeCrossSectorCollabs.Any() ? 
+                activeCrossSectorCollabs.Average(c => c.partner_satisfaction_ratings) : 0;
+
             // Events (from database or generated)
             try
             {
@@ -334,6 +343,7 @@ public class HomeController : Controller
                                     summary.TotalProfessionalDevelopmentPlans + 
                                     summary.TotalMediaPlacements + 
                                     summary.TotalWebsiteTrafficEntries +
+                                    summary.TotalCrossSectorCollabs +
                                     summary.TotalEvents;
 
             summary.LastUpdated = DateTime.Now;
@@ -439,6 +449,26 @@ public class HomeController : Controller
                 });
             }
 
+            // Add recent cross-sector collaborations
+            var recentCollabs = _context.CrossSectorCollabs
+                .OrderByDescending(c => c.CreatedDate)
+                .Take(3)
+                .ToList();
+
+            foreach (var collab in recentCollabs)
+            {
+                activities.Add(new RecentActivity
+                {
+                    Type = "Cross-Sector Collaboration",
+                    Title = collab.Name,
+                    Description = $"Status: {collab.Status} | Satisfaction: {collab.partner_satisfaction_ratings}% | Year: {collab.Year}",
+                    Date = collab.CreatedDate,
+                    Icon = "fas fa-handshake",
+                    Color = "var(--onejax-blue)",
+                    GoalName = "Community Engagement"
+                });
+            }
+
             // Sort all activities by date and take most recent
             activities = activities.OrderByDescending(a => a.Date).Take(10).ToList();
         }
@@ -459,9 +489,10 @@ public class HomeController : Controller
         var profDev = _context.ProfessionalDevelopments.ToList();
         var mediaPlacements = _context.MediaPlacements_3D.ToList();
         var websiteTraffic = _context.WebsiteTraffic.ToList();
+        var crossSectorCollabs = _context.CrossSectorCollabs.ToList();
 
         // Only create goals if we have real data
-        if (staffSurveys.Any() || profDev.Any() || mediaPlacements.Any() || websiteTraffic.Any())
+        if (staffSurveys.Any() || profDev.Any() || mediaPlacements.Any() || websiteTraffic.Any() || crossSectorCollabs.Any())
         {
             // Goal 1: Organizational Building (only if we have staff/prof dev data)
             if (staffSurveys.Any() || profDev.Any())
@@ -480,9 +511,12 @@ public class HomeController : Controller
                 goals.Add(identityGoal);
             }
 
-            // Goal 4: Community Engagement (will be populated by comprehensive metrics)
-            // This goal doesn't depend on specific database tables yet
-            // It will be enhanced with metrics from MetricsService
+            // Goal 4: Community Engagement (with CrossSector data if available)
+            if (crossSectorCollabs.Any())
+            {
+                var communityGoal = CreateCommunityEngagementGoalFromRealData(crossSectorCollabs);
+                goals.Add(communityGoal);
+            }
         }
 
         return goals;
@@ -642,6 +676,85 @@ public class HomeController : Controller
         // Website traffic belongs to Identity/Value Proposition goal
         // This goal will be populated by MetricsService with appropriate community metrics
         // like Joint Initiative Satisfaction, Cross-Sector Collaborations, etc.
+
+        return goal;
+    }
+
+    private StrategicGoal CreateCommunityEngagementGoalFromRealData(List<CrossSector10D> crossSectorCollabs)
+    {
+        var goal = new StrategicGoal
+        {
+            Id = 4,
+            Name = "Community Engagement",
+            Description = "Cross-sector partnerships and community collaborations",
+            Color = "var(--onejax-blue)",
+            Events = new List<Event>(),
+            Metrics = new List<GoalMetric>()
+        };
+
+        // Calculate statistics
+        var activeCollabs = crossSectorCollabs.Where(c => c.Status == "Active").ToList();
+        var inactiveCollabs = crossSectorCollabs.Where(c => c.Status == "Inactive").ToList();
+        var averageSatisfaction = crossSectorCollabs.Any() ? 
+            crossSectorCollabs.Average(c => c.partner_satisfaction_ratings) : 0;
+
+        // Add metrics based on CrossSector data
+        goal.Metrics.Add(new GoalMetric
+        {
+            Id = 100,
+            Name = "Total Cross-Sector Partnerships",
+            Description = "Number of cross-sector collaborations established",
+            StrategicGoalId = 4,
+            Target = "25",
+            CurrentValue = crossSectorCollabs.Count,
+            Unit = "partnerships",
+            Status = crossSectorCollabs.Count >= 25 ? "On Target" : "In Progress",
+            TargetDate = DateTime.Now.AddMonths(12)
+        });
+
+        goal.Metrics.Add(new GoalMetric
+        {
+            Id = 101,
+            Name = "Active Partnerships",
+            Description = "Currently active cross-sector collaborations",
+            StrategicGoalId = 4,
+            Target = "15",
+            CurrentValue = activeCollabs.Count,
+            Unit = "active partnerships",
+            Status = activeCollabs.Count >= 15 ? "On Target" : "In Progress",
+            TargetDate = DateTime.Now.AddMonths(6)
+        });
+
+        goal.Metrics.Add(new GoalMetric
+        {
+            Id = 102,
+            Name = "Partnership Satisfaction",
+            Description = "Average partner satisfaction rating",
+            StrategicGoalId = 4,
+            Target = "80",
+            CurrentValue = averageSatisfaction,
+            Unit = "% satisfaction",
+            Status = averageSatisfaction >= 80 ? "Excellent" : averageSatisfaction >= 60 ? "Good" : "Needs Improvement",
+            TargetDate = DateTime.Now.AddMonths(3)
+        });
+
+        // Add recent partnerships as events
+        var recentCollabs = crossSectorCollabs.OrderByDescending(c => c.CreatedDate).Take(5);
+        foreach (var collab in recentCollabs)
+        {
+            goal.Events.Add(new Event
+            {
+                Id = 1000 + collab.Id,
+                Title = collab.Name,
+                Description = $"Cross-sector collaboration established with satisfaction rating of {collab.partner_satisfaction_ratings}%",
+                StartDate = collab.CreatedDate,
+                EndDate = new DateTime(collab.Year, 12, 31),
+                Status = collab.Status,
+                StrategicGoalId = 4,
+                Type = "Partnership",
+                Notes = collab.Notes ?? ""
+            });
+        }
 
         return goal;
     }

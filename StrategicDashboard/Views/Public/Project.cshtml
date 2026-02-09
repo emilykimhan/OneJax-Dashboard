@@ -1,40 +1,49 @@
 @model OneJaxDashboard.Models.StrategicGoal
 @{
-    ViewData["Title"] = $"{Model.Name} - Project Details";
+    ViewData["Title"] = $"{Model.Name} - Goal Details";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <style>
     :root {
-        --onejax-navy: #1E3A8A;
-        --onejax-blue: #3B82F6;
-        --onejax-orange: #F59E0B;
-        --onejax-green: #10B981;
-        --onejax-white: #FFFFFF;
-        --onejax-light-bg: #f8fafc;
-        --onejax-border: #e2e8f0;
-        --onejax-text: #1e293b;
-        --onejax-text-muted: #64748b;
+        --onejax-orange: #f5a045;
+        --onejax-blue: #4bb4c8;
+        --onejax-gold: #bfa871;
+        --onejax-dark-blue: #278aa2;
+        --onejax-green: #67ab8c;
+        --onejax-navy: #096682;
+        --onejax-dark-green: #005f47;
+        --onejax-white: #ffffff;
+        --onejax-light-bg: #faf9f7;
+        --onejax-border: #e6e1db;
+        --onejax-text: #2d2d2d;
+        --onejax-text-muted: #6b6b6b;
     }
     
-    .project-header {
-        background: linear-gradient(135deg, @Model.Color, @Model.Color + "CC");
+    .goal-header {
+        background: linear-gradient(135deg, var(--onejax-navy), var(--onejax-dark-blue));
         color: white;
         padding: 4rem 0;
         margin-bottom: 3rem;
         position: relative;
         overflow: hidden;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
     }
     
-    .project-header::before {
+    .goal-header::before {
         content: '';
         position: absolute;
-        top: -50%;
-        right: -10%;
-        width: 300px;
-        height: 300px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 50%;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+        opacity: 0.3;
+    }
+    
+    .goal-header .container {
+        position: relative;
+        z-index: 2;
     }
     
     .status-indicator {

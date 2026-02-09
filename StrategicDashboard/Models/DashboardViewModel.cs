@@ -42,8 +42,11 @@ public class DashboardSummary
     public int TotalProfessionalDevelopmentPlans { get; set; }
     public int TotalMediaPlacements { get; set; }
     public int TotalWebsiteTrafficEntries { get; set; }
+    public int TotalCrossSectorCollabs { get; set; }
+    public int ActiveCrossSectorCollabs { get; set; }
     public int TotalEvents { get; set; }
     public decimal AverageStaffSatisfaction { get; set; }
+    public decimal AverageCrossSectorSatisfaction { get; set; }
     public int TotalActivities { get; set; }
     public DateTime LastUpdated { get; set; } = DateTime.Now;
 }
