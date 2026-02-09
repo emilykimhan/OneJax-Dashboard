@@ -27,6 +27,7 @@ namespace OneJaxDashboard.Data
         public DbSet<feeForService_21D> FeeForServices_21D { get; set; } = default!;
         public DbSet<income_27D> income_27D { get; set; } = default!;
         public DbSet<BudgetTracking_28D> BudgetTracking_28D { get; set; } = default!;
+        public DbSet<BoardMemberRecruitment> BoardMember_29D { get; set; } = default!;
         
 
         // Dashboard tables
