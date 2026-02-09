@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 using OneJaxDashboard.Models;
 using OneJaxDashboard.Data;
 using OneJaxDashboard.Services;
@@ -39,7 +38,8 @@ namespace OneJaxDashboard.Controllers
                     
                     // Log the activity
                     var username = User.Identity?.Name ?? "Unknown";
-                    _activityLog.Log(username, "Created Professional Development", "ProfessionalDevelopment", model.Id, $"{model.TrainingType} - {model.StaffMemberName}");
+                    _activityLog.Log(username, "Created Professional Development", "ProfessionalDevelopment", model.Id, 
+                        notes: $"Added professional development for {model.StaffMember}");
                     
                     TempData["Success"] = "Professional development record submitted successfully!";
                     return RedirectToAction(nameof(Index));
@@ -57,13 +57,15 @@ namespace OneJaxDashboard.Controllers
 
         private List<SelectListItem> GetStaffMembers()
         {
-            return _context.Staffauth
-                .Select(s => new SelectListItem 
-                { 
-                    Value = s.Name, 
-                    Text = s.Name 
-                })
-                .ToList();
+            return new List<SelectListItem>
+            {
+                new SelectListItem { Value = "Elizabeth Andersen", Text = "Elizabeth Andersen" },
+                new SelectListItem { Value = "Cilicia Anderson", Text = "Cilicia Anderson" },
+                new SelectListItem { Value = "Jacey Kelly", Text = "Jacey Kelly" },
+                new SelectListItem { Value = "Deidre Lane", Text = "Deidre Lane" },
+                new SelectListItem { Value = "Jan Phillips", Text = "Jan Phillips" },
+                new SelectListItem { Value = "Rebekah Hutton", Text = "Rebekah Hutton" }
+            };
         }
     }
 }

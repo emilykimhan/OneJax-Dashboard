@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using OneJaxDashboard.Data;
+using OneJaxDashboard.Models;
 using OneJaxDashboard.Services;
-//karrie's
+
 namespace OneJaxDashboard.Controllers
 {
     public class IdentityController : Controller
@@ -14,10 +15,39 @@ namespace OneJaxDashboard.Controllers
             _context = context;
             _activityLog = activityLog;
         }
-        // GET: Identity/Index
+
+        [HttpGet]
         public IActionResult Index()
         {
-            return View();
+            return View(new Identity());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Index(Identity model)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    _context.Identities.Add(model);
+                    _context.SaveChanges();
+                    
+                    // Log the activity
+                    var username = User.Identity?.Name ?? "Unknown";
+                    _activityLog.Log(username, "Created Identity Record", "Identity", model.Id, 
+                        notes: $"Added identity record");
+                    
+                    TempData["Success"] = "Identity record submitted successfully!";
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (Exception ex)
+                {
+                    TempData["Error"] = $"Error saving record: {ex.Message}";
+                }
+            }
+
+            return View(model);
         }
     }
 }

@@ -207,6 +207,7 @@
                         <div class="p-4 text-center text-muted">
                             <i class="bi bi-inbox" style="font-size: 2rem; opacity: 0.5;"></i>
                             <p class="mt-3 mb-0">No data entry activity recorded yet</p>
+                            <small class="d-block mt-2">Staff data entries will appear here once they start submitting data</small>
                         </div>
                     }
                 }
@@ -216,16 +217,16 @@
 </div>
 
 <!-- Activity Log Row -->
-<div class="row">
+<div class="row mb-4">
     <div class="col-12">
         <div class="card shadow-sm border-0">
             <div class="card-header bg-white border-bottom">
                 <div class="d-flex align-items-center justify-content-between">
                     <div class="d-flex align-items-center">
                         <i class="bi bi-clock-history me-2 text-info" style="font-size: 1.25rem;"></i>
-                        <h5 class="mb-0 fw-bold">Activity Log</h5>
+                        <h5 class="mb-0 fw-bold">All Activity Log</h5>
                     </div>
-                    <span class="badge bg-info">All Staff Activities</span>
+                    <span class="badge bg-info">Recent 50 Activities</span>
                 </div>
             </div>
             <div class="card-body p-0">
@@ -303,7 +304,7 @@
 </div>
 
 <!-- Event Progress Tracking Row -->
-<div class="row mt-4">
+<div class="row">
     <div class="col-12">
         <div class="card shadow-sm border-0">
             <div class="card-header bg-white border-bottom">
@@ -392,11 +393,11 @@
 <script>
     function scrollToDataEntry() {
         const element = document.getElementById('dataEntrySection');
-        if(element) {
-            element.scrollIntoView({ behavior: 'smooth', block: 'start' })
-            // Add a highlight effect 
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            // Add a highlight effect
             element.style.transition = 'background-color 0.5s';
-            element.style.backgroundColor = '#fff3cd'; 
+            element.style.backgroundColor = '#fff3cd';
             setTimeout(() => {
                 element.style.backgroundColor = '';
             }, 1500);

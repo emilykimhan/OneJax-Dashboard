@@ -35,20 +35,21 @@ namespace OneJaxDashboard.Controllers
             ViewData["TotalEvents"] = totalEvents;
             ViewData["AssignedEvents"] = assignedEvents;
 
-            // Get all activity log entries from all staff
-            var allEntries = _activityLog.GetAllEntries().OrderByDescending(e => e.Timestamp).Take(50).ToList();
+            // Get all activity log entries from all staff - show more entries
+            var allEntries = _activityLog.GetAllEntries().OrderByDescending(e => e.Timestamp).Take(100).ToList();
             var activityLogData = allEntries
+                .Take(50)
                 .Select(e => (e.Username, e.Action, e.EntityType, e.EntityId, e.Timestamp, e.Notes))
                 .ToList();
             ViewData["ActivityLog"] = activityLogData;
 
-            //Get Data Entry specific activites for separate display 
+            // Get Data Entry specific activities for separate display
             var dataEntryActivities = allEntries
                 .Where(e => e.EntityType != null && (
-                    e.EntityType.Contains("MediaPlacement", StringComparison.OrdinalIgnoreCase) ||
-                    e.EntityType.Contains("WebsiteTraffic", StringComparison.OrdinalIgnoreCase) ||
-                    e.EntityType.Contains("ProfessionalDevelopment", StringComparison.OrdinalIgnoreCase) ||
-                    e.EntityType.Contains("StaffSurvey", StringComparison.OrdinalIgnoreCase) ||
+                    e.EntityType.Equals("MediaPlacement", StringComparison.OrdinalIgnoreCase) ||
+                    e.EntityType.Equals("WebsiteTraffic", StringComparison.OrdinalIgnoreCase) ||
+                    e.EntityType.Equals("ProfessionalDevelopment", StringComparison.OrdinalIgnoreCase) ||
+                    e.EntityType.Equals("StaffSurvey", StringComparison.OrdinalIgnoreCase) ||
                     e.EntityType.Contains("Youth") ||
                     e.EntityType.Contains("Interfaith") ||
                     e.EntityType.Contains("Community") ||
@@ -62,10 +63,10 @@ namespace OneJaxDashboard.Controllers
                 .ToList();
             ViewData["DataEntryActivities"] = dataEntryActivities;
 
-            //Count dataentry activites by type for statistics 
+            // Count data entry activities by type for statistics
             var dataEntryStats = new Dictionary<string, int>
             {
-                 ["MediaPlacements"] = allEntries.Count(e => e.EntityType != null && e.EntityType.Equals("MediaPlacement", StringComparison.OrdinalIgnoreCase)),
+                ["MediaPlacements"] = allEntries.Count(e => e.EntityType != null && e.EntityType.Equals("MediaPlacement", StringComparison.OrdinalIgnoreCase)),
                 ["WebsiteTraffic"] = allEntries.Count(e => e.EntityType != null && e.EntityType.Equals("WebsiteTraffic", StringComparison.OrdinalIgnoreCase)),
                 ["ProfessionalDevelopment"] = allEntries.Count(e => e.EntityType != null && e.EntityType.Equals("ProfessionalDevelopment", StringComparison.OrdinalIgnoreCase)),
                 ["StaffSurveys"] = allEntries.Count(e => e.EntityType != null && e.EntityType.Equals("StaffSurvey", StringComparison.OrdinalIgnoreCase)),
@@ -153,7 +154,7 @@ namespace OneJaxDashboard.Controllers
                 ModelState.AddModelError("", "Please select an event.");
                 PopulateStaffAndStrategiesDropdown(null);
                 return View(eventModel);
-           }
+            }
 
             if (!ModelState.IsValid)
             {
@@ -231,12 +232,15 @@ namespace OneJaxDashboard.Controllers
             var eventModel = _eventsService.Get(id);
             if (eventModel == null) return NotFound();
 
+            var eventTitle = eventModel.Title;
+            var assignedTo = eventModel.OwnerUsername;
+            
             _eventsService.Remove(id);
 
             // Log the deletion
             var adminUsername = User.Identity?.Name ?? "Admin";
             _activityLog.Log(adminUsername, "Deleted Assigned Event", "Event", id, 
-                notes: $"Deleted '{eventModel.Title}' assigned to {eventModel.OwnerUsername}");
+                notes: $"Deleted '{eventTitle}' assigned to {assignedTo}");
 
             TempData["SuccessMessage"] = "Event has been deleted.";
             return RedirectToAction("ManageEvents");

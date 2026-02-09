@@ -44,7 +44,7 @@ namespace OneJaxDashboard.Controllers
                     
                     // Log the activity
                     var username = User.Identity?.Name ?? "Unknown";
-                    _activityLog.Log(username, "Created Media Placement", "MediaPlacements_3D", model.Id, $"Total Mentions: {model.TotalMentions}");
+                    _activityLog.Log(username, "Created Media Placement", "MediaPlacements_3D", model.Id, notes: $"Total Mentions: {model.TotalMentions}");
                     
                     // Recalculate grand total after adding new entry
                     var allEntries = _context.MediaPlacements_3D.ToList();

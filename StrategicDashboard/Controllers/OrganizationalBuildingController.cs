@@ -1,9 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
-using OneJaxDashboard.Models;
 using OneJaxDashboard.Data;
+using OneJaxDashboard.Models;
 using OneJaxDashboard.Services;
 
-//karrie's
 namespace OneJaxDashboard.Controllers
 {
     public class OrganizationalBuildingController : Controller
@@ -20,16 +19,35 @@ namespace OneJaxDashboard.Controllers
         [HttpGet]
         public IActionResult Index()
         {
-            var model = new OrganizationalBuildingViewModel
+            return View(new OrganizationalBuilding());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Index(OrganizationalBuilding model)
+        {
+            if (ModelState.IsValid)
             {
-                PageTitle = "Organizational Building",
-                StaffSurveyDescription = "Track staff satisfaction and professional development activities.",
-                ShowStaffSurveyButton = true,
-            };
+                try
+                {
+                    _context.OrganizationalBuildings.Add(model);
+                    _context.SaveChanges();
+                    
+                    // Log the activity
+                    var username = User.Identity?.Name ?? "Unknown";
+                    _activityLog.Log(username, "Created Organizational Building Record", "OrganizationalBuilding", model.Id, 
+                        notes: $"Added organizational building record");
+                    
+                    TempData["Success"] = "Organizational building record submitted successfully!";
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (Exception ex)
+                {
+                    TempData["Error"] = $"Error saving record: {ex.Message}";
+                }
+            }
 
             return View(model);
         }
-
-    
     }
 }
