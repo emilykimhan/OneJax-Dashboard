@@ -5,7 +5,19 @@
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "View Events";
+
+    // Prefer Goals provided by the controller (best: comes from a Goals table)
     var goals = ViewBag.Goals as List<SelectListItem>;
+
+    // Fallback: if Goals are missing, build tabs from the events in Model so tabs still appear
+    var goalTabs = (goals != null && goals.Any())
+        ? goals
+        : (Model ?? new List<OneJaxDashboard.Models.Strategy>())
+            .Select(e => e.StrategicGoalId)
+            .Distinct()
+            .OrderBy(id => id)
+            .Select(id => new SelectListItem { Value = id.ToString(), Text = $"Goal {id}" })
+            .ToList();
 }
 
 <!-- OneJax Color Theme (reuse from Add Event for consistency) -->
@@ -14,7 +26,7 @@
         --onejax-blue: #0070AD;
         --onejax-teal: #00A3AD;
         --onejax-navy: #102840;
-        --onejax-gold: #E6B500;
+        --onejax-gold: #93d2de;
         --onejax-light: #F7F9FB;
     }
 
@@ -77,16 +89,90 @@
         transform: scale(1.02);
     }
 
-    .badge-goal {
-        background-color: var(--onejax-gold);
-        color: #102840;
-        font-size: 0.75rem;
+    .event-card-title {
+        font-weight: 700;
+        color: var(--onejax-navy);
+        margin: 0;
+    }
+
+    .event-card-desc {
+        color: #6c757d;
+        margin: 0.35rem 0 0.75rem 0;
+        line-height: 1.35;
+    }
+
+    .event-meta-row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+        margin-top: 0.25rem;
+    }
+
+    .badge-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 0.28rem 0.65rem;
         border-radius: 999px;
-        padding: 0.25rem 0.6rem;
+        font-size: 0.78rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    /* Goal badge base */
+    .badge-goal {
+        color: var(--onejax-navy);
+        font-weight: 600;
+    }
+
+    /* Goal-specific colors (match your legend) */
+    .goal-organizational-building {
+        background-color: #fbe4d5;
+    }
+
+    .goal-identity-value-proposition {
+        background-color: #f1d7f5;
+    }
+
+    .goal-financial-sustainability {
+        background-color: #c9f5d3;
+    }
+
+    .goal-community-engagement {
+        background-color: #cfe9f6;
+    }
+    .badge-type { color: #fff; }
+    .type-youth { background-color: #a0ce3f; }
+    .type-humanitarian { background-color: #ad3385; }
+    .type-interfaith { background-color: #8d478a; }
+    .type-community { background-color: #b48a78; }
+
+    .event-datetime {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--onejax-blue);
+        font-weight: 600;
+        font-size: 0.85rem;
+        white-space: nowrap;
+    }
+
+    .event-datetime-row {
+        margin-top: 0.25rem;
+        margin-bottom: 0.65rem;
+    }
+
+    .event-card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-top: 0.25rem;
     }
 
     .empty-state {
-        text-align: center;
+        text-align: center; 
         padding: 3rem 0;
         color: #6c757d;
     }
@@ -97,13 +183,6 @@
         margin-bottom: 0.75rem;
     }
     
-    .badge-event-type {
-        background-color: var(--onejax-teal);
-        color: #fff;
-        font-size: 0.75rem;
-        border-radius: 999px;
-        padding: 0.25rem 0.6rem;
-    }
 </style>
 
 <div class="container my-5">
@@ -123,14 +202,21 @@
     </div>
 
     <!-- Tabs -->
-   
-        @if (goals != null)
+   <ul class="nav nav-pills justify-content-center mb-4" id="eventTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="all-events-tab" data-bs-toggle="tab" data-bs-target="#all-events"
+                type="button" role="tab">
+                All Events
+            </button>
+        </li>
+        
+        @if (goalTabs != null && goalTabs.Any())
         {
-            foreach (var goal in goals)
+            foreach (var goal in goalTabs)
             {
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="goal-@goal.Value-tab" data-bs-toggle="tab" data-bs-target="#goal-@goal.Value"
-                        type="button" role="tab">
+                            type="button" role="tab" aria-controls="goal-@goal.Value" aria-selected="false">
                         @goal.Text
                     </button>
                 </li>
@@ -154,10 +240,35 @@
                 <div class="row">
                     @foreach (var e in Model.OrderByDescending(x => x.Id))
                     {
-                        var goalName = goals?.FirstOrDefault(g => g.Value == e.StrategicGoalId.ToString())?.Text;
-
                         <div class="col-md-6 col-lg-4 mb-4">
                             <div class="card h-100 p-3">
+                                @{
+                                    // Goal name for this event
+                                    var goalName = goalTabs?.FirstOrDefault(g => g.Value == e.StrategicGoalId.ToString())?.Text;
+
+                                    // Format date as MM/dd/yyyy when possible
+                                    var dateDisplay = e.Date;
+                                    if (!string.IsNullOrWhiteSpace(e.Date) && DateTime.TryParse(e.Date, out var parsedDate))
+                                    {
+                                        dateDisplay = parsedDate.ToString("MM/dd/yyyy");
+                                    }
+
+                                    // Format time as h:mm AM/PM when possible
+                                    var timeDisplay = e.Time;
+                                    if (!string.IsNullOrWhiteSpace(e.Time) && DateTime.TryParse(e.Time, out var parsedTime))
+                                    {
+                                        timeDisplay = parsedTime.ToString("h:mm tt");
+                                    }
+
+                                    var showDateTime = !string.IsNullOrWhiteSpace(dateDisplay) || !string.IsNullOrWhiteSpace(timeDisplay);
+                                    var typeClass = (e.EventType ?? string.Empty).Trim().ToLowerInvariant();
+                                    var goalClass = (goalName ?? string.Empty)
+                                        .Trim()
+                                        .ToLowerInvariant()
+                                        .Replace(" ", "-")
+                                        .Replace("/", "-");
+                                }
+
                                 <div class="d-flex justify-content-between align-items-start mb-2">
                                     <h5 class="event-card-title mb-0">@e.Name</h5>
 
@@ -168,13 +279,12 @@
                                         <ul class="dropdown-menu dropdown-menu-end">
                                             <li>
                                                 <a class="dropdown-item text-primary" asp-controller="Strategy"
-                                                    asp-action="Edit" asp-route-id="@e.Id">
+                                                   asp-action="Edit" asp-route-id="@e.Id">
                                                     Edit
                                                 </a>
                                             </li>
                                             <li>
-                                                <button type="button"
-                                                        class="dropdown-item text-danger"
+                                                <button type="button" class="dropdown-item text-danger"
                                                         data-bs-toggle="modal"
                                                         data-bs-target="#deleteConfirmModal"
                                                         data-event-id="@e.Id">
@@ -185,36 +295,36 @@
                                     </div>
                                 </div>
 
-                                <p class="event-card-meta mb-2">
-                                    @if (!string.IsNullOrEmpty(e.Date) || !string.IsNullOrEmpty(e.Time))
-                                    {
-                                        <span>
+                                <p class="event-card-desc">@e.Description</p>
+
+                                @if (showDateTime)
+                                {
+                                    <div class="event-datetime-row">
+                                        <span class="event-datetime">
                                             <i class="bi bi-calendar-event"></i>
-                                            @if (!string.IsNullOrEmpty(e.Date))
+                                            @if (!string.IsNullOrWhiteSpace(dateDisplay))
                                             {
-                                                @e.Date
+                                                <span>@dateDisplay</span>
                                             }
-                                            @if (!string.IsNullOrEmpty(e.Time))
+                                            @if (!string.IsNullOrWhiteSpace(timeDisplay))
                                             {
-                                                <span> at @e.Time</span>
+                                                <span>@timeDisplay</span>
                                             }
                                         </span>
+                                    </div>
+                                }
+
+                                <div class="event-meta-row">
+                                    @if (!string.IsNullOrWhiteSpace(goalName))
+                                    {
+                                        <span class="badge-pill badge-goal goal-@goalClass"><i class="bi bi-bullseye"></i> @goalName</span>
                                     }
-                                </p>
 
-                                @if (!string.IsNullOrEmpty(goalName))
-                                {
-                                    <p class="event-card-meta mb-2">
-                                        <i class="bi bi-bullseye"></i> @goalName
-                                    </p>
-                                }
-
-                                <p class="mb-2 text-secondary">@e.Description</p>
-
-                                @if (!string.IsNullOrEmpty(e.EventType))
-                                {
-                                    <span class="badge badge-event-type">@e.EventType</span>
-                                }
+                                    @if (!string.IsNullOrWhiteSpace(e.EventType))
+                                    {
+                                        <span class="badge-pill badge-type type-@typeClass"><i class="bi bi-tag"></i> @e.EventType</span>
+                                    }
+                                </div>
                             </div>
                         </div>
                     }
@@ -223,13 +333,12 @@
         </div>
 
         <!-- Events by Goal -->
-        @if (goals != null)
+        @if (goalTabs != null && goalTabs.Any())
         {
-            foreach (var goal in goals)
+            foreach (var goal in goalTabs)
             {
                 var goalId = int.Parse(goal.Value);
-                var eventsForGoal = Model?.Where(e => e.StrategicGoalId == goalId).ToList() ?? new
-                List<OneJaxDashboard.Models.Strategy>();
+                var eventsForGoal = Model?.Where(e => e.StrategicGoalId == goalId).ToList() ?? new List<OneJaxDashboard.Models.Strategy>();
 
                 <div class="tab-pane fade" id="goal-@goal.Value" role="tabpanel" aria-labelledby="goal-@goal.Value-tab">
                     @if (!eventsForGoal.Any())
@@ -246,6 +355,30 @@
                             {
                                 <div class="col-md-6 col-lg-4 mb-4">
                                     <div class="card h-100 p-3">
+                                        @{
+                                            // Format date as MM/dd/yyyy when possible
+                                            var dateDisplay = e.Date;
+                                            if (!string.IsNullOrWhiteSpace(e.Date) && DateTime.TryParse(e.Date, out var parsedDate))
+                                            {
+                                                dateDisplay = parsedDate.ToString("MM/dd/yyyy");
+                                            }
+
+                                            // Format time as h:mm AM/PM when possible
+                                            var timeDisplay = e.Time;
+                                            if (!string.IsNullOrWhiteSpace(e.Time) && DateTime.TryParse(e.Time, out var parsedTime))
+                                            {
+                                                timeDisplay = parsedTime.ToString("h:mm tt");
+                                            }
+
+                                            var showDateTime = !string.IsNullOrWhiteSpace(dateDisplay) || !string.IsNullOrWhiteSpace(timeDisplay);
+                                            var typeClass = (e.EventType ?? string.Empty).Trim().ToLowerInvariant();
+                                            var goalClass = (goal.Text ?? string.Empty)
+                                                .Trim()
+                                                .ToLowerInvariant()
+                                                .Replace(" ", "-")
+                                                .Replace("/", "-");
+                                        }
+
                                         <div class="d-flex justify-content-between align-items-start mb-2">
                                             <h5 class="event-card-title mb-0">@e.Name</h5>
 
@@ -256,13 +389,15 @@
                                                 <ul class="dropdown-menu dropdown-menu-end">
                                                     <li>
                                                         <a class="dropdown-item text-primary" asp-controller="Strategy"
-                                                            asp-action="Edit" asp-route-id="@e.Id">
+                                                           asp-action="Edit" asp-route-id="@e.Id">
                                                             Edit
                                                         </a>
                                                     </li>
                                                     <li>
-                                                        <button type="button" class="dropdown-item text-danger" data-bs-toggle="modal"
-                                                            data-bs-target="#deleteConfirmModal" data-event-id="@e.Id">
+                                                        <button type="button" class="dropdown-item text-danger"
+                                                                data-bs-toggle="modal"
+                                                                data-bs-target="#deleteConfirmModal"
+                                                                data-event-id="@e.Id">
                                                             Delete
                                                         </button>
                                                     </li>
@@ -270,33 +405,33 @@
                                             </div>
                                         </div>
 
-                                        <p class="event-card-meta mb-2">
-                                            @if (!string.IsNullOrEmpty(e.Date) || !string.IsNullOrEmpty(e.Time))
-                                            {
-                                                <span>
+                                        <p class="event-card-desc">@e.Description</p>
+
+                                        @if (showDateTime)
+                                        {
+                                            <div class="event-datetime-row">
+                                                <span class="event-datetime">
                                                     <i class="bi bi-calendar-event"></i>
-                                                    @if (!string.IsNullOrEmpty(e.Date))
+                                                    @if (!string.IsNullOrWhiteSpace(dateDisplay))
                                                     {
-                                                        @e.Date
+                                                        <span>@dateDisplay</span>
                                                     }
-                                                    @if (!string.IsNullOrEmpty(e.Time))
+                                                    @if (!string.IsNullOrWhiteSpace(timeDisplay))
                                                     {
-                                                        <span> at @e.Time</span>
+                                                        <span>@timeDisplay</span>
                                                     }
                                                 </span>
-                                            }
-                                        </p>
-
-                                        <p class="event-card-meta mb-2">
-                                            <i class="bi bi-bullseye"></i> @goal.Text
-                                        </p>
-
-                                        <p class="mb-2 text-secondary">@e.Description</p>
-
-                                        @if (!string.IsNullOrEmpty(e.EventType))
-                                        {
-                                            <span class="badge badge-event-type">@e.EventType</span>
+                                            </div>
                                         }
+
+                                        <div class="event-meta-row">
+                                            <span class="badge-pill badge-goal goal-@goalClass"><i class="bi bi-bullseye"></i> @goal.Text</span>
+
+                                            @if (!string.IsNullOrWhiteSpace(e.EventType))
+                                            {
+                                                <span class="badge-pill badge-type type-@typeClass"><i class="bi bi-tag"></i> @e.EventType</span>
+                                            }
+                                        </div>
                                     </div>
                                 </div>
                             }
