@@ -20,6 +20,7 @@ builder.Services.AddSingleton<OneJaxDashboard.Services.StaffService>();
 builder.Services.AddSingleton<OneJaxDashboard.Services.EventsService>();
 builder.Services.AddSingleton<OneJaxDashboard.Services.StrategyService>();
 builder.Services.AddSingleton<OneJaxDashboard.Services.ActivityLogService>();
+builder.Services.AddScoped<OneJaxDashboard.Services.MetricsService>();
 
 // Keep ProjectsService for backward compatibility during transition
 builder.Services.AddSingleton<OneJaxDashboard.Services.ProjectsService>();

@@ -20,6 +20,12 @@ namespace OneJaxDashboard.Models
         public string Status { get; set; } = "Active"; // Active, Completed, On Hold
         public DateTime TargetDate { get; set; }
         
+        // Dashboard display properties
+        public string DataSource { get; set; } = "Form"; // Form, Manual, Calculated
+        public string MetricType { get; set; } = "Count"; // Count, Percentage, Currency, Quarterly
+        public bool IsPublic { get; set; } = true; // Show on public dashboard
+        public string FiscalYear { get; set; } = "2025-2026"; // Which fiscal year this applies to
+        
         // Quarterly data (for metrics like website traffic)
         public decimal Q1Value { get; set; }
         public decimal Q2Value { get; set; }

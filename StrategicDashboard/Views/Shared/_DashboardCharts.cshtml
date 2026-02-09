@@ -1,0 +1,160 @@
+<!-- Enhanced Dashboard Charts -->
+<div class="row mb-5">
+    <div class="col-12">
+        <h4 style="color: var(--onejax-navy); margin-bottom: 2rem;">Dashboard Analytics</h4>
+    </div>
+    
+    <!-- Progress Chart -->
+    <div class="col-md-6 mb-4">
+        <div class="card" style="border-radius: 12px; border: none; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+            <div class="card-header" style="background: linear-gradient(135deg, var(--onejax-navy), var(--onejax-blue)); color: white; border-radius: 12px 12px 0 0;">
+                <h6 class="mb-0">Goal Progress Overview</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="progressChart" width="400" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Metrics Trend Chart -->
+    <div class="col-md-6 mb-4">
+        <div class="card" style="border-radius: 12px; border: none; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+            <div class="card-header" style="background: linear-gradient(135deg, var(--onejax-green), var(--onejax-blue)); color: white; border-radius: 12px 12px 0 0;">
+                <h6 class="mb-0">Activity Trends</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="trendsChart" width="400" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+// Dashboard data from server
+@{
+    var goalData = new List<object>();
+    foreach(var g in Model.StrategicGoals) {
+        double progress = 0.0;
+        if (g.Metrics != null && g.Metrics.Any()) {
+            var sum = 0.0;
+            var count = 0;
+            foreach(var metric in g.Metrics) {
+                sum += (double)metric.ProgressPercentage;
+                count++;
+            }
+            progress = count > 0 ? sum / count : 0.0;
+        }
+        goalData.Add(new { 
+            name = g.Name, 
+            progress = progress
+        });
+    }
+}
+const dashboardData = @Html.Raw(Json.Serialize(new { 
+    goals = goalData,
+    summary = Model.Summary
+}));
+
+// Goal Progress Chart
+const progressCtx = document.getElementById('progressChart').getContext('2d');
+const progressChart = new Chart(progressCtx, {
+    type: 'doughnut',
+    data: {
+        labels: dashboardData.goals.map(g => g.name),
+        datasets: [{
+            data: dashboardData.goals.map(g => Math.round(g.progress * 10) / 10),
+            backgroundColor: [
+                'var(--onejax-navy)',
+                'var(--onejax-green)',
+                'var(--onejax-orange)',
+                'var(--onejax-blue)'
+            ],
+            borderWidth: 3,
+            borderColor: '#fff'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    padding: 20,
+                    usePointStyle: true
+                }
+            }
+        }
+    }
+});
+
+// Activity Trends Chart
+const trendsCtx = document.getElementById('trendsChart').getContext('2d');
+const trendsChart = new Chart(trendsCtx, {
+    type: 'line',
+    data: {
+        labels: ['Staff Surveys', 'Prof Dev', 'Media', 'Web Traffic', 'Events', 'Total'],
+        datasets: [{
+            label: 'Data Entries',
+            data: [
+                dashboardData.summary.totalStaffSurveys || 0,
+                dashboardData.summary.totalProfessionalDevelopmentPlans || 0,
+                dashboardData.summary.totalMediaPlacements || 0,
+                dashboardData.summary.totalWebsiteTrafficEntries || 0,
+                dashboardData.summary.totalEvents || 0,
+                dashboardData.summary.totalActivities || 0
+            ],
+            borderColor: 'var(--onejax-blue)',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            fill: true,
+            tension: 0.4
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        },
+        plugins: {
+            legend: {
+                display: true,
+                position: 'bottom'
+            }
+        }
+    }
+});
+
+// Export Dashboard Data
+function exportDashboard() {
+    const exportData = {
+        summary: dashboardData.summary,
+        goals: dashboardData.goals,
+        exportDate: new Date().toISOString()
+    };
+    
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    
+    const exportFileDefaultName = `OneJax_Dashboard_Export_${new Date().toISOString().split('T')[0]}.json`;
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+}
+</script>
+
+<!-- Export Button -->
+<div class="row mb-4">
+    <div class="col-12 text-end">
+        <button onclick="exportDashboard()" class="btn btn-outline-primary">
+            <i class="fas fa-download"></i> Export Dashboard Data
+        </button>
+    </div>
+</div>

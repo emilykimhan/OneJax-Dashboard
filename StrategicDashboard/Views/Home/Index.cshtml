@@ -1,294 +1,17 @@
 @model DashboardViewModel
 @using OneJaxDashboard.Models
 @{
-    ViewData["Title"] = "OneJax Strategic Dashboard";
+    ViewData["Title"] = "OneJax Strategic Dashboard - Enhanced";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var selectedGoal = Context.Request.Query["goal"].ToString();
     var selectedStatus = Context.Request.Query["status"].ToString();
     var selectedTime = Context.Request.Query["time"].ToString();
     var selectedFiscalYear = Context.Request.Query["fiscalYear"].ToString();
     var selectedQuarter = Context.Request.Query["quarter"].ToString();
+    
+    // Check if we have enhanced metrics
+    var hasEnhancedMetrics = Model.StrategicGoals?.Any(g => g.Metrics?.Any(m => !string.IsNullOrEmpty(m.DataSource)) == true) == true;
 }
-
-<style>
-    :root {
-        --onejax-navy: #1E3A8A;
-        --onejax-blue: #3B82F6;
-        --onejax-orange: #F59E0B;
-        --onejax-green: #10B981;
-        --onejax-white: #FFFFFF;
-        --onejax-light-bg: #f8fafc;
-        --onejax-border: #e2e8f0;
-        --onejax-text: #1e293b;
-        --onejax-text-muted: #64748b;
-        --gradient-primary: linear-gradient(135deg, var(--onejax-navy), var(--onejax-blue));
-        --gradient-secondary: linear-gradient(135deg, var(--onejax-blue), var(--onejax-green));
-        --gradient-accent: linear-gradient(135deg, var(--onejax-orange), #ea580c);
-        --shadow-soft: 0 4px 20px rgba(30, 58, 138, 0.1);
-        --shadow-medium: 0 8px 30px rgba(0, 0, 0, 0.12);
-        --shadow-strong: 0 15px 35px rgba(30, 58, 138, 0.2);
-    }
-
-    body {
-        background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-        min-height: 100vh;
-    }
-
-    .dashboard-header {
-        background: var(--gradient-primary);
-        position: relative;
-        overflow: hidden;
-        box-shadow: var(--shadow-strong);
-    }
-
-    .dashboard-header::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
-        opacity: 0.3;
-    }
-
-    .dashboard-header .container {
-        position: relative;
-        z-index: 2;
-    }
-
-    .floating-card {
-        background: var(--onejax-white);
-        border-radius: 20px;
-        box-shadow: var(--shadow-soft);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        backdrop-filter: blur(10px);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-        overflow: hidden;
-    }
-
-    .floating-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: var(--gradient-accent);
-        border-radius: 20px 20px 0 0;
-    }
-
-    .floating-card:hover {
-        transform: translateY(-8px);
-        box-shadow: var(--shadow-medium);
-    }
-
-    .nav-tabs-modern {
-        border: none;
-        background: var(--onejax-white);
-        border-radius: 15px;
-        padding: 8px;
-        box-shadow: var(--shadow-soft);
-        margin-bottom: 2rem;
-    }
-
-    .nav-tabs-modern .nav-link {
-        border: none;
-        border-radius: 12px;
-        padding: 12px 24px;
-        font-weight: 600;
-        color: var(--onejax-text-muted);
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .nav-tabs-modern .nav-link:hover {
-        color: var(--onejax-navy);
-        background: rgba(59, 130, 246, 0.1);
-        transform: translateY(-2px);
-    }
-
-    .nav-tabs-modern .nav-link.active {
-        background: var(--gradient-primary);
-        color: white;
-        box-shadow: 0 4px 15px rgba(30, 58, 138, 0.3);
-    }
-
-    .metric-card {
-        background: var(--onejax-white);
-        border-radius: 16px;
-        padding: 1.5rem;
-        box-shadow: var(--shadow-soft);
-        border: 1px solid var(--onejax-border);
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .metric-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 3px;
-        background: var(--gradient-secondary);
-    }
-
-    .metric-card:hover {
-        transform: translateY(-5px);
-        box-shadow: var(--shadow-medium);
-    }
-
-    .progress-modern {
-        height: 8px;
-        background: rgba(59, 130, 246, 0.1);
-        border-radius: 10px;
-        overflow: hidden;
-        position: relative;
-    }
-
-    .progress-modern .progress-bar {
-        background: var(--gradient-secondary);
-        border-radius: 10px;
-        transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-        overflow: hidden;
-    }
-
-    .progress-modern .progress-bar::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-        animation: shimmer 2s infinite;
-    }
-
-    @@keyframes shimmer {
-        0% { left: -100%; }
-        100% { left: 100%; }
-    }
-
-    .stat-card-modern {
-        background: var(--onejax-white);
-        border-radius: 20px;
-        padding: 2rem;
-        text-align: center;
-        box-shadow: var(--shadow-soft);
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .stat-card-modern::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 6px;
-        background: var(--gradient-accent);
-        border-radius: 20px 20px 0 0;
-    }
-
-    .stat-card-modern:hover {
-        transform: translateY(-10px);
-        box-shadow: var(--shadow-strong);
-    }
-
-    .pulse-animation {
-        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-    }
-
-    @@keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.7; }
-    }
-
-    .fade-in {
-        animation: fadeIn 0.8s ease-out;
-    }
-
-    @@keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    .slide-in-left {
-        animation: slideInLeft 0.6s ease-out;
-    }
-
-    @@keyframes slideInLeft {
-        from { opacity: 0; transform: translateX(-50px); }
-        to { opacity: 1; transform: translateX(0); }
-    }
-
-    .slide-in-right {
-        animation: slideInRight 0.6s ease-out;
-    }
-
-    @@keyframes slideInRight {
-        from { opacity: 0; transform: translateX(50px); }
-        to { opacity: 1; transform: translateX(0); }
-    }    .badge-modern {
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .btn-modern {
-        border-radius: 12px;
-        padding: 12px 24px;
-        font-weight: 600;
-        border: none;
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .btn-modern:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-    }
-
-    .btn-primary-modern {
-        background: var(--gradient-primary);
-        color: white;
-    }
-
-    .btn-secondary-modern {
-        background: var(--onejax-white);
-        color: var(--onejax-navy);
-        border: 2px solid var(--onejax-border);
-    }
-
-    .icon-float {
-        display: inline-block;
-        transition: transform 0.3s ease;
-    }
-
-    .icon-float:hover {
-        transform: translateY(-3px);
-    }
-
-    .hover-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 25px rgba(30, 58, 138, 0.15);
-        border-color: var(--onejax-blue);
-    }
-
-    .goal-section {
-        transition: opacity 0.3s ease-in-out;
-    }
-</style>
 
 <!-- Enhanced Header Section -->
 <div class="dashboard-header" style="padding: 4rem 0; margin-bottom: 3rem;">
@@ -305,7 +28,7 @@
                 <p class="mb-3" style="color: rgba(255,255,255,0.8); font-size: 1.1rem;">The OneJax Strategic Dashboard provides comprehensive financial and project progress tracking of our strategic initiatives.</p>
                 <div class="mt-4">
                     <a href="/Public/Overview" class="btn btn-outline-light btn-lg" style="border-radius: 12px; font-weight: 600; border: 2px solid rgba(255,255,255,0.3); backdrop-filter: blur(10px);">
-                        📊 View Public Overview
+                        🎯 View Goals Overview
                     </a>
                 </div>
             </div>
@@ -318,8 +41,10 @@
     </div>
 </div>
 
+<!-- Comprehensive Metrics are now integrated directly into each goal tab below -->
+
 <!-- Enhanced Introduction Section -->
-<div class="container mb-5 fade-in">
+<div class="container mb-5 fade-in")>
     <div class="row">
         <div class="col-12">
             <div class="floating-card" style="padding: 3rem;">
@@ -472,19 +197,6 @@
                             </button>
                         </div>
                     </div>
-                    
-                    <div class="row mt-3">
-                        <div class="col-md-12">
-                            <div class="d-flex gap-2 justify-content-end">
-                                <button type="button" class="btn btn-secondary-modern" onclick="exportToPDF()">
-                                    PDF Report
-                                </button>
-                                <button type="button" class="btn btn-secondary-modern" onclick="exportToExcel()">
-                                    Excel Export
-                                </button>
-                            </div>
-                        </div>
-                    </div>
                 </form>
             </div>
         </div>
@@ -516,11 +228,20 @@
                         </div>
                     </div>
                     <div class="card-body" style="padding: 2rem;">
-                        <div class="row">
+                        <!-- Dashboard Analytics Header -->
+                        <div class="row mb-4">
+                            <div class="col-12 text-center">
+                                <h4 style="color: var(--onejax-navy); font-weight: 600; margin-bottom: 0.5rem;">Dashboard Analytics</h4>
+                                <p style="color: var(--onejax-text-muted); margin-bottom: 2rem;">Visual overview of your organizational progress</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Goal Overview Cards Row -->
+                        <div class="row mb-5">
                             @foreach (var summaryGoal in Model.StrategicGoals)
                             {
                                 var goalProgress = summaryGoal.Metrics?.Any() == true ? summaryGoal.Metrics.Average(m => m.ProgressPercentage) : 0;
-                                <div class="col-md-6 col-lg-4 mb-3">
+                                <div class="col-md-6 col-lg-3 mb-3">
                                     <div class="card hover-card" style="background: var(--onejax-white); border: 1px solid var(--onejax-border); border-radius: 12px; cursor: pointer; transition: all 0.3s ease;" onclick="switchTab('@summaryGoal.Name.Replace(" ", "_")', null)">
                                         <div class="card-body text-center" style="padding: 1.5rem;">
                                             <h6 style="color: var(--onejax-navy); margin-bottom: 1rem; font-weight: 600;">@summaryGoal.Name</h6>
@@ -539,6 +260,96 @@
                                 </div>
                             }
                         </div>
+                        
+                        <!-- Dashboard Charts Row -->
+                        <div class="row">
+                            <!-- Strategic Goal Progress Chart -->
+                            <div class="col-md-6 mb-4">
+                                <div class="card" style="border-radius: 12px; border: 1px solid var(--onejax-border); box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                                    <div class="card-header" style="background: linear-gradient(135deg, var(--onejax-navy), var(--onejax-blue)); color: white; border-radius: 12px 12px 0 0;">
+                                        <h6 class="mb-0">Strategic Goal Progress</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="progressChart" width="400" height="250"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Data Activity Summary Chart -->
+                            <div class="col-md-6 mb-4">
+                                <div class="card" style="border-radius: 12px; border: 1px solid var(--onejax-border); box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                                    <div class="card-header" style="background: linear-gradient(135deg, var(--onejax-green), var(--onejax-blue)); color: white; border-radius: 12px 12px 0 0;">
+                                        <h6 class="mb-0">Data Activity Summary</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="activityChart" width="400" height="250"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Additional Charts Row 1 -->
+                        <div class="row mb-4">
+                            <!-- Monthly Trends Chart -->
+                            <div class="col-md-8 mb-4">
+                                <div class="card" style="border-radius: 12px; border: 1px solid var(--onejax-border); box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                                    <div class="card-header" style="background: linear-gradient(135deg, var(--onejax-orange), #ea580c); color: white; border-radius: 12px 12px 0 0;">
+                                        <h6 class="mb-0">📈 Monthly Progress Trends</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="trendsChart" width="600" height="300"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Metrics Type Distribution -->
+                            <div class="col-md-4 mb-4">
+                                <div class="card" style="border-radius: 12px; border: 1px solid var(--onejax-border); box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                                    <div class="card-header" style="background: linear-gradient(135deg, #8B5CF6, #7C3AED); color: white; border-radius: 12px 12px 0 0;">
+                                        <h6 class="mb-0">📊 Metrics Distribution</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="metricsTypeChart" width="300" height="300"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Additional Charts Row 2 -->
+                        <div class="row mb-4">
+                            <!-- Goal Performance Radar -->
+                            <div class="col-md-6 mb-4">
+                                <div class="card" style="border-radius: 12px; border: 1px solid var(--onejax-border); box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                                    <div class="card-header" style="background: linear-gradient(135deg, #10B981, #059669); color: white; border-radius: 12px 12px 0 0;">
+                                        <h6 class="mb-0">🎯 Goal Performance Radar</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="radarChart" width="400" height="300"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Financial Metrics Area Chart -->
+                            <div class="col-md-6 mb-4">
+                                <div class="card" style="border-radius: 12px; border: 1px solid var(--onejax-border); box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                                    <div class="card-header" style="background: linear-gradient(135deg, #F59E0B, #D97706); color: white; border-radius: 12px 12px 0 0;">
+                                        <h6 class="mb-0">💰 Financial Progress</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="financialChart" width="400" height="300"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Export Button Row -->
+                        <div class="row mt-3">
+                            <div class="col-12 text-center">
+                                <button onclick="exportDashboard()" class="btn btn-outline-primary">
+                                    <i class="fas fa-download"></i> Export Dashboard Data
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -547,7 +358,7 @@
             {
                 @* Municipal dashboard styling *@
                 var isSelectedGoal = !string.IsNullOrEmpty(selectedGoal) && goal.Name == selectedGoal;
-                var shouldShow = string.IsNullOrEmpty(selectedGoal) || goal.Name == selectedGoal;
+                var shouldShow = !string.IsNullOrEmpty(selectedGoal) && goal.Name == selectedGoal;
                 
                 <div class="col-12 mb-4 goal-section" 
                      data-goal="@goal.Name.Replace(" ", "_")" 
@@ -729,44 +540,7 @@
                                             }
                                             else if (metric.Name.Contains("Website Traffic"))
                                             {
-                                                <!-- Professional Quarterly Data Chart -->
-                                                <div class="col-md-6 mb-3">
-                                                    <div class="card" style="background:var(--onejax-white); border:1px solid #e5e7eb; border-radius:8px;">
-                                                        <div class="card-body">
-                                                            <h6 class="card-title" style="color:var(--onejax-navy); font-weight:600;">@metric.Name</h6>
-                                                            <div class="row text-center mb-3">
-                                                                <div class="col-3">
-                                                                    <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:10px; border-radius:6px;">
-                                                                        <div style="font-size:0.9em; font-weight:600; color:var(--onejax-navy);">Q1</div>
-                                                                        <div style="font-size:0.8em; color:#64748b;">@metric.Q1Value.ToString("N0")</div>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-3">
-                                                                    <div style="background:#f1f5f9; border:1px solid #cbd5e1; padding:10px; border-radius:6px;">
-                                                                        <div style="font-size:0.9em; font-weight:600; color:var(--onejax-navy);">Q2</div>
-                                                                        <div style="font-size:0.8em; color:#64748b;">@metric.Q2Value.ToString("N0")</div>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-3">
-                                                                    <div style="background:#e2e8f0; border:1px solid #94a3b8; padding:10px; border-radius:6px;">
-                                                                        <div style="font-size:0.9em; font-weight:600; color:var(--onejax-navy);">Q3</div>
-                                                                        <div style="font-size:0.8em; color:#64748b;">@metric.Q3Value.ToString("N0")</div>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-3">
-                                                                    <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:10px; border-radius:6px;">
-                                                                        <div style="font-size:0.9em; font-weight:600; color:#94a3b8;">Q4</div>
-                                                                        <div style="font-size:0.8em; color:#94a3b8;">TBD</div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <div class="text-center">
-                                                                <div class="h4 mb-0" style="color:var(--onejax-navy);">@metric.CurrentValue%</div>
-                                                                <small class="text-muted">Target: @metric.Target% Growth</small>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                                // Skip Website Traffic metrics since we have the quarterly chart
                                             }
                                             else if (metric.Name.Contains("Social Media"))
                                             {
@@ -846,6 +620,188 @@
                                 </div>
                             }
                             
+                            <!-- Quarterly Performance Overview Chart -->
+                            @if (goal.Name.Contains("Identity") || goal.Name.Contains("Value"))
+                            {
+                                <div class="mb-4">
+                                    <div class="card" style="border-radius: 12px; border: 1px solid var(--onejax-border); box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                                        <div class="card-header" style="background: linear-gradient(135deg, var(--onejax-navy), var(--onejax-blue)); color: white; border-radius: 12px 12px 0 0;">
+                                            <h6 class="mb-0">📅 Quarterly Performance Overview</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <canvas id="quarterlyChart" width="800" height="280" style="max-height: 280px;"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            
+                            <!-- Comprehensive Strategic Metrics Section - Staff Only -->
+                            @if (User.Identity.IsAuthenticated && goal.Metrics != null && goal.Metrics.Any(m => !string.IsNullOrEmpty(m.DataSource)))
+                            {
+                                <div class="mb-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h5 style="color:var(--onejax-navy); margin-bottom:0;">📊 Strategic Metrics Overview (Staff Only)</h5>
+                                        <small class="text-muted">
+                                            <i class="fas fa-info-circle"></i> Click <i class="fas fa-edit" style="font-size: 0.8em;"></i> to edit manually tracked metrics
+                                        </small>
+                                    </div>
+                                    <div class="row">
+                                        @foreach (var metric in goal.Metrics.Where(m => !string.IsNullOrEmpty(m.DataSource)))
+                                        {
+                                            <div class="col-md-4 col-sm-6 mb-3">
+                                                <div class="card metric-card" style="border-radius: 12px; border: 1px solid var(--onejax-border); transition: all 0.2s ease; position: relative;">
+                                                    @if (metric.DataSource == "Manual")
+                                                    {
+                                                        <div class="metric-edit-btn" style="position: absolute; top: 8px; right: 8px; z-index: 10;">
+                                                            <button class="btn btn-sm btn-outline-secondary" style="padding: 2px 6px; font-size: 0.7em; border-radius: 50%;" onclick="editMetric(@metric.Id)" title="Quick Edit">
+                                                                <i class="fas fa-edit" style="font-size: 0.8em;"></i>
+                                                            </button>
+                                                        </div>
+                                                    }
+                                                    <div class="card-body" style="padding: 1rem;">
+                                                        <div class="metric-header mb-2">
+                                                            <h6 class="metric-title" style="color: var(--onejax-navy); font-weight: 600; margin: 0; font-size: 0.9rem; line-height: 1.3;">@metric.Name</h6>
+                                                            <div class="metric-badges mt-1">
+                                                                @if (metric.MetricType == "Percentage")
+                                                                {
+                                                                    <span class="badge badge-percentage" style="background: linear-gradient(135deg, #10B981, #059669); color: white; font-size: 0.65rem; padding: 2px 6px;">%</span>
+                                                                }
+                                                                else if (metric.MetricType == "Count")
+                                                                {
+                                                                    <span class="badge badge-count" style="background: linear-gradient(135deg, #3B82F6, #1E40AF); color: white; font-size: 0.65rem; padding: 2px 6px;">#</span>
+                                                                }
+                                                                else if (metric.MetricType == "Currency")
+                                                                {
+                                                                    <span class="badge badge-currency" style="background: linear-gradient(135deg, #F59E0B, #D97706); color: white; font-size: 0.65rem; padding: 2px 6px;">$</span>
+                                                                }
+                                                                else if (metric.MetricType == "Quarterly")
+                                                                {
+                                                                    <span class="badge badge-quarterly" style="background: linear-gradient(135deg, #8B5CF6, #7C3AED); color: white; font-size: 0.65rem; padding: 2px 6px;">Q</span>
+                                                                }
+                                                                
+                                                                @if (metric.DataSource == "Form")
+                                                                {
+                                                                    <span class="badge badge-form" style="background: #64748b; color: white; font-size: 0.6rem; padding: 2px 4px; margin-left: 2px;">Auto</span>
+                                                                }
+                                                                else if (metric.DataSource == "Manual")
+                                                                {
+                                                                    <span class="badge badge-manual" style="background: #ef4444; color: white; font-size: 0.6rem; padding: 2px 4px; margin-left: 2px;">Manual</span>
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div class="metric-value-section mb-2">
+                                                            <div class="d-flex justify-content-between align-items-end">
+                                                                <div class="current-value">
+                                                                    <div class="metric-current" style="font-size: 1.4rem; font-weight: 700; color: var(--onejax-navy);">
+                                                                        @if (metric.MetricType == "Currency")
+                                                                        {
+                                                                            <text>$@metric.CurrentValue.ToString("N0")</text>
+                                                                        }
+                                                                        else if (metric.MetricType == "Percentage")
+                                                                        {
+                                                                            <text>@metric.CurrentValue%</text>
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <text>@metric.CurrentValue</text>
+                                                                        }
+                                                                    </div>
+                                                                </div>
+                                                                <div class="target-value text-end">
+                                                                    <small class="text-muted" style="font-size: 0.75rem;">
+                                                                        Target: 
+                                                                        @if (metric.MetricType == "Currency")
+                                                                        {
+                                                                            <text>$@Convert.ToDecimal(metric.Target).ToString("N0")</text>
+                                                                        }
+                                                                        else if (metric.MetricType == "Percentage")
+                                                                        {
+                                                                            <text>@metric.Target%</text>
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <text>@metric.Target</text>
+                                                                        }
+                                                                    </small>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div class="metric-progress mb-2">
+                                                            <div class="progress" style="height: 6px; border-radius: 3px; background-color: rgba(59, 130, 246, 0.1);">
+                                                                <div class="progress-bar" style="width: @Math.Min(metric.ProgressPercentage, 100)%; background: linear-gradient(90deg, var(--onejax-blue), var(--onejax-green)); border-radius: 3px;"></div>
+                                                            </div>
+                                                            <div class="d-flex justify-content-between mt-1">
+                                                                <small class="text-muted" style="font-size: 0.7rem;">Progress</small>
+                                                                <small class="text-muted" style="font-size: 0.7rem;">@Math.Round(metric.ProgressPercentage, 1)%</small>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        @if (metric.DataSource == "Form")
+                                                        {
+                                                            <div class="metric-link mt-2">
+                                                                <a href="/DataEntry" class="btn btn-outline-primary btn-sm" style="font-size: 0.75rem; padding: 4px 8px;">
+                                                                    <i class="fas fa-external-link-alt"></i> Update via Form
+                                                                </a>
+                                                            </div>
+                                                        }
+                                                        
+                                                        @if (!metric.IsPublic)
+                                                        {
+                                                            <div class="metric-privacy mt-1">
+                                                                <small class="text-muted" style="font-size: 0.65rem;">
+                                                                    <i class="fas fa-lock"></i> Staff Only
+                                                                </small>
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                            
+                            <!-- Public Summary Section - For Non-Authenticated Users -->
+                            @if (!User.Identity.IsAuthenticated)
+                            {
+                                <div class="mb-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h5 style="color:var(--onejax-navy); margin-bottom:0;">🌟 Goal Progress Summary</h5>
+                                        <small class="text-muted">
+                                            <i class="fas fa-chart-bar"></i> Public progress overview
+                                        </small>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 col-lg-6 mb-3">
+                                            <div class="card" style="border-radius: 12px; border: 1px solid var(--onejax-border); transition: all 0.2s ease;">
+                                                <div class="card-body text-center" style="padding: 1.5rem;">
+                                                    <h6 style="color: var(--onejax-navy); margin-bottom: 1rem; font-weight: 600;">Overall Progress</h6>
+                                                    @{
+                                                        var currentGoalProgress = goal.Metrics?.Any() == true ? goal.Metrics.Average(m => m.ProgressPercentage) : 0;
+                                                    }
+                                                    <div style="font-size: 2rem; font-weight: 700; color: var(--onejax-navy); margin-bottom: 1rem;">@Math.Round(currentGoalProgress, 1)%</div>
+                                                    <div class="progress" style="height: 8px; border-radius: 4px; background: rgba(59, 130, 246, 0.1);">
+                                                        <div class="progress-bar" style="width: @Math.Min(currentGoalProgress, 100)%; background: var(--gradient-secondary); border-radius: 4px;"></div>
+                                                    </div>
+                                                    <small class="text-muted mt-2 d-block">Strategic Initiative Progress</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 col-lg-6 mb-3">
+                                            <div class="card" style="border-radius: 12px; border: 1px solid var(--onejax-border); transition: all 0.2s ease;">
+                                                <div class="card-body text-center" style="padding: 1.5rem;">
+                                                    <h6 style="color: var(--onejax-navy); margin-bottom: 1rem; font-weight: 600;">Active Events</h6>
+                                                    <div style="font-size: 2rem; font-weight: 700; color: var(--onejax-navy); margin-bottom: 1rem;">@(goal.Events?.Count() ?? 0)</div>
+                                                    <div style="color: var(--onejax-text-muted); font-size: 0.9rem;">Upcoming initiatives and activities</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            
                             <!-- Events Section -->
                             @if (goal.Events != null && goal.Events.Any())
                             {
@@ -912,24 +868,33 @@
                 <div class="stat-card-modern" style="background: var(--gradient-primary);">
                     <div style="color: white;">
                         <div style="font-size: 0.9rem; margin-bottom: 1.5rem; opacity: 0.9;">TOTAL INVESTMENT</div>
-                        <h2 style="color: white; margin-bottom: 1rem; font-weight: 700;">$2.4M</h2>
-                        <small style="opacity: 0.8;">Strategic Initiatives Budget</small>
+                        <h2 style="color: white; margin-bottom: 1rem; font-weight: 700;">--</h2>
+                        <small style="opacity: 0.8;">No financial data entered</small>
                         <div class="progress-modern mt-3" style="background: rgba(255,255,255,0.2);">
-                            <div class="progress-bar" style="width: 75%; background: rgba(255,255,255,0.8);"></div>
+                            <div class="progress-bar" style="width: 0%; background: rgba(255,255,255,0.8);"></div>
                         </div>
                     </div>
                 </div>
             </div>
+            
+            @{
+                var allEvents = Model.StrategicGoals.SelectMany(g => g.Events ?? new List<Event>());
+                var totalEventsCount = allEvents.Count();
+                var activeEventsCount = allEvents.Count(e => e.Status == "Active");
+                var completedEventsCount = allEvents.Count(e => e.Status == "Completed");
+                var activePercentage = totalEventsCount > 0 ? (activeEventsCount * 100.0 / totalEventsCount) : 0;
+                var completedPercentage = totalEventsCount > 0 ? (completedEventsCount * 100.0 / totalEventsCount) : 0;
+            }
             
             <!-- Active Projects -->
             <div class="col-md-3 slide-in-left" style="animation-delay: 0.1s;">
                 <div class="stat-card-modern" style="background: var(--gradient-secondary);">
                     <div style="color: white;">
                         <div style="font-size: 0.9rem; margin-bottom: 1.5rem; opacity: 0.9;">ACTIVE PROJECTS</div>
-                        <h2 style="color: white; margin-bottom: 1rem; font-weight: 700;">@Model.StrategicGoals.SelectMany(g => g.Events ?? new List<Event>()).Count(e => e.Status == "Active")</h2>
+                        <h2 style="color: white; margin-bottom: 1rem; font-weight: 700;">@activeEventsCount</h2>
                         <small style="opacity: 0.8;">Currently In Progress</small>
                         <div class="progress-modern mt-3" style="background: rgba(255,255,255,0.2);">
-                            <div class="progress-bar" style="width: 65%; background: rgba(255,255,255,0.8);"></div>
+                            <div class="progress-bar" style="width: @activePercentage%; background: rgba(255,255,255,0.8);"></div>
                         </div>
                     </div>
                 </div>
@@ -940,10 +905,10 @@
                 <div class="stat-card-modern" style="background: linear-gradient(135deg, var(--onejax-green), #059669);">
                     <div style="color: white;">
                         <div style="font-size: 0.9rem; margin-bottom: 1.5rem; opacity: 0.9;">COMPLETED</div>
-                        <h2 style="color: white; margin-bottom: 1rem; font-weight: 700;">@Model.StrategicGoals.SelectMany(g => g.Events ?? new List<Event>()).Count(e => e.Status == "Completed")</h2>
+                        <h2 style="color: white; margin-bottom: 1rem; font-weight: 700;">@completedEventsCount</h2>
                         <small style="opacity: 0.8;">Successfully Delivered</small>
                         <div class="progress-modern mt-3" style="background: rgba(255,255,255,0.2);">
-                            <div class="progress-bar" style="width: 85%; background: rgba(255,255,255,0.8);"></div>
+                            <div class="progress-bar" style="width: @completedPercentage%; background: rgba(255,255,255,0.8);"></div>
                         </div>
                     </div>
                 </div>
@@ -1013,6 +978,50 @@
     </div>
 </div>
 
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+<!-- OneJax Dashboard Scripts -->
+<script src="~/js/dashboard-charts.js"></script>
+<script src="~/js/dashboard-interactions.js"></script>
+
+<!-- Dashboard Data Setup -->
+<script>
+    // Set up data for external JavaScript files
+    window.chartData = {
+        goalProgress: [@Model.Charts.GoalProgress.OrganizationalProgress, @Model.Charts.GoalProgress.FinancialProgress, @Model.Charts.GoalProgress.IdentityProgress, @Model.Charts.GoalProgress.CommunityProgress],
+        activitySummary: [@Model.Summary.TotalStaffSurveys, @Model.Summary.TotalProfessionalDevelopmentPlans, @Model.Summary.TotalMediaPlacements, @Model.Summary.TotalWebsiteTrafficEntries, @Model.Summary.TotalEvents],
+        monthlyTrends: {
+            labels: [@Html.Raw(string.Join(",", Model.Charts.MonthlyTrends.Select(t => $"'{t.Month}'")))],
+            organizational: [@Html.Raw(string.Join(",", Model.Charts.MonthlyTrends.Select(t => t.OrganizationalValue.ToString())))],
+            community: [@Html.Raw(string.Join(",", Model.Charts.MonthlyTrends.Select(t => t.CommunityValue.ToString())))],
+            financial: [@Html.Raw(string.Join(",", Model.Charts.MonthlyTrends.Select(t => t.FinancialValue.ToString())))],
+            identity: [@Html.Raw(string.Join(",", Model.Charts.MonthlyTrends.Select(t => t.IdentityValue.ToString())))],
+        },
+        metricTypes: {
+            labels: [@Html.Raw(string.Join(",", Model.Charts.MetricTypes.Select(mt => $"'{mt.Type}'")))],
+            values: [@Html.Raw(string.Join(",", Model.Charts.MetricTypes.Select(mt => mt.Count.ToString())))]
+        },
+        radarCurrent: [@Model.Charts.GoalProgress.OrganizationalProgress, @Model.Charts.GoalProgress.FinancialProgress, @Model.Charts.GoalProgress.IdentityProgress, @Model.Charts.GoalProgress.CommunityProgress, @((Model.Summary.AverageStaffSatisfaction > 0 ? Model.Summary.AverageStaffSatisfaction : 0)), @((Model.Summary.TotalWebsiteTrafficEntries > 0 ? Math.Min(Model.Summary.TotalWebsiteTrafficEntries * 10, 100) : 0))],
+        quarterly: {
+            labels: [@Html.Raw(string.Join(",", Model.Charts.QuarterlyData.Select(q => $"'{q.Quarter}'")))],
+            values: [@Html.Raw(string.Join(",", Model.Charts.QuarterlyData.Select(q => q.Value.ToString())))]
+        }
+    };
+
+    window.summaryData = {
+        totalStaffSurveys: @Model.Summary.TotalStaffSurveys,
+        totalProfessionalDevelopmentPlans: @Model.Summary.TotalProfessionalDevelopmentPlans,
+        totalMediaPlacements: @Model.Summary.TotalMediaPlacements,
+        totalWebsiteTrafficEntries: @Model.Summary.TotalWebsiteTrafficEntries,
+        totalEvents: @Model.Summary.TotalEvents,
+        totalActivities: @Model.Summary.TotalActivities
+    };
+
+    window.userAuthenticated = @User.Identity.IsAuthenticated.ToString().ToLower();
+</script>
+
 <script>
 // Apply Filters Function (No Page Refresh)
 function applyFilters() {
@@ -1045,21 +1054,6 @@ function applyFilters() {
     
     // Navigate to the new URL with filters
     window.location.href = newUrl;
-}
-
-// Enhanced Export Functions with Visual Feedback
-function exportToPDF() {
-    showNotification('PDF Report Generation', 'Preparing comprehensive financial and project progress report...', 'info');
-    setTimeout(() => {
-        showNotification('Feature Coming Soon', 'PDF export will include detailed project timelines, budget allocations, and progress metrics.', 'success');
-    }, 1500);
-}
-
-function exportToExcel() {
-    showNotification('Excel Export Starting', 'Compiling strategic initiative data...', 'info');
-    setTimeout(() => {
-        showNotification('Feature Coming Soon', 'Excel export will include interactive charts, pivot tables, and detailed analytics.', 'success');
-    }, 1500);
 }
 
 function showComingSoon(feature) {
@@ -1130,8 +1124,6 @@ function showNotification(title, message, type = 'info') {
 
 // Tab Switching Function (No Page Refresh)
 function switchTab(goalName, clickedTab) {
-    console.log('switchTab called with:', goalName, clickedTab);
-    
     // Prevent any default behavior
     if (event) {
         event.preventDefault();
@@ -1171,7 +1163,9 @@ function switchTab(goalName, clickedTab) {
         }, 50);
         
         // Re-initialize progress bar animations for the new content
-        initializeProgressBars(targetSection);
+        if (typeof initializeProgressBars === 'function') {
+            initializeProgressBars(targetSection);
+        }
     }
     
     // Update URL without refresh (optional - for bookmarking)
@@ -1179,9 +1173,6 @@ function switchTab(goalName, clickedTab) {
         window.location.pathname : 
         `${window.location.pathname}?goal=${goalName.replace('_', ' ')}`;
     window.history.replaceState(null, '', newUrl);
-    
-    // Show notification for better UX
-    showNotification('Tab Switched', `Now viewing: ${goalName.replace('_', ' ')}`, 'info');
 }
 
 // Initialize progress bars for a specific section
@@ -1199,8 +1190,58 @@ function initializeProgressBars(container) {
     });
 }
 
+// Quick Edit Metric Function - Staff/Admin Only
+function editMetric(metricId) {
+    // Check if user is authenticated (simple client-side check)
+    var isAuthenticated = '@User.Identity.IsAuthenticated'.toLowerCase() === 'true';
+    
+    if (!isAuthenticated) {
+        showNotification('Access Denied', 'Please log in as staff/admin to edit metrics', 'error');
+        return;
+    }
+    
+    // Create a modal or inline edit interface
+    const currentValue = prompt('Enter new value for this metric (Staff Only):');
+    
+    if (currentValue !== null && currentValue !== '') {
+        // Send AJAX request to update the metric
+        fetch('/DashboardMetrics/QuickUpdate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+            },
+            body: JSON.stringify({
+                metricId: metricId,
+                currentValue: parseFloat(currentValue) || 0
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Refresh the current tab to show updated values
+                location.reload();
+                showNotification('Metric Updated', 'The metric value has been successfully updated', 'success');
+            } else {
+                if (data.message.includes('Authentication')) {
+                    showNotification('Access Denied', 'Please log in as staff/admin to edit metrics', 'error');
+                } else {
+                    showNotification('Error', 'Failed to update metric: ' + data.message, 'error');
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Error', 'Failed to update metric. Please check your connection and authentication.', 'error');
+        });
+    }
+}
+
 // Enhanced Interactive Features
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize charts first
+    initializeDashboardCharts();
+    
     // Initialize animations and interactions
     initializeAnimations();
     
@@ -1348,4 +1389,384 @@ document.head.appendChild(style);
 setTimeout(() => {
     showNotification('Welcome to OneJax Dashboard', 'Explore your strategic initiatives with enhanced visuals and interactive features!', 'info');
 }, 1000);
+
+// Dashboard Charts Setup
+function initializeDashboardCharts() {
+    // Goal Progress Chart (Doughnut)
+    const progressCtx = document.getElementById('progressChart');
+    if (progressCtx) {
+        const progressChart = new Chart(progressCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Organizational Building', 'Financial Sustainability', 'Identity/Value Prop', 'Community Engagement'],
+                datasets: [{
+                    data: [@Model.Charts.GoalProgress.OrganizationalProgress, @Model.Charts.GoalProgress.FinancialProgress, @Model.Charts.GoalProgress.IdentityProgress, @Model.Charts.GoalProgress.CommunityProgress],
+                    backgroundColor: ['#1e3a8a', '#10b981', '#f59e0b', '#3b82f6'],
+                    borderWidth: 3,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            usePointStyle: true
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': ' + Math.round(context.raw) + '% complete';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Activity Summary Chart (Bar)
+    const activityCtx = document.getElementById('activityChart');
+    if (activityCtx) {
+        const activityChart = new Chart(activityCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Staff Surveys', 'Prof. Development', 'Media Placements', 'Website Traffic', 'Events'],
+                datasets: [{
+                    label: 'Count',
+                    data: [@Model.Summary.TotalStaffSurveys, @Model.Summary.TotalProfessionalDevelopmentPlans, @Model.Summary.TotalMediaPlacements, @Model.Summary.TotalWebsiteTrafficEntries, @Model.Summary.TotalEvents],
+                    backgroundColor: ['#1e3a8a', '#10b981', '#f59e0b', '#3b82f6', '#8b5cf6'],
+                    borderRadius: 4,
+                    borderSkipped: false,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
+    
+    // Monthly Trends Chart (Line)
+    const trendsCtx = document.getElementById('trendsChart');
+    if (trendsCtx) {
+        const trendsChart = new Chart(trendsCtx, {
+            type: 'line',
+            data: {
+                labels: [@Html.Raw(string.Join(",", Model.Charts.MonthlyTrends.Select(t => $"'{t.Month}'")))],
+                datasets: [
+                    {
+                        label: 'Organizational Building',
+                        data: [@Html.Raw(string.Join(",", Model.Charts.MonthlyTrends.Select(t => t.OrganizationalValue.ToString())))],
+                        borderColor: '#1e3a8a',
+                        backgroundColor: 'rgba(30, 58, 138, 0.1)',
+                        tension: 0.4,
+                        fill: false
+                    },
+                    {
+                        label: 'Community Engagement',
+                        data: [@Html.Raw(string.Join(",", Model.Charts.MonthlyTrends.Select(t => t.CommunityValue.ToString())))],
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.4,
+                        fill: false
+                    },
+                    {
+                        label: 'Financial Sustainability',
+                        data: [@Html.Raw(string.Join(",", Model.Charts.MonthlyTrends.Select(t => t.FinancialValue.ToString())))],
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                        tension: 0.4,
+                        fill: false
+                    },
+                    {
+                        label: 'Identity/Value Prop',
+                        data: [@Html.Raw(string.Join(",", Model.Charts.MonthlyTrends.Select(t => t.IdentityValue.ToString())))],
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4,
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                interaction: {
+                    mode: 'nearest',
+                    axis: 'x',
+                    intersect: false
+                }
+            }
+        });
+    }
+    
+    // Metrics Type Distribution Chart (Pie)
+    const metricsTypeCtx = document.getElementById('metricsTypeChart');
+    if (metricsTypeCtx) {
+        const metricsTypeChart = new Chart(metricsTypeCtx, {
+            type: 'pie',
+            data: {
+                labels: [@Html.Raw(string.Join(",", Model.Charts.MetricTypes.Select(mt => $"'{mt.Type}'")))],
+                datasets: [{
+                    data: [@Html.Raw(string.Join(",", Model.Charts.MetricTypes.Select(mt => mt.Count.ToString())))],
+                    backgroundColor: ['#ef4444', '#64748b', '#10b981', '#8b5cf6', '#f59e0b', '#06b6d4'],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 10,
+                            usePointStyle: true
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': ' + context.raw + ' metrics';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    // Goal Performance Radar Chart
+    const radarCtx = document.getElementById('radarChart');
+    if (radarCtx) {
+        const radarChart = new Chart(radarCtx, {
+            type: 'radar',
+            data: {
+                labels: ['Organizational', 'Financial', 'Identity/Value', 'Community', 'Staff Satisfaction', 'Public Engagement'],
+                datasets: [{
+                    label: 'Current Performance',
+                    data: [@Model.Charts.GoalProgress.OrganizationalProgress, @Model.Charts.GoalProgress.FinancialProgress, @Model.Charts.GoalProgress.IdentityProgress, @Model.Charts.GoalProgress.CommunityProgress, @((Model.Summary.AverageStaffSatisfaction > 0 ? Model.Summary.AverageStaffSatisfaction : 0)), @((Model.Summary.TotalWebsiteTrafficEntries > 0 ? Math.Min(Model.Summary.TotalWebsiteTrafficEntries * 10, 100) : 0))],
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#3b82f6',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: '#3b82f6'
+                }, {
+                    label: 'Target Performance',
+                    data: [85, 80, 75, 90, 85, 70],
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    borderWidth: 2,
+                    borderDash: [5, 5],
+                    pointBackgroundColor: '#10b981',
+                    pointBorderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + Math.round(context.raw) + '%';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }
+            }
+        });
+    }
+    
+    // Financial Metrics Area Chart
+    const financialCtx = document.getElementById('financialChart');
+    if (financialCtx) {
+        const financialChart = new Chart(financialCtx, {
+            type: 'line',
+            data: {
+                labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+                datasets: [{
+                    label: 'Revenue ($)',
+                    data: [25000, 35000, 42000, 38000],
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.3)',
+                    fill: true,
+                    tension: 0.4
+                }, {
+                    label: 'Expenses ($)',
+                    data: [20000, 28000, 32000, 30000],
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.3)',
+                    fill: true,
+                    tension: 0.4
+                }, {
+                    label: 'Net Income ($)',
+                    data: [5000, 7000, 10000, 8000],
+                    borderColor: '#f59e0b',
+                    backgroundColor: 'rgba(245, 158, 11, 0.3)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toLocaleString();
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    // Quarterly Performance Chart (Horizontal Bar)
+    const quarterlyCtx = document.getElementById('quarterlyChart');
+    if (quarterlyCtx) {
+        const quarterlyChart = new Chart(quarterlyCtx, {
+            type: 'bar',
+            data: {
+                labels: [@Html.Raw(string.Join(",", Model.Charts.QuarterlyData.Select(q => $"'{q.Quarter}'")))],
+                datasets: [
+                    {
+                        label: 'Website Traffic (Primary Metric)',
+                        data: [@Html.Raw(string.Join(",", Model.Charts.QuarterlyData.Select(q => q.Value.ToString())))],
+                        backgroundColor: ['#1e3a8a', '#10b981', '#f59e0b', '#3b82f6'],
+                        borderWidth: 1,
+                        borderColor: '#fff'
+                    }
+                ]
+            },
+            plugins: [ChartDataLabels],
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.raw.toLocaleString() + ' clicks';
+                            }
+                        }
+                    },
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'top',
+                        offset: 5,
+                        formatter: function(value, context) {
+                            return value.toLocaleString() + ' clicks';
+                        },
+                        color: '#1f2937',
+                        font: {
+                            weight: 'bold',
+                            size: 12
+                        },
+                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                        borderColor: '#d1d5db',
+                        borderWidth: 1,
+                        borderRadius: 4,
+                        padding: 4
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Fiscal Year Quarters'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Website Traffic (Clicks)'
+                        }
+                    }
+                }
+            }
+        });
+    }
+}
+
+// Export Dashboard Function
+function exportDashboard() {
+    const dashboardData = {
+        summary: {
+            totalStaffSurveys: @Model.Summary.TotalStaffSurveys,
+            totalProfessionalDevelopmentPlans: @Model.Summary.TotalProfessionalDevelopmentPlans,
+            totalMediaPlacements: @Model.Summary.TotalMediaPlacements,
+            totalWebsiteTrafficEntries: @Model.Summary.TotalWebsiteTrafficEntries,
+            totalEvents: @Model.Summary.TotalEvents,
+            totalActivities: @Model.Summary.TotalActivities
+        },
+        exportDate: new Date().toISOString(),
+        source: '@Model.DataSource'
+    };
+    
+    const dataStr = JSON.stringify(dashboardData, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    
+    const exportFileName = `OneJax_Dashboard_${new Date().toISOString().split('T')[0]}.json`;
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileName);
+    linkElement.click();
+}
 </script>
