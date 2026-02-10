@@ -74,6 +74,13 @@ namespace OneJaxDashboard.Data
                 .WithMany(g => g.Strategies)
                 .HasForeignKey(s => s.StrategicGoalId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Event>()
+                .HasOne(e => e.AssignedStaff)
+                .WithMany()
+                .HasForeignKey(e => e.OwnerUsername)
+                .HasPrincipalKey(s => s.Username)
+                .OnDelete(DeleteBehavior.SetNull);
         }
 
     }
