@@ -16,13 +16,17 @@ namespace OneJaxDashboard.Controllers
         private readonly EventsService _events;
         private readonly StrategyService _strategyService;
         private readonly ActivityLogService _activityLog;
+        private readonly StrategyController _strategy;
+        
 
-        public EventsController(ApplicationDbContext context, EventsService events, StrategyService strategyService, ActivityLogService activityLog)
+
+        public EventsController(ApplicationDbContext context, EventsService events, StrategyService strategyService, ActivityLogService activityLog, StrategyController strategy)
         {
             _context = context;
             _events = events;
             _strategyService = strategyService;
             _activityLog = activityLog;
+            _strategy = strategy;
         }
 
         // GET: Events/Details/5 - Public access for dashboard
@@ -33,6 +37,7 @@ namespace OneJaxDashboard.Controllers
             {
                 // Try to get event from database first
                 var eventFromDb = _context.Events?
+                    .Include(e => e.AssignedStaff)
                     .Where(e => e.Id == id)
                     .FirstOrDefault();
 
@@ -65,6 +70,10 @@ namespace OneJaxDashboard.Controllers
                         Location = string.IsNullOrEmpty(strategy.Time) ? "TBD" : $"Time: {strategy.Time}"
                     };
 
+                    _context.Strategies?.Add(strategy);
+                    _context.SaveChanges();
+                    
+
                     // Get goal name for ViewBag
                     var goalNames = new Dictionary<int, string>
                     {
@@ -96,6 +105,7 @@ namespace OneJaxDashboard.Controllers
         {
             var username = User.Identity?.Name ?? string.Empty;
             var items = _events.GetByOwner(username)
+                .ToList()
                 .Where(e => e.StrategyTemplateId.HasValue && _strategyService.GetStrategy(e.StrategyTemplateId.Value) != null)
                 .ToList();
             return View(items);
@@ -161,8 +171,15 @@ namespace OneJaxDashboard.Controllers
 
             var username = User.Identity?.Name ?? string.Empty;
             eventModel.OwnerUsername = username;
+            eventModel.IsAssignedByAdmin = false; 
+
             var added = _events.Add(eventModel);
-            _activityLog.Log(username, "Created Event", "Event", added.Id, notes: added.Title);
+
+            var staff = _context.Staffauth.FirstOrDefault(s => s.Username == username);
+            var staffName = staff?.Name ?? username;
+            _activityLog.Log(username, "Created Event", "Event", added.Id, notes: $"Created '{added.Title}'");
+
+            TempData["SuccessMessage"] = "Event created successfully!";
             return RedirectToAction("Index");
         }
 
@@ -208,11 +225,17 @@ namespace OneJaxDashboard.Controllers
 
             _events.Update(eventModel);
 
+            //Get staff name for logging
+            var username = User.Identity?.Name ?? string.Empty;
+            var staff = _context.Staffauth.FirstOrDefault(s => s.Username == username);
+            var staffName = staff?.Name ?? username;
+
             // Log the update with status change detail if applicable
             var logAction = statusChanged ? "Changed Event Status" : "Updated Event";
-            var logNotes = statusChangeNote ?? eventModel.Title;
-            _activityLog.Log(existing.OwnerUsername, logAction, "Event", eventModel.Id, notes: logNotes);
+            var logNotes = statusChangeNote ?? $"Updated '{eventModel.Title}'";
+            _activityLog.Log(staffName, logAction, "Event", eventModel.Id, notes: logNotes);
 
+            TempData["SuccessMessage"] = "Event updated successfully!";
             return RedirectToAction("Index");
         }
 
@@ -233,8 +256,16 @@ namespace OneJaxDashboard.Controllers
             var eventModel = _events.Get(id);
             if (eventModel == null) return NotFound();
             if (!IsOwner(eventModel)) return Forbid();
+
+            var username = User.Identity?.Name ?? string.Empty;
+            var staff = _context.Staffauth.FirstOrDefault(s => s.Username == username);
+            var staffName = staff?.Name ?? username;
+            var eventTitle = eventModel.Title;
+
             _events.Remove(id);
-            _activityLog.Log(eventModel.OwnerUsername, "Deleted Event", "Event", id, notes: eventModel.Title);
+            _activityLog.Log(eventModel.OwnerUsername, "Deleted Event", "Event", id, notes: $"Deleted '{eventTitle}'");
+
+            TempData["SuccessMessage"] = "Event deleted successfully!";
             return RedirectToAction("Index");
         }
 

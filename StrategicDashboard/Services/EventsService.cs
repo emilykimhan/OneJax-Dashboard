@@ -1,29 +1,44 @@
+using Microsoft.EntityFrameworkCore;
+using OneJaxDashboard.Data;
 using OneJaxDashboard.Models;
 
 namespace OneJaxDashboard.Services
 {
     public class EventsService
     {
-        private static readonly List<Event> _events = new();
+        private readonly ApplicationDbContext _db;
+        
+        public EventsService(ApplicationDbContext db)
+        {
+            _db = db;
+        }
 
         public IEnumerable<Event> GetByOwner(string username)
-            => _events.Where(e => string.Equals(e.OwnerUsername, username, StringComparison.OrdinalIgnoreCase) && !e.IsArchived);
+            => _db.Events
+                .Include(e => e.AssignedStaff)
+                .Where(e => string.Equals(e.OwnerUsername, username, StringComparison.OrdinalIgnoreCase) && !e.IsArchived)
+                .ToList();
 
         public IEnumerable<Event> GetArchivedByOwner(string username)
-            => _events.Where(e => string.Equals(e.OwnerUsername, username, StringComparison.OrdinalIgnoreCase) && e.IsArchived);
+            => _db.Events
+                .Include(e => e.AssignedStaff)
+                .Where(e => string.Equals(e.OwnerUsername, username, StringComparison.OrdinalIgnoreCase) && e.IsArchived)
+                .ToList();
 
-        public Event? Get(int id) => _events.FirstOrDefault(e => e.Id == id);
+        public Event? Get(int id) => _db.Events
+                .Include(e => e.AssignedStaff)
+                .FirstOrDefault(e => e.Id == id);
 
         public Event Add(Event eventModel)
         {
-            eventModel.Id = _events.Count > 0 ? _events.Max(e => e.Id) + 1 : 1;
-            _events.Add(eventModel);
+            _db.Events.Add(eventModel);
+            _db.SaveChanges();
             return eventModel;
         }
 
         public void Update(Event eventModel)
         {
-            var existing = Get(eventModel.Id);
+            var existing = _db.Events.Find(eventModel.Id);
             if (existing == null) return;
             
             existing.StrategyTemplateId = eventModel.StrategyTemplateId;
@@ -45,42 +60,77 @@ namespace OneJaxDashboard.Services
             existing.PostAssessmentData = eventModel.PostAssessmentData;
             existing.IsArchived = eventModel.IsArchived;
             existing.CompletionDate = eventModel.CompletionDate;
+            _db.SaveChanges();
         }
 
         public void Archive(int id)
         {
-            var existing = Get(id);
+            var existing = _db.Events.Find(id);
             if (existing == null) return;
             existing.IsArchived = true;
             existing.CompletionDate = DateTime.Now;
+            _db.SaveChanges();
         }
 
         public void Unarchive(int id)
         {
-            var existing = Get(id);
+            var existing = _db.Events.Find(id);
             if (existing == null) return;
             existing.IsArchived = false;
+            _db.SaveChanges();
         }
 
-        public void Remove(int id) => _events.RemoveAll(e => e.Id == id);
+        public void Remove(int id)
+        {
+            var eventModel = _db.Events.Find(id);
+            if (eventModel != null)
+            {
+            _db.Events.Remove(eventModel);
+            _db.SaveChanges();
+            }
+        }
+        public IEnumerable<Event> GetAll() 
+            => _db.Events
+                .Include(e => e.AssignedStaff)
+                .Where(e => !e.IsArchived)
+                .ToList();
 
-        public IEnumerable<Event> GetAll() => _events.Where(e => !e.IsArchived);
+        public IEnumerable<Event> GetAllIncludingArchived() => _db.Events
+                .Include(e => e.AssignedStaff)
+                .ToList();
 
-        public IEnumerable<Event> GetAllIncludingArchived() => _events;
-
-        public IEnumerable<Event> GetArchived() => _events.Where(e => e.IsArchived);
+        public IEnumerable<Event> GetArchived() => _db.Events
+                .Include(e => e.AssignedStaff)
+                .Where(e => e.IsArchived)
+                .ToList();
 
         public IEnumerable<Event> GetByStrategy(int strategyId)
-            => _events.Where(e => e.StrategyId == strategyId && !e.IsArchived);
+            => _db.Events
+                .Include(e => e.AssignedStaff)
+                .Where(e => e.StrategyId == strategyId && !e.IsArchived)
+                .ToList();
 
         public IEnumerable<Event> GetByStrategicGoal(int goalId)
-            => _events.Where(e => e.StrategicGoalId == goalId && !e.IsArchived);
+            => _db.Events
+                .Include(e => e.AssignedStaff)
+                .Where(e => e.StrategicGoalId == goalId && !e.IsArchived)
+                .ToList();
 
         public IEnumerable<Event> GetByStrategyTemplate(int strategyTemplateId)
-            => _events.Where(e => e.StrategyTemplateId == strategyTemplateId && !e.IsArchived);
+            => _db.Events
+                .Include(e => e.AssignedStaff)
+                .Where(e => e.StrategyTemplateId == strategyTemplateId && !e.IsArchived)
+                .ToList();
 
         // Remove events that reference deleted strategies
         public void RemoveByStrategyTemplate(int strategyTemplateId)
-            => _events.RemoveAll(e => e.StrategyTemplateId == strategyTemplateId);
+        {
+            var eventsToRemove = _db.Events
+                .Where(e => e.StrategyTemplateId == strategyTemplateId)
+                .ToList();
+
+            _db.Events.RemoveRange(eventsToRemove);
+            _db.SaveChanges();
+        }
     }
 }

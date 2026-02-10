@@ -51,6 +51,9 @@ namespace OneJaxDashboard.Models
         // Ownership by username to align with current auth model
         public string OwnerUsername { get; set; } = string.Empty;
 
+        [ForeignKey("OwnerUsername")]
+        public virtual Staffauth? AssignedStaff { get; set; }
+
         // Admin assignment fields
         [Display(Name = "Assigned By Admin")]
         public bool IsAssignedByAdmin { get; set; } = false;

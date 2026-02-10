@@ -17,7 +17,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     });
 
 builder.Services.AddSingleton<OneJaxDashboard.Services.StaffService>();
-builder.Services.AddSingleton<OneJaxDashboard.Services.EventsService>();
+builder.Services.AddScoped<OneJaxDashboard.Services.EventsService>();
 builder.Services.AddSingleton<OneJaxDashboard.Services.StrategyService>();
 builder.Services.AddSingleton<OneJaxDashboard.Services.ActivityLogService>();
 

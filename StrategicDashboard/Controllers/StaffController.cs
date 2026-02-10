@@ -4,6 +4,7 @@ using OneJaxDashboard.Data;
 using OneJaxDashboard.Models;
 using Microsoft.EntityFrameworkCore;
 using OneJaxDashboard.Services;
+using System.Security.Claims;
 //talijah's
 namespace OneJaxDashboard.Controllers
 {
@@ -12,10 +13,12 @@ namespace OneJaxDashboard.Controllers
     {
         private readonly StaffService _service;
         private readonly ApplicationDbContext _db;
-        public StaffController(StaffService service, ApplicationDbContext db)
+        private readonly ActivityLogService _activityLog;
+        public StaffController(StaffService service, ApplicationDbContext db, ActivityLogService activityLog)
         {
             _service = service;
             _db = db;
+            _activityLog = activityLog;
         }
 
         public IActionResult Index()
@@ -39,6 +42,10 @@ namespace OneJaxDashboard.Controllers
             // Persist to database
             _db.Staffauth.Add(staff);
             _db.SaveChanges();
+
+            var adminName = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value ?? User.Identity?.Name ?? "Admin";
+            _activityLog.Log(adminName, "Created Staff Member", "Staff", staff.Id, notes: $"Created staff member '{staff.Name}'");
+
             return RedirectToAction("Index");
         }
 
@@ -79,6 +86,10 @@ namespace OneJaxDashboard.Controllers
            
 
             _db.SaveChanges();
+
+            var adminName = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value ?? User.Identity?.Name ?? "Admin";
+            _activityLog.Log(adminName, "Updated Staff Memeber", "Staff", staff.Id, notes: $"Updated staff member '{staff.Name}'");
+
             return RedirectToAction("Index");
         }
 
@@ -97,6 +108,9 @@ namespace OneJaxDashboard.Controllers
             {
                 _db.Staffauth.Remove(staff);
                 _db.SaveChanges();
+
+                var adminName = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value ?? User.Identity?.Name ?? "Admin";
+                _activityLog.Log(adminName, "Deleted Staff Member", "Staff", id, notes: $"Deleted staff member '{staff.Name}'");
             }
             return RedirectToAction("Index");
         }
