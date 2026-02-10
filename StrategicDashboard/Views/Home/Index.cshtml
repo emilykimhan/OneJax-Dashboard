@@ -98,15 +98,18 @@
                     Summary
                 </a>
             </li>
-            @foreach (var goal in Model.StrategicGoals)
+            @if (Model.StrategicGoals != null)
             {
-                <li class="nav-item">
-                    <a class="nav-link @(selectedGoal == goal.Name ? "active" : "")" 
-                       href="#" onclick="event.preventDefault(); switchTab('@goal.Name.Replace(" ", "_")', this);" 
-                       data-tab="@goal.Name.Replace(" ", "_")">
-                        @goal.Name
-                    </a>
-                </li>
+                @foreach (var goal in Model.StrategicGoals)
+                {
+                    <li class="nav-item">
+                        <a class="nav-link @(selectedGoal == goal.Name ? "active" : "")" 
+                           href="#" onclick="event.preventDefault(); switchTab('@goal.Name.Replace(" ", "_")', this);" 
+                           data-tab="@goal.Name.Replace(" ", "_")">
+                            @goal.Name
+                        </a>
+                    </li>
+                }
             }
         </ul>
 
@@ -216,7 +219,7 @@
                             </div>
                             <div class="col-md-4 text-end">
                                 @{
-                                    var overallProgress = Model.StrategicGoals.SelectMany(g => g.Metrics ?? new List<GoalMetric>()).Any() 
+                                    var overallProgress = Model.StrategicGoals?.SelectMany(g => g.Metrics ?? new List<GoalMetric>()).Any() == true
                                         ? Model.StrategicGoals.SelectMany(g => g.Metrics ?? new List<GoalMetric>()).Average(m => m.ProgressPercentage) 
                                         : 0;
                                 }
@@ -238,26 +241,29 @@
                         
                         <!-- Goal Overview Cards Row -->
                         <div class="row mb-5">
-                            @foreach (var summaryGoal in Model.StrategicGoals)
+                            @if (Model.StrategicGoals != null)
                             {
-                                var goalProgress = summaryGoal.Metrics?.Any() == true ? summaryGoal.Metrics.Average(m => m.ProgressPercentage) : 0;
-                                <div class="col-md-6 col-lg-3 mb-3">
-                                    <div class="card hover-card" style="background: var(--onejax-white); border: 1px solid var(--onejax-border); border-radius: 12px; cursor: pointer; transition: all 0.3s ease;" onclick="switchTab('@summaryGoal.Name.Replace(" ", "_")', null)">
-                                        <div class="card-body text-center" style="padding: 1.5rem;">
-                                            <h6 style="color: var(--onejax-navy); margin-bottom: 1rem; font-weight: 600;">@summaryGoal.Name</h6>
-                                            <div style="font-size: 1.8rem; font-weight: 700; color: var(--onejax-navy); margin-bottom: 1rem;">@Math.Round(goalProgress, 1)%</div>
-                                            <div class="progress" style="height: 8px; border-radius: 4px; background: rgba(59, 130, 246, 0.1);">
-                                                <div class="progress-bar" style="width: @Math.Min(goalProgress, 100)%; background: var(--gradient-secondary); border-radius: 4px;"></div>
-                                            </div>
-                                            <small style="color: var(--onejax-text-muted); margin-top: 0.5rem; display: block;">
-                                                @(summaryGoal.Metrics?.Count() ?? 0) Metrics • @(summaryGoal.Events?.Count() ?? 0) Events
-                                            </small>
-                                            <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--onejax-blue);">
-                                                Click to view details →
+                                @foreach (var summaryGoal in Model.StrategicGoals)
+                                {
+                                    var goalProgress = summaryGoal.Metrics?.Any() == true ? summaryGoal.Metrics.Average(m => m.ProgressPercentage) : 0;
+                                    <div class="col-md-6 col-lg-3 mb-3">
+                                        <div class="card hover-card" style="background: var(--onejax-white); border: 1px solid var(--onejax-border); border-radius: 12px; cursor: pointer; transition: all 0.3s ease;" onclick="switchTab('@summaryGoal.Name.Replace(" ", "_")', null)">
+                                            <div class="card-body text-center" style="padding: 1.5rem;">
+                                                <h6 style="color: var(--onejax-navy); margin-bottom: 1rem; font-weight: 600;">@summaryGoal.Name</h6>
+                                                <div style="font-size: 1.8rem; font-weight: 700; color: var(--onejax-navy); margin-bottom: 1rem;">@Math.Round(goalProgress, 1)%</div>
+                                                <div class="progress" style="height: 8px; border-radius: 4px; background: rgba(59, 130, 246, 0.1);">
+                                                    <div class="progress-bar" style="width: @Math.Min(goalProgress, 100)%; background: var(--gradient-secondary); border-radius: 4px;"></div>
+                                                </div>
+                                                <small style="color: var(--onejax-text-muted); margin-top: 0.5rem; display: block;">
+                                                    @(summaryGoal.Metrics?.Count() ?? 0) Metrics • @(summaryGoal.Events?.Count() ?? 0) Events
+                                                </small>
+                                                <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--onejax-blue);">
+                                                    Click to view details →
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                }
                             }
                         </div>
                         
@@ -325,18 +331,6 @@
                                     </div>
                                     <div class="card-body">
                                         <canvas id="radarChart" width="400" height="300"></canvas>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Financial Metrics Area Chart -->
-                            <div class="col-md-6 mb-4">
-                                <div class="card" style="border-radius: 12px; border: 1px solid var(--onejax-border); box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-                                    <div class="card-header" style="background: linear-gradient(135deg, #F59E0B, #D97706); color: white; border-radius: 12px 12px 0 0;">
-                                        <h6 class="mb-0">💰 Financial Progress</h6>
-                                    </div>
-                                    <div class="card-body">
-                                        <canvas id="financialChart" width="400" height="300"></canvas>
                                     </div>
                                 </div>
                             </div>
@@ -417,11 +411,13 @@
                 </div>
             </div>
             
-            @foreach (var goal in Model.StrategicGoals)
+            @if (Model.StrategicGoals != null)
             {
-                @* Municipal dashboard styling *@
-                var isSelectedGoal = !string.IsNullOrEmpty(selectedGoal) && goal.Name == selectedGoal;
-                var shouldShow = !string.IsNullOrEmpty(selectedGoal) && goal.Name == selectedGoal;
+                @foreach (var goal in Model.StrategicGoals)
+                {
+                    @* Municipal dashboard styling *@
+                    var isSelectedGoal = !string.IsNullOrEmpty(selectedGoal) && goal.Name == selectedGoal;
+                    var shouldShow = !string.IsNullOrEmpty(selectedGoal) && goal.Name == selectedGoal;
                 
                 <div class="col-12 mb-4 goal-section" 
                      data-goal="@goal.Name.Replace(" ", "_")" 
@@ -698,6 +694,23 @@
                                 </div>
                             }
 
+                            <!-- Financial Progress Chart - Only for Financial Sustainability -->
+                            @if (goal.Name.Contains("Financial") || goal.Name.Contains("Sustainability"))
+                            {
+                                <div class="mb-4">
+                                    <div class="card" style="border-radius: 12px; border: 1px solid var(--onejax-border); box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                                        <div class="card-header" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border-radius: 12px 12px 0 0;">
+                                            <h6 class="mb-0">💰 Financial Progress Tracking</h6>
+                                        </div>
+                                        <div class="card-body" style="padding: 1rem;">
+                                            <div style="width: 400px; height: 200px; position: relative; margin: 0 auto;">
+                                                <canvas id="financialChart" width="400" height="200"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+
                             
                             <!-- Public Summary Section - For Non-Authenticated Users -->
                             @if (!User.Identity.IsAuthenticated)
@@ -785,6 +798,7 @@
                         </div>
                     </div>
                 </div>
+                }
             }
         </div>
 
@@ -814,7 +828,7 @@
             </div>
             
             @{
-                var allEvents = Model.StrategicGoals.SelectMany(g => g.Events ?? new List<Event>());
+                var allEvents = Model.StrategicGoals?.SelectMany(g => g.Events ?? new List<Event>()) ?? new List<Event>();
                 var totalEventsCount = allEvents.Count();
                 var activeEventsCount = allEvents.Count(e => e.Status == "Active");
                 var completedEventsCount = allEvents.Count(e => e.Status == "Completed");
@@ -856,7 +870,7 @@
                     <div style="color: white;">
                         <div style="font-size: 0.9rem; margin-bottom: 1.5rem; opacity: 0.9;">OVERALL PROGRESS</div>
                         @{
-                            var totalProgress = Model.StrategicGoals.SelectMany(g => g.Metrics ?? new List<GoalMetric>()).Any() 
+                            var totalProgress = Model.StrategicGoals?.SelectMany(g => g.Metrics ?? new List<GoalMetric>()).Any() == true
                                 ? Model.StrategicGoals.SelectMany(g => g.Metrics ?? new List<GoalMetric>()).Average(m => m.ProgressPercentage) 
                                 : 0;
                         }
@@ -881,7 +895,7 @@
                                     Questions or feedback about this dashboard?
                                 </h5>
                                 <p style="color: rgba(255,255,255,0.9); margin-bottom: 0; font-size: 1.1rem;">
-                                    Email us at <a href="mailto:dashboard@onejax.org" style="color: var(--onejax-orange); text-decoration: none; font-weight: 600;">dashboard@onejax.org</a>
+                                    Email us at <a href="mailto:onejax@onejax.org" style="color: var(--onejax-orange); text-decoration: none; font-weight: 600;">onejax@onejax.org</a>
                                 </p>
                             </div>
                             <div class="col-md-4 text-end">
@@ -955,7 +969,7 @@
         totalActivities: @Model.Summary.TotalActivities
     };
 
-    window.userAuthenticated = @User.Identity.IsAuthenticated.ToString().ToLower();
+    window.userAuthenticated = @((User.Identity?.IsAuthenticated ?? false).ToString().ToLower());
 </script>
 
 <script>
@@ -1129,7 +1143,7 @@ function initializeProgressBars(container) {
 // Quick Edit Metric Function - Staff/Admin Only
 function editMetric(metricId) {
     // Check if user is authenticated (simple client-side check)
-    var isAuthenticated = '@User.Identity.IsAuthenticated'.toLowerCase() === 'true';
+    var isAuthenticated = '@((User.Identity?.IsAuthenticated ?? false).ToString().ToLower())' === 'true';
     
     if (!isAuthenticated) {
         showNotification('Access Denied', 'Please log in as staff/admin to edit metrics', 'error');
@@ -1554,31 +1568,50 @@ function initializeDashboardCharts() {
             }
         });
     }
+}
     
-    // Financial Metrics Area Chart
+    /*
+    // Financial Metrics Area Chart (Temporarily disabled for debugging)
     const financialCtx = document.getElementById('financialChart');
-    if (financialCtx) {
+    if (financialCtx) {        
+        @{
+            // Use your known financial values directly for now
+            var totalRevenue = 7540m; // Your actual revenue
+            var totalExpenses = 6000m; // Estimated expenses
+            
+            // Distribute across fiscal year quarters
+            var q1Revenue = Math.Round(totalRevenue * 0.20m, 0);
+            var q2Revenue = Math.Round(totalRevenue * 0.25m, 0);
+            var q3Revenue = Math.Round(totalRevenue * 0.30m, 0);
+            var q4Revenue = Math.Round(totalRevenue * 0.25m, 0);
+            
+            var q1Expense = Math.Round(totalExpenses * 0.20m, 0);
+            var q2Expense = Math.Round(totalExpenses * 0.25m, 0);
+            var q3Expense = Math.Round(totalExpenses * 0.30m, 0);
+            var q4Expense = Math.Round(totalExpenses * 0.25m, 0);
+        }
+        
         const financialChart = new Chart(financialCtx, {
             type: 'line',
             data: {
-                labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+                labels: ['Q1 (Jul-Sep)', 'Q2 (Oct-Dec)', 'Q3 (Jan-Mar)', 'Q4 (Apr-Jun)'],
                 datasets: [{
                     label: 'Revenue ($)',
-                    data: [25000, 35000, 42000, 38000],
+                    data: [@q1Revenue, @q2Revenue, @q3Revenue, @q4Revenue],
                     borderColor: '#10b981',
                     backgroundColor: 'rgba(16, 185, 129, 0.3)',
                     fill: true,
                     tension: 0.4
                 }, {
                     label: 'Expenses ($)',
-                    data: [20000, 28000, 32000, 30000],
+                    data: [@q1Expense, @q2Expense, @q3Expense, @q4Expense],
                     borderColor: '#ef4444',
                     backgroundColor: 'rgba(239, 68, 68, 0.3)',
                     fill: true,
                     tension: 0.4
                 }, {
                     label: 'Net Income ($)',
-                    data: [5000, 7000, 10000, 8000],
+                    data: [@(q1Revenue - q1Expense), @(q2Revenue - q2Expense), @(q3Revenue - q3Expense), @(q4Revenue - q4Expense)],
                     borderColor: '#f59e0b',
                     backgroundColor: 'rgba(245, 158, 11, 0.3)',
                     fill: true,
@@ -1586,19 +1619,45 @@ function initializeDashboardCharts() {
                 }]
             },
             options: {
-                responsive: true,
+                responsive: false,
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        position: 'top'
+                        position: 'top',
+                        labels: {
+                            boxWidth: 12,
+                            font: {
+                                size: 11
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': $' + context.raw.toLocaleString();
+                            }
+                        }
                     }
                 },
                 scales: {
+                    x: {
+                        ticks: {
+                            font: {
+                                size: 10
+                            }
+                        }
+                    },
                     y: {
                         beginAtZero: true,
                         ticks: {
+                            font: {
+                                size: 10
+                            },
                             callback: function(value) {
-                                return '$' + value.toLocaleString();
+                                if (value >= 1000) {
+                                    return '$' + (value/1000).toFixed(0) + 'K';
+                                }
+                                return '$' + value.toFixed(0);
                             }
                         }
                     }
@@ -1606,6 +1665,7 @@ function initializeDashboardCharts() {
             }
         });
     }
+    */
     
     // Quarterly Performance Chart (Horizontal Bar)
     const quarterlyCtx = document.getElementById('quarterlyChart');

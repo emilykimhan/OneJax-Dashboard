@@ -24,7 +24,8 @@
                 </div>
                 
                 <p class="text-center mb-4" style="color:var(--onejax-gray);">
-                    Annual Budget Revenue: <strong>$994,600</strong> | Annual Budget Expense: <strong>$960,200</strong>
+                    Annual Budget Revenue: <strong>$@(((decimal?)ViewBag.TotalRevenue ?? 0).ToString("N0"))</strong> | 
+                    Annual Budget Expense: <strong>$@(((decimal?)ViewBag.TotalExpense ?? 0).ToString("N0"))</strong>
                 </p>
 
                 @if (TempData["Success"] != null)
