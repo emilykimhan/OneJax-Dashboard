@@ -31,6 +31,7 @@ namespace OneJaxDashboard.Data
         public DbSet<BoardMeetingAttendance> BoardMeetingAttendance { get; set; } = default!;
         public DbSet<interfaith_11D> Interfaith_11D { get; set; } = default!;
         public DbSet<eventSatisfaction> EventSatisfaction_12D { get; set; } = default!;
+        public DbSet<FaithRepres_13D> FaithRepresentations { get; set; } = default!;
         
 
         // Dashboard tables
