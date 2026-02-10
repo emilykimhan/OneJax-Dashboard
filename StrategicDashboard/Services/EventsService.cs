@@ -16,15 +16,20 @@ namespace OneJaxDashboard.Services
         public IEnumerable<Event> GetByOwner(string username)
             => _db.Events
                 .Include(e => e.AssignedStaff)
-                .Where(e => string.Equals(e.OwnerUsername, username, StringComparison.OrdinalIgnoreCase) && !e.IsArchived)
+                .Where(e =>
+                    e.OwnerUsername.ToLower() == username.ToLower()
+                    && !e.IsArchived
+                )
                 .ToList();
 
         public IEnumerable<Event> GetArchivedByOwner(string username)
             => _db.Events
                 .Include(e => e.AssignedStaff)
-                .Where(e => string.Equals(e.OwnerUsername, username, StringComparison.OrdinalIgnoreCase) && e.IsArchived)
+                .Where(e =>
+                    e.OwnerUsername.ToLower() == username.ToLower()
+                    && e.IsArchived
+                )
                 .ToList();
-
         public Event? Get(int id) => _db.Events
                 .Include(e => e.AssignedStaff)
                 .FirstOrDefault(e => e.Id == id);

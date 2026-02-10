@@ -18,7 +18,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 
 builder.Services.AddSingleton<OneJaxDashboard.Services.StaffService>();
 builder.Services.AddScoped<OneJaxDashboard.Services.EventsService>();
-builder.Services.AddSingleton<OneJaxDashboard.Services.StrategyService>();
+builder.Services.AddScoped<OneJaxDashboard.Services.StrategyService>();
 builder.Services.AddSingleton<OneJaxDashboard.Services.ActivityLogService>();
 
 // Keep ProjectsService for backward compatibility during transition

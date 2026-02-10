@@ -5,7 +5,7 @@ using OneJaxDashboard.Models;
 using Microsoft.EntityFrameworkCore;
 using OneJaxDashboard.Services;
 using System.Security.Claims;
-//talijah's
+
 namespace OneJaxDashboard.Controllers
 {
     [Authorize(Roles = "Admin")]
@@ -14,6 +14,7 @@ namespace OneJaxDashboard.Controllers
         private readonly StaffService _service;
         private readonly ApplicationDbContext _db;
         private readonly ActivityLogService _activityLog;
+        
         public StaffController(StaffService service, ApplicationDbContext db, ActivityLogService activityLog)
         {
             _service = service;
@@ -33,12 +34,14 @@ namespace OneJaxDashboard.Controllers
         public IActionResult Create(Staffauth staff)
         {
             if (!ModelState.IsValid) return View(staff);
+            
             // Prevent duplicate usernames
             if (!string.IsNullOrEmpty(staff.Username) && _db.Staffauth.Any(s => s.Username == staff.Username))
             {
                 ModelState.AddModelError("Username", "Username is already taken");
                 return View(staff);
             }
+            
             // Persist to database
             _db.Staffauth.Add(staff);
             _db.SaveChanges();
@@ -49,14 +52,19 @@ namespace OneJaxDashboard.Controllers
             return RedirectToAction("Index");
         }
 
+        [HttpGet] // ADD THIS
         public IActionResult Edit(int id)
         {
             var staff = _db.Staffauth.AsNoTracking().FirstOrDefault(s => s.Id == id);
             if (staff == null) return NotFound();
+            
+            // Add a message to the view that username cannot be changed
+            ViewBag.UsernameReadOnly = true;
+            
             return View(staff);
         }
 
-        [HttpPost]
+        [HttpPost] // This one already has it
         public IActionResult Edit(Staffauth staff)
         {
             var existing = _db.Staffauth.FirstOrDefault(s => s.Id == staff.Id);
@@ -65,30 +73,21 @@ namespace OneJaxDashboard.Controllers
             // Allow keeping current password if left blank
             if (string.IsNullOrWhiteSpace(staff.Password))
             {
-                // avoid validation error on Password
                 ModelState.Remove(nameof(Staffauth.Password));
                 staff.Password = existing.Password;
-            }
-
-            // Prevent duplicate usernames (exclude current)
-            if (!string.IsNullOrEmpty(staff.Username) && 
-                _db.Staffauth.Any(s => s.Username == staff.Username && s.Id != staff.Id))
-            {
-                ModelState.AddModelError("Username", "Username is already taken");
             }
 
             if (!ModelState.IsValid) return View(staff);
 
             existing.Name = staff.Name;
-            existing.Username = staff.Username;
+            // DO NOT update Username - it's used as a foreign key and cannot be changed
             existing.Password = staff.Password;
             existing.Email = staff.Email;
-           
 
             _db.SaveChanges();
 
             var adminName = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value ?? User.Identity?.Name ?? "Admin";
-            _activityLog.Log(adminName, "Updated Staff Memeber", "Staff", staff.Id, notes: $"Updated staff member '{staff.Name}'");
+            _activityLog.Log(adminName, "Updated Staff Member", "Staff", staff.Id, notes: $"Updated staff member '{staff.Name}'");
 
             return RedirectToAction("Index");
         }
