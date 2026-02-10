@@ -98,15 +98,18 @@
                     Summary
                 </a>
             </li>
-            @foreach (var goal in Model.StrategicGoals)
+            @if (Model.StrategicGoals != null)
             {
-                <li class="nav-item">
-                    <a class="nav-link @(selectedGoal == goal.Name ? "active" : "")" 
-                       href="#" onclick="event.preventDefault(); switchTab('@goal.Name.Replace(" ", "_")', this);" 
-                       data-tab="@goal.Name.Replace(" ", "_")">
-                        @goal.Name
-                    </a>
-                </li>
+                @foreach (var goal in Model.StrategicGoals)
+                {
+                    <li class="nav-item">
+                        <a class="nav-link @(selectedGoal == goal.Name ? "active" : "")" 
+                           href="#" onclick="event.preventDefault(); switchTab('@goal.Name.Replace(" ", "_")', this);" 
+                           data-tab="@goal.Name.Replace(" ", "_")">
+                            @goal.Name
+                        </a>
+                    </li>
+                }
             }
         </ul>
 
@@ -216,7 +219,7 @@
                             </div>
                             <div class="col-md-4 text-end">
                                 @{
-                                    var overallProgress = Model.StrategicGoals.SelectMany(g => g.Metrics ?? new List<GoalMetric>()).Any() 
+                                    var overallProgress = Model.StrategicGoals?.SelectMany(g => g.Metrics ?? new List<GoalMetric>()).Any() == true
                                         ? Model.StrategicGoals.SelectMany(g => g.Metrics ?? new List<GoalMetric>()).Average(m => m.ProgressPercentage) 
                                         : 0;
                                 }
@@ -238,26 +241,29 @@
                         
                         <!-- Goal Overview Cards Row -->
                         <div class="row mb-5">
-                            @foreach (var summaryGoal in Model.StrategicGoals)
+                            @if (Model.StrategicGoals != null)
                             {
-                                var goalProgress = summaryGoal.Metrics?.Any() == true ? summaryGoal.Metrics.Average(m => m.ProgressPercentage) : 0;
-                                <div class="col-md-6 col-lg-3 mb-3">
-                                    <div class="card hover-card" style="background: var(--onejax-white); border: 1px solid var(--onejax-border); border-radius: 12px; cursor: pointer; transition: all 0.3s ease;" onclick="switchTab('@summaryGoal.Name.Replace(" ", "_")', null)">
-                                        <div class="card-body text-center" style="padding: 1.5rem;">
-                                            <h6 style="color: var(--onejax-navy); margin-bottom: 1rem; font-weight: 600;">@summaryGoal.Name</h6>
-                                            <div style="font-size: 1.8rem; font-weight: 700; color: var(--onejax-navy); margin-bottom: 1rem;">@Math.Round(goalProgress, 1)%</div>
-                                            <div class="progress" style="height: 8px; border-radius: 4px; background: rgba(59, 130, 246, 0.1);">
-                                                <div class="progress-bar" style="width: @Math.Min(goalProgress, 100)%; background: var(--gradient-secondary); border-radius: 4px;"></div>
-                                            </div>
-                                            <small style="color: var(--onejax-text-muted); margin-top: 0.5rem; display: block;">
-                                                @(summaryGoal.Metrics?.Count() ?? 0) Metrics • @(summaryGoal.Events?.Count() ?? 0) Events
-                                            </small>
-                                            <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--onejax-blue);">
-                                                Click to view details →
+                                @foreach (var summaryGoal in Model.StrategicGoals)
+                                {
+                                    var goalProgress = summaryGoal.Metrics?.Any() == true ? summaryGoal.Metrics.Average(m => m.ProgressPercentage) : 0;
+                                    <div class="col-md-6 col-lg-3 mb-3">
+                                        <div class="card hover-card" style="background: var(--onejax-white); border: 1px solid var(--onejax-border); border-radius: 12px; cursor: pointer; transition: all 0.3s ease;" onclick="switchTab('@summaryGoal.Name.Replace(" ", "_")', null)">
+                                            <div class="card-body text-center" style="padding: 1.5rem;">
+                                                <h6 style="color: var(--onejax-navy); margin-bottom: 1rem; font-weight: 600;">@summaryGoal.Name</h6>
+                                                <div style="font-size: 1.8rem; font-weight: 700; color: var(--onejax-navy); margin-bottom: 1rem;">@Math.Round(goalProgress, 1)%</div>
+                                                <div class="progress" style="height: 8px; border-radius: 4px; background: rgba(59, 130, 246, 0.1);">
+                                                    <div class="progress-bar" style="width: @Math.Min(goalProgress, 100)%; background: var(--gradient-secondary); border-radius: 4px;"></div>
+                                                </div>
+                                                <small style="color: var(--onejax-text-muted); margin-top: 0.5rem; display: block;">
+                                                    @(summaryGoal.Metrics?.Count() ?? 0) Metrics • @(summaryGoal.Events?.Count() ?? 0) Events
+                                                </small>
+                                                <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--onejax-blue);">
+                                                    Click to view details →
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                }
                             }
                         </div>
                         
@@ -328,15 +334,66 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                        
+                        <!-- Quick Access Cards Row -->
+                        <div class="row mb-4">
+                            <div class="col-12 mb-3">
+                                <h5 style="color: var(--onejax-navy); font-weight: 600; margin-bottom: 1rem;">
+                                    <i class="fas fa-rocket"></i> Quick Access
+                                </h5>
+                            </div>
                             
-                            <!-- Financial Metrics Area Chart -->
-                            <div class="col-md-6 mb-4">
-                                <div class="card" style="border-radius: 12px; border: 1px solid var(--onejax-border); box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-                                    <div class="card-header" style="background: linear-gradient(135deg, #F59E0B, #D97706); color: white; border-radius: 12px 12px 0 0;">
-                                        <h6 class="mb-0">💰 Financial Progress</h6>
+                            <!-- Media Placements Card -->
+                            <div class="col-md-4 mb-3">
+                                <div class="card hover-card metric-card-creative" style="border-radius: 12px; border: 1px solid var(--onejax-border); cursor: pointer; transition: all 0.3s ease;" onclick="window.location.href='/MediaPlacements'">
+                                    <div class="card-body text-center" style="padding: 1.5rem;">
+                                        <div class="mb-3">
+                                            <i class="fas fa-newspaper" style="font-size: 2.5rem; color: var(--onejax-blue);"></i>
+                                        </div>
+                                        <h6 class="card-title" style="color: var(--onejax-navy); font-weight: 600; margin-bottom: 0.5rem;">Media Placements</h6>
+                                        <p class="card-text text-muted" style="font-size: 0.9rem; margin-bottom: 1rem;">Track media coverage and press mentions</p>
+                                        <div class="d-flex justify-content-center align-items-center">
+                                            <span class="badge" style="background: linear-gradient(135deg, var(--onejax-blue), var(--onejax-green)); color: white; font-size: 0.75rem;">
+                                                @Model.Summary.TotalMediaPlacements Entries
+                                            </span>
+                                        </div>
                                     </div>
-                                    <div class="card-body">
-                                        <canvas id="financialChart" width="400" height="300"></canvas>
+                                </div>
+                            </div>
+                            
+                            <!-- Website Traffic Card -->
+                            <div class="col-md-4 mb-3">
+                                <div class="card hover-card metric-card-creative" style="border-radius: 12px; border: 1px solid var(--onejax-border); cursor: pointer; transition: all 0.3s ease;" onclick="window.location.href='/WebsiteTraffic'">
+                                    <div class="card-body text-center" style="padding: 1.5rem;">
+                                        <div class="mb-3">
+                                            <i class="fas fa-chart-line" style="font-size: 2.5rem; color: var(--onejax-green);"></i>
+                                        </div>
+                                        <h6 class="card-title" style="color: var(--onejax-navy); font-weight: 600; margin-bottom: 0.5rem;">Website Traffic</h6>
+                                        <p class="card-text text-muted" style="font-size: 0.9rem; margin-bottom: 1rem;">Monitor website analytics and engagement</p>
+                                        <div class="d-flex justify-content-center align-items-center">
+                                            <span class="badge" style="background: linear-gradient(135deg, var(--onejax-green), var(--onejax-orange)); color: white; font-size: 0.75rem;">
+                                                @Model.Summary.TotalWebsiteTrafficEntries Entries
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- OneJax Website Card -->
+                            <div class="col-md-4 mb-3">
+                                <div class="card hover-card metric-card-creative" style="border-radius: 12px; border: 1px solid var(--onejax-border); cursor: pointer; transition: all 0.3s ease;" onclick="window.open('https://onejax.org', '_blank')">
+                                    <div class="card-body text-center" style="padding: 1.5rem;">
+                                        <div class="mb-3">
+                                            <i class="fas fa-globe" style="font-size: 2.5rem; color: var(--onejax-orange);"></i>
+                                        </div>
+                                        <h6 class="card-title" style="color: var(--onejax-navy); font-weight: 600; margin-bottom: 0.5rem;">OneJax Website</h6>
+                                        <p class="card-text text-muted" style="font-size: 0.9rem; margin-bottom: 1rem;">Visit our main organization website</p>
+                                        <div class="d-flex justify-content-center align-items-center">
+                                            <span class="badge" style="background: linear-gradient(135deg, var(--onejax-orange), var(--onejax-navy)); color: white; font-size: 0.75rem;">
+                                                <i class="fas fa-external-link-alt"></i> Visit Site
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -354,11 +411,13 @@
                 </div>
             </div>
             
-            @foreach (var goal in Model.StrategicGoals)
+            @if (Model.StrategicGoals != null)
             {
-                @* Municipal dashboard styling *@
-                var isSelectedGoal = !string.IsNullOrEmpty(selectedGoal) && goal.Name == selectedGoal;
-                var shouldShow = !string.IsNullOrEmpty(selectedGoal) && goal.Name == selectedGoal;
+                @foreach (var goal in Model.StrategicGoals)
+                {
+                    @* Municipal dashboard styling *@
+                    var isSelectedGoal = !string.IsNullOrEmpty(selectedGoal) && goal.Name == selectedGoal;
+                    var shouldShow = !string.IsNullOrEmpty(selectedGoal) && goal.Name == selectedGoal;
                 
                 <div class="col-12 mb-4 goal-section" 
                      data-goal="@goal.Name.Replace(" ", "_")" 
@@ -634,134 +693,24 @@
                                     </div>
                                 </div>
                             }
-                            
-                            <!-- Comprehensive Strategic Metrics Section - Staff Only -->
-                            @if (User.Identity.IsAuthenticated && goal.Metrics != null && goal.Metrics.Any(m => !string.IsNullOrEmpty(m.DataSource)))
+
+                            <!-- Financial Progress Chart - Only for Financial Sustainability -->
+                            @if (goal.Name.Contains("Financial") || goal.Name.Contains("Sustainability"))
                             {
                                 <div class="mb-4">
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                        <h5 style="color:var(--onejax-navy); margin-bottom:0;">📊 Strategic Metrics Overview (Staff Only)</h5>
-                                        <small class="text-muted">
-                                            <i class="fas fa-info-circle"></i> Click <i class="fas fa-edit" style="font-size: 0.8em;"></i> to edit manually tracked metrics
-                                        </small>
-                                    </div>
-                                    <div class="row">
-                                        @foreach (var metric in goal.Metrics.Where(m => !string.IsNullOrEmpty(m.DataSource)))
-                                        {
-                                            <div class="col-md-4 col-sm-6 mb-3">
-                                                <div class="card metric-card" style="border-radius: 12px; border: 1px solid var(--onejax-border); transition: all 0.2s ease; position: relative;">
-                                                    @if (metric.DataSource == "Manual")
-                                                    {
-                                                        <div class="metric-edit-btn" style="position: absolute; top: 8px; right: 8px; z-index: 10;">
-                                                            <button class="btn btn-sm btn-outline-secondary" style="padding: 2px 6px; font-size: 0.7em; border-radius: 50%;" onclick="editMetric(@metric.Id)" title="Quick Edit">
-                                                                <i class="fas fa-edit" style="font-size: 0.8em;"></i>
-                                                            </button>
-                                                        </div>
-                                                    }
-                                                    <div class="card-body" style="padding: 1rem;">
-                                                        <div class="metric-header mb-2">
-                                                            <h6 class="metric-title" style="color: var(--onejax-navy); font-weight: 600; margin: 0; font-size: 0.9rem; line-height: 1.3;">@metric.Name</h6>
-                                                            <div class="metric-badges mt-1">
-                                                                @if (metric.MetricType == "Percentage")
-                                                                {
-                                                                    <span class="badge badge-percentage" style="background: linear-gradient(135deg, #10B981, #059669); color: white; font-size: 0.65rem; padding: 2px 6px;">%</span>
-                                                                }
-                                                                else if (metric.MetricType == "Count")
-                                                                {
-                                                                    <span class="badge badge-count" style="background: linear-gradient(135deg, #3B82F6, #1E40AF); color: white; font-size: 0.65rem; padding: 2px 6px;">#</span>
-                                                                }
-                                                                else if (metric.MetricType == "Currency")
-                                                                {
-                                                                    <span class="badge badge-currency" style="background: linear-gradient(135deg, #F59E0B, #D97706); color: white; font-size: 0.65rem; padding: 2px 6px;">$</span>
-                                                                }
-                                                                else if (metric.MetricType == "Quarterly")
-                                                                {
-                                                                    <span class="badge badge-quarterly" style="background: linear-gradient(135deg, #8B5CF6, #7C3AED); color: white; font-size: 0.65rem; padding: 2px 6px;">Q</span>
-                                                                }
-                                                                
-                                                                @if (metric.DataSource == "Form")
-                                                                {
-                                                                    <span class="badge badge-form" style="background: #64748b; color: white; font-size: 0.6rem; padding: 2px 4px; margin-left: 2px;">Auto</span>
-                                                                }
-                                                                else if (metric.DataSource == "Manual")
-                                                                {
-                                                                    <span class="badge badge-manual" style="background: #ef4444; color: white; font-size: 0.6rem; padding: 2px 4px; margin-left: 2px;">Manual</span>
-                                                                }
-                                                            </div>
-                                                        </div>
-                                                        
-                                                        <div class="metric-value-section mb-2">
-                                                            <div class="d-flex justify-content-between align-items-end">
-                                                                <div class="current-value">
-                                                                    <div class="metric-current" style="font-size: 1.4rem; font-weight: 700; color: var(--onejax-navy);">
-                                                                        @if (metric.MetricType == "Currency")
-                                                                        {
-                                                                            <text>$@metric.CurrentValue.ToString("N0")</text>
-                                                                        }
-                                                                        else if (metric.MetricType == "Percentage")
-                                                                        {
-                                                                            <text>@metric.CurrentValue%</text>
-                                                                        }
-                                                                        else
-                                                                        {
-                                                                            <text>@metric.CurrentValue</text>
-                                                                        }
-                                                                    </div>
-                                                                </div>
-                                                                <div class="target-value text-end">
-                                                                    <small class="text-muted" style="font-size: 0.75rem;">
-                                                                        Target: 
-                                                                        @if (metric.MetricType == "Currency")
-                                                                        {
-                                                                            <text>$@Convert.ToDecimal(metric.Target).ToString("N0")</text>
-                                                                        }
-                                                                        else if (metric.MetricType == "Percentage")
-                                                                        {
-                                                                            <text>@metric.Target%</text>
-                                                                        }
-                                                                        else
-                                                                        {
-                                                                            <text>@metric.Target</text>
-                                                                        }
-                                                                    </small>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        
-                                                        <div class="metric-progress mb-2">
-                                                            <div class="progress" style="height: 6px; border-radius: 3px; background-color: rgba(59, 130, 246, 0.1);">
-                                                                <div class="progress-bar" style="width: @Math.Min(metric.ProgressPercentage, 100)%; background: linear-gradient(90deg, var(--onejax-blue), var(--onejax-green)); border-radius: 3px;"></div>
-                                                            </div>
-                                                            <div class="d-flex justify-content-between mt-1">
-                                                                <small class="text-muted" style="font-size: 0.7rem;">Progress</small>
-                                                                <small class="text-muted" style="font-size: 0.7rem;">@Math.Round(metric.ProgressPercentage, 1)%</small>
-                                                            </div>
-                                                        </div>
-                                                        
-                                                        @if (metric.DataSource == "Form")
-                                                        {
-                                                            <div class="metric-link mt-2">
-                                                                <a href="/DataEntry" class="btn btn-outline-primary btn-sm" style="font-size: 0.75rem; padding: 4px 8px;">
-                                                                    <i class="fas fa-external-link-alt"></i> Update via Form
-                                                                </a>
-                                                            </div>
-                                                        }
-                                                        
-                                                        @if (!metric.IsPublic)
-                                                        {
-                                                            <div class="metric-privacy mt-1">
-                                                                <small class="text-muted" style="font-size: 0.65rem;">
-                                                                    <i class="fas fa-lock"></i> Staff Only
-                                                                </small>
-                                                            </div>
-                                                        }
-                                                    </div>
-                                                </div>
+                                    <div class="card" style="border-radius: 12px; border: 1px solid var(--onejax-border); box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                                        <div class="card-header" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border-radius: 12px 12px 0 0;">
+                                            <h6 class="mb-0">💰 Financial Progress Tracking</h6>
+                                        </div>
+                                        <div class="card-body" style="padding: 1rem;">
+                                            <div style="width: 400px; height: 200px; position: relative; margin: 0 auto;">
+                                                <canvas id="financialChart" width="400" height="200"></canvas>
                                             </div>
-                                        }
+                                        </div>
                                     </div>
                                 </div>
                             }
+
                             
                             <!-- Public Summary Section - For Non-Authenticated Users -->
                             @if (!User.Identity.IsAuthenticated)
@@ -849,6 +798,7 @@
                         </div>
                     </div>
                 </div>
+                }
             }
         </div>
 
@@ -878,7 +828,7 @@
             </div>
             
             @{
-                var allEvents = Model.StrategicGoals.SelectMany(g => g.Events ?? new List<Event>());
+                var allEvents = Model.StrategicGoals?.SelectMany(g => g.Events ?? new List<Event>()) ?? new List<Event>();
                 var totalEventsCount = allEvents.Count();
                 var activeEventsCount = allEvents.Count(e => e.Status == "Active");
                 var completedEventsCount = allEvents.Count(e => e.Status == "Completed");
@@ -920,7 +870,7 @@
                     <div style="color: white;">
                         <div style="font-size: 0.9rem; margin-bottom: 1.5rem; opacity: 0.9;">OVERALL PROGRESS</div>
                         @{
-                            var totalProgress = Model.StrategicGoals.SelectMany(g => g.Metrics ?? new List<GoalMetric>()).Any() 
+                            var totalProgress = Model.StrategicGoals?.SelectMany(g => g.Metrics ?? new List<GoalMetric>()).Any() == true
                                 ? Model.StrategicGoals.SelectMany(g => g.Metrics ?? new List<GoalMetric>()).Average(m => m.ProgressPercentage) 
                                 : 0;
                         }
@@ -945,7 +895,7 @@
                                     Questions or feedback about this dashboard?
                                 </h5>
                                 <p style="color: rgba(255,255,255,0.9); margin-bottom: 0; font-size: 1.1rem;">
-                                    Email us at <a href="mailto:dashboard@onejax.org" style="color: var(--onejax-orange); text-decoration: none; font-weight: 600;">dashboard@onejax.org</a>
+                                    Email us at <a href="mailto:onejax@onejax.org" style="color: var(--onejax-orange); text-decoration: none; font-weight: 600;">onejax@onejax.org</a>
                                 </p>
                             </div>
                             <div class="col-md-4 text-end">
@@ -1019,7 +969,7 @@
         totalActivities: @Model.Summary.TotalActivities
     };
 
-    window.userAuthenticated = @User.Identity.IsAuthenticated.ToString().ToLower();
+    window.userAuthenticated = @((User.Identity?.IsAuthenticated ?? false).ToString().ToLower());
 </script>
 
 <script>
@@ -1193,7 +1143,7 @@ function initializeProgressBars(container) {
 // Quick Edit Metric Function - Staff/Admin Only
 function editMetric(metricId) {
     // Check if user is authenticated (simple client-side check)
-    var isAuthenticated = '@User.Identity.IsAuthenticated'.toLowerCase() === 'true';
+    var isAuthenticated = '@((User.Identity?.IsAuthenticated ?? false).ToString().ToLower())' === 'true';
     
     if (!isAuthenticated) {
         showNotification('Access Denied', 'Please log in as staff/admin to edit metrics', 'error');
@@ -1618,31 +1568,50 @@ function initializeDashboardCharts() {
             }
         });
     }
+}
     
-    // Financial Metrics Area Chart
+    /*
+    // Financial Metrics Area Chart (Temporarily disabled for debugging)
     const financialCtx = document.getElementById('financialChart');
-    if (financialCtx) {
+    if (financialCtx) {        
+        @{
+            // Use your known financial values directly for now
+            var totalRevenue = 7540m; // Your actual revenue
+            var totalExpenses = 6000m; // Estimated expenses
+            
+            // Distribute across fiscal year quarters
+            var q1Revenue = Math.Round(totalRevenue * 0.20m, 0);
+            var q2Revenue = Math.Round(totalRevenue * 0.25m, 0);
+            var q3Revenue = Math.Round(totalRevenue * 0.30m, 0);
+            var q4Revenue = Math.Round(totalRevenue * 0.25m, 0);
+            
+            var q1Expense = Math.Round(totalExpenses * 0.20m, 0);
+            var q2Expense = Math.Round(totalExpenses * 0.25m, 0);
+            var q3Expense = Math.Round(totalExpenses * 0.30m, 0);
+            var q4Expense = Math.Round(totalExpenses * 0.25m, 0);
+        }
+        
         const financialChart = new Chart(financialCtx, {
             type: 'line',
             data: {
-                labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+                labels: ['Q1 (Jul-Sep)', 'Q2 (Oct-Dec)', 'Q3 (Jan-Mar)', 'Q4 (Apr-Jun)'],
                 datasets: [{
                     label: 'Revenue ($)',
-                    data: [25000, 35000, 42000, 38000],
+                    data: [@q1Revenue, @q2Revenue, @q3Revenue, @q4Revenue],
                     borderColor: '#10b981',
                     backgroundColor: 'rgba(16, 185, 129, 0.3)',
                     fill: true,
                     tension: 0.4
                 }, {
                     label: 'Expenses ($)',
-                    data: [20000, 28000, 32000, 30000],
+                    data: [@q1Expense, @q2Expense, @q3Expense, @q4Expense],
                     borderColor: '#ef4444',
                     backgroundColor: 'rgba(239, 68, 68, 0.3)',
                     fill: true,
                     tension: 0.4
                 }, {
                     label: 'Net Income ($)',
-                    data: [5000, 7000, 10000, 8000],
+                    data: [@(q1Revenue - q1Expense), @(q2Revenue - q2Expense), @(q3Revenue - q3Expense), @(q4Revenue - q4Expense)],
                     borderColor: '#f59e0b',
                     backgroundColor: 'rgba(245, 158, 11, 0.3)',
                     fill: true,
@@ -1650,19 +1619,45 @@ function initializeDashboardCharts() {
                 }]
             },
             options: {
-                responsive: true,
+                responsive: false,
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        position: 'top'
+                        position: 'top',
+                        labels: {
+                            boxWidth: 12,
+                            font: {
+                                size: 11
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': $' + context.raw.toLocaleString();
+                            }
+                        }
                     }
                 },
                 scales: {
+                    x: {
+                        ticks: {
+                            font: {
+                                size: 10
+                            }
+                        }
+                    },
                     y: {
                         beginAtZero: true,
                         ticks: {
+                            font: {
+                                size: 10
+                            },
                             callback: function(value) {
-                                return '$' + value.toLocaleString();
+                                if (value >= 1000) {
+                                    return '$' + (value/1000).toFixed(0) + 'K';
+                                }
+                                return '$' + value.toFixed(0);
                             }
                         }
                     }
@@ -1670,6 +1665,7 @@ function initializeDashboardCharts() {
             }
         });
     }
+    */
     
     // Quarterly Performance Chart (Horizontal Bar)
     const quarterlyCtx = document.getElementById('quarterlyChart');

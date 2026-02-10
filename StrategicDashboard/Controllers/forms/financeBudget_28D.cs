@@ -21,6 +21,14 @@ namespace OneJaxDashboard.Controllers
         {
             ViewBag.Quarters = GetQuarters();
             
+            // Calculate actual budget totals from database
+            var budgetEntries = _context.BudgetTracking_28D.ToList();
+            var totalRevenue = budgetEntries.Sum(b => b.TotalRevenues);
+            var totalExpense = budgetEntries.Sum(b => b.TotalExpenses);
+            
+            ViewBag.TotalRevenue = totalRevenue;
+            ViewBag.TotalExpense = totalExpense;
+            
             return View(new BudgetTracking_28D());
         }
 
@@ -46,6 +54,12 @@ namespace OneJaxDashboard.Controllers
             }
 
             ViewBag.Quarters = GetQuarters();
+            
+            // Calculate totals for display even on validation errors
+            var budgetEntries = _context.BudgetTracking_28D.ToList();
+            ViewBag.TotalRevenue = budgetEntries.Sum(b => b.TotalRevenues);
+            ViewBag.TotalExpense = budgetEntries.Sum(b => b.TotalExpenses);
+            
             return View(model);
         }
 

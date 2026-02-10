@@ -761,20 +761,63 @@ public class HomeController : Controller
 
     private async Task<DashboardViewModel> BuildEnhancedDashboardAsync(string fiscalYear = "2025-2026")
     {
-        // Start with the existing real data dashboard
-        var dashboard = BuildDashboardFromRealData();
+        var dashboard = new DashboardViewModel();
         
-        // Enhance each strategic goal with comprehensive metrics
-        await EnhanceGoalsWithComprehensiveMetricsAsync(dashboard.StrategicGoals.ToList(), fiscalYear);
+        // Always create all four strategic goals (regardless of data)
+        var allGoals = await CreateAllStrategicGoalsAsync();
         
-        // Update dashboard message to reflect enhanced metrics
-        if (dashboard.StrategicGoals.Any(g => g.Metrics.Any(m => m.DataSource != null)))
-        {
-            dashboard.DataSource += " + Comprehensive Metrics";
-            dashboard.Message = "Dashboard enhanced with your comprehensive strategic metrics including targets, progress tracking, and multi-year planning.";
-        }
+        // Enhance each strategic goal with comprehensive metrics from MetricsService
+        await EnhanceGoalsWithComprehensiveMetricsAsync(allGoals, fiscalYear);
+        
+        // Build summary statistics from real data
+        dashboard.Summary = BuildDashboardSummary();
+        
+        // Build recent activities from real data
+        dashboard.RecentActivities = BuildRecentActivities();
+
+        // Build chart data from real metrics
+        dashboard.Charts = BuildChartData(allGoals);
+        
+        // Always show all goals with their metrics (even if empty)
+        dashboard.StrategicGoals = allGoals;
+        dashboard.DataSource = "Comprehensive Metrics + Real Data Integration";
+        dashboard.Message = "Dashboard shows all strategic goals with comprehensive metrics. Metrics update in real-time as you submit data through the Data Entry forms.";
         
         return dashboard;
+    }
+
+    private async Task<List<StrategicGoal>> CreateAllStrategicGoalsAsync()
+    {
+        var goals = new List<StrategicGoal>();
+        
+        // Define the four strategic goals structure
+        var goalTemplates = new List<(int Id, string Name, string Description, string Color)>
+        {
+            (1, "Organizational Building", "Strengthening organizational structure and capacity", "var(--onejax-navy)"),
+            (2, "Financial Sustainability", "Ensuring sustainable financial health and growth", "var(--onejax-green)"),
+            (3, "Identity/Value Proposition", "Establishing and communicating OneJax's unique identity and value", "var(--onejax-orange)"),
+            (4, "Community Engagement", "Building partnerships and community connections", "var(--onejax-blue)")
+        };
+
+        foreach (var template in goalTemplates)
+        {
+            var goal = new StrategicGoal
+            {
+                Id = template.Id,
+                Name = template.Name,
+                Description = template.Description,
+                Color = template.Color,
+                Events = new List<Event>(),
+                Metrics = new List<GoalMetric>()
+            };
+            
+            // Add events from Strategy controller's static list
+            goal.Events.AddRange(GetEventsFromStrategyController(template.Id));
+            
+            goals.Add(goal);
+        }
+
+        return goals;
     }
     
     private async Task EnhanceGoalsWithComprehensiveMetricsAsync(List<StrategicGoal> goals, string fiscalYear)
@@ -816,149 +859,250 @@ public class HomeController : Controller
     {
         try
         {
-            // Update Identity/Value Proposition metrics with media placement data
-        if (goal.Name.Contains("Identity"))
-        {
-            // Get total media placements from database
-            var mediaPlacements = await _context.MediaPlacements_3D.ToListAsync();
-            var totalPlacements = 0;
-            
-            foreach (var placement in mediaPlacements)
+            // Identity/Value Proposition Goal - Media, Website, Demographics, Planning
+            if (goal.Name.Contains("Identity"))
             {
-                totalPlacements += (placement.January ?? 0) + (placement.February ?? 0) + 
-                                 (placement.March ?? 0) + (placement.April ?? 0) + 
-                                 (placement.May ?? 0) + (placement.June ?? 0) + 
-                                 (placement.July ?? 0) + (placement.August ?? 0) + 
-                                 (placement.September ?? 0) + (placement.October ?? 0) + 
-                                 (placement.November ?? 0) + (placement.December ?? 0);
+                await AddIdentityMetricsAsync(goal);
             }
-            
-            // Update Earned Media Placements metric
-            var mediaPlacementMetric = goal.Metrics.FirstOrDefault(m => m.Name == "Earned Media Placements");
-            if (mediaPlacementMetric != null)
-            {
-                // Update the metric with real data
-                mediaPlacementMetric.CurrentValue = totalPlacements;
-            }
-            
-            // Add or update Media Coverage Frequency metric
-            var frequencyMetric = goal.Metrics.FirstOrDefault(m => m.Name == "Media Coverage Frequency");
-            if (frequencyMetric == null && totalPlacements > 0)
-            {
-                // Create the frequency metric if it doesn't exist
-                goal.Metrics.Add(new GoalMetric
-                {
-                    Id = goal.Metrics.Count + 100, // Unique ID
-                    Name = "Media Coverage Frequency",
-                    Description = "Average monthly media presence",
-                    StrategicGoalId = goal.Id,
-                    Target = "1.0",
-                    CurrentValue = Math.Round((decimal)(totalPlacements / 12.0), 1),
-                    Unit = "per month",
-                    DataSource = "Form",
-                    MetricType = "Count",
-                    IsPublic = true,
-                    FiscalYear = "2025-2026",
-                    Status = "Active",
-                    TargetDate = DateTime.Now.AddMonths(12)
-                });
-            }
-            else if (frequencyMetric != null)
-            {
-                // Update existing frequency metric
-                frequencyMetric.CurrentValue = Math.Round((decimal)(totalPlacements / 12.0), 1);
-            }
-            
-            // Update website traffic metrics if they exist
-            var websiteTrafficAnnualMetric = goal.Metrics.FirstOrDefault(m => m.Name == "Website Traffic (Annual)");
-            if (websiteTrafficAnnualMetric != null)
-            {
-                var websiteTraffic = await _context.WebsiteTraffic.ToListAsync();
-                if (websiteTraffic.Any())
-                {
-                    // Calculate total annual traffic
-                    var q1Total = websiteTraffic.Sum(w => w.Q1_JulySeptember ?? 0);
-                    var q2Total = websiteTraffic.Sum(w => w.Q2_OctoberDecember ?? 0);
-                    var q3Total = websiteTraffic.Sum(w => w.Q3_JanuaryMarch ?? 0);
-                    var q4Total = websiteTraffic.Sum(w => w.Q4_AprilJune ?? 0);
-                    
-                    // Update with total annual traffic
-                    websiteTrafficAnnualMetric.CurrentValue = q1Total + q2Total + q3Total + q4Total;
-                    
-                    // Store quarterly values for detailed display
-                    websiteTrafficAnnualMetric.Q1Value = q1Total;
-                    websiteTrafficAnnualMetric.Q2Value = q2Total;
-                    websiteTrafficAnnualMetric.Q3Value = q3Total;
-                    websiteTrafficAnnualMetric.Q4Value = q4Total;
-                    
-                    // Update the description to show quarterly breakdown dynamically
-                    var quarterlyBreakdown = new List<string>();
-                    if (q1Total > 0) quarterlyBreakdown.Add($"Q1: {q1Total:N0}");
-                    if (q2Total > 0) quarterlyBreakdown.Add($"Q2: {q2Total:N0}");
-                    if (q3Total > 0) quarterlyBreakdown.Add($"Q3: {q3Total:N0}");
-                    if (q4Total > 0) quarterlyBreakdown.Add($"Q4: {q4Total:N0}");
-                    
-                    if (quarterlyBreakdown.Any())
-                    {
-                        websiteTrafficAnnualMetric.Description = $"Total: {websiteTrafficAnnualMetric.CurrentValue:N0} clicks ({string.Join(", ", quarterlyBreakdown)})";
-                    }
-                    else
-                    {
-                        websiteTrafficAnnualMetric.Description = "No data entered yet";
-                    }
-                }
-                else
-                {
-                    // IMPORTANT: Clear all cached values when no data exists
-                    websiteTrafficAnnualMetric.CurrentValue = 0;
-                    websiteTrafficAnnualMetric.Q1Value = 0;
-                    websiteTrafficAnnualMetric.Q2Value = 0;
-                    websiteTrafficAnnualMetric.Q3Value = 0;
-                    websiteTrafficAnnualMetric.Q4Value = 0;
-                    websiteTrafficAnnualMetric.Description = "No website traffic data entered yet";
-                    websiteTrafficAnnualMetric.Status = "Planning";
-                }
-            }
-            
-            // You can add other Identity metrics here (website traffic Q2-Q4, etc.)
-        }
         
-        // Update Organizational Building metrics with staff survey and prof dev data
-        if (goal.Name.Contains("Organizational"))
-        {
-            // Add updates for staff survey metrics here if needed
-            var staffSurveys = await _context.StaffSurveys_22D.ToListAsync();
-            var profDevs = await _context.ProfessionalDevelopments.ToListAsync();
-            
-            // Update any staff-related metrics with real counts
-            foreach (var metric in goal.Metrics.Where(m => m.DataSource == "Form"))
+            // Organizational Building Goal - Staff, Professional Development, Board Management
+            else if (goal.Name.Contains("Organizational"))
             {
-                if (metric.Name.Contains("Staff") && staffSurveys.Any())
-                {
-                    metric.CurrentValue = staffSurveys.Count;
-                }
-                if (metric.Name.Contains("Development") && profDevs.Any())
-                {
-                    metric.CurrentValue = profDevs.Count;
-                }
+                await AddOrganizationalMetricsAsync(goal);
             }
-        }
         
-        // Update Community Engagement metrics - no automatic updates from website traffic
-        if (goal.Name.Contains("Community"))
-        {
-            // Community metrics are updated through their respective forms only
-            // Website traffic should not appear in Community goals
-        }
+            // Financial Sustainability Goal - Budget, Revenue, Donors, Fees
+            else if (goal.Name.Contains("Financial"))
+            {
+                await AddFinancialMetricsAsync(goal);
+            }
 
-        // Save all metric updates to the database
-        await _context.SaveChangesAsync();
+            // Community Engagement Goal - Collaborations, Communications, Surveys, Programs
+            else if (goal.Name.Contains("Community"))
+            {
+                await AddCommunityMetricsAsync(goal);
+            }
+
+            // Save all metric updates to the database
+            await _context.SaveChangesAsync();
         }
         catch (Exception ex)
         {
-            // Log the error but don't break the dashboard
-            // In a real application, you'd use proper logging here
             Console.WriteLine($"Error updating metrics: {ex.Message}");
+        }
+    }
+
+    private async Task AddIdentityMetricsAsync(StrategicGoal goal)
+    {
+        var nextId = goal.Metrics.Count + 1000;
+
+        // 1. Media Placements
+        var mediaPlacements = await _context.MediaPlacements_3D.ToListAsync();
+        var totalPlacements = 0;
+        foreach (var placement in mediaPlacements)
+        {
+            totalPlacements += (placement.January ?? 0) + (placement.February ?? 0) + 
+                             (placement.March ?? 0) + (placement.April ?? 0) + 
+                             (placement.May ?? 0) + (placement.June ?? 0) + 
+                             (placement.July ?? 0) + (placement.August ?? 0) + 
+                             (placement.September ?? 0) + (placement.October ?? 0) + 
+                             (placement.November ?? 0) + (placement.December ?? 0);
+        }
+        
+        AddOrUpdateMetric(goal, "Media Placements", "Professional media coverage tracking", 
+            totalPlacements, "placements", "50", mediaPlacements.Any() ? "Active" : "Planning",
+            mediaPlacements.Any() ? $"Total media placements: {totalPlacements}" : "No media placements yet - Go to Data Entry → Media Placements", nextId++);
+
+        // 2. Website Traffic
+        var websiteTraffic = await _context.WebsiteTraffic.ToListAsync();
+        var totalTraffic = websiteTraffic.Sum(w => (w.Q1_JulySeptember ?? 0) + (w.Q2_OctoberDecember ?? 0) + 
+                                                  (w.Q3_JanuaryMarch ?? 0) + (w.Q4_AprilJune ?? 0));
+        
+        AddOrUpdateMetric(goal, "Website Traffic (Annual)", "Total website clicks per year", 
+            totalTraffic, "clicks", "10000", websiteTraffic.Any() ? "Active" : "Planning",
+            websiteTraffic.Any() ? $"Total annual traffic: {totalTraffic:N0} clicks" : "No website traffic data yet - Go to Data Entry → Website Traffic", nextId++);
+
+        // 3. Demographics Expansion
+        var demographics = await _context.demographics_8D.ToListAsync();
+        var uniqueZipCodes = 0;
+        if (demographics.Any())
+        {
+            uniqueZipCodes = demographics.SelectMany(d => d.ZipCodes.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                                       .Select(z => z.Trim()).Distinct().Count();
+        }
+        
+        AddOrUpdateMetric(goal, "Geographic Reach", "Unique ZIP codes served", 
+            uniqueZipCodes, "ZIP codes", "25", demographics.Any() ? "Active" : "Planning",
+            demographics.Any() ? $"Program reach: {uniqueZipCodes} unique ZIP codes" : "No demographics data yet - Go to Data Entry → Demographics", nextId++);
+
+        // 4. Strategic Planning Issues
+        var planIssues = await _context.planIssue_25D.ToListAsync();
+        
+        AddOrUpdateMetric(goal, "Strategic Issues Tracking", "Issues identified for planning", 
+            planIssues.Count, "issues", "15", planIssues.Any() ? "Active" : "Planning",
+            planIssues.Any() ? $"Issues tracked: {planIssues.Count}" : "No planning issues yet - Go to Data Entry → Planning Issues", nextId++);
+
+        // 5. 2026 Planning
+        var plan2026 = await _context.Plan2026_24D.ToListAsync();
+        
+        AddOrUpdateMetric(goal, "2026 Strategic Plans", "Future planning initiatives", 
+            plan2026.Count, "plans", "20", plan2026.Any() ? "Active" : "Planning",
+            plan2026.Any() ? $"Plans for 2026: {plan2026.Count}" : "No 2026 plans yet - Go to Data Entry → 2026 Planning", nextId++);
+    }
+
+    private async Task AddOrganizationalMetricsAsync(StrategicGoal goal)
+    {
+        var nextId = goal.Metrics.Count + 2000;
+
+        // 1. Staff Surveys
+        var staffSurveys = await _context.StaffSurveys_22D.ToListAsync();
+        var avgSatisfaction = staffSurveys.Any() ? staffSurveys.Average(s => s.SatisfactionRate) : 0;
+        
+        AddOrUpdateMetric(goal, "Staff Survey Responses", "Employee feedback collection", 
+            staffSurveys.Count, "responses", "25", staffSurveys.Any() ? "Active" : "Planning",
+            staffSurveys.Any() ? $"{staffSurveys.Count} responses, {avgSatisfaction:F1}% avg satisfaction" : "No staff surveys yet - Go to Data Entry → Staff Surveys", nextId++);
+
+        // 2. Professional Development
+        var profDevs = await _context.ProfessionalDevelopments.ToListAsync();
+        var totalDevelopment = profDevs.Sum(p => p.ProfessionalDevelopmentYear26 + p.ProfessionalDevelopmentYear27);
+        
+        AddOrUpdateMetric(goal, "Professional Development Plans", "Staff growth initiatives", 
+            profDevs.Count, "plans", "30", profDevs.Any() ? "Active" : "Planning",
+            profDevs.Any() ? $"{profDevs.Count} development plans, {totalDevelopment} total activities" : "No professional development yet - Go to Data Entry → Professional Development", nextId++);
+
+        // 3. Board Member Recruitment
+        var boardMembers = await _context.BoardMember_29D.ToListAsync();
+        var totalRecruited = boardMembers.Sum(b => b.NumberRecruited);
+        
+        AddOrUpdateMetric(goal, "Board Recruitment", "New board member acquisition", 
+            totalRecruited, "members", "10", boardMembers.Any() ? "Active" : "Planning",
+            boardMembers.Any() ? $"Board members recruited: {totalRecruited}" : "No board recruitment data yet - Go to Data Entry → Board Management", nextId++);
+
+        // 4. Board Meeting Attendance
+        var boardAttendance = await _context.BoardMeetingAttendance.ToListAsync();
+        var avgAttendance = boardAttendance.Any() ? boardAttendance.Average(b => b.MembersInAttendance) : 0;
+        
+        AddOrUpdateMetric(goal, "Board Meeting Participation", "Average meeting attendance", 
+            Math.Round((decimal)avgAttendance, 1), "members", "12", boardAttendance.Any() ? "Active" : "Planning",
+            boardAttendance.Any() ? $"Average attendance: {avgAttendance:F1} members" : "No board attendance data yet - Go to Data Entry → Board Management", nextId++);
+    }
+
+    private async Task AddFinancialMetricsAsync(StrategicGoal goal)
+    {
+        var nextId = goal.Metrics.Count + 3000;
+
+        // 1. Budget Tracking
+        var budgetTracking = await _context.BudgetTracking_28D.ToListAsync();
+        decimal totalRevenue = 0;
+        decimal totalExpenses = 0;
+        
+        foreach (var budget in budgetTracking)
+        {
+            // Revenue fields only
+            totalRevenue += (budget.CorporateGiving ?? 0) + (budget.IndividualGiving ?? 0) + 
+                           (budget.GrantsFoundations ?? 0) + (budget.CommunityEvents ?? 0) + 
+                           (budget.PeopleCultureWorkshops ?? 0);
+            
+            // Expense fields only  
+            totalExpenses += (budget.CommunityPrograms ?? 0) + (budget.OneYouthPrograms ?? 0) + 
+                            (budget.InterfaithPrograms ?? 0) + (budget.HumanitarianEvent ?? 0);
+        }
+        
+        AddOrUpdateMetric(goal, "Budget Revenue Tracking", "Total tracked revenue streams", 
+            totalRevenue, "dollars", "500000", budgetTracking.Any() ? "Active" : "Planning",
+            budgetTracking.Any() ? $"Total revenue: ${totalRevenue:N0}, Total expenses: ${totalExpenses:N0}" : "No budget data yet - Go to Data Entry → Budget Tracking", nextId++);
+            
+        AddOrUpdateMetric(goal, "Budget Expense Tracking", "Total tracked expense streams", 
+            totalExpenses, "dollars", "400000", budgetTracking.Any() ? "Active" : "Planning",
+            budgetTracking.Any() ? $"Total expenses: ${totalExpenses:N0}" : "No budget expense data yet", nextId++);
+
+        // 2. Fee-for-Service Revenue
+        var feeServices = await _context.FeeForServices_21D.ToListAsync();
+        var totalFeeRevenue = feeServices.Sum(f => f.RevenueReceived);
+        
+        AddOrUpdateMetric(goal, "Fee-for-Service Income", "Service-based revenue generation", 
+            totalFeeRevenue, "dollars", "75000", feeServices.Any() ? "Active" : "Planning",
+            feeServices.Any() ? $"Service revenue: ${totalFeeRevenue:N0} from {feeServices.Count} services" : "No fee-for-service data yet - Go to Data Entry → Fee for Services", nextId++);
+
+        // 3. Income Tracking
+        var incomeData = await _context.income_27D.ToListAsync();
+        var totalIncome = incomeData.Sum(i => i.Amount);
+        
+        AddOrUpdateMetric(goal, "General Income Streams", "Diversified income tracking", 
+            totalIncome, "dollars", "100000", incomeData.Any() ? "Active" : "Planning",
+            incomeData.Any() ? $"Total income: ${totalIncome:N0} from {incomeData.Count} sources" : "No income data yet - Go to Data Entry → Income Tracking", nextId++);
+
+        // 4. Donor Events
+        var donorEvents = await _context.DonorEvents_19D.ToListAsync();
+        var totalParticipants = donorEvents.Sum(d => d.NumberOfParticipants);
+        var avgSatisfaction = donorEvents.Any() ? donorEvents.Average(d => d.EventSatisfactionRating) : 0;
+        
+        AddOrUpdateMetric(goal, "Donor Engagement Events", "Fundraising event effectiveness", 
+            totalParticipants, "participants", "200", donorEvents.Any() ? "Active" : "Planning",
+            donorEvents.Any() ? $"{totalParticipants} participants, {avgSatisfaction:F1}/5 avg satisfaction" : "No donor events yet - Go to Data Entry → Donor Events", nextId++);
+    }
+
+    private async Task AddCommunityMetricsAsync(StrategicGoal goal)
+    {
+        var nextId = goal.Metrics.Count + 4000;
+
+        // 1. Cross-Sector Collaborations
+        var crossSectorCollabs = await _context.CrossSectorCollabs.ToListAsync();
+        var activeCollabs = crossSectorCollabs.Count(c => c.Status == "Active");
+        
+        AddOrUpdateMetric(goal, "Cross-Sector Partnerships", "Strategic community alliances", 
+            crossSectorCollabs.Count, "partnerships", "20", crossSectorCollabs.Any() ? "Active" : "Planning",
+            crossSectorCollabs.Any() ? $"{crossSectorCollabs.Count} partnerships ({activeCollabs} active)" : "No cross-sector collaborations yet - Go to Data Entry → Cross-Sector Collaborations", nextId++);
+
+        // 2. Communication Rate
+        var commRate = await _context.CommunicationRate.ToListAsync();
+        
+        AddOrUpdateMetric(goal, "Community Communications", "Outreach and engagement tracking", 
+            commRate.Count, "communications", "100", commRate.Any() ? "Active" : "Planning",
+            commRate.Any() ? $"Communication entries: {commRate.Count}" : "No communication data yet - Go to Data Entry → Communications", nextId++);
+
+        // 3. Annual Community Survey
+        var annualSurvey = await _context.Annual_average_7D.ToListAsync();
+        var latestSurvey = annualSurvey.OrderByDescending(s => s.Year).FirstOrDefault();
+        var trustRating = latestSurvey?.Percentage ?? 0;
+        
+        AddOrUpdateMetric(goal, "Community Trust Rating", "Annual community perception survey", 
+            trustRating, "percent", "80", annualSurvey.Any() ? "Active" : "Planning",
+            annualSurvey.Any() ? $"{trustRating}% trust rating ({latestSurvey?.TotalRespondents} respondents, {latestSurvey?.Year})" : "No community survey data yet - Go to Data Entry → Annual Survey", nextId++);
+    }
+
+    private void AddOrUpdateMetric(StrategicGoal goal, string name, string description, decimal currentValue, 
+                                 string unit, string target, string status, string detailedDescription, int id)
+    {
+        var existingMetric = goal.Metrics.FirstOrDefault(m => m.Name == name);
+        
+        if (existingMetric != null)
+        {
+            // Update existing metric
+            existingMetric.CurrentValue = currentValue;
+            existingMetric.Status = status;
+            existingMetric.Description = detailedDescription;
+            existingMetric.Target = target;
+        }
+        else
+        {
+            // Create new metric
+            goal.Metrics.Add(new GoalMetric
+            {
+                Id = id,
+                Name = name,
+                Description = detailedDescription,
+                StrategicGoalId = goal.Id,
+                Target = target,
+                CurrentValue = currentValue,
+                Unit = unit,
+                DataSource = "Form",
+                MetricType = "Count",
+                IsPublic = true,
+                FiscalYear = "2025-2026",
+                Status = status,
+                TargetDate = DateTime.Now.AddMonths(12)
+            });
         }
     }
 
@@ -1003,7 +1147,7 @@ public class HomeController : Controller
             target > 0).ToList();
 
         if (!metricsWithTargets.Any())
-            return goal.Metrics.Any() ? 25 : 0; // Default progress if we have metrics but no targets
+            return goal.Metrics.Any() ? 15 : 0; // Lower default progress if we have metrics but no targets
 
         var progressValues = metricsWithTargets.Select(m =>
         {
@@ -1121,5 +1265,19 @@ public class HomeController : Controller
         }
 
         return quarterlyData;
+    }
+
+    private decimal ParseCurrency(string currencyString)
+    {
+        if (string.IsNullOrWhiteSpace(currencyString))
+            return 0m;
+
+        // Remove currency symbols, commas, and extra spaces
+        var cleaned = currencyString.Trim()
+            .Replace("$", "")
+            .Replace(",", "")
+            .Replace(" ", "");
+
+        return decimal.TryParse(cleaned, out decimal result) ? result : 0m;
     }
 }
