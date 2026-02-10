@@ -37,17 +37,24 @@ namespace OneJaxDashboard.Models
         {
             get
             {
-                if (Unit == "%" && !string.IsNullOrEmpty(Target))
+                if (string.IsNullOrEmpty(Target) || CurrentValue <= 0)
+                    return 0;
+
+                // Handle percentage units
+                if (Unit == "%")
                 {
-                    if (decimal.TryParse(Target.Replace("%", ""), out decimal targetValue))
+                    if (decimal.TryParse(Target.Replace("%", ""), out decimal targetValue) && targetValue > 0)
                     {
-                        return Math.Round((CurrentValue / targetValue) * 100, 1);
+                        return Math.Min(Math.Round((CurrentValue / targetValue) * 100, 1), 100);
                     }
                 }
-                else if (int.TryParse(Target, out int targetInt))
+                
+                // Handle all other numeric targets
+                if (decimal.TryParse(Target, out decimal targetDecimal) && targetDecimal > 0)
                 {
-                    return Math.Round((CurrentValue / targetInt) * 100, 1);
+                    return Math.Min(Math.Round((CurrentValue / targetDecimal) * 100, 1), 100);
                 }
+                
                 return 0;
             }
         }
