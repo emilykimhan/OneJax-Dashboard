@@ -82,11 +82,6 @@
         <!-- Staff Survey Records -->
         <div class="record-section">
             <h5 class="section-title">Staff Survey Records</h5>
-             <div class="export-buttons mb-3">
-        <a href="@Url.Action("ExportStaffSurveyToExcel", "Export")" class="btn btn-primary">
-            <i class="fas fa-file-excel"></i> Export Excel
-        </a>
-    </div>
             @if (ViewBag.StaffSurveys != null && ((List<OneJaxDashboard.Models.StaffSurvey_22D>)ViewBag.StaffSurveys).Any())
             {
                 <div class="records-list">
@@ -109,6 +104,9 @@
                                 </div>
                             </div>
                             <div class="record-actions mt-3">
+                                <a asp-controller="DataEntry" asp-action="EditStaffSurvey" asp-route-id="@survey.Id" class="btn btn-primary btn-sm">
+                                    Edit
+                                </a>
                                 <form asp-controller="DataEntry" asp-action="DeleteStaffSurvey" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
                                     <input type="hidden" name="id" value="@survey.Id" />
                                     <button type="submit" class="btn btn-danger btn-sm">
@@ -151,6 +149,9 @@
                                 </div>
                             </div>
                             <div class="record-actions mt-3">
+                                <a asp-controller="DataEntry" asp-action="EditProfessionalDevelopment" asp-route-id="@profDev.Id" class="btn btn-primary btn-sm">
+                                    Edit
+                                </a>
                                 <form asp-controller="DataEntry" asp-action="DeleteProfessionalDevelopment" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
                                     <input type="hidden" name="id" value="@profDev.Id" />
                                     <button type="submit" class="btn btn-danger btn-sm">
@@ -243,6 +244,9 @@
                                 </div>
                             </div>
                             <div class="record-actions mt-3">
+                                <a asp-controller="DataEntry" asp-action="EditMediaPlacement" asp-route-id="@media.Id" class="btn btn-primary btn-sm">
+                                    Edit
+                                </a>
                                 <form asp-controller="DataEntry" asp-action="DeleteMediaPlacement" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
                                     <input type="hidden" name="id" value="@media.Id" />
                                     <button type="submit" class="btn btn-danger btn-sm">
@@ -303,6 +307,9 @@
                                 </div>
                             </div>
                             <div class="record-actions mt-3">
+                                <a asp-controller="DataEntry" asp-action="EditWebsiteTraffic" asp-route-id="@traffic.Id" class="btn btn-primary btn-sm">
+                                    Edit
+                                </a>
                                 <form asp-controller="DataEntry" asp-action="DeleteWebsiteTraffic" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
                                     <input type="hidden" name="id" value="@traffic.Id" />
                                     <button type="submit" class="btn btn-danger btn-sm">
