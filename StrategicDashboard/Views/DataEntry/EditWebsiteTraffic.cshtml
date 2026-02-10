@@ -1,0 +1,78 @@
+@model OneJaxDashboard.Models.WebsiteTraffic_4D
+
+@{
+    ViewData["Title"] = "Edit Website Traffic";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1 class="headline mb-4" style="color:var(--onejax-navy);">Edit Website Traffic</h1>
+
+<div class="container mt-4">
+    <div class="card p-4"
+        style="background-color:var(--onejax-white); 
+               box-shadow:0 4px 24px rgba(0,0,0,0.08); 
+               border-radius:24px; 
+               max-width:800px;">
+
+        <form asp-action="EditWebsiteTraffic" method="post">
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="CreatedDate" />
+
+            <p class="mb-4">Edit the number of website clicks for each quarter. Leave blank or enter 0 for quarters with no clicks.</p>
+
+            <div class="mb-3">
+                <label asp-for="Q1_JulySeptember" class="form-label fw-bold">Q1 (July - September):</label>
+                <input asp-for="Q1_JulySeptember" type="number" class="form-control" min="0" placeholder="0" />
+                <span asp-validation-for="Q1_JulySeptember" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Q2_OctoberDecember" class="form-label fw-bold">Q2 (October - December):</label>
+                <input asp-for="Q2_OctoberDecember" type="number" class="form-control" min="0" placeholder="0" />
+                <span asp-validation-for="Q2_OctoberDecember" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Q3_JanuaryMarch" class="form-label fw-bold">Q3 (January - March):</label>
+                <input asp-for="Q3_JanuaryMarch" type="number" class="form-control" min="0" placeholder="0" />
+                <span asp-validation-for="Q3_JanuaryMarch" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Q4_AprilJune" class="form-label fw-bold">Q4 (April - June):</label>
+                <input asp-for="Q4_AprilJune" type="number" class="form-control" min="0" placeholder="0" />
+                <span asp-validation-for="Q4_AprilJune" class="text-danger"></span>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+                <a asp-action="RecordHistory" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .form-control:focus {
+        border-color: var(--onejax-navy);
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 191, 0.25);
+    }
+
+    .btn-primary {
+        background-color: var(--onejax-navy);
+        border-color: var(--onejax-navy);
+    }
+
+    .btn-primary:hover {
+        background-color: #1a365d;
+        border-color: #1a365d;
+    }
+</style>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

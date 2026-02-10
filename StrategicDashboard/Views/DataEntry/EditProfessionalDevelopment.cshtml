@@ -1,0 +1,70 @@
+@model OneJaxDashboard.Models.ProfessionalDevelopment
+
+@{
+    ViewData["Title"] = "Edit Professional Development";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1 class="headline mb-4" style="color:var(--onejax-navy);">Edit Professional Development</h1>
+
+<div class="container mt-4">
+    <div class="card p-4"
+        style="background-color:var(--onejax-white); 
+               box-shadow:0 4px 24px rgba(0,0,0,0.08); 
+               border-radius:24px; 
+               max-width:800px;">
+
+        <form asp-action="EditProfessionalDevelopment" method="post">
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="CreatedDate" />
+
+            <div class="mb-3">
+                <label asp-for="Name" class="form-label fw-bold">Staff Name:</label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="ProfessionalDevelopmentYear26" class="form-label fw-bold">Professional Development Activities (2026):</label>
+                <input asp-for="ProfessionalDevelopmentYear26" type="number" class="form-control" min="1" />
+                <span asp-validation-for="ProfessionalDevelopmentYear26" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="ProfessionalDevelopmentYear27" class="form-label fw-bold">Professional Development Activities (2027):</label>
+                <input asp-for="ProfessionalDevelopmentYear27" type="number" class="form-control" min="1" />
+                <span asp-validation-for="ProfessionalDevelopmentYear27" class="text-danger"></span>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+                <a asp-action="RecordHistory" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .form-control:focus {
+        border-color: var(--onejax-navy);
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 191, 0.25);
+    }
+
+    .btn-primary {
+        background-color: var(--onejax-navy);
+        border-color: var(--onejax-navy);
+    }
+
+    .btn-primary:hover {
+        background-color: #1a365d;
+        border-color: #1a365d;
+    }
+</style>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

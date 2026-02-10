@@ -190,5 +190,163 @@ namespace OneJaxDashboard.Controllers
             }
             return RedirectToAction("RecordHistory");
         }
+
+        // Edit Staff Survey - GET
+        [HttpGet]
+        public IActionResult EditStaffSurvey(int id)
+        {
+            var survey = _context.StaffSurveys_22D.Find(id);
+            if (survey == null)
+            {
+                TempData["Error"] = "Record not found.";
+                return RedirectToAction("RecordHistory");
+            }
+            return View(survey);
+        }
+
+        // Edit Staff Survey - POST
+        [HttpPost]
+        public IActionResult EditStaffSurvey(StaffSurvey_22D model)
+        {
+            if (ModelState.IsValid)
+            {
+                var survey = _context.StaffSurveys_22D.Find(model.Id);
+                if (survey != null)
+                {
+                    survey.Name = model.Name;
+                    survey.SatisfactionRate = model.SatisfactionRate;
+                    survey.ProfessionalDevelopmentCount = model.ProfessionalDevelopmentCount;
+                    _context.SaveChanges();
+                    TempData["Success"] = "Staff Survey record updated successfully!";
+                    return RedirectToAction("RecordHistory");
+                }
+                else
+                {
+                    TempData["Error"] = "Record not found.";
+                }
+            }
+            return View(model);
+        }
+
+        // Edit Professional Development - GET
+        [HttpGet]
+        public IActionResult EditProfessionalDevelopment(int id)
+        {
+            var profDev = _context.ProfessionalDevelopments.Find(id);
+            if (profDev == null)
+            {
+                TempData["Error"] = "Record not found.";
+                return RedirectToAction("RecordHistory");
+            }
+            return View(profDev);
+        }
+
+        // Edit Professional Development - POST
+        [HttpPost]
+        public IActionResult EditProfessionalDevelopment(ProfessionalDevelopment model)
+        {
+            if (ModelState.IsValid)
+            {
+                var profDev = _context.ProfessionalDevelopments.Find(model.Id);
+                if (profDev != null)
+                {
+                    profDev.Name = model.Name;
+                    profDev.ProfessionalDevelopmentYear26 = model.ProfessionalDevelopmentYear26;
+                    profDev.ProfessionalDevelopmentYear27 = model.ProfessionalDevelopmentYear27;
+                    _context.SaveChanges();
+                    TempData["Success"] = "Professional Development record updated successfully!";
+                    return RedirectToAction("RecordHistory");
+                }
+                else
+                {
+                    TempData["Error"] = "Record not found.";
+                }
+            }
+            return View(model);
+        }
+
+        // Edit Media Placement - GET
+        [HttpGet]
+        public IActionResult EditMediaPlacement(int id)
+        {
+            var media = _context.MediaPlacements_3D.Find(id);
+            if (media == null)
+            {
+                TempData["Error"] = "Record not found.";
+                return RedirectToAction("RecordHistory");
+            }
+            return View(media);
+        }
+
+        // Edit Media Placement - POST
+        [HttpPost]
+        public IActionResult EditMediaPlacement(MediaPlacements_3D model)
+        {
+            if (ModelState.IsValid)
+            {
+                var media = _context.MediaPlacements_3D.Find(model.Id);
+                if (media != null)
+                {
+                    media.January = model.January;
+                    media.February = model.February;
+                    media.March = model.March;
+                    media.April = model.April;
+                    media.May = model.May;
+                    media.June = model.June;
+                    media.July = model.July;
+                    media.August = model.August;
+                    media.September = model.September;
+                    media.October = model.October;
+                    media.November = model.November;
+                    media.December = model.December;
+                    _context.SaveChanges();
+                    TempData["Success"] = "Media Placement record updated successfully!";
+                    return RedirectToAction("RecordHistory");
+                }
+                else
+                {
+                    TempData["Error"] = "Record not found.";
+                }
+            }
+            return View(model);
+        }
+
+        // Edit Website Traffic - GET
+        [HttpGet]
+        public IActionResult EditWebsiteTraffic(int id)
+        {
+            var traffic = _context.WebsiteTraffic.Find(id);
+            if (traffic == null)
+            {
+                TempData["Error"] = "Record not found.";
+                return RedirectToAction("RecordHistory");
+            }
+            return View(traffic);
+        }
+
+        // Edit Website Traffic - POST
+        [HttpPost]
+        public IActionResult EditWebsiteTraffic(WebsiteTraffic_4D model)
+        {
+            if (ModelState.IsValid)
+            {
+                var traffic = _context.WebsiteTraffic.Find(model.Id);
+                if (traffic != null)
+                {
+                    traffic.Q1_JulySeptember = model.Q1_JulySeptember;
+                    traffic.Q2_OctoberDecember = model.Q2_OctoberDecember;
+                    traffic.Q3_JanuaryMarch = model.Q3_JanuaryMarch;
+                    traffic.Q4_AprilJune = model.Q4_AprilJune;
+                    _context.SaveChanges();
+                    TempData["Success"] = "Website Traffic record updated successfully!";
+                    return RedirectToAction("RecordHistory");
+                }
+                else
+                {
+                    TempData["Error"] = "Record not found.";
+                }
+            }
+            return View(model);
+        }
     }
 }

@@ -109,6 +109,9 @@
                                 </div>
                             </div>
                             <div class="record-actions mt-3">
+                                <a asp-controller="DataEntry" asp-action="EditStaffSurvey" asp-route-id="@survey.Id" class="btn btn-primary btn-sm">
+                                    Edit
+                                </a>
                                 <form asp-controller="DataEntry" asp-action="DeleteStaffSurvey" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
                                     <input type="hidden" name="id" value="@survey.Id" />
                                     <button type="submit" class="btn btn-danger btn-sm">
@@ -151,6 +154,9 @@
                                 </div>
                             </div>
                             <div class="record-actions mt-3">
+                                <a asp-controller="DataEntry" asp-action="EditProfessionalDevelopment" asp-route-id="@profDev.Id" class="btn btn-primary btn-sm">
+                                    Edit
+                                </a>
                                 <form asp-controller="DataEntry" asp-action="DeleteProfessionalDevelopment" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
                                     <input type="hidden" name="id" value="@profDev.Id" />
                                     <button type="submit" class="btn btn-danger btn-sm">
@@ -243,6 +249,9 @@
                                 </div>
                             </div>
                             <div class="record-actions mt-3">
+                                <a asp-controller="DataEntry" asp-action="EditMediaPlacement" asp-route-id="@media.Id" class="btn btn-primary btn-sm">
+                                    Edit
+                                </a>
                                 <form asp-controller="DataEntry" asp-action="DeleteMediaPlacement" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
                                     <input type="hidden" name="id" value="@media.Id" />
                                     <button type="submit" class="btn btn-danger btn-sm">
@@ -303,6 +312,9 @@
                                 </div>
                             </div>
                             <div class="record-actions mt-3">
+                                <a asp-controller="DataEntry" asp-action="EditWebsiteTraffic" asp-route-id="@traffic.Id" class="btn btn-primary btn-sm">
+                                    Edit
+                                </a>
                                 <form asp-controller="DataEntry" asp-action="DeleteWebsiteTraffic" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
                                     <input type="hidden" name="id" value="@traffic.Id" />
                                     <button type="submit" class="btn btn-danger btn-sm">
@@ -443,6 +455,17 @@
         border-radius: 6px;
         font-weight: 600;
         transition: all 0.2s ease;
+    }
+
+    .record-actions .btn-primary {
+        background-color: var(--onejax-navy);
+        border-color: var(--onejax-navy);
+    }
+
+    .record-actions .btn-primary:hover {
+        background-color: #1a365d;
+        border-color: #1a365d;
+        transform: translateY(-1px);
     }
 
     .record-actions .btn-danger {
