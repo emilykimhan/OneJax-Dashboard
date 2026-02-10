@@ -1,0 +1,255 @@
+@model OneJaxDashboard.Models.GoalMetric
+
+@{
+    var cardClass = "";
+    var iconClass = "";
+    var targetReached = Model.ProgressPercentage >= 100;
+    
+    // Determine card styling based on metric type
+    switch (Model.MetricType)
+    {
+        case "Percentage":
+            cardClass = "metric-percentage";
+            iconClass = "📊";
+            break;
+        case "Currency":
+            cardClass = "metric-currency";
+            iconClass = "💰";
+            break;
+        case "Count":
+            cardClass = "metric-count";
+            iconClass = "📈";
+            break;
+        case "Quarterly":
+            cardClass = "metric-quarterly";
+            iconClass = "📅";
+            break;
+        default:
+            cardClass = "metric-default";
+            iconClass = "📋";
+            break;
+    }
+}
+
+<style>
+    .enhanced-metric-card {
+        background: var(--onejax-white);
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid var(--onejax-border);
+        margin-bottom: 1rem;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .enhanced-metric-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    
+    .metric-percentage { border-left: 4px solid var(--onejax-blue); }
+    .metric-currency { border-left: 4px solid var(--onejax-green); }
+    .metric-count { border-left: 4px solid var(--onejax-orange); }
+    .metric-quarterly { border-left: 4px solid var(--onejax-navy); }
+    .metric-default { border-left: 4px solid #6b7280; }
+    
+    .metric-header {
+        display: flex;
+        justify-content: between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+    
+    .metric-title {
+        color: var(--onejax-navy);
+        font-weight: 600;
+        font-size: 1rem;
+        margin: 0;
+        flex: 1;
+    }
+    
+    .metric-icon {
+        font-size: 1.5rem;
+        opacity: 0.7;
+    }
+    
+    .metric-description {
+        color: var(--onejax-text-muted);
+        font-size: 0.85rem;
+        margin-bottom: 1rem;
+    }
+    
+    .metric-values {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    .current-value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--onejax-navy);
+    }
+    
+    .target-info {
+        text-align: right;
+        font-size: 0.9rem;
+        color: var(--onejax-text-muted);
+    }
+    
+    .progress-section {
+        margin-bottom: 1rem;
+    }
+    
+    .progress-bar-enhanced {
+        height: 8px;
+        border-radius: 4px;
+        background: rgba(59, 130, 246, 0.1);
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        border-radius: 4px;
+        background: linear-gradient(90deg, var(--onejax-blue), var(--onejax-green));
+        transition: width 0.3s ease;
+    }
+    
+    .metric-badges {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-top: 1rem;
+    }
+    
+    .metric-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    .badge-status-active { background: #dbeafe; color: var(--onejax-blue); }
+    .badge-status-completed { background: #d1fae5; color: var(--onejax-green); }
+    .badge-target-reached { background: #d1fae5; color: var(--onejax-green); }
+    .badge-target-progress { background: #fef3c7; color: var(--onejax-orange); }
+    .badge-data-source { background: #f3f4f6; color: #6b7280; }
+    
+    .quarterly-breakdown {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+    
+    .quarter-item {
+        text-align: center;
+        padding: 0.5rem;
+        border-radius: 6px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .quarter-label {
+        font-size: 0.75rem;
+        color: #64748b;
+        font-weight: 600;
+    }
+    
+    .quarter-value {
+        font-size: 0.9rem;
+        color: var(--onejax-navy);
+        font-weight: 500;
+    }
+</style>
+
+<div class="enhanced-metric-card @cardClass">
+    <!-- Header -->
+    <div class="metric-header">
+        <h6 class="metric-title">@Model.Name</h6>
+        <span class="metric-icon">@iconClass</span>
+    </div>
+    
+    <!-- Description -->
+    <p class="metric-description">@Model.Description</p>
+    
+    <!-- Values -->
+    <div class="metric-values">
+        <div>
+            <div class="current-value">
+                @if (Model.MetricType == "Currency")
+                {
+                    @($"${Model.CurrentValue:N0}")
+                }
+                else
+                {
+                    @($"{Model.CurrentValue}{Model.Unit}")
+                }
+            </div>
+        </div>
+        <div class="target-info">
+            <div><strong>Target:</strong> @Model.Target@Model.Unit</div>
+            <div><strong>Due:</strong> @Model.TargetDate.ToString("MMM yyyy")</div>
+        </div>
+    </div>
+    
+    <!-- Progress Bar -->
+    <div class="progress-section">
+        <div class="d-flex justify-content-between mb-1">
+            <small class="text-muted">Progress</small>
+            <small class="text-muted"><strong>@Math.Round(Model.ProgressPercentage, 1)%</strong></small>
+        </div>
+        <div class="progress-bar-enhanced">
+            <div class="progress-fill" style="width: @Math.Min(Model.ProgressPercentage, 100)%;"></div>
+        </div>
+    </div>
+    
+    <!-- Quarterly Breakdown (for quarterly metrics) -->
+    @if (Model.MetricType == "Quarterly" && (Model.Q1Value > 0 || Model.Q2Value > 0 || Model.Q3Value > 0 || Model.Q4Value > 0))
+    {
+        <div class="quarterly-breakdown">
+            <div class="quarter-item">
+                <div class="quarter-label">Q1</div>
+                <div class="quarter-value">@Model.Q1Value.ToString("N0")</div>
+            </div>
+            <div class="quarter-item">
+                <div class="quarter-label">Q2</div>
+                <div class="quarter-value">@(Model.Q2Value > 0 ? Model.Q2Value.ToString("N0") : "TBD")</div>
+            </div>
+            <div class="quarter-item">
+                <div class="quarter-label">Q3</div>
+                <div class="quarter-value">@(Model.Q3Value > 0 ? Model.Q3Value.ToString("N0") : "TBD")</div>
+            </div>
+            <div class="quarter-item">
+                <div class="quarter-label">Q4</div>
+                <div class="quarter-value">@(Model.Q4Value > 0 ? Model.Q4Value.ToString("N0") : "TBD")</div>
+            </div>
+        </div>
+    }
+    
+    <!-- Badges -->
+    <div class="metric-badges">
+        <span class="metric-badge @(Model.Status == "Active" ? "badge-status-active" : "badge-status-completed")">
+            @Model.Status
+        </span>
+        
+        @if (targetReached)
+        {
+            <span class="metric-badge badge-target-reached">Target Reached</span>
+        }
+        else
+        {
+            <span class="metric-badge badge-target-progress">In Progress</span>
+        }
+        
+        <span class="metric-badge badge-data-source">@Model.DataSource</span>
+        
+        @if (Model.FiscalYear != "2025-2026")
+        {
+            <span class="metric-badge badge-data-source">@Model.FiscalYear</span>
+        }
+    </div>
+</div>

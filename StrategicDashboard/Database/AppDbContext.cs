@@ -23,6 +23,14 @@ namespace OneJaxDashboard.Data
         public DbSet<demographics_8D> demographics_8D { get; set; } = default!;
         public DbSet<Plan2026_24D> Plan2026_24D { get; set; } = default!;
         public DbSet<planIssue_25D> planIssue_25D { get; set; } = default!;
+        public DbSet<DonorEvent_19D> DonorEvents_19D { get; set; } = default!;
+        public DbSet<feeForService_21D> FeeForServices_21D { get; set; } = default!;
+        public DbSet<income_27D> income_27D { get; set; } = default!;
+        public DbSet<BudgetTracking_28D> BudgetTracking_28D { get; set; } = default!;
+        public DbSet<BoardMemberRecruitment> BoardMember_29D { get; set; } = default!;
+        public DbSet<BoardMeetingAttendance> BoardMeetingAttendance { get; set; } = default!;
+        public DbSet<interfaith_11D> Interfaith_11D { get; set; } = default!;
+        public DbSet<eventSatisfaction> EventSatisfaction_12D { get; set; } = default!;
         
 
         // Dashboard tables

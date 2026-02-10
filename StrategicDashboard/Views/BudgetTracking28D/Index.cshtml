@@ -1,0 +1,255 @@
+@model OneJaxDashboard.Models.BudgetTracking_28D
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    ViewData["Title"] = "Budget Tracking";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card p-4"
+                 style="background-color:var(--onejax-white);
+                        box-shadow:0 4px 24px rgba(0,0,0,0.08);
+                        border-radius:24px;">
+                
+                <!-- Header with back button -->
+                <div class="d-flex align-items-center mb-4">
+                    <a href="/Financial" 
+                       class="btn btn-outline-secondary me-3"
+                       style="border-radius: 8px;">
+                        ← Back
+                    </a>
+                    <h2 class="mb-0" style="color:var(--onejax-navy);">Annual Budget Tracking</h2>
+                </div>
+                
+                <p class="text-center mb-4" style="color:var(--onejax-gray);">
+                    Annual Budget Revenue: <strong>$994,600</strong> | Annual Budget Expense: <strong>$960,200</strong>
+                </p>
+
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success text-center">
+                        @TempData["Success"]
+                    </div>
+                }
+
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger text-center">
+                        @TempData["Error"]
+                    </div>
+                }
+
+                <!-- Budget Entry Form -->
+                <div class="survey-form">
+                    <h4 class="mb-4 text-center" style="color:var(--onejax-navy);">Quarterly Budget Entry</h4>
+
+                    <form asp-controller="BudgetTracking28D" asp-action="Index" method="post" novalidate>
+                        
+                        <!-- Quarter and Year -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Quarter" class="form-label fw-bold">Quarter:</label>
+                                <select asp-for="Quarter" class="form-select" asp-items="ViewBag.Quarters">
+                                    <option value="">-- Select Quarter --</option>
+                                </select>
+                                <span asp-validation-for="Quarter" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Year" class="form-label fw-bold">Year:</label>
+                                <input asp-for="Year" type="number" min="2022" max="2100" 
+                                       class="form-control" placeholder="e.g., 2026" />
+                                <span asp-validation-for="Year" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Expenses Section -->
+                        <hr class="my-4">
+                        <h5 class="mb-3" style="color:var(--onejax-navy);">📉 Expenses</h5>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="CommunityPrograms" class="form-label fw-bold">Community Programs:</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input asp-for="CommunityPrograms" type="number" min="0" step="0.01" 
+                                           class="form-control" placeholder="0.00" />
+                                </div>
+                                <span asp-validation-for="CommunityPrograms" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="OneYouthPrograms" class="form-label fw-bold">OneYouth Programs:</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input asp-for="OneYouthPrograms" type="number" min="0" step="0.01" 
+                                           class="form-control" placeholder="0.00" />
+                                </div>
+                                <span asp-validation-for="OneYouthPrograms" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="InterfaithPrograms" class="form-label fw-bold">Interfaith Programs:</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input asp-for="InterfaithPrograms" type="number" min="0" step="0.01" 
+                                           class="form-control" placeholder="0.00" />
+                                </div>
+                                <span asp-validation-for="InterfaithPrograms" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="HumanitarianEvent" class="form-label fw-bold">Humanitarian Event:</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input asp-for="HumanitarianEvent" type="number" min="0" step="0.01" 
+                                           class="form-control" placeholder="0.00" />
+                                </div>
+                                <span asp-validation-for="HumanitarianEvent" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Revenues Section -->
+                        <hr class="my-4">
+                        <h5 class="mb-3" style="color:var(--onejax-navy);">📈 Revenues</h5>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="CorporateGiving" class="form-label fw-bold">Corporate Giving:</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input asp-for="CorporateGiving" type="number" min="0" step="0.01" 
+                                           class="form-control" placeholder="0.00" />
+                                </div>
+                                <span asp-validation-for="CorporateGiving" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="IndividualGiving" class="form-label fw-bold">Individual Giving:</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input asp-for="IndividualGiving" type="number" min="0" step="0.01" 
+                                           class="form-control" placeholder="0.00" />
+                                </div>
+                                <span asp-validation-for="IndividualGiving" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="GrantsFoundations" class="form-label fw-bold">Grants & Foundations:</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input asp-for="GrantsFoundations" type="number" min="0" step="0.01" 
+                                           class="form-control" placeholder="0.00" />
+                                </div>
+                                <span asp-validation-for="GrantsFoundations" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="CommunityEvents" class="form-label fw-bold">Community Events:</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input asp-for="CommunityEvents" type="number" min="0" step="0.01" 
+                                           class="form-control" placeholder="0.00" />
+                                </div>
+                                <span asp-validation-for="CommunityEvents" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="PeopleCultureWorkshops" class="form-label fw-bold">People and Culture Workshops:</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input asp-for="PeopleCultureWorkshops" type="number" min="0" step="0.01" 
+                                           class="form-control" placeholder="0.00" />
+                                </div>
+                                <span asp-validation-for="PeopleCultureWorkshops" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Notes -->
+                        <hr class="my-4">
+                        <div class="mb-3">
+                            <label asp-for="Notes" class="form-label fw-bold">Notes (Optional):</label>
+                            <textarea asp-for="Notes" class="form-control" rows="3" 
+                                      placeholder="Add any additional details or context..."></textarea>
+                            <span asp-validation-for="Notes" class="text-danger"></span>
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary px-5 py-2" 
+                                    style="background-color:var(--onejax-navy); border-color:var(--onejax-navy);">
+                                Submit Budget Entry
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-outline-secondary {
+        border-color: var(--onejax-navy);
+        color: var(--onejax-navy);
+    }
+    
+    .btn-outline-secondary:hover {
+        background-color: var(--onejax-navy);
+        border-color: var(--onejax-navy);
+        color: white;
+    }
+    
+    .card {
+        border: none;
+    }
+
+    .survey-form {
+        padding: 1.5rem;
+        background: #f8f9fa;
+        border-radius: 12px;
+        margin-top: 1rem;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--onejax-navy);
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 191, 0.25);
+    }
+
+    .btn:hover {
+        background-color: #1a365d !important;
+        border-color: #1a365d !important;
+    }
+
+    .alert {
+        border: none;
+        border-radius: 8px;
+    }
+
+    .text-danger {
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        display: block;
+    }
+
+    .input-group-text {
+        background-color: var(--onejax-navy);
+        color: white;
+        border-color: var(--onejax-navy);
+    }
+
+    hr {
+        border-top: 2px solid #dee2e6;
+    }
+</style>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

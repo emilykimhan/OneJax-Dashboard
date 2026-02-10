@@ -1,4 +1,4 @@
-/* Brand Colors */
+/* OneJax Official Brand Colors */
 :root {
     --onejax-orange: #f5a045;
     --onejax-blue: #4bb4c8;
@@ -8,6 +8,26 @@
     --onejax-navy: #096682;
     --onejax-dark-green: #005f47;
     --onejax-white: #ffffff;
+    
+    /* Dashboard Support Colors */
+    --onejax-light-bg: #faf9f7;
+    --onejax-border: #e6e1db;
+    --onejax-text: #2d2d2d;
+    --onejax-text-muted: #6b6b6b;
+    
+    /* Updated Gradients using OneJax Brand Colors */
+    --gradient-primary: linear-gradient(135deg, var(--onejax-navy), var(--onejax-dark-blue));
+    --gradient-secondary: linear-gradient(135deg, var(--onejax-blue), var(--onejax-green));
+    --gradient-accent: linear-gradient(135deg, var(--onejax-orange), var(--onejax-gold));
+    --gradient-warm: linear-gradient(135deg, var(--onejax-orange), var(--onejax-gold));
+    --gradient-cool: linear-gradient(135deg, var(--onejax-blue), var(--onejax-dark-blue));
+    
+    /* Updated Shadows using OneJax Colors */
+    --shadow-soft: 0 4px 20px rgba(9, 102, 130, 0.1);
+    --shadow-medium: 0 8px 30px rgba(0, 0, 0, 0.12);
+    --shadow-strong: 0 15px 35px rgba(9, 102, 130, 0.2);
+    --shadow-warm: 0 4px 20px rgba(245, 160, 69, 0.15);
+    --shadow-gold: 0 4px 20px rgba(191, 168, 113, 0.15);
 }
 
 /* Typography */
@@ -215,5 +235,404 @@ h3,
 @media (max-width: 767.98px) {
     .login-brand { display:flex; gap: 0.8rem; padding: 1.5rem; text-align:center; }
     .login-brand img { max-width: 96px; }
+}
+
+/* ===== DASHBOARD STYLES ===== */
+
+/* Global Dashboard Styles */
+body {
+    background: linear-gradient(135deg, var(--onejax-light-bg) 0%, #f0ebe3 100%);
+    min-height: 100vh;
+    font-family: 'Poppins', sans-serif;
+    color: var(--onejax-text);
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+    color: var(--onejax-navy);
+    font-weight: 700;
+}
+
+/* Dashboard Header */
+.dashboard-header {
+    background: var(--gradient-primary);
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-strong);
+}
+
+.dashboard-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+    opacity: 0.3;
+}
+
+.dashboard-header .container {
+    position: relative;
+    z-index: 2;
+}
+
+/* Cards */
+.floating-card {
+    background: var(--onejax-white);
+    border-radius: 20px;
+    box-shadow: var(--shadow-soft);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.floating-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--gradient-accent);
+    border-radius: 20px 20px 0 0;
+}
+
+.floating-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-medium);
+}
+
+/* OneJax Color Variations for Cards */
+.floating-card.orange-accent::before {
+    background: var(--gradient-warm);
+}
+
+.floating-card.orange-accent:hover {
+    box-shadow: var(--shadow-warm);
+}
+
+.floating-card.blue-accent::before {
+    background: var(--gradient-cool);
+}
+
+.floating-card.gold-accent::before {
+    background: linear-gradient(135deg, var(--onejax-gold), var(--onejax-orange));
+}
+
+.floating-card.gold-accent:hover {
+    box-shadow: var(--shadow-gold);
+}
+
+.floating-card.green-accent::before {
+    background: linear-gradient(135deg, var(--onejax-green), var(--onejax-dark-green));
+}
+
+/* Navigation Tabs */
+.nav-tabs-modern {
+    border: none;
+    background: var(--onejax-white);
+    border-radius: 15px;
+    padding: 8px;
+    box-shadow: var(--shadow-soft);
+    margin-bottom: 2rem;
+    border: 2px solid rgba(245, 160, 69, 0.1);
+}
+
+.nav-tabs-modern .nav-link {
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-weight: 600;
+    color: var(--onejax-text-muted);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-tabs-modern .nav-link:hover {
+    color: var(--onejax-navy);
+    background: rgba(245, 160, 69, 0.1);
+    transform: translateY(-2px);
+}
+
+.nav-tabs-modern .nav-link.active {
+    background: var(--gradient-primary);
+    color: white;
+    box-shadow: 0 4px 15px rgba(9, 102, 130, 0.3);
+}
+
+/* Alternative tab styles using different OneJax colors */
+.nav-tabs-modern.warm-theme .nav-link:hover {
+    background: rgba(245, 160, 69, 0.15);
+    color: var(--onejax-dark-blue);
+}
+
+.nav-tabs-modern.warm-theme .nav-link.active {
+    background: var(--gradient-warm);
+    box-shadow: 0 4px 15px rgba(245, 160, 69, 0.3);
+}
+
+/* Metric Cards */
+.metric-card {
+    background: var(--onejax-white);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow-soft);
+    border: 1px solid var(--onejax-border);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: var(--gradient-secondary);
+}
+
+.metric-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-medium);
+}
+
+/* OneJax themed metric cards */
+.metric-card.orange-theme::before {
+    background: var(--gradient-warm);
+}
+
+.metric-card.orange-theme:hover {
+    box-shadow: var(--shadow-warm);
+    border-color: var(--onejax-orange);
+}
+
+.metric-card.gold-theme::before {
+    background: linear-gradient(90deg, var(--onejax-gold), var(--onejax-orange));
+}
+
+.metric-card.blue-theme::before {
+    background: var(--gradient-cool);
+}
+
+.metric-card.green-theme::before {
+    background: linear-gradient(90deg, var(--onejax-green), var(--onejax-dark-green));
+}
+
+/* Progress Bars */
+.progress-modern {
+    height: 8px;
+    background: rgba(245, 160, 69, 0.15);
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-modern .progress-bar {
+    background: var(--gradient-secondary);
+    border-radius: 10px;
+    transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-modern.warm-theme .progress-bar {
+    background: var(--gradient-warm);
+}
+
+.progress-modern.cool-theme .progress-bar {
+    background: var(--gradient-cool);
+}
+
+.progress-modern.gold-theme .progress-bar {
+    background: linear-gradient(90deg, var(--onejax-gold), var(--onejax-orange));
+}
+
+.progress-modern .progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    animation: shimmer 2s infinite;
+}
+
+/* Stat Cards */
+.stat-card-modern {
+    background: var(--onejax-white);
+    border-radius: 20px;
+    padding: 2rem;
+    text-align: center;
+    box-shadow: var(--shadow-soft);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card-modern::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: var(--gradient-accent);
+    border-radius: 20px 20px 0 0;
+}
+
+.stat-card-modern:hover {
+    transform: translateY(-10px);
+    box-shadow: var(--shadow-strong);
+}
+
+/* OneJax themed stat cards */
+.stat-card-modern.orange-theme::before {
+    background: var(--gradient-warm);
+}
+
+.stat-card-modern.orange-theme:hover {
+    box-shadow: var(--shadow-warm);
+}
+
+.stat-card-modern.blue-theme::before {
+    background: var(--gradient-cool);
+}
+
+.stat-card-modern.gold-theme::before {
+    background: linear-gradient(90deg, var(--onejax-gold), var(--onejax-orange));
+}
+
+.stat-card-modern.gold-theme:hover {
+    box-shadow: var(--shadow-gold);
+}
+
+.stat-card-modern.green-theme::before {
+    background: linear-gradient(90deg, var(--onejax-green), var(--onejax-dark-green));
+}
+
+/* Badges */
+.badge-modern {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Buttons */
+.btn-modern {
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-weight: 600;
+    border: none;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.btn-primary-modern {
+    background: var(--gradient-primary);
+    color: white;
+}
+
+.btn-secondary-modern {
+    background: var(--onejax-white);
+    color: var(--onejax-navy);
+    border: 2px solid var(--onejax-border);
+}
+
+/* Utility Classes */
+.icon-float {
+    display: inline-block;
+    transition: transform 0.3s ease;
+}
+
+.icon-float:hover {
+    transform: translateY(-3px);
+}
+
+.hover-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(9, 102, 130, 0.15);
+    border-color: var(--onejax-blue);
+}
+
+.goal-section {
+    transition: opacity 0.3s ease-in-out;
+}
+
+/* Animations */
+.pulse-animation {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.fade-in {
+    animation: fadeIn 0.8s ease-out;
+}
+
+.slide-in-left {
+    animation: slideInLeft 0.6s ease-out;
+}
+
+.slide-in-right {
+    animation: slideInRight 0.6s ease-out;
+}
+
+/* Keyframes */
+@keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-50px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInRight {
+    from { opacity: 0; transform: translateX(50px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideOutRight {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(100%); opacity: 0; }
+}
+
+@keyframes ripple {
+    to { transform: scale(4); opacity: 0; }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
 }
 

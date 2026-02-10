@@ -15,7 +15,7 @@ namespace StrategicDashboard.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "9.0.0");
+            modelBuilder.HasAnnotation("ProductVersion", "9.0.10");
 
             modelBuilder.Entity("OneJaxDashboard.Models.Annual_average_7D", b =>
                 {
@@ -45,6 +45,107 @@ namespace StrategicDashboard.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Annual_average_7D");
+                });
+
+            modelBuilder.Entity("OneJaxDashboard.Models.BoardMeetingAttendance", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("MeetingDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("MembersInAttendance")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("TotalBoardMembers")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("BoardMeetingAttendance");
+                });
+
+            modelBuilder.Entity("OneJaxDashboard.Models.BoardMemberRecruitment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("MemberNames")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("NumberRecruited")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Quarter")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("BoardMember_29D");
+                });
+
+            modelBuilder.Entity("OneJaxDashboard.Models.BudgetTracking_28D", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal?>("CommunityEvents")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("CommunityPrograms")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("CorporateGiving")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("GrantsFoundations")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("HumanitarianEvent")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("IndividualGiving")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("InterfaithPrograms")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("OneYouthPrograms")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("PeopleCultureWorkshops")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Quarter")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("BudgetTracking_28D");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.Comm_rate20D", b =>
@@ -96,6 +197,35 @@ namespace StrategicDashboard.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("CrossSectorCollabs");
+                });
+
+            modelBuilder.Entity("OneJaxDashboard.Models.DonorEvent_19D", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("EventSatisfactionRating")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("NumberOfParticipants")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("StrategyId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StrategyId");
+
+                    b.ToTable("DonorEvents_19D");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.Event", b =>
@@ -205,7 +335,22 @@ namespace StrategicDashboard.Migrations
                     b.Property<decimal>("CurrentValue")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("DataSource")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FiscalYear")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsPublic")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("MetricType")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -488,6 +633,10 @@ namespace StrategicDashboard.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("EventFYear")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("EventType")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -566,6 +715,157 @@ namespace StrategicDashboard.Migrations
                     b.ToTable("demographics_8D");
                 });
 
+            modelBuilder.Entity("OneJaxDashboard.Models.eventSatisfaction", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("EventAttendeeSatisfactionPercentage")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("StrategyId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StrategyId");
+
+                    b.ToTable("EventSatisfaction_12D");
+                });
+
+            modelBuilder.Entity("OneJaxDashboard.Models.feeForService_21D", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ClientName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("EventPartners")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("NumberOfAttendees")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("ParticipantSatisfactionRating")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("PartnerSatisfactionRating")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ProgramTitle")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Quarter")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("RevenueReceived")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("StrategyId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TotalNumberOfWorkshops")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("WorkshopDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("WorkshopFormat")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("WorkshopLocation")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StrategyId");
+
+                    b.ToTable("FeeForServices_21D");
+                });
+
+            modelBuilder.Entity("OneJaxDashboard.Models.income_27D", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("IncomeSource")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Month")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("income_27D");
+                });
+
+            modelBuilder.Entity("OneJaxDashboard.Models.interfaith_11D", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("NumberOfFaithsRepresented")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("PostEventSatisfactionSurvey")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("StrategyId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TotalAttendance")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StrategyId");
+
+                    b.ToTable("Interfaith_11D");
+                });
+
             modelBuilder.Entity("OneJaxDashboard.Models.planIssue_25D", b =>
                 {
                     b.Property<int>("Id")
@@ -603,6 +903,17 @@ namespace StrategicDashboard.Migrations
                     b.HasIndex("PlanId");
 
                     b.ToTable("planIssue_25D");
+                });
+
+            modelBuilder.Entity("OneJaxDashboard.Models.DonorEvent_19D", b =>
+                {
+                    b.HasOne("OneJaxDashboard.Models.Strategy", "Strategy")
+                        .WithMany()
+                        .HasForeignKey("StrategyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Strategy");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.Event", b =>
@@ -662,6 +973,39 @@ namespace StrategicDashboard.Migrations
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.demographics_8D", b =>
+                {
+                    b.HasOne("OneJaxDashboard.Models.Strategy", "Strategy")
+                        .WithMany()
+                        .HasForeignKey("StrategyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Strategy");
+                });
+
+            modelBuilder.Entity("OneJaxDashboard.Models.eventSatisfaction", b =>
+                {
+                    b.HasOne("OneJaxDashboard.Models.Strategy", "Strategy")
+                        .WithMany()
+                        .HasForeignKey("StrategyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Strategy");
+                });
+
+            modelBuilder.Entity("OneJaxDashboard.Models.feeForService_21D", b =>
+                {
+                    b.HasOne("OneJaxDashboard.Models.Strategy", "Strategy")
+                        .WithMany()
+                        .HasForeignKey("StrategyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Strategy");
+                });
+
+            modelBuilder.Entity("OneJaxDashboard.Models.interfaith_11D", b =>
                 {
                     b.HasOne("OneJaxDashboard.Models.Strategy", "Strategy")
                         .WithMany()

@@ -1,30 +1,46 @@
 @model List<OneJaxDashboard.Models.StrategicGoal>
 @{
-    ViewData["Title"] = "Public Project Overview";
+    ViewData["Title"] = "Public Goals Overview";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <style>
     :root {
-        --onejax-navy: #1E3A8A;
-        --onejax-blue: #3B82F6;
-        --onejax-orange: #F59E0B;
-        --onejax-green: #10B981;
-        --onejax-white: #FFFFFF;
-        --onejax-light-bg: #f8fafc;
-        --onejax-border: #e2e8f0;
-        --onejax-text: #1e293b;
-        --onejax-text-muted: #64748b;
+        --onejax-orange: #f5a045;
+        --onejax-blue: #4bb4c8;
+        --onejax-gold: #bfa871;
+        --onejax-dark-blue: #278aa2;
+        --onejax-green: #67ab8c;
+        --onejax-navy: #096682;
+        --onejax-dark-green: #005f47;
+        --onejax-white: #ffffff;
+        --onejax-light-bg: #faf9f7;
+        --onejax-border: #e6e1db;
+        --onejax-text: #2d2d2d;
+        --onejax-text-muted: #6b6b6b;
     }
     
     .public-header {
-        background: linear-gradient(135deg, var(--onejax-navy), var(--onejax-blue));
+        background: linear-gradient(135deg, var(--onejax-navy), var(--onejax-dark-blue));
         color: white;
         padding: 4rem 0;
         margin-bottom: 3rem;
+        position: relative;
+        overflow: hidden;
     }
     
-    .project-card {
+    .public-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+        opacity: 0.3;
+    }
+    
+    .goal-card {
         background: var(--onejax-white);
         border-radius: 16px;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
@@ -35,7 +51,7 @@
         height: 100%;
     }
     
-    .project-card:hover {
+    .goal-card:hover {
         transform: translateY(-4px);
         box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
     }
@@ -116,11 +132,11 @@
     <div class="container">
         <div class="row align-items-center">
             <div class="col-md-8">
-                <h1 class="display-4 mb-3" style="font-weight: 700;">OneJax Strategic Projects</h1>
-                <p class="lead mb-0">Public overview of our organizational progress and community initiatives</p>
+                <h1 class="display-4 mb-3" style="font-weight: 700;">OneJax Strategic Goals</h1>
+                <p class="lead mb-0">Public overview of our organizational progress and strategic initiatives</p>
             </div>
             <div class="col-md-4 text-end">
-                <img src="~/Images/OneJax Logo.png" alt="OneJax Logo" style="height: 80px; filter: brightness(0) invert(1);">
+                <img src="~/Images/OneJax Logo.png" alt="OneJax Logo" style="height: 80px; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.3)); opacity: 0.95;">
             </div>
         </div>
     </div>
@@ -132,11 +148,11 @@
         <div class="row text-center">
             <div class="col-md-3">
                 <div class="h2 text-primary mb-2">@Model.Count</div>
-                <div class="text-muted">Total Projects</div>
+                <div class="text-muted">Strategic Goals</div>
             </div>
             <div class="col-md-3">
                 <div class="h2 text-success mb-2">@Model.SelectMany(g => g.Events).Count(e => e.Status == "Active")</div>
-                <div class="text-muted">Active Projects</div>
+                <div class="text-muted">Active Events</div>
             </div>
             <div class="col-md-3">
                 <div class="h2 text-info mb-2">@Model.SelectMany(g => g.Events).Count(e => e.Status == "Completed")</div>
@@ -151,29 +167,93 @@
 
     <!-- Project Cards -->
     <div class="row">
-        @foreach (var goal in Model)
+        @{ 
+            var onejaxColors = new[] { 
+                "linear-gradient(135deg, #096682, #278aa2)", // navy to dark-blue
+                "linear-gradient(135deg, #f5a045, #bfa871)", // orange to gold  
+                "linear-gradient(135deg, #4bb4c8, #67ab8c)", // blue to green
+                "linear-gradient(135deg, #67ab8c, #005f47)"  // green to dark-green
+            };
+        }
+        @for (int i = 0; i < Model.Count; i++)
         {
+            var goal = Model[i];
+            var cardColor = onejaxColors[i % onejaxColors.Length];
+            
+            // Calculate overall progress from metrics
             var overallProgress = goal.Metrics?.Any() == true ? 
                 goal.Metrics.Average(m => (double)m.CurrentValue / (double.TryParse(m.Target, out double target) ? target : 1) * 100) : 0;
             
-            var primaryStatus = "Active";
-            if (goal.Events?.Any() == true)
+            // Determine goal status based on multiple factors
+            string goalStatus = "In Planning";
+            string statusClass = "status-planned";
+            
+            if (goal.Metrics?.Any() == true && goal.Events?.Any() == true)
             {
-                var statusCounts = goal.Events.GroupBy(e => e.Status).ToDictionary(g => g.Key, g => g.Count());
-                primaryStatus = statusCounts.OrderByDescending(kvp => kvp.Value).First().Key;
+                // Goal has both metrics and events
+                var activeEvents = goal.Events.Count(e => e.Status == "Active");
+                var completedEvents = goal.Events.Count(e => e.Status == "Completed");
+                var totalEvents = goal.Events.Count();
+                
+                if (overallProgress >= 90)
+                {
+                    goalStatus = "Nearly Complete";
+                    statusClass = "status-completed";
+                }
+                else if (overallProgress >= 70 || (activeEvents > 0 && completedEvents > 0))
+                {
+                    goalStatus = "On Track";
+                    statusClass = "status-active";
+                }
+                else if (activeEvents > 0 || overallProgress > 25)
+                {
+                    goalStatus = "In Progress";
+                    statusClass = "status-active";
+                }
+            }
+            else if (goal.Events?.Any() == true)
+            {
+                // Goal has events but no metrics
+                var activeEvents = goal.Events.Count(e => e.Status == "Active");
+                var completedEvents = goal.Events.Count(e => e.Status == "Completed");
+                
+                if (activeEvents > 0)
+                {
+                    goalStatus = "In Progress";
+                    statusClass = "status-active";
+                }
+                else if (completedEvents > 0)
+                {
+                    goalStatus = "Activities Complete";
+                    statusClass = "status-completed";
+                }
+            }
+            else if (goal.Metrics?.Any() == true)
+            {
+                // Goal has metrics but no events
+                if (overallProgress >= 80)
+                {
+                    goalStatus = "Target Reached";
+                    statusClass = "status-completed";
+                }
+                else if (overallProgress > 40)
+                {
+                    goalStatus = "Making Progress";
+                    statusClass = "status-active";
+                }
             }
 
             <div class="col-lg-6 mb-4">
-                <div class="project-card">
-                    <!-- Project Header -->
-                    <div class="p-4" style="background: linear-gradient(135deg, @goal.Color, @goal.Color + "CC"); color: white;">
+                <div class="goal-card">
+                    <!-- Goal Header -->
+                    <div class="p-4" style="background: @cardColor; color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
                                 <h4 class="mb-2" style="font-weight: 600;">@goal.Name</h4>
                                 <p class="mb-3" style="opacity: 0.9;">@goal.Description</p>
-                                <span class="status-badge @(primaryStatus.ToLower() == "active" ? "status-active" : primaryStatus.ToLower() == "completed" ? "status-completed" : "status-planned")"
+                                <span class="status-badge @statusClass"
                                       style="background: rgba(255,255,255,0.2); color: white;">
-                                    @primaryStatus
+                                    @goalStatus
                                 </span>
                             </div>
                             <div class="progress-ring" style="background: rgba(255,255,255,0.2);">

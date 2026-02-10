@@ -46,7 +46,7 @@ public class StrategyController : Controller
         goalStrategies = goalStrategies.OrderByDescending(s => s.Id).ToList();
 
         ViewBag.GoalId = goalId;
-        ViewBag.SuccessMessage = TempData["SuccessMessage"]; // For toast display
+        ViewBag.SuccessMessage = TempData["SuccessMessage"]; 
 
         return View(goalStrategies);
     }
@@ -116,28 +116,37 @@ public class StrategyController : Controller
         return RedirectToAction("Index");
     }
 
-        [HttpPost]
-        [HttpPost]
-        public IActionResult Delete(int id)
+    [HttpPost]
+    [HttpPost]
+    public IActionResult Delete(int id)
+    {
+        // Fetch the strategy from the database
+        var strategy = _context.Strategies.FirstOrDefault(s => s.Id == id);
+        if (strategy == null)
         {
-            // Fetch the strategy from the database
-            var strategy = _context.Strategies.FirstOrDefault(s => s.Id == id);
-            if (strategy == null)
-            {
-                return NotFound(); // Return 404 if the strategy doesn't exist
-            }
-
-            // Remove the strategy from the database
-            _context.Strategies.Remove(strategy);
-            _context.SaveChanges();
-
-            TempData["SuccessMessage"] = "Event deleted successfully!";
-            return RedirectToAction("ViewEvents");
+            return NotFound(); // Return 404 if the strategy doesn't exist
         }
+
+        // Remove the strategy from the database
+        _context.Strategies.Remove(strategy);
+        _context.SaveChanges();
+
+        TempData["SuccessMessage"] = "Event deleted successfully!";
+        return RedirectToAction("ViewEvents");
+    }
     public IActionResult ViewEvents()
     {
         // Fetch all events from the database
         var events = _context.Strategies.ToList();
+
+        ViewBag.Goals = _context.StrategicGoals
+        .Select(g => new SelectListItem
+        {
+            Value = g.Id.ToString(),
+            Text = g.Name
+        })
+        .ToList();
+
 
         // Pass the events to the view
         return View(events);
