@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OneJaxDashboard.Data;
 
@@ -10,9 +11,11 @@ using OneJaxDashboard.Data;
 namespace StrategicDashboard.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260210143145_AddInterfaith11DTable")]
+    partial class AddInterfaith11DTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.10");
@@ -715,28 +718,6 @@ namespace StrategicDashboard.Migrations
                     b.ToTable("demographics_8D");
                 });
 
-            modelBuilder.Entity("OneJaxDashboard.Models.eventSatisfaction", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("EventAttendeeSatisfactionPercentage")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("StrategyId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("StrategyId");
-
-                    b.ToTable("EventSatisfaction_12D");
-                });
-
             modelBuilder.Entity("OneJaxDashboard.Models.feeForService_21D", b =>
                 {
                     b.Property<int>("Id")
@@ -973,17 +954,6 @@ namespace StrategicDashboard.Migrations
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.demographics_8D", b =>
-                {
-                    b.HasOne("OneJaxDashboard.Models.Strategy", "Strategy")
-                        .WithMany()
-                        .HasForeignKey("StrategyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Strategy");
-                });
-
-            modelBuilder.Entity("OneJaxDashboard.Models.eventSatisfaction", b =>
                 {
                     b.HasOne("OneJaxDashboard.Models.Strategy", "Strategy")
                         .WithMany()
