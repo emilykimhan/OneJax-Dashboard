@@ -1,274 +1,108 @@
+@model IEnumerable<OneJaxDashboard.Models.Event>
 @{
     ViewData["Title"] = "Admin Dashboard";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var staffCount = ViewData["StaffCount"] as int? ?? 0;
-    var totalEvents = ViewData["TotalEvents"] as int? ?? 0;
-    var assignedEvents = ViewData["AssignedEvents"] as int? ?? 0;
+    var eventCount = ViewData["EventCount"] as int? ?? 0;
+    var recentActivities = ViewData["RecentActivities"] as List<OneJaxDashboard.Models.ActivityLogEntry> ?? new List<OneJaxDashboard.Models.ActivityLogEntry>();
 }
 
 <div class="row mb-4">
     <div class="col-md-12">
-        <h2 class="fw-bold" style="color:var(--onejax-navy);">
-            <i class="bi bi-shield-lock-fill me-2"></i>Admin Dashboard
-        </h2>
-        <p class="text-muted">Welcome back, @User.Identity?.Name — Manage your organization</p>
+        <h2 class="fw-bold" style="color:var(--onejax-navy);">Admin Dashboard</h2>
+        <p class="text-muted">Overview and management tools</p>
     </div>
 </div>
 
-<div class="row g-4 mb-4">
-    <!-- Staff Overview Card -->
-    <div class="col-12 col-md-6 col-lg-4">
-        <div class="card shadow-sm border-0 h-100">
-            <div class="card-body d-flex flex-column">
-                <div class="d-flex align-items-center mb-4">
-                    <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
-                        <i class="bi bi-people-fill text-primary" style="font-size: 1.5rem;"></i>
-                    </div>
-                    <div>
-                        <h5 class="card-title mb-0 fw-semibold">Staff Members</h5>
-                        <p class="text-muted small mb-0">Total active staff</p>
-                    </div>
-                </div>
-                <p class="display-3 fw-bold mb-4" style="color:var(--onejax-navy);">@staffCount</p>
-                <div class="mt-auto">
-                    <a href="/Staff/Index" class="btn btn-onejax w-100 mb-2">
-                        <i class="bi bi-list-ul me-1"></i>View All Staff
-                    </a>
-                    <a href="/Staff/Create" class="btn btn-outline-primary w-100">
-                        <i class="bi bi-person-plus me-1"></i>Add New Staff
-                    </a>
-                </div>
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card bg-primary bg-opacity-10 border-primary">
+            <div class="card-body text-center">
+                <h3 class="fw-bold text-primary">@staffCount</h3>
+                <p class="mb-0">Total Staff Members</p>
             </div>
         </div>
     </div>
-
-    <!-- Events Management Card -->
-    <div class="col-12 col-md-6 col-lg-4">
-        <div class="card shadow-sm border-0 h-100">
-            <div class="card-body d-flex flex-column">
-                <div class="d-flex align-items-center mb-4">
-                    <div class="rounded-circle bg-success bg-opacity-10 p-3 me-3">
-                        <i class="bi bi-calendar-event-fill text-success" style="font-size: 1.5rem;"></i>
-                    </div>
-                    <div>
-                        <h5 class="card-title mb-0 fw-semibold">Events Management</h5>
-                        <p class="text-muted small mb-0">Assign & track events</p>
-                    </div>
-                </div>
-                <div class="row mb-4 text-center">
-                    <div class="col-6">
-                        <p class="display-5 fw-bold mb-1" style="color:var(--onejax-navy);">@totalEvents</p>
-                        <small class="text-muted d-block">Total Events</small>
-                    </div>
-                    <div class="col-6">
-                        <p class="display-5 fw-bold mb-1 text-success">@assignedEvents</p>
-                        <small class="text-muted d-block">Assigned</small>
-                    </div>
-                </div>
-                <div class="mt-auto">
-                    <a href="/Admin/AssignEvent" class="btn btn-success w-100 mb-2">
-                        <i class="bi bi-calendar-plus me-1"></i>Assign Event
-                    </a>
-                    <a href="/Admin/ManageEvents" class="btn btn-outline-success w-100">
-                        <i class="bi bi-kanban me-1"></i>Manage Events
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Archived Events Card -->
-    <div class="col-12 col-md-6 col-lg-4">
-        <div class="card shadow-sm border-0 h-100">
-            <div class="card-body d-flex flex-column">
-                <div class="d-flex align-items-center mb-4">
-                    <div class="rounded-circle bg-info bg-opacity-10 p-3 me-3">
-                        <i class="bi bi-archive-fill text-info" style="font-size: 1.5rem;"></i>
-                    </div>
-                    <div>
-                        <h5 class="card-title mb-0 fw-semibold">Completed Events</h5>
-                        <p class="text-muted small mb-0">Archived & completed</p>
-                    </div>
-                </div>
-                <p class="display-3 fw-bold mb-4 text-info">@(ViewData["ArchivedEvents"] ?? 0)</p>
-                <div class="mt-auto">
-                    <a href="/Admin/ArchivedEvents" class="btn btn-info w-100">
-                        <i class="bi bi-archive me-1"></i>View Archived
-                    </a>
-                </div>
+    <div class="col-md-6">
+        <div class="card bg-success bg-opacity-10 border-success">
+            <div class="card-body text-center">
+                <h3 class="fw-bold text-success">@eventCount</h3>
+                <p class="mb-0">Total Events</p>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Activity Log Row -->
+<!-- Management Tiles -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <a href="/Admin/ManageEvents" class="text-decoration-none">
+            <div class="card shadow-sm border-0 h-100 hover-card">
+                <div class="card-body text-center p-4">
+                    <i class="bi bi-calendar-event display-4 text-primary mb-3"></i>
+                    <h5 class="fw-bold">Event Management</h5>
+                    <p class="text-muted">Manage and track all events</p>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-4">
+        <a href="/Staff/Index" class="text-decoration-none">
+            <div class="card shadow-sm border-0 h-100 hover-card">
+                <div class="card-body text-center p-4">
+                    <i class="bi bi-people display-4 text-success mb-3"></i>
+                    <h5 class="fw-bold">Staff Management</h5>
+                    <p class="text-muted">Manage staff members</p>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-4">
+        <a href="/Admin/ActivityLog" class="text-decoration-none">
+            <div class="card shadow-sm border-0 h-100 hover-card">
+                <div class="card-body text-center p-4">
+                    <i class="bi bi-clock-history display-4 text-info mb-3"></i>
+                    <h5 class="fw-bold">Activity Log</h5>
+                    <p class="text-muted">View all system activities</p>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- Recent Activity -->
 <div class="row">
-    <div class="col-12">
+    <div class="col-md-12">
         <div class="card shadow-sm border-0">
-            <div class="card-header bg-white border-bottom">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-clock-history me-2 text-info" style="font-size: 1.25rem;"></i>
-                        <h5 class="mb-0 fw-bold">Activity Log</h5>
-                    </div>
-                    <span class="badge bg-info">All Staff Activities</span>
-                </div>
+            <div class="card-header bg-white border-0 pt-3 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0">Recent Activity</h5>
+                <a href="/Admin/ActivityLog" class="btn btn-sm btn-outline-primary">View All</a>
             </div>
-            <div class="card-body p-0">
-                @{
-                    var activityLog = ViewData["ActivityLog"] as List<(string Username, string Action, string? EntityType, int? EntityId, DateTime Timestamp, string? Notes)>;
-                    if (activityLog != null && activityLog.Any())
-                    {
-                        <div class="table-responsive">
-                            <table class="table table-hover mb-0">
-                                <thead class="bg-light">
-                                    <tr>
-                                        <th class="border-0 ps-4">Staff Member</th>
-                                        <th class="border-0">Activity</th>
-                                        <th class="border-0">Details</th>
-                                        <th class="border-0">Timestamp</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var entry in activityLog)
-                                    {
-                                        var actionBadgeColor = entry.Action.Contains("Created") ? "success" : 
-                                                               entry.Action.Contains("Updated") ? "warning" : 
-                                                               entry.Action.Contains("Changed") ? "info" : 
-                                                               entry.Action.Contains("Deleted") ? "danger" : "secondary";
-                                        
-                                        var actionIcon = entry.Action.Contains("Created") ? "plus-circle" : 
-                                                         entry.Action.Contains("Updated") ? "pencil-square" : 
-                                                         entry.Action.Contains("Changed") ? "arrow-repeat" : 
-                                                         entry.Action.Contains("Deleted") ? "trash" : "activity";
-                                        
-                                        <tr>
-                                            <td class="ps-4">
-                                                <div class="d-flex align-items-center">
-                                                    <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-2" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
-                                                        <i class="bi bi-person-fill text-primary small"></i>
-                                                    </div>
-                                                    <span class="fw-semibold text-dark">@entry.Username</span>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <span class="badge bg-@actionBadgeColor">
-                                                    <i class="bi bi-@actionIcon me-1"></i>@entry.Action
-                                                </span>
-                                            </td>
-                                            <td>
-                                                @if (!string.IsNullOrEmpty(entry.Notes))
-                                                {
-                                                    <small class="text-muted">@entry.Notes</small>
-                                                }
-                                                else if (!string.IsNullOrEmpty(entry.EntityType) && entry.EntityId.HasValue)
-                                                {
-                                                    <small class="text-muted">@entry.EntityType ID: @entry.EntityId</small>
-                                                }
-                                            </td>
-                                            <td>
-                                                <small class="text-muted">@entry.Timestamp.ToString("MMM dd, yyyy HH:mm")</small>
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="p-4 text-center text-muted">
-                            <i class="bi bi-inbox" style="font-size: 2rem; opacity: 0.5;"></i>
-                            <p class="mt-3 mb-0">No activity recorded yet</p>
-                        </div>
-                    }
+            <div class="card-body">
+                @if (recentActivities.Any())
+                {
+                    <div class="list-group list-group-flush">
+                        @foreach (var activity in recentActivities)
+                        {
+                            <div class="list-group-item px-0">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">
+                                            <span class="badge bg-secondary me-2">@activity.Username</span>
+                                            @activity.Action
+                                        </h6>
+                                        <small class="text-muted">@(activity.Notes ?? "—")</small>
+                                    </div>
+                                    <small class="text-muted">@activity.Timestamp.ToString("MM/dd/yyyy hh:mm tt")</small>
+                                </div>
+                            </div>
+                        }
+                    </div>
                 }
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Event Progress Tracking Row -->
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-white border-bottom">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-kanban me-2 text-success" style="font-size: 1.25rem;"></i>
-                        <h5 class="mb-0 fw-bold">Event Progress Tracking</h5>
-                    </div>
-                    <a href="/Admin/ManageEvents" class="btn btn-sm btn-outline-success">
-                        <i class="bi bi-arrow-right me-1"></i>View All Events
-                    </a>
-                </div>
-            </div>
-            <div class="card-body p-0">
-                @{
-                    var eventTrackingLog = ViewData["EventTrackingLog"] as List<(int EventId, string EventTitle, string CurrentStatus, List<(string Action, string? Notes, DateTime Timestamp)> History)>;
-                    if (eventTrackingLog != null && eventTrackingLog.Any())
-                    {
-                        <div class="table-responsive">
-                            <table class="table table-hover mb-0">
-                                <thead class="bg-light">
-                                    <tr>
-                                        <th class="border-0 ps-4">Event</th>
-                                        <th class="border-0">Current Status</th>
-                                        <th class="border-0">Recent Activity</th>
-                                        <th class="border-0">Last Updated</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var evt in eventTrackingLog)
-                                    {
-                                        var statusColor = evt.CurrentStatus == "Completed" ? "success" : 
-                                                         evt.CurrentStatus == "In Progress" ? "info" : "warning";
-                                        
-                                        var lastUpdate = evt.History.LastOrDefault();
-                                        
-                                        <tr>
-                                            <td class="ps-4">
-                                                <div class="fw-semibold text-dark">@evt.EventTitle</div>
-                                                <small class="text-muted">ID: @evt.EventId</small>
-                                            </td>
-                                            <td>
-                                                <span class="badge bg-@statusColor">@evt.CurrentStatus</span>
-                                            </td>
-                                            <td>
-                                                @if (evt.History.Any())
-                                                {
-                                                    <small class="text-muted">
-                                                        @lastUpdate.Action
-                                                        @if (!string.IsNullOrEmpty(lastUpdate.Notes))
-                                                        {
-                                                            <br/>@lastUpdate.Notes
-                                                        }
-                                                    </small>
-                                                }
-                                                else
-                                                {
-                                                    <small class="text-muted">No activity</small>
-                                                }
-                                            </td>
-                                            <td>
-                                                @if (evt.History.Any())
-                                                {
-                                                    <small class="text-muted">@lastUpdate.Timestamp.ToString("MMM dd, yyyy HH:mm")</small>
-                                                }
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="p-4 text-center text-muted">
-                            <i class="bi bi-clipboard2-check" style="font-size: 2rem; opacity: 0.5;"></i>
-                            <p class="mt-3 mb-0">No events to track</p>
-                        </div>
-                    }
+                else
+                {
+                    <p class="text-muted text-center mb-0">No recent activities</p>
                 }
             </div>
         </div>
@@ -277,13 +111,10 @@
 
 <style>
     .hover-card {
-        transition: all 0.2s ease;
-        border: 1px solid transparent;
+        transition: transform 0.2s, box-shadow 0.2s;
     }
     .hover-card:hover {
-        background-color: #fff !important;
-        border-color: #dee2e6;
-        box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
-        transform: translateY(-2px);
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
     }
 </style>
