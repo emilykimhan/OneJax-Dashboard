@@ -1,4 +1,3 @@
-
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -16,17 +15,15 @@ namespace OneJaxDashboard.Controllers
         private readonly EventsService _events;
         private readonly StrategyService _strategyService;
         private readonly ActivityLogService _activityLog;
-        private readonly StrategyController _strategy;
         
 
 
-        public EventsController(ApplicationDbContext context, EventsService events, StrategyService strategyService, ActivityLogService activityLog, StrategyController strategy)
+        public EventsController(ApplicationDbContext context, EventsService events, StrategyService strategyService, ActivityLogService activityLog)
         {
             _context = context;
             _events = events;
             _strategyService = strategyService;
             _activityLog = activityLog;
-            _strategy = strategy;
         }
 
         // GET: Events/Details/5 - Public access for dashboard
@@ -51,8 +48,8 @@ namespace OneJaxDashboard.Controllers
                     return View(eventFromDb);
                 }
 
-                // Check if this is an event from the StrategyController
-                var strategy = StrategyController.Strategies.FirstOrDefault(s => s.Id == id);
+                
+                var strategy = _strategyService.GetStrategy(id);
                 if (strategy != null)
                 {
                     // Convert Strategy to Event for display
