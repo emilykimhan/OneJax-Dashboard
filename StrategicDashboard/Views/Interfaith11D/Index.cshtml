@@ -1,0 +1,167 @@
+@model OneJaxDashboard.Models.interfaith_11D
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    ViewData["Title"] = "Interfaith Event Tracking";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card p-4"
+                 style="background-color:var(--onejax-white);
+                        box-shadow:0 4px 24px rgba(0,0,0,0.08);
+                        border-radius:24px;">
+                
+                <!-- Header with back button -->
+                <div class="d-flex align-items-center mb-4">
+                    <a href="/CommunityEngagement" 
+                       class="btn btn-outline-secondary me-3"
+                       style="border-radius: 8px;">
+                        ← Back
+                    </a>
+                    <h2 class="mb-0" style="color:var(--onejax-navy);">Interfaith Collaborative Events</h2>
+                </div>
+                
+                <p class="text-center mb-4" style="color:var(--onejax-gray);">
+                    Host at least 4 interfaith collaborative events during FY 25-26
+                </p>
+
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success text-center">
+                        @TempData["Success"]
+                    </div>
+                }
+
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger text-center">
+                        @TempData["Error"]
+                    </div>
+                }
+
+                <!-- Interfaith Event Form -->
+                <div class="survey-form">
+                    <h4 class="mb-4 text-center" style="color:var(--onejax-navy);">Interfaith Event Entry</h4>
+
+                    <form asp-controller="Interfaith11D" asp-action="Index" method="post" novalidate>
+                        <div class="mb-3">
+                            <label asp-for="StrategyId" class="form-label fw-bold">Event Name:</label>
+                            <select asp-for="StrategyId" class="form-select" asp-items="ViewBag.Strategies">
+                                <option value="">-- Select an Event --</option>
+                            </select>
+                            <span asp-validation-for="StrategyId" class="text-danger"></span>
+                            <div class="form-text">Select the interfaith event from the strategy list</div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="NumberOfFaithsRepresented" class="form-label fw-bold">
+                                    Number of Faiths Represented:
+                                </label>
+                                <input asp-for="NumberOfFaithsRepresented" type="number" min="1" max="100"
+                                       class="form-control" placeholder="Enter number" />
+                                <span asp-validation-for="NumberOfFaithsRepresented" class="text-danger"></span>
+                                <div class="form-text">Different faith traditions present</div>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="PostEventSatisfactionSurvey" class="form-label fw-bold">
+                                    Post-Event Satisfaction (%):
+                                </label>
+                                <input asp-for="PostEventSatisfactionSurvey" type="number" min="0" max="100"
+                                       class="form-control" placeholder="0-100" />
+                                <span asp-validation-for="PostEventSatisfactionSurvey" class="text-danger"></span>
+                                <div class="form-text">Survey rating as percentage</div>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="TotalAttendance" class="form-label fw-bold">
+                                    Total Attendance:
+                                </label>
+                                <input asp-for="TotalAttendance" type="number" min="1" max="10000"
+                                       class="form-control" placeholder="Enter number" />
+                                <span asp-validation-for="TotalAttendance" class="text-danger"></span>
+                                <div class="form-text">Total attendees at event</div>
+                            </div>
+                        </div>
+
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary px-4" 
+                                    style="background-color:var(--onejax-navy); border-color:var(--onejax-navy);">
+                                Submit Interfaith Event Record
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-outline-secondary {
+        border-color: var(--onejax-navy);
+        color: var(--onejax-navy);
+    }
+    
+    .btn-outline-secondary:hover {
+        background-color: var(--onejax-navy);
+        border-color: var(--onejax-navy);
+        color: white;
+    }
+    
+    .card {
+        border: none;
+    }
+
+    /* Survey Form Styles */
+    .survey-form {
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 12px;
+        margin-top: 1rem;
+    }
+
+    .form-control:focus {
+        border-color: var(--onejax-navy);
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 191, 0.25);
+    }
+
+    .form-select:focus {
+        border-color: var(--onejax-navy);
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 191, 0.25);
+    }
+
+    .btn:hover {
+        background-color: #1a365d !important;
+        border-color: #1a365d !important;
+    }
+
+    .alert {
+        border: none;
+        border-radius: 8px;
+    }
+
+    .text-danger {
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        display: block;
+    }
+
+    .form-text {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+        opacity: 1;
+    }
+</style>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
