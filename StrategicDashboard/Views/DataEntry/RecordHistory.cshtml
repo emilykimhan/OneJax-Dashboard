@@ -82,11 +82,6 @@
         <!-- Staff Survey Records -->
         <div class="record-section">
             <h5 class="section-title">Staff Survey Records</h5>
-             <div class="export-buttons mb-3">
-        <a href="@Url.Action("ExportStaffSurveyToExcel", "Export")" class="btn btn-primary">
-            <i class="fas fa-file-excel"></i> Export Excel
-        </a>
-    </div>
             @if (ViewBag.StaffSurveys != null && ((List<OneJaxDashboard.Models.StaffSurvey_22D>)ViewBag.StaffSurveys).Any())
             {
                 <div class="records-list">
