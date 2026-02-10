@@ -1,0 +1,127 @@
+@model OneJaxDashboard.Models.MediaPlacements_3D
+@{
+    ViewData["Title"] = "Edit Media Placement";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1 class="headline mb-4" style="color:var(--onejax-navy);">Edit Media Placement</h1>
+
+<div class="container mt-4">
+    <div class="card p-4"
+        style="background-color:var(--onejax-white); 
+               box-shadow:0 4px 24px rgba(0,0,0,0.08); 
+               border-radius:24px; 
+               max-width:900px;">
+
+        <form asp-action="EditMediaPlacement" method="post">
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="CreatedDate" />
+
+            <p class="mb-4">Enter the number of media mentions for each month.</p>
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label asp-for="January" class="form-label fw-bold">January</label>
+                    <input asp-for="January" type="number" class="form-control" min="0" />
+                    <span asp-validation-for="January" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label asp-for="February" class="form-label fw-bold">February</label>
+                    <input asp-for="February" type="number" class="form-control" min="0" />
+                    <span asp-validation-for="February" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label asp-for="March" class="form-label fw-bold">March</label>
+                    <input asp-for="March" type="number" class="form-control" min="0" />
+                    <span asp-validation-for="March" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label asp-for="April" class="form-label fw-bold">April</label>
+                    <input asp-for="April" type="number" class="form-control" min="0" />
+                    <span asp-validation-for="April" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label asp-for="May" class="form-label fw-bold">May</label>
+                    <input asp-for="May" type="number" class="form-control" min="0" />
+                    <span asp-validation-for="May" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label asp-for="June" class="form-label fw-bold">June</label>
+                    <input asp-for="June" type="number" class="form-control" min="0" />
+                    <span asp-validation-for="June" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label asp-for="July" class="form-label fw-bold">July</label>
+                    <input asp-for="July" type="number" class="form-control" min="0" />
+                    <span asp-validation-for="July" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label asp-for="August" class="form-label fw-bold">August</label>
+                    <input asp-for="August" type="number" class="form-control" min="0" />
+                    <span asp-validation-for="August" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label asp-for="September" class="form-label fw-bold">September</label>
+                    <input asp-for="September" type="number" class="form-control" min="0" />
+                    <span asp-validation-for="September" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label asp-for="October" class="form-label fw-bold">October</label>
+                    <input asp-for="October" type="number" class="form-control" min="0" />
+                    <span asp-validation-for="October" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label asp-for="November" class="form-label fw-bold">November</label>
+                    <input asp-for="November" type="number" class="form-control" min="0" />
+                    <span asp-validation-for="November" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label asp-for="December" class="form-label fw-bold">December</label>
+                    <input asp-for="December" type="number" class="form-control" min="0" />
+                    <span asp-validation-for="December" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <a asp-action="RecordHistory" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+
+<style>
+    .form-label {
+        color: var(--onejax-navy);
+    }
+
+    .form-control:focus {
+        border-color: var(--onejax-navy);
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 191, 0.25);
+    }
+
+    .btn-primary {
+        background-color: var(--onejax-navy);
+        border-color: var(--onejax-navy);
+    }
+
+    .btn-primary:hover {
+        background-color: #1a365d;
+        border-color: #1a365d;
+    }
+</style>
