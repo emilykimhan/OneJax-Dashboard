@@ -91,6 +91,123 @@ namespace OneJaxDashboard.Controllers
             return NotFound("Event not found. It may have been deleted or the ID is incorrect.");
         }
 
+        // GET: Events/Api/Details/5 - Ultra-fast API endpoint for modal
+        [AllowAnonymous]
+        [Route("Events/Api/Details/{id}")]
+        [Route("api/events/details/{id}")]
+        [HttpGet]
+        public IActionResult ApiDetails(int id)
+        {
+            // Return immediately for testing
+            return Json(new
+            {
+                Id = id,
+                Title = "Test Event",
+                Description = "This is a test response",
+                Type = "Test",
+                Status = "Active",
+                DueDate = DateTime.Now.ToString("MMMM dd, yyyy"),
+                Location = "Test Location",
+                Attendees = 10,
+                Notes = "This is a test note",
+                SatisfactionScore = 4.5m,
+                GoalName = "Test Goal",
+                Source = "Database"
+            });
+        }
+
+        // Original API method (backup)
+        [AllowAnonymous]
+        [Route("Events/Api/Full/{id}")]
+        [HttpGet]
+        public IActionResult ApiDetailsFull(int id)
+        {
+            try
+            {
+                // Static goal names for ultra-fast lookup
+                var goalNames = new Dictionary<int, string>
+                {
+                    {1, "Organizational Building"},
+                    {2, "Financial Sustainability"},
+                    {3, "Identity/Value Proposition"},
+                    {4, "Community Engagement"}
+                };
+
+                // Try to get event from database first - single query with no joins
+                var eventFromDb = _context.Events
+                    .Where(e => e.Id == id)
+                    .Select(e => new {
+                        e.Id,
+                        e.Title,
+                        e.Description,
+                        e.Type,
+                        e.Status,
+                        e.DueDate,
+                        e.Location,
+                        e.Attendees,
+                        e.Notes,
+                        e.SatisfactionScore,
+                        e.StrategicGoalId
+                    })
+                    .FirstOrDefault();
+
+                if (eventFromDb != null)
+                {
+                    var goalName = eventFromDb.StrategicGoalId.HasValue && goalNames.ContainsKey(eventFromDb.StrategicGoalId.Value)
+                        ? goalNames[eventFromDb.StrategicGoalId.Value]
+                        : "Strategic Goal";
+
+                    return Json(new
+                    {
+                        Id = eventFromDb.Id,
+                        Title = eventFromDb.Title,
+                        Description = eventFromDb.Description,
+                        Type = eventFromDb.Type,
+                        Status = eventFromDb.Status,
+                        DueDate = eventFromDb.DueDate?.ToString("MMMM dd, yyyy"),
+                        Location = eventFromDb.Location,
+                        Attendees = eventFromDb.Attendees,
+                        Notes = eventFromDb.Notes,
+                        SatisfactionScore = eventFromDb.SatisfactionScore,
+                        GoalName = goalName,
+                        Source = "Database"
+                    });
+                }
+
+                // Check if this is an event from the StrategyController
+                var strategy = StrategyController.Strategies.FirstOrDefault(s => s.Id == id);
+                if (strategy != null)
+                {
+                    var goalName = goalNames.ContainsKey(strategy.StrategicGoalId)
+                        ? goalNames[strategy.StrategicGoalId]
+                        : "Strategic Goal";
+
+                    return Json(new
+                    {
+                        Id = strategy.Id,
+                        Title = strategy.Name,
+                        Description = strategy.Description,
+                        Type = strategy.EventType ?? "Community",
+                        Status = "Planned",
+                        DueDate = DateTime.TryParse(strategy.Date, out var date) ? date.ToString("MMMM dd, yyyy") : DateTime.Now.AddDays(30).ToString("MMMM dd, yyyy"),
+                        Location = string.IsNullOrEmpty(strategy.Time) ? "TBD" : $"Time: {strategy.Time}",
+                        Attendees = 0,
+                        Notes = $"Added through Core Strategies tab. {(!string.IsNullOrEmpty(strategy.Time) ? $"Time: {strategy.Time}" : "")}",
+                        SatisfactionScore = (decimal?)null,
+                        GoalName = goalName,
+                        Source = "Strategy"
+                    });
+                }
+
+                // Event not found
+                return Json(new { error = "Event not found" });
+            }
+            catch (Exception)
+            {
+                return Json(new { error = "Failed to load event details" });
+            }
+        }
+
         [Authorize(Roles = "Staff")]
         public IActionResult Index()
         {
