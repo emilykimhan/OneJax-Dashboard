@@ -32,14 +32,14 @@ namespace OneJaxDashboard.Controllers
             var staffCount = _db.Staffauth.Count();
             
             // Get all events (active and completed)
-            var allEvents = _db.Events
-                .Include(e => e.AssignedStaff)
-                .Where(e => !e.IsArchived)
-                .ToList()
-                .Where(e => e.StrategyTemplateId.HasValue && _strategyService.GetStrategy(e.StrategyTemplateId.Value) != null)
-                .ToList();
+            //var allEvents = _db.Events
+            //    .Include(e => e.AssignedStaff)
+             //   .Where(e => !e.IsArchived)
+            //    .ToList()
+            //    .Where(e => e.StrategyTemplateId.HasValue && _strategyService.GetStrategy(e.StrategyTemplateId.Value) != null)
+            //    .ToList();
 
-            var eventCount = allEvents.Count;
+            //var eventCount = allEvents.Count;
 
             // Get recent activity log entries (last 10)
             var recentActivities = _activityLog.GetAllEntries()
@@ -49,7 +49,7 @@ namespace OneJaxDashboard.Controllers
 
             // Pass data to view
             ViewData["StaffCount"] = staffCount;
-            ViewData["EventCount"] = eventCount;
+           // ViewData["EventCount"] = eventCount;
             ViewData["RecentActivities"] = recentActivities;
 
             return View();
