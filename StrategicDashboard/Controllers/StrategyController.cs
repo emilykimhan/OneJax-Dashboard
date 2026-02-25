@@ -80,7 +80,7 @@ public class StrategyController : Controller
 
         string goalName = Goals.FirstOrDefault(g => g.Value == goalId.ToString())?.Text ?? "Unknown Goal";
 
-        TempData["SuccessMessage"] = $"Successfully added event under “{goalName}”";
+        TempData["SuccessMessage"] = $"Successfully added program under “{goalName}”";
 
         return RedirectToAction("Index");
     }
@@ -129,7 +129,7 @@ public class StrategyController : Controller
         // Save changes to the database
         _context.SaveChanges();
 
-        TempData["SuccessMessage"] = "Event updated successfully!";
+        TempData["SuccessMessage"] = "Program updated successfully!";
         return RedirectToAction("Index");
     }
 
@@ -147,7 +147,7 @@ public class StrategyController : Controller
         _context.Strategies.Remove(strategy);
         _context.SaveChanges();
 
-        TempData["SuccessMessage"] = "Event deleted successfully!";
+        TempData["SuccessMessage"] = "Program deleted successfully!";
         return RedirectToAction("ViewEvents");
     }
     public IActionResult ViewEvents()
