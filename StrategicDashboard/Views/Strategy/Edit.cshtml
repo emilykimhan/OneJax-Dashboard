@@ -288,7 +288,8 @@ new { Id = 4, Name = "Community Engagement" }
 
                 <div class="col-md-6">
                     <label class="form-label fw-semibold">Event Date</label>
-                    <input type="date" name="eventDate" class="form-control" value="@Model?.Date" min="2020-01-01" max="9999-12-31" />
+                    <input type="date" name="eventDate" class="form-control" value="@Model?.Date" min="2020-01-01"
+                        max="9999-12-31" />
                 </div>
 
                 <div class="col-md-6">
@@ -298,11 +299,13 @@ new { Id = 4, Name = "Community Engagement" }
 
                 <div class="col-12">
                     <label class="form-label fw-semibold">Event Description</label>
-                    <textarea name="eventDescription" class="form-control" rows="3" required>@Model?.Description</textarea>
+                    <textarea name="eventDescription" class="form-control" rows="3"
+                        required>@Model?.Description</textarea>
                 </div>
 
                 <div class="col-12">
-                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-semibold">Save Changes</button>
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-semibold">Save
+                        Changes</button>
                 </div>
             </form>
         </div>

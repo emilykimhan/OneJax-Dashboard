@@ -69,23 +69,6 @@ new { Id = 4, Name = "Community Engagement" }
         margin: 0.35rem 0 0.75rem 0;
         line-height: 1.35;
     }
-    
-    .event-card {
-        position: relative;
-        overflow: visible !important; /* Allow dropdown to overflow */
-    }
-
-    .dropdown-menu {
-        position: absolute;
-        z-index: 1050; /* Ensure it appears above other elements */
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    }
-
-    /* Ensure the dropdown button container doesn't clip */
-    .dropdown {
-        position: static; /* Prevents clipping issues */
-    }
-
     .event-meta-row {
         display: flex;
         gap: 10px;
@@ -349,9 +332,17 @@ new { Id = 4, Name = "Community Engagement" }
         background: #fff;
         border: 1px solid rgba(16, 40, 64, 0.08);
         border-radius: 14px;
-        overflow: hidden;
+        overflow: visible !important;   /* ✅ allow dropdown to escape */
+        position: relative;
+    }
+    .events-table-wrap .dropdown-menu {
+        z-index: 9999;
     }
 
+    .events-table-wrap td,
+    .events-table-wrap th {
+        overflow: visible;
+    }
     table.events-table {
         width: 100%;
         border-collapse: collapse;
