@@ -4,13 +4,57 @@
 @{
     var successMessage = TempData["SuccessMessage"] as string;
 
-    // Safely read FiscalYear if/when the model has it (won't crash if the property doesn't exist yet)
-    var fiscalYearValue = "";
-    var fyProp = Model?.GetType().GetProperty("FiscalYear");
-    if (fyProp != null)
+    // Normalize FY formats (supports "2025/2026" <-> "25/26")
+    Func<string?, string?> ToShortFY = (fy) =>
     {
-        fiscalYearValue = fyProp.GetValue(Model)?.ToString() ?? "";
-    }
+        if (string.IsNullOrWhiteSpace(fy)) return null;
+        fy = fy.Trim();
+
+        // 2025/2026 -> 25/26
+        if (fy.Length >= 9 && fy.Contains("/"))
+        {
+            var parts = fy.Split('/');
+            if (parts.Length == 2 && parts[0].Length == 4 && parts[1].Length == 4)
+            {
+                return parts[0].Substring(2, 2) + "/" + parts[1].Substring(2, 2);
+            }
+        }
+
+        // already short
+        if (fy.Length == 5 && fy[2] == '/')
+        {
+            return fy;
+        }
+
+        return fy;
+    };
+
+    Func<string?, string?> ToLongFY = (fy) =>
+    {
+        if (string.IsNullOrWhiteSpace(fy)) return null;
+        fy = fy.Trim();
+
+        // 25/26 -> 2025/2026 (assumes 20xx)
+        if (fy.Length == 5 && fy[2] == '/')
+        {
+            var parts = fy.Split('/');
+            if (parts.Length == 2)
+            {
+                return "20" + parts[0] + "/20" + parts[1];
+            }
+        }
+
+        // already long
+        if (fy.Length >= 9 && fy.Contains("/"))
+        {
+            return fy;
+        }
+
+        return fy;
+    };
+
+    var existingFYShort = ToShortFY(Model?.EventFYear);
+    var existingFYLong = ToLongFY(Model?.EventFYear);
 }
 
 @if (!string.IsNullOrEmpty(successMessage))
@@ -123,19 +167,63 @@ new { Id = 4, Name = "Community Engagement" }
             <form asp-action="Edit" asp-controller="Strategy" method="post" class="row g-3">
                 <input type="hidden" name="id" value="@Model?.Id" />
 
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold">Event Name</label>
-                    <input type="text" name="eventName" class="form-control" value="@Model?.Name" required />
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Program Name</label>
+                    <input type="text" name="programName" class="form-control" value="@Model?.ProgramName" required />
                 </div>
 
                 <div class="col-md-6">
-                    <label class="form-label fw-semibold">Event Type</label>
+                    <label class="form-label fw-semibold">Event Name</label>
+                    <input type="text" name="eventName" class="form-control" value="@Model?.Name" />
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Program Type</label>
                     <select name="eventType" class="form-select" required>
-                        <option value="" disabled selected="@(string.IsNullOrWhiteSpace(Model?.EventType))">Select Event Type</option>
-                        <option value="Youth" selected="@(Model?.EventType == "Youth")">Youth</option>
-                        <option value="Humanitarian" selected="@(Model?.EventType == "Humanitarian")">Humanitarian</option>
-                        <option value="Interfaith" selected="@(Model?.EventType == "Interfaith")">Interfaith</option>
-                        <option value="Community" selected="@(Model?.EventType == "Community")">Community</option>
+                        @if (string.IsNullOrWhiteSpace(Model?.EventType))
+                        {
+                            <option value="" disabled selected>Select Program Type</option>
+                        }
+                        else
+                        {
+                            <option value="" disabled>Select Event Type</option>
+                        }
+
+                        @if (Model?.EventType == "Youth")
+                        {
+                            <option value="Youth" selected>Youth</option>
+                        }
+                        else
+                        {
+                            <option value="Youth">Youth</option>
+                        }
+
+                        @if (Model?.EventType == "Humanitarian")
+                        {
+                            <option value="Humanitarian" selected>Humanitarian</option>
+                        }
+                        else
+                        {
+                            <option value="Humanitarian">Humanitarian</option>
+                        }
+
+                        @if (Model?.EventType == "Interfaith")
+                        {
+                            <option value="Interfaith" selected>Interfaith</option>
+                        }
+                        else
+                        {
+                            <option value="Interfaith">Interfaith</option>
+                        }
+
+                        @if (Model?.EventType == "Community")
+                        {
+                            <option value="Community" selected>Community</option>
+                        }
+                        else
+                        {
+                            <option value="Community">Community</option>
+                        }
                     </select>
                 </div>
 
@@ -145,9 +233,14 @@ new { Id = 4, Name = "Community Engagement" }
                         <option value="">Select a Goal</option>
                         @foreach (var goal in goals)
                         {
-                            <option value="@goal.Id" selected="@(goal.Id == Model?.StrategicGoalId)">
-                                @goal.Name
-                            </option>
+                            if (goal.Id == Model?.StrategicGoalId)
+                            {
+                                <option value="@goal.Id" selected>@goal.Name</option>
+                            }
+                            else
+                            {
+                                <option value="@goal.Id">@goal.Name</option>
+                            }
                         }
                     </select>
                 </div>
@@ -155,16 +248,47 @@ new { Id = 4, Name = "Community Engagement" }
                 <div class="col-md-6">
                     <label class="form-label fw-semibold">Fiscal Year</label>
                     <select name="fiscalYear" class="form-select" required>
-                        <option value="" selected="@(string.IsNullOrWhiteSpace(fiscalYearValue))" disabled>Select Fiscal Year</option>
-                        <option value="25/26" selected="@(fiscalYearValue == "25/26")">25/26</option>
-                        <option value="26/27" selected="@(fiscalYearValue == "26/27")">26/27</option>
-                        <option value="27/28" selected="@(fiscalYearValue == "27/28")">27/28</option>
+                        @if (string.IsNullOrWhiteSpace(existingFYShort) && string.IsNullOrWhiteSpace(existingFYLong))
+                        {
+                            <option value="" disabled selected>Select Fiscal Year</option>
+                        }
+                        else
+                        {
+                            <option value="" disabled>Select Fiscal Year</option>
+                        }
+
+                        @if (existingFYShort == "25/26" || existingFYLong == "2025/2026")
+                        {
+                            <option value="25/26" selected>2025/2026</option>
+                        }
+                        else
+                        {
+                            <option value="25/26">2025/2026</option>
+                        }
+
+                        @if (existingFYShort == "26/27" || existingFYLong == "2026/2027")
+                        {
+                            <option value="26/27" selected>2026/2027</option>
+                        }
+                        else
+                        {
+                            <option value="26/27">2026/2027</option>
+                        }
+
+                        @if (existingFYShort == "27/28" || existingFYLong == "2027/2028")
+                        {
+                            <option value="27/28" selected>2027/2028</option>
+                        }
+                        else
+                        {
+                            <option value="27/28">2027/2028</option>
+                        }
                     </select>
                 </div>
 
                 <div class="col-md-6">
                     <label class="form-label fw-semibold">Event Date</label>
-                    <input type="date" name="eventDate" class="form-control" value="@Model?.Date" />
+                    <input type="date" name="eventDate" class="form-control" value="@Model?.Date" min="2020-01-01" max="9999-12-31" />
                 </div>
 
                 <div class="col-md-6">
@@ -174,13 +298,11 @@ new { Id = 4, Name = "Community Engagement" }
 
                 <div class="col-12">
                     <label class="form-label fw-semibold">Event Description</label>
-                    <textarea name="eventDescription" class="form-control" rows="3"
-                        required>@Model?.Description</textarea>
+                    <textarea name="eventDescription" class="form-control" rows="3" required>@Model?.Description</textarea>
                 </div>
 
                 <div class="col-12">
-                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-semibold">Save
-                        Changes</button>
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-semibold">Save Changes</button>
                 </div>
             </form>
         </div>
