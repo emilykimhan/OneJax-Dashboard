@@ -12,10 +12,12 @@ namespace OneJaxDashboard.Controllers
     public class MetricsAdminController : Controller
     {
         private readonly MetricsService _metricsService;
+        private readonly ActivityLogService _activityLog;
 
-        public MetricsAdminController(MetricsService metricsService)
+        public MetricsAdminController(MetricsService metricsService, ActivityLogService activityLog)
         {
             _metricsService = metricsService;
+            _activityLog = activityLog;
         }
 
         // Admin dashboard for metrics management
@@ -40,9 +42,13 @@ namespace OneJaxDashboard.Controllers
 
         // Update manual entry metrics
         [HttpPost]
-        public async Task<IActionResult> UpdateMetric(int metricId, decimal currentValue, string returnUrl = null)
+        public async Task<IActionResult> UpdateMetric(int metricId, decimal currentValue, string? returnUrl = null)
         {
             await _metricsService.UpdateManualMetricAsync(metricId, currentValue);
+            
+            // Log the metric update
+            _activityLog.Log("Admin", "Updated Dashboard Metric", "Metric", metricId, 
+                notes: $"Updated metric value to {currentValue}");
             
             // If called from DashboardMetrics, redirect there with success indicator
             if (!string.IsNullOrEmpty(returnUrl) && returnUrl.Contains("DashboardMetrics"))
@@ -59,6 +65,10 @@ namespace OneJaxDashboard.Controllers
         public async Task<IActionResult> SeedMetrics()
         {
             await _metricsService.SeedDashboardMetricsAsync();
+            
+            // Log the seeding action
+            _activityLog.Log("Admin", "Initialized Dashboard Metrics", notes: "Seeded all dashboard metrics");
+            
             TempData["Success"] = "Dashboard metrics have been initialized with your complete metrics list!";
             return RedirectToAction("Index");
         }

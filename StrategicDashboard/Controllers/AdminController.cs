@@ -163,7 +163,6 @@ namespace OneJaxDashboard.Controllers
             var addedEvent = _eventsService.Add(eventModel);
             
             // Log the assignment
-            var adminUsername = User.Identity?.Name ?? string.Empty;
             _activityLog.Log("Admin", "Assigned Event", "Event", addedEvent.Id, 
                 notes: $"Assigned '{addedEvent.Title}' to {staffName}");
 
@@ -207,7 +206,6 @@ namespace OneJaxDashboard.Controllers
             _eventsService.Update(eventModel);
 
             // Log the update
-            var adminUsername = User.Identity?.Name ?? string.Empty;
             _activityLog.Log("Admin", "Updated Assigned Event", "Event", eventModel.Id, 
                 notes: $"Updated '{eventModel.Title}' for {staffName}");
 
@@ -229,7 +227,6 @@ namespace OneJaxDashboard.Controllers
             _eventsService.Remove(id);
 
             // Log the deletion
-            var adminUsername = User.Identity?.Name ?? string.Empty;
             _activityLog.Log("Admin", "Deleted Assigned Event", "Event", id, 
                 notes: $"Deleted '{eventModel.Title}' assigned to {staffName}");
 
@@ -248,7 +245,6 @@ namespace OneJaxDashboard.Controllers
             _eventsService.Unarchive(id);
 
             // Log the unarchive action
-            var adminUsername = User.Identity?.Name ?? string.Empty;
             _activityLog.Log("Admin", "Reactivated Archived Event", "Event", id, 
                 notes: $"Reactivated '{eventModel.Title}'");
 
