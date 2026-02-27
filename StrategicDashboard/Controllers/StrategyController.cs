@@ -46,33 +46,41 @@ public class StrategyController : Controller
         goalStrategies = goalStrategies.OrderByDescending(s => s.Id).ToList();
 
         ViewBag.GoalId = goalId;
-        ViewBag.SuccessMessage = TempData["SuccessMessage"]; 
+        ViewBag.SuccessMessage = TempData["SuccessMessage"];
 
         return View(goalStrategies);
     }
 
     [HttpPost]
-    public IActionResult Add(int goalId, string eventName, string eventDescription, string? eventDate, string? eventTime, string eventType = "Community")
+    public IActionResult Add(int goalId, string eventName, string eventDescription, string? eventDate, string? eventTime, string eventType = "Community", string? fiscalYear = null, string? programName = null)
     {
         int newId = Strategies.Any() ? Strategies.Max(s => s.Id) + 1 : 1;
 
         // Save to database for persistence - only set properties that don't have foreign key constraints
         var dbEvent = new Strategy
         {
-            Name = eventName,
+            Name = string.IsNullOrWhiteSpace(eventName) ? (programName ?? string.Empty) : eventName,
+            ProgramName = programName ?? string.Empty,
             Description = eventDescription,
             StrategicGoalId = goalId,
             Date = eventDate,
             Time = eventTime,
-            EventType = eventType
+            EventType = eventType,
+            EventFYear = fiscalYear ?? string.Empty
         };
+        // Also persist to FiscalYear if the model has that property (keeps older/newer versions in sync)
+        var fyProp = dbEvent.GetType().GetProperty("FiscalYear");
+        if (fyProp != null)
+        {
+            fyProp.SetValue(dbEvent, fiscalYear ?? string.Empty);
+        }
 
         _context.Strategies.Add(dbEvent);
         _context.SaveChanges();
 
         string goalName = Goals.FirstOrDefault(g => g.Value == goalId.ToString())?.Text ?? "Unknown Goal";
 
-        TempData["SuccessMessage"] = $"Successfully added event under “{goalName}”";
+        TempData["SuccessMessage"] = $"Successfully added program under “{goalName}”";
 
         return RedirectToAction("Index");
     }
@@ -93,7 +101,7 @@ public class StrategyController : Controller
     }
 
     [HttpPost]
-    public IActionResult Edit(int id, string eventName, string eventDescription, string eventDate, string eventTime, int goalId)
+    public IActionResult Edit(int id, string eventName, string eventDescription, string eventDate, string eventTime, int goalId, string eventType, string? fiscalYear, string? programName=null)
     {
         // Fetch the strategy from the database
         var evt = _context.Strategies.FirstOrDefault(s => s.Id == id);
@@ -103,20 +111,28 @@ public class StrategyController : Controller
         }
 
         // Update the strategy's properties
-        evt.Name = eventName;
+        evt.Name = string.IsNullOrWhiteSpace(eventName) ? (programName ?? string.Empty) : eventName;
+        evt.ProgramName = programName ?? string.Empty;
+        evt.EventType = eventType;
         evt.Description = eventDescription;
         evt.Date = eventDate;
         evt.Time = eventTime;
         evt.StrategicGoalId = goalId;
+        evt.EventFYear = fiscalYear ?? string.Empty;
+        // Also persist to FiscalYear if the model has that property (keeps older/newer versions in sync)
+        var fyProp = evt.GetType().GetProperty("FiscalYear");
+        if (fyProp != null)
+        {
+            fyProp.SetValue(evt, fiscalYear ?? string.Empty);
+        }
 
         // Save changes to the database
         _context.SaveChanges();
 
-        TempData["SuccessMessage"] = "Event updated successfully!";
+        TempData["SuccessMessage"] = "Program updated successfully!";
         return RedirectToAction("Index");
     }
 
-    [HttpPost]
     [HttpPost]
     public IActionResult Delete(int id)
     {
@@ -131,7 +147,7 @@ public class StrategyController : Controller
         _context.Strategies.Remove(strategy);
         _context.SaveChanges();
 
-        TempData["SuccessMessage"] = "Event deleted successfully!";
+        TempData["SuccessMessage"] = "Program deleted successfully!";
         return RedirectToAction("ViewEvents");
     }
     public IActionResult ViewEvents()
@@ -147,6 +163,7 @@ public class StrategyController : Controller
         })
         .ToList();
 
+        ViewBag.FiscalYears = new List<string> { "2025/2026", "2026/2027", "2027/2028" };
 
         // Pass the events to the view
         return View(events);
