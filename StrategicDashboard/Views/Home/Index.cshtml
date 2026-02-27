@@ -8,7 +8,6 @@
     var selectedTime = Context.Request.Query["time"].ToString();
     var selectedFiscalYear = Context.Request.Query["fiscalYear"].ToString();
     var selectedQuarter = Context.Request.Query["quarter"].ToString();
-    var selectedQuarter = Context.Request.Query["quarter"].ToString();
     
     // Check if we have enhanced metrics
     var hasEnhancedMetrics = Model.StrategicGoals?.Any(g => g.Metrics?.Any(m => !string.IsNullOrEmpty(m.DataSource)) == true) == true;

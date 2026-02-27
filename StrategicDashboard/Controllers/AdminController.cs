@@ -17,29 +17,24 @@ namespace OneJaxDashboard.Controllers
         private readonly EventsService _eventsService;
         private readonly StrategyService _strategyService;
         private readonly ActivityLogService _activityLog;
+        private readonly TimeZoneInfo _easternTimeZone;
 
-        public AdminController(ApplicationDbContext db, EventsService eventsService, StrategyService strategyService, ActivityLogService activityLog)
+        private DateTime NowEastern => TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _easternTimeZone);
+
+        public AdminController(ApplicationDbContext db, EventsService eventsService, StrategyService strategyService, ActivityLogService activityLog, TimeZoneInfo easternTimeZone)
         {
             _db = db;
             _eventsService = eventsService;
             _strategyService = strategyService;
             _activityLog = activityLog;
+            _easternTimeZone = easternTimeZone;
         }
 
         // GET: /Admin
         public IActionResult Index()
         {
             var staffCount = _db.Staffauth.Count();
-            
-            // Get all events (active and completed)
-            //var allEvents = _db.Events
-            //    .Include(e => e.AssignedStaff)
-             //   .Where(e => !e.IsArchived)
-            //    .ToList()
-            //    .Where(e => e.StrategyTemplateId.HasValue && _strategyService.GetStrategy(e.StrategyTemplateId.Value) != null)
-            //    .ToList();
-
-            //var eventCount = allEvents.Count;
+            var eventCount = _db.Strategies.Count();
 
             // Get recent activity log entries (last 10)
             var recentActivities = _activityLog.GetAllEntries()
@@ -49,7 +44,7 @@ namespace OneJaxDashboard.Controllers
 
             // Pass data to view
             ViewData["StaffCount"] = staffCount;
-           // ViewData["EventCount"] = eventCount;
+            ViewData["EventCount"] = eventCount;
             ViewData["RecentActivities"] = recentActivities;
 
             return View();
@@ -158,7 +153,7 @@ namespace OneJaxDashboard.Controllers
             // Set admin assignment properties
             eventModel.OwnerUsername = selectedStaffUsername;
             eventModel.IsAssignedByAdmin = true;
-            eventModel.AssignmentDate = DateTime.Now;
+            eventModel.AssignmentDate = NowEastern;
 
             var addedEvent = _eventsService.Add(eventModel);
             

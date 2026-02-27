@@ -10,12 +10,14 @@ namespace OneJaxDashboard.Models
 
         public string Name { get; set; } = string.Empty;
         // Authentication fields added for login functionality
+        [Required(ErrorMessage = "Username is required")]
         [Display(Name = "Username")]
-        public string? Username { get; set; }
+        public string Username { get; set; } = string.Empty;
 
         [Display(Name = "Password")]
         public string? Password { get; set; }
 
+        [Required(ErrorMessage = "Email is required")]
         [EmailAddress(ErrorMessage = "Invalid email address")]
         [Display(Name = "Email")]
         public string Email { get; set; } = string.Empty;

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
-using OneJaxDashboard.Data;
+using OneJaxDashboard.Data; 
+using System.Runtime.InteropServices;
 OfficeOpenXml.ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +25,10 @@ builder.Services.AddScoped<OneJaxDashboard.Services.MetricsService>();
 
 // Keep ProjectsService for backward compatibility during transition
 builder.Services.AddSingleton<OneJaxDashboard.Services.ProjectsService>();
+
+var easternTimeZoneId = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "Eastern Standard Time" : "America/New_York";
+builder.Services.AddSingleton(TimeZoneInfo.FindSystemTimeZoneById(easternTimeZoneId));
+
 
 var app = builder.Build();
 
