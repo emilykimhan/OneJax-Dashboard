@@ -14,7 +14,7 @@ new { Id = 4, Name = "Community Engagement" }
 
 <!-- OneJax Color Theme -->
 <style>
-    :root {
+ :root {
         --onejax-blue: #0070AD;
         --onejax-teal: #00A3AD;
         --onejax-navy: #102840;
@@ -69,7 +69,6 @@ new { Id = 4, Name = "Community Engagement" }
         margin: 0.35rem 0 0.75rem 0;
         line-height: 1.35;
     }
-
     .event-meta-row {
         display: flex;
         gap: 10px;
@@ -228,6 +227,218 @@ new { Id = 4, Name = "Community Engagement" }
             opacity: 0;
             transform: translateY(-10px);
         }
+    }
+
+    /* ===== Row/List Event Layout (new) ===== */
+    .event-row {
+        display: flex;
+        gap: 14px;
+        padding: 16px;
+        border-radius: 18px;
+        border: 1px solid rgba(16, 40, 64, 0.08);
+        background: #fff;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+        align-items: stretch;
+    }
+
+    .event-row-left {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .event-row-title {
+        font-weight: 800;
+        color: var(--onejax-navy);
+        font-size: 1.05rem;
+        margin: 0;
+        line-height: 1.15;
+        word-break: break-word;
+    }
+
+    .event-row-subtitle {
+        margin-top: 4px;
+        font-size: 0.9rem;
+        color: #516273;
+        font-weight: 600;
+        word-break: break-word;
+    }
+
+    .event-row-desc {
+        margin-top: 8px;
+        color: #6c757d;
+        line-height: 1.35;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .event-row-right {
+        width: 240px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 10px;
+    }
+
+    .event-row-top {
+        width: 100%;
+        display: flex;
+        justify-content: flex-end;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .event-row-datetime {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        align-items: flex-end;
+        color: var(--onejax-blue);
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+
+    .event-row-datetime small {
+        color: #6c757d;
+        font-weight: 600;
+    }
+
+    .event-row-badges {
+        margin-top: 10px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+    }
+
+    /* Color strip by Program Type */
+    .event-row.type-youth { border-left: 7px solid #a0ce3f; }
+    .event-row.type-humanitarian { border-left: 7px solid #ad3385; }
+    .event-row.type-interfaith { border-left: 7px solid #8d478a; }
+    .event-row.type-community { border-left: 7px solid #b48a78; }
+
+    (max-width: 992px) {
+        .event-row { flex-direction: column; }
+        .event-row-right { width: 100%; align-items: flex-start; }
+        .event-row-datetime { align-items: flex-start; }
+        .event-row-top { justify-content: space-between; }
+    }
+
+    /* ===== Events Table (basic + organized) ===== */
+    .events-table-wrap {
+        background: #fff;
+        border: 1px solid rgba(16, 40, 64, 0.08);
+        border-radius: 14px;
+        overflow: visible !important;   /* ✅ allow dropdown to escape */
+        position: relative;
+    }
+    .events-table-wrap .dropdown-menu {
+        z-index: 9999;
+    }
+
+    .events-table-wrap td,
+    .events-table-wrap th {
+        overflow: visible;
+    }
+    table.events-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0;
+    }
+
+    table.events-table thead th {
+        background: var(--onejax-blue);
+        color: #fff;
+        font-weight: 800;
+        font-size: 0.85rem;
+        letter-spacing: 0.4px;
+        text-transform: uppercase;
+        padding: 12px 14px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+        white-space: nowrap;
+    }
+
+    table.events-table tbody td {
+        padding: 12px 14px;
+        border-bottom: 1px solid rgba(16, 40, 64, 0.06);
+        vertical-align: top;
+        color: #213547;
+        font-weight: 500;
+    }
+
+    table.events-table tbody tr:hover {
+        background: rgba(0, 112, 173, 0.04);
+    }
+
+    .cell-muted {
+        color: #6c757d;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .cell-title {
+        font-weight: 800;
+        color: var(--onejax-navy);
+    }
+
+    .cell-subtitle {
+        margin-top: 3px;
+        color: #546678;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .type-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 0.25rem 0.6rem;
+        border-radius: 999px;
+        background: transparent;
+        color: #fff;
+        font-weight: 800;
+        font-size: 0.85rem;
+        white-space: nowrap;
+    }
+
+    .fy-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 0.25rem 0.6rem;
+        border-radius: 999px;
+        background: rgba(0, 112, 173, 0.10);
+        color: var(--onejax-navy);
+        font-weight: 700;
+        font-size: 0.85rem;
+        white-space: nowrap;
+    }
+
+    .actions-cell {
+        white-space: nowrap;
+        text-align: right;
+    }
+
+    (max-width: 992px) {
+        table.events-table thead { display: none; }
+        table.events-table, table.events-table tbody, table.events-table tr, table.events-table td { display: block; width: 100%; }
+        table.events-table tr { border-bottom: 1px solid rgba(16, 40, 64, 0.08); }
+        table.events-table tbody td { border: none; padding: 10px 14px; }
+        table.events-table tbody td::before {
+            content: attr(data-label);
+            display: block;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            font-size: 0.75rem;
+            color: #6c757d;
+            margin-bottom: 4px;
+        }
+        .actions-cell { text-align: left; }
+    }
 </style>
 
 <style>
@@ -249,14 +460,14 @@ new { Id = 4, Name = "Community Engagement" }
     <!-- Header -->
     <div class="text-center mb-5">
         <h1 class="fw-bold text-uppercase" style="color: var(--onejax-blue);">OneJax Strategic Dashboard</h1>
-        <p class="text-secondary fs-5">Track and manage events by strategic goals</p>
+        <p class="text-secondary fs-5">Track and manage programs by strategic goals</p>
     </div>
 
     <!-- View Events Button -->
     <div class="text-center mb-4">
         <a href="/Strategy/ViewEvents" class="btn" style="background-color: var(--onejax-blue); color: #fff; padding: 10px 22px; border-radius: 25px; 
                   font-weight: 600; box-shadow: 0 3px 8px rgba(0,0,0,0.15);">
-            View Events
+            View Programs
         </a>
     </div>
 
@@ -269,18 +480,23 @@ new { Id = 4, Name = "Community Engagement" }
     <!-- Add New Event -->
     <div class="card shadow-lg border-0 rounded-4 mb-5">
         <div class="card-body p-4">
-            <h3 class="fw-bold text-uppercase mb-4" style="color: var(--onejax-blue);">Add a New Event</h3>
+            <h3 class="fw-bold text-uppercase mb-4" style="color: var(--onejax-blue);">Add a New Program</h3>
 
-            <form asp-action="Add" method="post" class="row g-3">
-<div class="col-md-6">
-    <label class="form-label fw-semibold">Event Name</label>
-    <input type="text" name="eventName" class="form-control" placeholder="Enter event name" required />
+<form asp-action="Add" method="post" class="row g-3">
+<div class="col-12">
+    <label class="form-label fw-semibold">Program Name</label>
+    <input type="text" name="programName" class="form-control" placeholder="Enter program name" required />
 </div>
 
 <div class="col-md-6">
-    <label class="form-label fw-semibold">Event Type</label>
+    <label class="form-label fw-semibold">Event Name </label>
+    <input type="text" name="eventName" class="form-control" placeholder="Enter event name" />
+</div>
+
+<div class="col-md-6">
+    <label class="form-label fw-semibold">Program Type</label>
     <select name="eventType" class="form-select" required>
-        <option value="" selected disabled>Select Event Type</option>
+        <option value="" selected disabled>Select Program Type</option>
         <option value="Youth">Youth</option>
         <option value="Interfaith">Interfaith</option>
         <option value="Humanitarian">Humanitarian</option>
@@ -311,7 +527,7 @@ new { Id = 4, Name = "Community Engagement" }
 
 <div class="col-md-6">
     <label class="form-label fw-semibold">Event Date</label>
-    <input type="date" name="eventDate" class="form-control" />
+    <input type="date" name="eventDate" class="form-control" min="2020-01-01" max="9999-12-31"/>
 </div>
 
 <div class="col-md-6">
@@ -329,7 +545,7 @@ new { Id = 4, Name = "Community Engagement" }
 </div>
 
 <div class="col-12">
-    <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-semibold">Add Event</button>
+    <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-semibold">Add Program</button>
 </div>
             </form>
         </div>
@@ -352,105 +568,136 @@ new { Id = 4, Name = "Community Engagement" }
     <div class="tab-content" id="goalTabsContent">
         @foreach (var goal in goals)
         {
-            var goalEvents = Model.Where(e => e.StrategicGoalId == goal.Id).ToList();
+            var goalEvents = Model.Where(e => e.StrategicGoalId == goal.Id).OrderByDescending(e => e.Id).ToList();
 
             <div class="tab-pane fade @(goal == goals.First() ? "show active" : "")" id="goal-@goal.Id" role="tabpanel">
                 @if (goalEvents.Any())
                 {
-                    <div class="row">
-                        @foreach (var e in goalEvents)
-                        {
-                            <div class="col-md-6 mb-4">
-                                <div class="card border-0 shadow-sm rounded-4 p-3 h-100">
-                                    @{
-                                        // Goal name for this event
-                                        var goalName = goal?.Name?.ToString();
+                    <div class="events-table-wrap">
+                        <table class="events-table">
+                            <thead>
+                                <tr>
+                                    <th>Program</th>
+                                    <th>Event</th>
+                                    <th>Type</th>
+                                    <th>FY</th>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var e in goalEvents)
+                                {
+                                    // Display strings
+                                    var program = string.IsNullOrWhiteSpace(e.ProgramName) ? "(No Program)" : e.ProgramName;
+                                    var eventName = e.Name;
 
-                                        // Format date as MM/dd/yyyy when possible
-                                        var dateDisplay = e.Date;
-                                        if (!string.IsNullOrWhiteSpace(e.Date) && DateTime.TryParse(e.Date, out var parsedDate))
-                                        {
-                                            dateDisplay = parsedDate.ToString("MM/dd/yyyy");
-                                        }
-
-                                        // Format time as h:mm AM/PM when possible
-                                        var timeDisplay = e.Time;
-                                        if (!string.IsNullOrWhiteSpace(e.Time) && DateTime.TryParse(e.Time, out var parsedTime))
-                                        {
-                                            timeDisplay = parsedTime.ToString("h:mm tt");
-                                        }
-
-                                        var showDateTime = !string.IsNullOrWhiteSpace(dateDisplay) || !string.IsNullOrWhiteSpace(timeDisplay);
+                                    // Format date/time
+                                    var dateDisplay = e.Date;
+                                    if (!string.IsNullOrWhiteSpace(e.Date) && DateTime.TryParse(e.Date, out var parsedDate))
+                                    {
+                                        dateDisplay = parsedDate.ToString("MM/dd/yyyy");
                                     }
 
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <h5 class="event-card-title">@e.Name</h5>
+                                    var timeDisplay = e.Time;
+                                    if (!string.IsNullOrWhiteSpace(e.Time) && DateTime.TryParse(e.Time, out var parsedTime))
+                                    {
+                                        timeDisplay = parsedTime.ToString("h:mm tt");
+                                    }
 
-                                        <div class="dropdown">
-                                            <button class="btn btn-light btn-sm border-0" type="button" data-bs-toggle="dropdown">
-                                                <i class="bi bi-three-dots fs-5 text-dark"></i>
-                                            </button>
-                                            <ul class="dropdown-menu dropdown-menu-end">
-                                                <li>
-                                                    <a class="dropdown-item text-primary" asp-controller="Strategy"
-                                                       asp-action="Edit" asp-route-id="@e.Id">
-                                                        Edit
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <button type="button" class="dropdown-item text-danger" data-bs-toggle="modal"
-                                                            data-bs-target="#deleteConfirmModal" data-event-id="@e.Id">
-                                                        Delete
-                                                    </button>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </div>
+                                    <tr>
+                                        <td data-label="Program">
+                                            <div class="cell-title">@program</div>
+                                        </td>
 
-                                    <p class="event-card-desc">@e.Description</p>
-
-                                    <div class="event-card-footer">
-                                        <div class="event-meta-row">
-                                            @if (!string.IsNullOrWhiteSpace(goalName))
+                                        <td data-label="Event">
+                                            @if (!string.IsNullOrWhiteSpace(eventName) && eventName != program)
                                             {
-                                                <span class="badge-pill badge-goal goal-@(goal?.Name != null ? goal.Name.Replace(" ", "").ToLower() : "")">
-                                                    <i class="bi bi-bullseye"></i> @goal?.Name
-                                                </span>
+                                                <div class="cell-subtitle">@eventName</div>
                                             }
+                                            else
+                                            {
+                                                <div class="cell-muted">—</div>
+                                            }
+                                        </td>
 
+                                        <td data-label="Type">
                                             @if (!string.IsNullOrWhiteSpace(e.EventType))
                                             {
-                                                <span class="badge-pill badge-type type-@e.EventType.ToLower()">
-                                                    <i class="bi bi-tag"></i> @e.EventType
-                                                </span>
+                                                <span class="type-chip type-@e.EventType.ToLower()"><i class="bi bi-tag"></i> @e.EventType</span>
                                             }
-                                        </div>
+                                            else
+                                            {
+                                                <span class="cell-muted">—</span>
+                                            }
+                                        </td>
 
-                                        @if (showDateTime)
-                                        {
-                                            <span class="event-datetime">
-                                                <i class="bi bi-calendar-event"></i>
-                                                @if (!string.IsNullOrWhiteSpace(dateDisplay))
-                                                {
-                                                    <span>@dateDisplay</span>
-                                                }
-                                                @if (!string.IsNullOrWhiteSpace(timeDisplay))
-                                                {
-                                                    <span>@timeDisplay</span>
-                                                }
-                                            </span>
-                                        }
-                                    </div>
-                                </div>
-                            </div>
-                        }
+                                        <td data-label="FY">
+                                            @if (!string.IsNullOrWhiteSpace(e.EventFYear))
+                                            {
+                                                <span class="fy-chip"><i class="bi bi-calendar2-range"></i> @e.EventFYear</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="cell-muted">—</span>
+                                            }
+                                        </td>
+
+                                        <td data-label="Date">
+                                            @if (!string.IsNullOrWhiteSpace(dateDisplay))
+                                            {
+                                                <span>@dateDisplay</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="cell-muted">—</span>
+                                            }
+                                        </td>
+
+                                        <td data-label="Time">
+                                            @if (!string.IsNullOrWhiteSpace(timeDisplay))
+                                            {
+                                                <span>@timeDisplay</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="cell-muted">—</span>
+                                            }
+                                        </td>
+
+                                        <td class="actions-cell" data-label="Actions">
+                                            <div class="dropdown">
+                                                <button class="btn btn-light btn-sm border-0" type="button" data-bs-toggle="dropdown">
+                                                    <i class="bi bi-three-dots fs-5 text-dark"></i>
+                                                </button>
+                                                <ul class="dropdown-menu dropdown-menu-end">
+                                                    <li>
+                                                        <a class="dropdown-item text-primary" asp-controller="Strategy"
+                                                           asp-action="Edit" asp-route-id="@e.Id">
+                                                            Edit
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <button type="button" class="dropdown-item text-danger" data-bs-toggle="modal"
+                                                                data-bs-target="#deleteConfirmModal" data-event-id="@e.Id">
+                                                            Delete
+                                                        </button>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
                     </div>
                 }
                 else
                 {
                     <div class="text-center text-muted py-5">
                         <i class="bi bi-inbox fs-1"></i>
-                        <p class="mt-3">No events yet for this goal. Add one above!</p>
+                        <p class="mt-3">No programs yet for this goal. Add one above!</p>
                     </div>
                 }
             </div>
@@ -463,14 +710,14 @@ new { Id = 4, Name = "Community Engagement" }
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title fw-semibold" id="deleteConfirmLabel">
-                    Delete Event?
+                    Delete Program?
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
             <div class="modal-body">
                 <p class="mb-2">
-                    You’re about to permanently delete this event. This action cannot be undone.
+                    You’re about to permanently delete this Program. This action cannot be undone.
                 </p>
                 <p class="mb-3">
                     Type <strong>delete</strong> in lowercase to confirm.
