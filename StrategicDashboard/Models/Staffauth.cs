@@ -11,7 +11,8 @@ namespace OneJaxDashboard.Models
         public string Name { get; set; } = string.Empty;
         // Authentication fields added for login functionality
         [Display(Name = "Username")]
-        public string? Username { get; set; }
+        [Required]
+        public string Username { get; set; } = string.Empty;
 
         [Display(Name = "Password")]
         public string? Password { get; set; }

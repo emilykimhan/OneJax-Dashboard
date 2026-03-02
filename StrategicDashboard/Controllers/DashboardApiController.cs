@@ -21,6 +21,11 @@ namespace OneJaxDashboard.Controllers
         {
             try
             {
+                // Set invalid foreign key values to null
+                if (eventData.StrategicGoalId == 0) eventData.StrategicGoalId = null;
+                if (eventData.StrategyId == 0) eventData.StrategyId = null;
+                if (eventData.StrategyTemplateId == 0) eventData.StrategyTemplateId = null;
+                
                 _context.Events.Add(eventData);
                 await _context.SaveChangesAsync();
                 return Ok(new { success = true, message = "Event added successfully", eventId = eventData.Id });
@@ -83,6 +88,14 @@ namespace OneJaxDashboard.Controllers
                 // Import Events
                 if (request.Events?.Any() == true)
                 {
+                    // Set invalid foreign key values to null
+                    foreach (var evt in request.Events)
+                    {
+                        if (evt.StrategicGoalId == 0) evt.StrategicGoalId = null;
+                        if (evt.StrategyId == 0) evt.StrategyId = null;
+                        if (evt.StrategyTemplateId == 0) evt.StrategyTemplateId = null;
+                    }
+                    
                     _context.Events.AddRange(request.Events);
                     results.EventsImported = request.Events.Count;
                 }
