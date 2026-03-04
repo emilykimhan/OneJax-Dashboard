@@ -68,7 +68,7 @@
 
                         <!-- Expenses Section -->
                         <hr class="my-4">
-                        <h5 class="mb-3" style="color:var(--onejax-navy);">📉 Expenses</h5>
+                        <h5 class="mb-3" style="color:var(--onejax-navy);">📉 Admin Operators</h5>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -111,6 +111,18 @@
                                            class="form-control" placeholder="0.00" />
                                 </div>
                                 <span asp-validation-for="HumanitarianEvent" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="MiscellaneousExpenses" class="form-label fw-bold">Miscellaneous Expenses:</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input asp-for="MiscellaneousExpenses" type="number" min="0" step="0.01" 
+                                           class="form-control" placeholder="0.00" />
+                                </div>
+                                <span asp-validation-for="MiscellaneousExpenses" class="text-danger"></span>
                             </div>
                         </div>
 
@@ -171,6 +183,16 @@
                                            class="form-control" placeholder="0.00" />
                                 </div>
                                 <span asp-validation-for="PeopleCultureWorkshops" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="MiscellaneousRevenue" class="form-label fw-bold">Miscellaneous Revenue:</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input asp-for="MiscellaneousRevenue" type="number" min="0" step="0.01" 
+                                           class="form-control" placeholder="0.00" />
+                                </div>
+                                <span asp-validation-for="MiscellaneousRevenue" class="text-danger"></span>
                             </div>
                         </div>
 

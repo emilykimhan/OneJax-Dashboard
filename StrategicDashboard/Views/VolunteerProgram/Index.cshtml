@@ -1,0 +1,150 @@
+@model OneJaxDashboard.Models.volunteerProgram_40D
+@{
+    ViewData["Title"] = "Volunteer Program";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card p-4"
+                 style="background-color:var(--onejax-white);
+                        box-shadow:0 4px 24px rgba(0,0,0,0.08);
+                        border-radius:24px;">
+                
+                <!-- Header with back button -->
+                <div class="d-flex align-items-center mb-4">
+                    <a href="/OrganizationalBuilding" 
+                       class="btn btn-outline-secondary me-3"
+                       style="border-radius: 8px;">
+                        ← Back
+                    </a>
+                    <h2 class="mb-0" style="color:var(--onejax-navy);">Volunteer Program</h2>
+                </div>
+
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success text-center">
+                        @TempData["Success"]
+                    </div>
+                }
+
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger text-center">
+                        @TempData["Error"]
+                    </div>
+                }
+
+                <!-- Volunteer Program Form -->
+                <div class="survey-form">
+                    <h4 class="mb-4 text-center" style="color:var(--onejax-navy);">Volunteer Program Entry Form</h4>
+
+                    <form asp-controller="VolunteerProgram" asp-action="Index" method="post" novalidate>
+                        @Html.AntiForgeryToken()
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Quarter" class="form-label fw-bold">Quarter:</label>
+                                <select asp-for="Quarter" class="form-select">
+                                    <option value="">-- Select Quarter --</option>
+                                    <option value="1">Q1 (Jan-Mar)</option>
+                                    <option value="2">Q2 (Apr-Jun)</option>
+                                    <option value="3">Q3 (Jul-Sep)</option>
+                                    <option value="4">Q4 (Oct-Dec)</option>
+                                </select>
+                                <span asp-validation-for="Quarter" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Year" class="form-label fw-bold">Year:</label>
+                                <input asp-for="Year" type="number" min="2020" max="2100" 
+                                       class="form-control" placeholder="e.g., 2026" value="@DateTime.Now.Year" />
+                                <span asp-validation-for="Year" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="NumberOfVolunteers" class="form-label fw-bold">
+                                Number of Volunteers:
+                            </label>
+                            <input asp-for="NumberOfVolunteers" type="number" min="0" max="10000" 
+                                   class="form-control" placeholder="Enter total number of volunteers" />
+                            <span asp-validation-for="NumberOfVolunteers" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <input asp-for="ProgramEstablished" type="checkbox" class="form-check-input" id="programEstablished" />
+                            <label class="form-check-label fw-bold" for="programEstablished">
+                                Program Established (Check if volunteer program has been formally established)
+                            </label>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="CommunicationsActivities" class="form-label fw-bold">
+                                Communications Activities:
+                                <small class="text-muted">(Describe communications efforts for volunteers)</small>
+                            </label>
+                            <textarea asp-for="CommunicationsActivities" class="form-control" rows="4" 
+                                      placeholder="e.g., Monthly newsletters, social media posts, volunteer appreciation events..."></textarea>
+                            <span asp-validation-for="CommunicationsActivities" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="RecognitionActivities" class="form-label fw-bold">
+                                Recognition Activities:
+                                <small class="text-muted">(Describe volunteer recognition efforts)</small>
+                            </label>
+                            <textarea asp-for="RecognitionActivities" class="form-control" rows="4" 
+                                      placeholder="e.g., Awards ceremony, thank you gifts, spotlight features..."></textarea>
+                            <span asp-validation-for="RecognitionActivities" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="VolunteerLedInitiatives" class="form-label fw-bold">
+                                Number of Volunteer-Led Initiatives:
+                            </label>
+                            <input asp-for="VolunteerLedInitiatives" type="number" min="0" max="100" 
+                                   class="form-control" placeholder="Enter count of initiatives" />
+                            <span asp-validation-for="VolunteerLedInitiatives" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="InitiativeDescriptions" class="form-label fw-bold">
+                                Initiative Descriptions:
+                                <small class="text-muted">(List and describe volunteer-led initiatives)</small>
+                            </label>
+                            <textarea asp-for="InitiativeDescriptions" class="form-control" rows="5" 
+                                      placeholder="e.g., Community cleanup project, Youth mentorship program, Food drive campaign..."></textarea>
+                            <span asp-validation-for="InitiativeDescriptions" class="text-danger"></span>
+                        </div>
+
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary px-4" 
+                                    style="background-color:var(--onejax-navy); border-color:var(--onejax-navy);">
+                                Submit Record
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-outline-secondary {
+        border-color: var(--onejax-navy);
+        color: var(--onejax-navy);
+    }
+    
+    .btn-outline-secondary:hover {
+        background-color: var(--onejax-navy);
+        border-color: var(--onejax-navy);
+        color: white;
+    }
+</style>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

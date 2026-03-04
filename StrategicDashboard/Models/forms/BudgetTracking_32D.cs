@@ -38,6 +38,12 @@ namespace OneJaxDashboard.Models
         [Display(Name = "Humanitarian Event")]
         public decimal? HumanitarianEvent { get; set; }
 
+        [Range(0, double.MaxValue, ErrorMessage = "Value cannot be negative")]
+        [DataType(DataType.Currency)]
+        [Display(Name = "Miscellaneous Expenses")]
+        public decimal? MiscellaneousExpenses { get; set; }
+
+        
         // REVENUES
         [Range(0, double.MaxValue, ErrorMessage = "Value cannot be negative")]
         [DataType(DataType.Currency)]
@@ -64,6 +70,11 @@ namespace OneJaxDashboard.Models
         [Display(Name = "People and Culture Workshops")]
         public decimal? PeopleCultureWorkshops { get; set; }
 
+        [Range(0, double.MaxValue, ErrorMessage = "Value cannot be negative")]
+        [DataType(DataType.Currency)]
+        [Display(Name = "Miscellaneous Revenue")]
+        public decimal? MiscellaneousRevenue { get; set; }
+
         [StringLength(1000)]
         [Display(Name = "Notes")]
         public string? Notes { get; set; }
@@ -73,12 +84,13 @@ namespace OneJaxDashboard.Models
         // Calculated properties
         [Display(Name = "Total Expenses")]
         public decimal TotalExpenses => (CommunityPrograms ?? 0) + (OneYouthPrograms ?? 0) + 
-                                        (InterfaithPrograms ?? 0) + (HumanitarianEvent ?? 0);
+                                        (InterfaithPrograms ?? 0) + (HumanitarianEvent ?? 0) + 
+                                        (MiscellaneousExpenses ?? 0);
 
         [Display(Name = "Total Revenues")]
         public decimal TotalRevenues => (CorporateGiving ?? 0) + (IndividualGiving ?? 0) + 
                                         (GrantsFoundations ?? 0) + (CommunityEvents ?? 0) + 
-                                        (PeopleCultureWorkshops ?? 0);
+                                        (PeopleCultureWorkshops ?? 0) + (MiscellaneousRevenue ?? 0);
 
         [Display(Name = "Net (Revenue - Expense)")]
         public decimal NetAmount => TotalRevenues - TotalExpenses;

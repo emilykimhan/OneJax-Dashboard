@@ -213,9 +213,8 @@ namespace OneJaxDashboard.Controllers
                 var existingSurvey = _context.StaffSurveys_22D.Find(survey.Id);
                 if (existingSurvey != null)
                 {
-                    existingSurvey.Name = survey.Name;
+                    existingSurvey.Year = survey.Year;
                     existingSurvey.SatisfactionRate = survey.SatisfactionRate;
-                    existingSurvey.ProfessionalDevelopmentCount = survey.ProfessionalDevelopmentCount;
                     
                     _context.SaveChanges();
                     TempData["Success"] = "Staff Survey record updated successfully!";
@@ -251,9 +250,9 @@ namespace OneJaxDashboard.Controllers
                 var existingProfDev = _context.ProfessionalDevelopments.Find(profDev.Id);
                 if (existingProfDev != null)
                 {
+                    existingProfDev.Year = profDev.Year;
                     existingProfDev.Name = profDev.Name;
-                    existingProfDev.ProfessionalDevelopmentYear26 = profDev.ProfessionalDevelopmentYear26;
-                    existingProfDev.ProfessionalDevelopmentYear27 = profDev.ProfessionalDevelopmentYear27;
+                    existingProfDev.Activities = profDev.Activities;
                     
                     _context.SaveChanges();
                     TempData["Success"] = "Professional Development record updated successfully!";

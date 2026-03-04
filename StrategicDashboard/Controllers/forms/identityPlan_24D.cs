@@ -43,15 +43,8 @@ namespace OneJaxDashboard.Controllers
                     _context.Plan2026_24D.Add(model);
                     _context.SaveChanges();
                     
-                    // Recalculate statistics after adding new entry
-                    var allEntries = _context.Plan2026_24D.ToList();
-                    ViewBag.TotalEntries = allEntries.Count;
-                    ViewBag.LatestYear = allEntries.Max(e => e.Year);
-                    ViewBag.GoalMetCount = allEntries.Count(e => e.GoalMet);
-                    
                     TempData["Success"] = "Submitted successfully!";
-                    ViewBag.ShowNewEntryButton = true;
-                    return View(model);
+                    return RedirectToAction("Index");
                 }
                 catch (Exception ex)
                 {

@@ -94,13 +94,13 @@
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
-                                    <strong>Staff Name:</strong> @survey.Name
+                                    <strong>Year:</strong> @survey.Year
                                 </div>
                                 <div class="detail-item">
                                     <strong>Satisfaction Rate:</strong> @survey.SatisfactionRate%
                                 </div>
                                 <div class="detail-item">
-                                    <strong>Professional Development Count:</strong> @survey.ProfessionalDevelopmentCount
+                                    <strong>Created Date:</strong> @survey.CreatedDate.ToString("MM/dd/yyyy")
                                 </div>
                             </div>
                             <div class="record-actions mt-3">
@@ -139,13 +139,16 @@
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
+                                    <strong>Year:</strong> @profDev.Year
+                                </div>
+                                <div class="detail-item">
                                     <strong>Staff Name:</strong> @profDev.Name
                                 </div>
                                 <div class="detail-item">
-                                    <strong>2026 Activities:</strong> @profDev.ProfessionalDevelopmentYear26
+                                    <strong>Activities:</strong> @profDev.Activities
                                 </div>
                                 <div class="detail-item">
-                                    <strong>2027 Activities:</strong> @profDev.ProfessionalDevelopmentYear27
+                                    <strong>Created Date:</strong> @profDev.CreatedDate.ToString("MM/dd/yyyy")
                                 </div>
                             </div>
                             <div class="record-actions mt-3">

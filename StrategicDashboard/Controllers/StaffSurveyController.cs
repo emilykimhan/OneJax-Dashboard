@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using OneJaxDashboard.Models;
 using OneJaxDashboard.Data;
@@ -14,22 +13,10 @@ namespace OneJaxDashboard.Controllers
         {
             _context = context;
         }
-        private List<SelectListItem> GetStaffMembers()
-        {
-            return _context.Staffauth
-                .Select(s => new SelectListItem 
-                { 
-                    Value = s.Name, 
-                    Text = s.Name 
-                })
-                .ToList();
-        }
 
-   
         [HttpGet]
         public IActionResult Index()
         {
-            ViewBag.StaffMembers = GetStaffMembers();
             return View(new StaffSurvey_22D());
         }
 
@@ -38,8 +25,6 @@ namespace OneJaxDashboard.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Index(StaffSurvey_22D model)
         {
-            ViewBag.StaffMembers = GetStaffMembers();
-
             if (ModelState.IsValid)
             {
                 try
