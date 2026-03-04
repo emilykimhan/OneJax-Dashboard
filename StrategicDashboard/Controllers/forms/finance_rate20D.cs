@@ -1,16 +1,21 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using OneJaxDashboard.Data;
 using OneJaxDashboard.Models;
+using OneJaxDashboard.Services;
 //Karrie's
 namespace OneJaxDashboard.Controllers
 {
+    [Authorize(Roles = "Admin,Staff")]
     public class FinanceRate20DController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ActivityLogService _activityLog;
 
-        public FinanceRate20DController(ApplicationDbContext context)
+        public FinanceRate20DController(ApplicationDbContext context, ActivityLogService activityLog)
         {
             _context = context;
+            _activityLog = activityLog;
         }
 
         // GET: FinanceRate20D/Index
@@ -40,6 +45,14 @@ namespace OneJaxDashboard.Controllers
                 {
                     _context.CommunicationRate.Add(model);
                     _context.SaveChanges();
+
+                    var actor = User.Identity?.Name ?? "Unknown";
+                    _activityLog.Log(
+                        actor,
+                        "Created Communication Satisfaction Record",
+                        "CommunicationRate",
+                        model.Id
+                    );
                     
                     // Recalculate statistics after adding new entry
                     var allEntries = _context.CommunicationRate.ToList();

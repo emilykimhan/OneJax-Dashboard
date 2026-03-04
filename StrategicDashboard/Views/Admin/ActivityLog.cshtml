@@ -3,6 +3,7 @@
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Activity Log";
+    var currentFilter = (ViewData["ActivityFilter"] as string ?? "all").ToLowerInvariant();
 
     DateTime ToEastern(DateTime timestamp)
     {
@@ -25,6 +26,16 @@
                     <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
                 </a>
             </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-12">
+        <div class="btn-group" role="group" aria-label="Activity filters">
+            <a class="btn @(currentFilter == "all" ? "btn-primary" : "btn-outline-primary")" href="/Admin/ActivityLog?filter=all">All Activity</a>
+            <a class="btn @(currentFilter == "events" ? "btn-primary" : "btn-outline-primary")" href="/Admin/ActivityLog?filter=events">Event Activity</a>
+            <a class="btn @(currentFilter == "data-entry" ? "btn-primary" : "btn-outline-primary")" href="/Admin/ActivityLog?filter=data-entry">Data Entry Activity</a>
         </div>
     </div>
 </div>

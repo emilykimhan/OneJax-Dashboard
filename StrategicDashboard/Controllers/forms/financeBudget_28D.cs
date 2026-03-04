@@ -1,18 +1,23 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using OneJaxDashboard.Models;
 using OneJaxDashboard.Data;
+using OneJaxDashboard.Services;
 
 namespace OneJaxDashboard.Controllers
 {
+    [Authorize(Roles = "Admin,Staff")]
     public class BudgetTracking28DController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ActivityLogService _activityLog;
 
-        public BudgetTracking28DController(ApplicationDbContext context)
+        public BudgetTracking28DController(ApplicationDbContext context, ActivityLogService activityLog)
         {
             _context = context;
+            _activityLog = activityLog;
         }
 
         // GET: BudgetTracking28D/Index
@@ -43,6 +48,9 @@ namespace OneJaxDashboard.Controllers
                 {
                     _context.BudgetTracking_28D.Add(model);
                     _context.SaveChanges();
+
+                    var actor = User.Identity?.Name ?? "Unknown";
+                    _activityLog.Log(actor, "Created Annual Budget Tracking Record", "BudgetTracking", model.Id);
                     
                     TempData["Success"] = "Budget tracking record submitted successfully!";
                     return RedirectToAction("Index");

@@ -1,18 +1,23 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using OneJaxDashboard.Models;
 using OneJaxDashboard.Data;
+using OneJaxDashboard.Services;
 //Karrie's
 namespace OneJaxDashboard.Controllers
 {
+    [Authorize(Roles = "Admin,Staff")]
     public class FeeForService21DController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ActivityLogService _activityLog;
 
-        public FeeForService21DController(ApplicationDbContext context)
+        public FeeForService21DController(ApplicationDbContext context, ActivityLogService activityLog)
         {
             _context = context;
+            _activityLog = activityLog;
         }
 
         // GET: FeeForService21D/Index
@@ -42,6 +47,9 @@ namespace OneJaxDashboard.Controllers
                     
                     _context.FeeForServices_21D.Add(model);
                     _context.SaveChanges();
+
+                    var actor = User.Identity?.Name ?? "Unknown";
+                    _activityLog.Log(actor, "Created Fee-for-Service Revenue Record", "FeeForService", model.Id);
                     
                     TempData["Success"] = "Submitted successfully!";
                     ViewBag.ShowNewEntryButton = true;
