@@ -3,58 +3,7 @@
 
 @{
     var successMessage = TempData["SuccessMessage"] as string;
-
-    // Normalize FY formats (supports "2025/2026" <-> "25/26")
-    Func<string?, string?> ToShortFY = (fy) =>
-    {
-        if (string.IsNullOrWhiteSpace(fy)) return null;
-        fy = fy.Trim();
-
-        // 2025/2026 -> 25/26
-        if (fy.Length >= 9 && fy.Contains("/"))
-        {
-            var parts = fy.Split('/');
-            if (parts.Length == 2 && parts[0].Length == 4 && parts[1].Length == 4)
-            {
-                return parts[0].Substring(2, 2) + "/" + parts[1].Substring(2, 2);
-            }
-        }
-
-        // already short
-        if (fy.Length == 5 && fy[2] == '/')
-        {
-            return fy;
-        }
-
-        return fy;
-    };
-
-    Func<string?, string?> ToLongFY = (fy) =>
-    {
-        if (string.IsNullOrWhiteSpace(fy)) return null;
-        fy = fy.Trim();
-
-        // 25/26 -> 2025/2026 (assumes 20xx)
-        if (fy.Length == 5 && fy[2] == '/')
-        {
-            var parts = fy.Split('/');
-            if (parts.Length == 2)
-            {
-                return "20" + parts[0] + "/20" + parts[1];
-            }
-        }
-
-        // already long
-        if (fy.Length >= 9 && fy.Contains("/"))
-        {
-            return fy;
-        }
-
-        return fy;
-    };
-
-    var existingFYShort = ToShortFY(Model?.EventFYear);
-    var existingFYLong = ToLongFY(Model?.EventFYear);
+    var errorMessage = TempData["ErrorMessage"] as string;
 }
 
 @if (!string.IsNullOrEmpty(successMessage))
@@ -65,10 +14,19 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 }
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger alert-dismissible fade show text-center mt-3" role="alert"
+        style="max-width: 600px; margin: 0 auto;">
+        @errorMessage
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
 
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
     var programOptions = ViewBag.Programs as List<OneJaxDashboard.Models.Programs> ?? new List<OneJaxDashboard.Models.Programs>();
+    var programTypeOptions = ViewBag.ProgramTypes as List<string> ?? new List<string>();
 
     // same goals list as Index.cshtml
     var goals = new List<dynamic>
@@ -170,18 +128,36 @@ new { Id = 4, Name = "Community Engagement" }
 
                 <div class="col-12">
                     <label class="form-label fw-semibold">Program Name</label>
-                    <select name="programId" class="form-select" required>
-                        <option value="" disabled>Select Program Name</option>
+                    <select name="programId" id="programId" class="form-select">
+                        <option value="">(Optional) Select Program Name</option>
                         @foreach (var p in programOptions)
                         {
                             var selected = (Model?.ProgramId == p.Id) || ((Model?.ProgramId == null) && Model?.ProgramName == p.ProgramName);
                             if (selected)
                             {
-                                <option value="@p.Id" selected>@p.ProgramName</option>
+                                <option value="@p.Id" selected data-program-type="@p.ProgramType">@p.ProgramName</option>
                             }
                             else
                             {
-                                <option value="@p.Id">@p.ProgramName</option>
+                                <option value="@p.Id" data-program-type="@p.ProgramType">@p.ProgramName</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Program Type</label>
+                    <select name="programType" id="programType" class="form-select">
+                        <option value="">(Optional) Select Program Type</option>
+                        @foreach (var type in programTypeOptions)
+                        {
+                            if (Model?.ProgramType == type)
+                            {
+                                <option value="@type" selected>@type</option>
+                            }
+                            else
+                            {
+                                <option value="@type">@type</option>
                             }
                         }
                     </select>
@@ -244,50 +220,9 @@ new { Id = 4, Name = "Community Engagement" }
                 </div>
 
                 <div class="col-md-6">
-                    <label class="form-label fw-semibold">Fiscal Year</label>
-                    <select name="fiscalYear" class="form-select" required>
-                        @if (string.IsNullOrWhiteSpace(existingFYShort) && string.IsNullOrWhiteSpace(existingFYLong))
-                        {
-                            <option value="" disabled selected>Select Fiscal Year</option>
-                        }
-                        else
-                        {
-                            <option value="" disabled>Select Fiscal Year</option>
-                        }
-
-                        @if (existingFYShort == "25/26" || existingFYLong == "2025/2026")
-                        {
-                            <option value="25/26" selected>2025/2026</option>
-                        }
-                        else
-                        {
-                            <option value="25/26">2025/2026</option>
-                        }
-
-                        @if (existingFYShort == "26/27" || existingFYLong == "2026/2027")
-                        {
-                            <option value="26/27" selected>2026/2027</option>
-                        }
-                        else
-                        {
-                            <option value="26/27">2026/2027</option>
-                        }
-
-                        @if (existingFYShort == "27/28" || existingFYLong == "2027/2028")
-                        {
-                            <option value="27/28" selected>2027/2028</option>
-                        }
-                        else
-                        {
-                            <option value="27/28">2027/2028</option>
-                        }
-                    </select>
-                </div>
-
-                <div class="col-md-6">
                     <label class="form-label fw-semibold">Event Date</label>
                     <input type="date" name="eventDate" class="form-control" value="@Model?.Date" min="2020-01-01"
-                        max="9999-12-31" />
+                        max="2030-12-31" />
                 </div>
 
                 <div class="col-md-6">
@@ -315,19 +250,35 @@ new { Id = 4, Name = "Community Engagement" }
         var crossCollabCheckbox = document.getElementById('isCrossCollaboration');
         var partnersField = document.getElementById('partnersField');
         var partnersInput = document.getElementById('partnersInput');
+        var programSelect = document.getElementById('programId');
+        var programTypeSelect = document.getElementById('programType');
 
-        if (!crossCollabCheckbox || !partnersField || !partnersInput) return;
+        if (crossCollabCheckbox && partnersField && partnersInput) {
+            var togglePartners = function () {
+                var isChecked = crossCollabCheckbox.checked;
+                partnersField.classList.toggle('d-none', !isChecked);
+                partnersInput.required = isChecked;
+                if (!isChecked) {
+                    partnersInput.value = '';
+                }
+            };
 
-        var togglePartners = function () {
-            var isChecked = crossCollabCheckbox.checked;
-            partnersField.classList.toggle('d-none', !isChecked);
-            partnersInput.required = isChecked;
-            if (!isChecked) {
-                partnersInput.value = '';
-            }
-        };
+            crossCollabCheckbox.addEventListener('change', togglePartners);
+            togglePartners();
+        }
 
-        crossCollabCheckbox.addEventListener('change', togglePartners);
-        togglePartners();
+        if (programSelect && programTypeSelect) {
+            var syncProgramType = function () {
+                var selectedOption = programSelect.options[programSelect.selectedIndex];
+                if (!selectedOption) return;
+
+                var selectedType = selectedOption.getAttribute('data-program-type');
+                if (selectedType) {
+                    programTypeSelect.value = selectedType;
+                }
+            };
+
+            programSelect.addEventListener('change', syncProgramType);
+        }
     });
 </script>

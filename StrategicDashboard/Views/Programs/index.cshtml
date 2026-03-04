@@ -4,6 +4,20 @@
     var successMessage = TempData["ProgramsSuccess"] as string;
     var errorMessage = TempData["ProgramsError"] as string;
     var programTypes = ViewBag.ProgramTypes as string[] ?? Array.Empty<string>();
+    var typeTabs = programTypes.ToList();
+    if (Model != null)
+    {
+        foreach (var modelType in Model
+            .Where(p => !string.IsNullOrWhiteSpace(p.ProgramType))
+            .Select(p => p.ProgramType.Trim())
+            .Distinct())
+        {
+            if (!typeTabs.Contains(modelType))
+            {
+                typeTabs.Add(modelType);
+            }
+        }
+    }
 }
 
 <style>
@@ -54,6 +68,85 @@
         border-radius: 999px;
         padding: 0.35rem 0.7rem;
         font-weight: 600;
+    }
+
+    .actions-cell {
+        white-space: nowrap;
+        text-align: right;
+    }
+
+    .nav-pills .nav-link {
+        color: var(--onejax-navy);
+        border-radius: 25px;
+        background-color: #fff;
+        border: 1px solid transparent;
+        transition: all 0.3s ease-in-out;
+        padding: 8px 16px;
+        margin: 0 4px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        font-weight: 600;
+    }
+
+    .nav-pills .nav-link.active {
+        background-color: var(--onejax-blue);
+        color: #fff;
+        box-shadow: 0 4px 10px rgba(0, 112, 173, 0.3);
+    }
+
+    .nav-pills .nav-link:hover {
+        background-color: var(--onejax-teal);
+        color: #fff;
+        transform: scale(1.02);
+    }
+
+    .programs-tabs {
+        position: relative;
+        z-index: 2;
+        margin-top: -12px;
+        margin-bottom: 14px;
+    }
+
+    .programs-table-wrap {
+        background: #fff;
+        border: 1px solid rgba(16, 40, 64, 0.08);
+        border-radius: 14px;
+        overflow: hidden;
+    }
+
+    table.programs-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0;
+    }
+
+    table.programs-table thead th {
+        background: var(--onejax-blue);
+        color: #fff;
+        font-weight: 800;
+        font-size: 0.85rem;
+        letter-spacing: 0.4px;
+        text-transform: uppercase;
+        padding: 14px 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+        white-space: nowrap;
+    }
+
+    table.programs-table tbody td {
+        padding: 14px 16px;
+        border-bottom: 1px solid rgba(16, 40, 64, 0.06);
+        vertical-align: middle;
+        color: #213547;
+        font-weight: 500;
+    }
+
+    table.programs-table tbody tr:hover {
+        background: rgba(0, 112, 173, 0.04);
+    }
+
+    .tab-empty-state {
+        padding: 20px 16px;
+        color: #6c757d;
+        margin: 0;
     }
 </style>
 
@@ -114,6 +207,29 @@
         </form>
     </div>
 
+    @if (Model != null && Model.Any())
+    {
+        <ul class="nav nav-pills justify-content-center programs-tabs" id="programTypeTabs" role="tablist">
+            @for (int i = 0; i < typeTabs.Count; i++)
+            {
+                var type = typeTabs[i];
+                var safeTypeId = new string(type.Select(ch => char.IsLetterOrDigit(ch) ? char.ToLowerInvariant(ch) : '-').ToArray());
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link @(i == 0 ? "active" : "")"
+                            id="tab-@safeTypeId"
+                            data-bs-toggle="tab"
+                            data-bs-target="#pane-@safeTypeId"
+                            type="button"
+                            role="tab"
+                            aria-controls="pane-@safeTypeId"
+                            aria-selected="@(i == 0 ? "true" : "false")">
+                        @type
+                    </button>
+                </li>
+            }
+        </ul>
+    }
+
     <div class="card-soft p-4">
         <h4 class="fw-bold mb-3" style="color: var(--onejax-blue);">Active Programs</h4>
 
@@ -123,43 +239,143 @@
         }
         else
         {
-            <div class="table-responsive">
-                <table class="table align-middle">
-                    <thead>
-                        <tr>
-                            <th>Program Name</th>
-                            <th>Program Type</th>
-                            <th>Description</th>
-                            <th class="text-end">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var program in Model)
-                        {
-                            <tr>
-                                <td class="fw-semibold">@program.ProgramName</td>
-                                <td><span class="badge-type">@program.ProgramType</span></td>
-                                <td>@(string.IsNullOrWhiteSpace(program.Description) ? "-" : program.Description)</td>
-                                <td class="text-end">
-                                    <a asp-action="Edit" asp-controller="Programs" asp-route-id="@program.Id" class="btn btn-sm btn-outline-primary pill-btn">Edit</a>
+            <div class="tab-content" id="programTypeTabsContent">
+                @for (int i = 0; i < typeTabs.Count; i++)
+                {
+                    var type = typeTabs[i];
+                    var safeTypeId = new string(type.Select(ch => char.IsLetterOrDigit(ch) ? char.ToLowerInvariant(ch) : '-').ToArray());
+                    var programsForType = Model.Where(p => p.ProgramType == type).OrderByDescending(p => p.Id).ToList();
 
-                                    <form asp-action="Archive" asp-controller="Programs" method="post" class="d-inline">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="id" value="@program.Id" />
-                                        <button type="submit" class="btn btn-sm btn-outline-secondary pill-btn">Archive</button>
-                                    </form>
-
-                                    <form asp-action="Delete" asp-controller="Programs" method="post" class="d-inline">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="id" value="@program.Id" />
-                                        <button type="submit" class="btn btn-sm btn-outline-danger pill-btn">Delete</button>
-                                    </form>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+                    <div class="tab-pane fade @(i == 0 ? "show active" : "")" id="pane-@safeTypeId" role="tabpanel" aria-labelledby="tab-@safeTypeId">
+                        <div class="programs-table-wrap">
+                            @if (!programsForType.Any())
+                            {
+                                <p class="tab-empty-state">No programs in this type yet.</p>
+                            }
+                            else
+                            {
+                                <div class="table-responsive">
+                                    <table class="programs-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Program Name</th>
+                                                <th>Program Type</th>
+                                                <th>Description</th>
+                                                <th class="text-end">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var program in programsForType)
+                                            {
+                                                <tr>
+                                                    <td class="fw-semibold">@program.ProgramName</td>
+                                                    <td><span class="badge-type">@program.ProgramType</span></td>
+                                                    <td>@(string.IsNullOrWhiteSpace(program.Description) ? "-" : program.Description)</td>
+                                                    <td class="actions-cell">
+                                                        <div class="dropdown">
+                                                            <button class="btn btn-light btn-sm border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                                <i class="bi bi-three-dots fs-5 text-dark"></i>
+                                                            </button>
+                                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                                <li>
+                                                                    <a class="dropdown-item text-primary" asp-action="Edit" asp-controller="Programs" asp-route-id="@program.Id">
+                                                                        Edit
+                                                                    </a>
+                                                                </li>
+                                                                <li>
+                                                                    <button type="button" class="dropdown-item text-danger"
+                                                                            data-bs-toggle="modal"
+                                                                            data-bs-target="#deleteConfirmModal"
+                                                                            data-program-id="@program.Id">
+                                                                        Delete
+                                                                    </button>
+                                                                </li>
+                                                                <li>
+                                                                    <form asp-action="Archive" asp-controller="Programs" method="post" class="m-0">
+                                                                        @Html.AntiForgeryToken()
+                                                                        <input type="hidden" name="id" value="@program.Id" />
+                                                                        <button type="submit" class="dropdown-item text-secondary">
+                                                                            Archive
+                                                                        </button>
+                                                                    </form>
+                                                                </li>
+                                                            </ul>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
             </div>
         }
     </div>
 </div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-semibold" id="deleteConfirmLabel">
+                    Delete Program?
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <p class="mb-2">
+                    You're about to permanently delete this Program. This action cannot be undone.
+                </p>
+                <p class="mb-3">
+                    Type <strong>delete</strong> in lowercase to confirm.
+                </p>
+
+                <form id="deleteConfirmForm" asp-action="Delete" asp-controller="Programs" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="deleteProgramId" name="id" />
+
+                    <input type="text" id="deleteConfirmInput" class="form-control mb-3"
+                           placeholder='Type "delete" to continue' />
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-danger" id="deleteConfirmButton" disabled>
+                            Delete
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var deleteModal = document.getElementById('deleteConfirmModal');
+        var input = document.getElementById('deleteConfirmInput');
+        var button = document.getElementById('deleteConfirmButton');
+        var hiddenId = document.getElementById('deleteProgramId');
+
+        if (!deleteModal) return;
+
+        deleteModal.addEventListener('show.bs.modal', function (event) {
+            var triggerButton = event.relatedTarget;
+            var programId = triggerButton.getAttribute('data-program-id');
+
+            hiddenId.value = programId;
+            input.value = '';
+            button.disabled = true;
+        });
+
+        input.addEventListener('input', function () {
+            button.disabled = (input.value !== 'delete');
+        });
+    });
+</script>

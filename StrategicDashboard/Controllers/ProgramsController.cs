@@ -14,7 +14,8 @@ public class ProgramsController : Controller
         "Fundraising",
         "Youth",
         "Interfaith",
-        "Community"
+        "Community",
+        "Donor"
     };
 
     public ProgramsController(ApplicationDbContext context)

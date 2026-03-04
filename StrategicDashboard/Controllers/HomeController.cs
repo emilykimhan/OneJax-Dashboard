@@ -284,7 +284,9 @@ public class HomeController : Controller
                     Id = strategy.Id + 1000, // Offset to avoid ID conflicts
                     Title = strategy.Name,
                     Description = strategy.Description,
-                    Type = string.IsNullOrWhiteSpace(strategy.ProgramName) ? "Program" : strategy.ProgramName,
+                    Type = !string.IsNullOrWhiteSpace(strategy.ProgramName)
+                        ? strategy.ProgramName
+                        : (!string.IsNullOrWhiteSpace(strategy.ProgramType) ? strategy.ProgramType : "Program"),
                     Status = "Planned",
                     StrategicGoalId = strategicGoalId,
                     DueDate = DateTime.TryParse(strategy.Date, out var date) ? date : DateTime.Now.AddDays(30),
@@ -308,7 +310,9 @@ public class HomeController : Controller
                     Id = strategy.Id + 2000, // Different offset for static events
                     Title = strategy.Name,
                     Description = strategy.Description,
-                    Type = string.IsNullOrWhiteSpace(strategy.ProgramName) ? "Program" : strategy.ProgramName,
+                    Type = !string.IsNullOrWhiteSpace(strategy.ProgramName)
+                        ? strategy.ProgramName
+                        : (!string.IsNullOrWhiteSpace(strategy.ProgramType) ? strategy.ProgramType : "Program"),
                     Status = "Planned",
                     StrategicGoalId = strategicGoalId,
                     DueDate = DateTime.TryParse(strategy.Date, out var date) ? date : DateTime.Now.AddDays(30),
@@ -546,7 +550,7 @@ public class HomeController : Controller
                     {
                         Type = "Core Strategy Event",
                         Title = strategy.Name,
-                        Description = $"{(string.IsNullOrWhiteSpace(strategy.ProgramName) ? "Program" : strategy.ProgramName)} | {(DateTime.TryParse(strategy.Date, out var date) ? date.ToString("MMM dd") : "Date TBD")} | {(!string.IsNullOrEmpty(strategy.EventFYear) ? $"FY {strategy.EventFYear}" : "")}",
+                        Description = $"{(!string.IsNullOrWhiteSpace(strategy.ProgramName) ? strategy.ProgramName : (!string.IsNullOrWhiteSpace(strategy.ProgramType) ? strategy.ProgramType : "Program"))} | {(DateTime.TryParse(strategy.Date, out var date) ? date.ToString("MMM dd") : "Date TBD")} | {(!string.IsNullOrEmpty(strategy.EventFYear) ? $"FY {strategy.EventFYear}" : "")}",
                         Date = DateTime.TryParse(strategy.Date, out var strategyDate) ? strategyDate : DateTime.Now.AddDays(-1),
                         Icon = "fas fa-calendar-plus",
                         Color = GetColorByGoalId(strategy.StrategicGoalId),

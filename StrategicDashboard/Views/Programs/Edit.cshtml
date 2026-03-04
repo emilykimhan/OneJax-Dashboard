@@ -72,7 +72,7 @@
             <div class="col-md-6">
                 <label class="form-label fw-semibold">Program Type</label>
                 <select name="programType" class="form-select" required>
-                    <option value="" disabled>Select program type</option>
+                    <option value="" disabled>Select program type</option> 
                     @foreach (var type in programTypes)
                     {
                         if (Model.ProgramType == type)
@@ -88,7 +88,7 @@
             </div>
 
             <div class="col-12">
-                <label class="form-label fw-semibold">Description (Optional)</label>
+                <label class="form-label fw-semibold">Description</label>
                 <textarea name="description" class="form-control" rows="3">@Model.Description</textarea>
             </div>
 
