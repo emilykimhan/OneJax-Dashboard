@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OneJaxDashboard.Data;
 
@@ -10,9 +11,11 @@ using OneJaxDashboard.Data;
 namespace StrategicDashboard.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260304062106_AddAchieveMile6DTable")]
+    partial class AddAchieveMile6DTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.10");
@@ -863,38 +866,6 @@ namespace StrategicDashboard.Migrations
                     b.HasIndex("StrategyId");
 
                     b.ToTable("Interfaith_11D");
-                });
-
-            modelBuilder.Entity("OneJaxDashboard.Models.socialMedia_5D", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<decimal?>("AprilJuneEngagementRate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<bool>("GoalMet")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<decimal?>("JanMarEngagementRate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal?>("JulySeptEngagementRate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal?>("OctDecEngagementRate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Year")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("socialMedia_5D");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.DonorEvent_19D", b =>

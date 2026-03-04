@@ -35,6 +35,17 @@ namespace OneJaxDashboard.Models
         [Display(Name = "Goal Met")]
         public bool GoalMet { get; set; }
 
+        [Display(Name = "Issue Name")]
+        [MaxLength(200)]
+        public string? IssueName { get; set; }
+
+        [Display(Name = "Crisis Description")]
+        [MaxLength(1000)]
+        public string? CrisisDescription { get; set; }
+
+        [Display(Name = "Issue Handled")]
+        public bool IssueHandled { get; set; }
+
         public DateTime CreatedDate { get; set; } = DateTime.Now;
     }
 }

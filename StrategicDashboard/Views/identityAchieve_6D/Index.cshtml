@@ -1,0 +1,143 @@
+@model OneJaxDashboard.Models.achieveMile_6D
+@{
+    ViewData["Title"] = "Milestone Achievement Tracking";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card p-4"
+                 style="background-color:var(--onejax-white);
+                        box-shadow:0 4px 24px rgba(0,0,0,0.08);
+                        border-radius:24px;">
+                
+                <!-- Header -->
+                <div class="d-flex align-items-center mb-4">
+                    <a href="/Identity" 
+                       class="btn btn-outline-secondary me-3"
+                       style="border-radius: 8px;">
+                        ← Back
+                    </a>
+                    <h2 class="mb-0" style="color:var(--onejax-navy);">Milestone Achievement Tracking</h2>
+                </div>
+                
+                <p class="text-center mb-4" style="color:var(--onejax-gray);">
+                    Track milestone achievements - Goal: Achieve no less than 75% of milestones
+                </p>
+
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success text-center" style="border-radius: 12px;">
+                        @TempData["Success"]
+                    </div>
+                    
+                    @if (ViewBag.ShowNewEntryButton == true)
+                    {
+                        <div class="text-center mb-4">
+                            <a href="/identityAchieve_6D/Index" class="btn btn-primary btn-lg"
+                               style="background-color:var(--onejax-navy); border-color:var(--onejax-navy); border-radius: 12px;">
+                                Add New Entry
+                            </a>
+                        </div>
+                    }
+                }
+
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger text-center" style="border-radius: 12px;">
+                        @TempData["Error"]
+                    </div>
+                }
+
+                <!-- Input Form -->
+                @if (ViewBag.ShowNewEntryButton != true)
+                {
+                    <form asp-controller="identityAchieve_6D" asp-action="Index" method="post">
+                        <div class="row justify-content-center">
+                            <!-- Percentage -->
+                            <div class="col-md-6 col-lg-4 mb-3">
+                                <label asp-for="Percentage" class="form-label fw-bold">Percentage of Milestones Achieved</label>
+                                <div class="input-group">
+                                    <input asp-for="Percentage" type="number" class="form-control" 
+                                           placeholder="Enter percentage (0-100)" 
+                                           min="0" max="100" step="0.01" required />
+                                    <span class="input-group-text">%</span>
+                                </div>
+                                <span asp-validation-for="Percentage" class="text-danger"></span>
+                                <small class="form-text text-muted">Enter a value between 0 and 100</small>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Achieved in 6 Month Review Checkbox -->
+                            <div class="col-12 mb-3">
+                                <div class="form-check">
+                                    <input asp-for="achievedReview" type="checkbox" class="form-check-input" id="achievedReviewCheck" />
+                                    <label asp-for="achievedReview" class="form-check-label fw-bold" for="achievedReviewCheck">
+                                        Achieved in 6 Month Review
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Goal Status Display -->
+                        <div class="row">
+                            <div class="col-12 mb-4">
+                                <div class="alert alert-info" style="border-radius: 12px;">
+                                    <strong>📊 Goal Status:</strong> 
+                                    Milestones are considered "Goal Met" when percentage is ≥ 75%
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg px-5 py-3"
+                                    style="background-color:var(--onejax-navy); border-color:var(--onejax-navy); border-radius: 12px; font-weight: 600;">
+                                Submit Milestone Data
+                            </button>
+                        </div>
+                    </form>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-control:focus,
+    .form-select:focus {
+        border-color: var(--onejax-navy);
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 191, 0.25);
+    }
+    
+    .form-label {
+        color: var(--onejax-navy);
+        margin-bottom: 0.5rem;
+    }
+    
+    .card {
+        border: none;
+    }
+    
+    .input-group-text {
+        background-color: var(--onejax-navy);
+        color: white;
+        border-color: var(--onejax-navy);
+    }
+
+    .form-check-input:checked {
+        background-color: var(--onejax-navy);
+        border-color: var(--onejax-navy);
+    }
+
+    .form-check-input:focus {
+        border-color: var(--onejax-navy);
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 191, 0.25);
+    }
+</style>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
