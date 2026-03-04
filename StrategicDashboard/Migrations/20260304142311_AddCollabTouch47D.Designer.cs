@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OneJaxDashboard.Data;
 
@@ -10,9 +11,11 @@ using OneJaxDashboard.Data;
 namespace StrategicDashboard.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260304142311_AddCollabTouch47D")]
+    partial class AddCollabTouch47D
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.10");
@@ -229,26 +232,6 @@ namespace StrategicDashboard.Migrations
                     b.ToTable("CommunicationRate");
                 });
 
-            modelBuilder.Entity("OneJaxDashboard.Models.ContactsInterfaith_14D", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("TotalInterfaithContacts")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("Year")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ContactsInterfaith_14D");
-                });
-
             modelBuilder.Entity("OneJaxDashboard.Models.DonorEvent_19D", b =>
                 {
                     b.Property<int>("Id")
@@ -371,28 +354,6 @@ namespace StrategicDashboard.Migrations
                     b.HasIndex("StrategyTemplateId");
 
                     b.ToTable("Events");
-                });
-
-            modelBuilder.Entity("OneJaxDashboard.Models.FaithCommunity_13D", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("NumberOfFaithsRepresented")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("StrategyId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("StrategyId");
-
-                    b.ToTable("FaithCommunity_13D");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.GoalMetric", b =>
@@ -1109,17 +1070,6 @@ namespace StrategicDashboard.Migrations
                     b.Navigation("Strategy");
 
                     b.Navigation("StrategyTemplate");
-                });
-
-            modelBuilder.Entity("OneJaxDashboard.Models.FaithCommunity_13D", b =>
-                {
-                    b.HasOne("OneJaxDashboard.Models.Strategy", "Strategy")
-                        .WithMany()
-                        .HasForeignKey("StrategyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Strategy");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.GoalMetric", b =>
