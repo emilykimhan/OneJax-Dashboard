@@ -11,21 +11,13 @@ namespace OneJaxDashboard.Models
         [StringLength(200)]
         public string ClientName { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Please select a program title.")]
+        [Required(ErrorMessage = "Please select an event.")]
         public int StrategyId { get; set; }
 
         public Strategy? Strategy { get; set; }
 
         [StringLength(200)]
-        public string? ProgramTitle { get; set; }
-
-        [Required(ErrorMessage = "Please enter the date.")]
-        [DataType(DataType.Date)]
-        public DateTime Date { get; set; } = new DateTime(2020, 1, 1);
-
-        [Required(ErrorMessage = "Please enter the total number of workshops.")]
-        [Range(1, 1000, ErrorMessage = "Number of workshops must be at least 1.")]
-        public int TotalNumberOfWorkshops { get; set; }
+        public string? EventName { get; set; }
 
         [Required(ErrorMessage = "Please specify if the workshop is in person or online.")]
         [StringLength(50)]
@@ -58,9 +50,10 @@ namespace OneJaxDashboard.Models
         [DataType(DataType.Currency)]
         public decimal RevenueReceived { get; set; }
 
-        [Required(ErrorMessage = "Please select a quarter.")]
-        [StringLength(10)]
-        public string Quarter { get; set; } = string.Empty; // "Q1", "Q2", "Q3", "Q4"
+        [Required(ErrorMessage = "Please enter the expense received.")]
+        [Range(0, double.MaxValue, ErrorMessage = "Expense must be a positive number.")]
+        [DataType(DataType.Currency)]
+        public decimal ExpenseReceived { get; set; }
 
         [Required(ErrorMessage = "Please enter the year.")]
         [Range(2020, 2100, ErrorMessage = "Please enter a valid year.")]
