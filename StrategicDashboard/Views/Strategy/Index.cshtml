@@ -2,6 +2,7 @@
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
     var successMessage = TempData["SuccessMessage"] as string;
+    var programOptions = ViewBag.Programs as List<OneJaxDashboard.Models.Programs> ?? new List<OneJaxDashboard.Models.Programs>();
 
     var goals = new List<dynamic>
 {
@@ -485,7 +486,13 @@ new { Id = 4, Name = "Community Engagement" }
 <form asp-action="Add" method="post" class="row g-3">
 <div class="col-12">
     <label class="form-label fw-semibold">Program Name</label>
-    <input type="text" name="programName" class="form-control" placeholder="Enter program name" required />
+    <select name="programId" class="form-select" required>
+        <option value="" selected disabled>Select Program Name</option>
+        @foreach (var p in programOptions)
+        {
+            <option value="@p.Id">@p.ProgramName</option>
+        }
+    </select>
 </div>
 
 <div class="col-md-6">
@@ -495,11 +502,18 @@ new { Id = 4, Name = "Community Engagement" }
 
 <div class="col-md-6">
     <label class="form-label fw-semibold">Cross Collaboration</label>
-    <select name="crossCollaboration" class="form-select" required>
-        <option value="" selected disabled>Select Option</option>
-        <option value="Yes">Yes</option>
-        <option value="No">No</option>
-    </select>
+    <div class="form-check mt-2">
+        <input class="form-check-input" type="checkbox" id="isCrossCollaboration" name="isCrossCollaboration" value="true" />
+        <label class="form-check-label fw-semibold" for="isCrossCollaboration">
+            Yes, this is a cross collaboration
+        </label>
+    </div>
+    <small class="text-muted">Unchecked means No.</small>
+</div>
+
+<div class="col-md-6 d-none" id="partnersField">
+    <label class="form-label fw-semibold">Partners</label>
+    <input type="text" name="partners" id="partnersInput" class="form-control" placeholder="Enter partner organizations" />
 </div>
 
 <div class="col-md-6">
@@ -748,27 +762,44 @@ new { Id = 4, Name = "Community Engagement" }
         var input = document.getElementById('deleteConfirmInput');
         var button = document.getElementById('deleteConfirmButton');
         var hiddenId = document.getElementById('deleteEventId');
+        var crossCollabCheckbox = document.getElementById('isCrossCollaboration');
+        var partnersField = document.getElementById('partnersField');
+        var partnersInput = document.getElementById('partnersInput');
 
-        if (!deleteModal) return;
+        if (deleteModal) {
+            // When the modal is about to be shown, get the event id from the button that opened it
+            deleteModal.addEventListener('show.bs.modal', function (event) {
+                var triggerButton = event.relatedTarget;
+                var eventId = triggerButton.getAttribute('data-event-id');
 
-        // When the modal is about to be shown, get the event id from the button that opened it
-        deleteModal.addEventListener('show.bs.modal', function (event) {
-            var triggerButton = event.relatedTarget;
-            var eventId = triggerButton.getAttribute('data-event-id');
-
-            hiddenId.value = eventId;
-            input.value = '';
-            button.disabled = true;
-        });
-
-        // Enable Delete only when user typed "delete" in lowercase
-        input.addEventListener('input', function () {
-            if (input.value === 'delete') {
-                button.disabled = false;
-            } else {
+                hiddenId.value = eventId;
+                input.value = '';
                 button.disabled = true;
-            }
-        });
+            });
+
+            // Enable Delete only when user typed "delete" in lowercase
+            input.addEventListener('input', function () {
+                if (input.value === 'delete') {
+                    button.disabled = false;
+                } else {
+                    button.disabled = true;
+                }
+            });
+        }
+
+        if (crossCollabCheckbox && partnersField && partnersInput) {
+            var togglePartners = function () {
+                var isChecked = crossCollabCheckbox.checked;
+                partnersField.classList.toggle('d-none', !isChecked);
+                partnersInput.required = isChecked;
+                if (!isChecked) {
+                    partnersInput.value = '';
+                }
+            };
+
+            crossCollabCheckbox.addEventListener('change', togglePartners);
+            togglePartners();
+        }
     });
 </script>
 

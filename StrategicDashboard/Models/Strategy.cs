@@ -18,6 +18,7 @@ public class Strategy
     public string? Date { get; set; }  
     public string? Time { get; set; }
     public string CrossCollaboration { get; set; } = string.Empty;
+    public string Partners { get; set; } = string.Empty;
     public string EventFYear { get; set; } = string.Empty;
     public StrategicGoal? StrategicGoal { get; set; }
     public Programs? Program { get; set; }

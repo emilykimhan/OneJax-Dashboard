@@ -1,0 +1,157 @@
+@model List<OneJaxDashboard.Models.Programs>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var successMessage = TempData["ProgramsSuccess"] as string;
+    var errorMessage = TempData["ProgramsError"] as string;
+    var programTypes = ViewBag.ProgramTypes as string[] ?? Array.Empty<string>();
+}
+
+<style>
+    :root {
+        --onejax-blue: #0070AD;
+        --onejax-teal: #00A3AD;
+        --onejax-navy: #102840;
+        --onejax-light: #F7F9FB;
+    }
+
+    body {
+        background-color: var(--onejax-light);
+        color: var(--onejax-navy);
+    }
+
+    .card-soft {
+        background: #fff;
+        border: none;
+        border-radius: 18px;
+        box-shadow: 0 6px 18px rgba(16, 40, 64, 0.08);
+    }
+
+    .pill-btn {
+        border-radius: 999px;
+        font-weight: 600;
+    }
+
+    .btn-onejax {
+        background-color: var(--onejax-blue);
+        border-color: var(--onejax-blue);
+        color: #fff;
+    }
+
+    .btn-onejax:hover {
+        background-color: var(--onejax-teal);
+        border-color: var(--onejax-teal);
+        color: #fff;
+    }
+
+    .table thead th {
+        color: var(--onejax-navy);
+        font-weight: 700;
+    }
+
+    .badge-type {
+        background-color: rgba(0, 163, 173, 0.15);
+        color: var(--onejax-navy);
+        border-radius: 999px;
+        padding: 0.35rem 0.7rem;
+        font-weight: 600;
+    }
+</style>
+
+<div class="container my-5">
+    <div class="text-center mb-4">
+        <h1 class="fw-bold text-uppercase" style="color: var(--onejax-blue);">Programs</h1>
+        <p class="text-secondary fs-5">Manage program records and keep types organized.</p>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(successMessage))
+    {
+        <div class="alert alert-success text-center">@successMessage</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(errorMessage))
+    {
+        <div class="alert alert-danger text-center">@errorMessage</div>
+    }
+
+    <div class="card-soft p-4 mb-4">
+        <h4 class="fw-bold mb-3" style="color: var(--onejax-blue);">Add Program</h4>
+
+        <form asp-action="Index" asp-controller="Programs" method="post" class="row g-3">
+            @Html.AntiForgeryToken()
+
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Program Name</label>
+                <input type="text" name="programName" class="form-control" placeholder="Enter program name" required />
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Program Type</label>
+                <select name="programType" class="form-select" required>
+                    <option value="" selected disabled>Select program type</option>
+                    @foreach (var type in programTypes)
+                    {
+                        <option value="@type">@type</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-12">
+                <label class="form-label fw-semibold">Description (Optional)</label>
+                <textarea name="description" class="form-control" rows="3" placeholder="Add details (optional)"></textarea>
+            </div>
+
+            <div class="col-12 d-flex gap-2">
+                <button type="submit" class="btn btn-onejax pill-btn px-4">Add Program</button>
+                <a asp-action="Archive" asp-controller="Programs" class="btn btn-outline-secondary pill-btn px-4">View Archive</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="card-soft p-4">
+        <h4 class="fw-bold mb-3" style="color: var(--onejax-blue);">Active Programs</h4>
+
+        @if (Model == null || !Model.Any())
+        {
+            <p class="text-muted mb-0">No programs yet.</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Program Name</th>
+                            <th>Program Type</th>
+                            <th>Description</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var program in Model)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@program.ProgramName</td>
+                                <td><span class="badge-type">@program.ProgramType</span></td>
+                                <td>@(string.IsNullOrWhiteSpace(program.Description) ? "-" : program.Description)</td>
+                                <td class="text-end">
+                                    <a asp-action="Edit" asp-controller="Programs" asp-route-id="@program.Id" class="btn btn-sm btn-outline-primary pill-btn">Edit</a>
+
+                                    <form asp-action="Archive" asp-controller="Programs" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@program.Id" />
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary pill-btn">Archive</button>
+                                    </form>
+
+                                    <form asp-action="Delete" asp-controller="Programs" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@program.Id" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger pill-btn">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

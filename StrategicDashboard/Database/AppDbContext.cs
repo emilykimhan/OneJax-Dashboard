@@ -41,6 +41,7 @@ namespace OneJaxDashboard.Data
         // Core Strategies 
         public DbSet<Strategy> Strategies { get; set; } = default!;
         public DbSet<Programs> Programs { get; set; } = default!;
+        public DbSet<ArchivedProgram> ArchivedPrograms { get; set; } = default!;
 
         //Account tables
 

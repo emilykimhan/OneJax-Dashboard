@@ -68,6 +68,7 @@
 
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var programOptions = ViewBag.Programs as List<OneJaxDashboard.Models.Programs> ?? new List<OneJaxDashboard.Models.Programs>();
 
     // same goals list as Index.cshtml
     var goals = new List<dynamic>
@@ -169,7 +170,21 @@ new { Id = 4, Name = "Community Engagement" }
 
                 <div class="col-12">
                     <label class="form-label fw-semibold">Program Name</label>
-                    <input type="text" name="programName" class="form-control" value="@Model?.ProgramName" required />
+                    <select name="programId" class="form-select" required>
+                        <option value="" disabled>Select Program Name</option>
+                        @foreach (var p in programOptions)
+                        {
+                            var selected = (Model?.ProgramId == p.Id) || ((Model?.ProgramId == null) && Model?.ProgramName == p.ProgramName);
+                            if (selected)
+                            {
+                                <option value="@p.Id" selected>@p.ProgramName</option>
+                            }
+                            else
+                            {
+                                <option value="@p.Id">@p.ProgramName</option>
+                            }
+                        }
+                    </select>
                 </div>
 
                 <div class="col-md-6">
@@ -179,35 +194,36 @@ new { Id = 4, Name = "Community Engagement" }
 
                 <div class="col-md-6">
                     <label class="form-label fw-semibold">Cross Collaboration</label>
-                    <select name="crossCollaboration" class="form-select" required>
-                        @if (string.IsNullOrWhiteSpace(Model?.CrossCollaboration))
-                        {
-                            <option value="" disabled selected>Select Option</option>
-                        }
-                        else
-                        {
-                            <option value="" disabled>Select Option</option>
-                        }
-
+                    <div class="form-check mt-2">
                         @if (Model?.CrossCollaboration == "Yes")
                         {
-                            <option value="Yes" selected>Yes</option>
+                            <input class="form-check-input" type="checkbox" id="isCrossCollaboration" name="isCrossCollaboration" value="true" checked />
                         }
                         else
                         {
-                            <option value="Yes">Yes</option>
+                            <input class="form-check-input" type="checkbox" id="isCrossCollaboration" name="isCrossCollaboration" value="true" />
                         }
-
-                        @if (Model?.CrossCollaboration == "No")
-                        {
-                            <option value="No" selected>No</option>
-                        }
-                        else
-                        {
-                            <option value="No">No</option>
-                        }
-                    </select>
+                        <label class="form-check-label fw-semibold" for="isCrossCollaboration">
+                            Yes, this is a cross collaboration
+                        </label>
+                    </div>
+                    <small class="text-muted">Unchecked means No.</small>
                 </div>
+
+                @if (Model?.CrossCollaboration == "Yes")
+                {
+                    <div class="col-md-6" id="partnersField">
+                        <label class="form-label fw-semibold">Partners</label>
+                        <input type="text" name="partners" id="partnersInput" class="form-control" value="@Model?.Partners" />
+                    </div>
+                }
+                else
+                {
+                    <div class="col-md-6 d-none" id="partnersField">
+                        <label class="form-label fw-semibold">Partners</label>
+                        <input type="text" name="partners" id="partnersInput" class="form-control" value="@Model?.Partners" />
+                    </div>
+                }
 
                 <div class="col-md-6">
                     <label class="form-label fw-semibold">Assign to Goal</label>
@@ -293,3 +309,25 @@ new { Id = 4, Name = "Community Engagement" }
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var crossCollabCheckbox = document.getElementById('isCrossCollaboration');
+        var partnersField = document.getElementById('partnersField');
+        var partnersInput = document.getElementById('partnersInput');
+
+        if (!crossCollabCheckbox || !partnersField || !partnersInput) return;
+
+        var togglePartners = function () {
+            var isChecked = crossCollabCheckbox.checked;
+            partnersField.classList.toggle('d-none', !isChecked);
+            partnersInput.required = isChecked;
+            if (!isChecked) {
+                partnersInput.value = '';
+            }
+        };
+
+        crossCollabCheckbox.addEventListener('change', togglePartners);
+        togglePartners();
+    });
+</script>

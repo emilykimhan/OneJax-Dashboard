@@ -30,6 +30,9 @@ public class StrategyController : Controller
     public IActionResult Index(int? goalId)
     {
         ViewBag.Goals = Goals;
+        ViewBag.Programs = _context.Programs
+            .OrderBy(p => p.ProgramName)
+            .ToList();
 
         var goalStrategies = goalId.HasValue
             ? _context.Strategies.Where(s => s.StrategicGoalId == goalId.Value).ToList()
@@ -44,20 +47,24 @@ public class StrategyController : Controller
     }
 
     [HttpPost]
-    public IActionResult Add(int goalId, string eventName, string eventDescription, string? eventDate, string? eventTime, string? crossCollaboration = null, string? fiscalYear = null, string? programName = null)
+    public IActionResult Add(int goalId, string eventName, string eventDescription, string? eventDate, string? eventTime, bool isCrossCollaboration = false, string? partners = null, string? fiscalYear = null, int? programId = null)
     {
-        int newId = Strategies.Any() ? Strategies.Max(s => s.Id) + 1 : 1;
+        var selectedProgram = programId.HasValue
+            ? _context.Programs.FirstOrDefault(p => p.Id == programId.Value)
+            : null;
 
         // Save to database for persistence - only set properties that don't have foreign key constraints
         var dbEvent = new Strategy
         {
-            Name = string.IsNullOrWhiteSpace(eventName) ? (programName ?? string.Empty) : eventName,
-            ProgramName = programName ?? string.Empty,
+            Name = string.IsNullOrWhiteSpace(eventName) ? (selectedProgram?.ProgramName ?? string.Empty) : eventName,
+            ProgramId = selectedProgram?.Id,
+            ProgramName = selectedProgram?.ProgramName ?? string.Empty,
             Description = eventDescription,
             StrategicGoalId = goalId,
             Date = eventDate,
             Time = eventTime,
-            CrossCollaboration = crossCollaboration ?? string.Empty,
+            CrossCollaboration = isCrossCollaboration ? "Yes" : "No",
+            Partners = isCrossCollaboration ? (partners ?? string.Empty).Trim() : string.Empty,
             EventFYear = fiscalYear ?? string.Empty
         };
         // Also persist to FiscalYear if the model has that property (keeps older/newer versions in sync)
@@ -89,11 +96,14 @@ public class StrategyController : Controller
         }
 
         ViewBag.Goals = Goals; // Pass goals for the dropdown
+        ViewBag.Programs = _context.Programs
+            .OrderBy(p => p.ProgramName)
+            .ToList();
         return View(evt); // Pass the strategy to the view
     }
 
     [HttpPost]
-    public IActionResult Edit(int id, string eventName, string eventDescription, string eventDate, string eventTime, int goalId, string? crossCollaboration, string? fiscalYear, string? programName=null)
+    public IActionResult Edit(int id, string eventName, string eventDescription, string eventDate, string eventTime, int goalId, bool isCrossCollaboration = false, string? partners = null, string? fiscalYear = null, int? programId = null)
     {
         // Fetch the strategy from the database
         var evt = _context.Strategies.FirstOrDefault(s => s.Id == id);
@@ -102,10 +112,16 @@ public class StrategyController : Controller
             return NotFound(); // Return 404 if the strategy doesn't exist
         }
 
+        var selectedProgram = programId.HasValue
+            ? _context.Programs.FirstOrDefault(p => p.Id == programId.Value)
+            : null;
+
         // Update the strategy's properties
-        evt.Name = string.IsNullOrWhiteSpace(eventName) ? (programName ?? string.Empty) : eventName;
-        evt.ProgramName = programName ?? string.Empty;
-        evt.CrossCollaboration = crossCollaboration ?? string.Empty;
+        evt.Name = string.IsNullOrWhiteSpace(eventName) ? (selectedProgram?.ProgramName ?? string.Empty) : eventName;
+        evt.ProgramId = selectedProgram?.Id;
+        evt.ProgramName = selectedProgram?.ProgramName ?? string.Empty;
+        evt.CrossCollaboration = isCrossCollaboration ? "Yes" : "No";
+        evt.Partners = isCrossCollaboration ? (partners ?? string.Empty).Trim() : string.Empty;
         evt.Description = eventDescription;
         evt.Date = eventDate;
         evt.Time = eventTime;
