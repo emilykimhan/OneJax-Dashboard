@@ -11,13 +11,13 @@ namespace OneJaxDashboard.Models
         [StringLength(200)]
         public string ClientName { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Please select a program title.")]
+        [Required(ErrorMessage = "Please select an event.")]
         public int StrategyId { get; set; }
 
         public Strategy? Strategy { get; set; }
 
         [StringLength(200)]
-        public string? ProgramTitle { get; set; }
+        public string? EventName { get; set; }
 
         [Required(ErrorMessage = "Please specify if the workshop is in person or online.")]
         [StringLength(50)]

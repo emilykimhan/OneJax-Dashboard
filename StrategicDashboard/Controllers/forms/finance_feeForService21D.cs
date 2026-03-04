@@ -37,7 +37,7 @@ namespace OneJaxDashboard.Controllers
                     var strategy = _context.Strategies.Find(model.StrategyId);
                     if (strategy != null)
                     {
-                        model.ProgramTitle = strategy.Name;
+                        model.EventName = strategy.Name;
                     }
                     
                     _context.FeeForServices_21D.Add(model);
