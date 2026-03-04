@@ -1,0 +1,212 @@
+@model OneJaxDashboard.Models.CollabTouch_47D
+@{
+    ViewData["Title"] = "Collaborative Partner Touchpoints";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card p-4"
+                 style="background-color:var(--onejax-white);
+                        box-shadow:0 4px 24px rgba(0,0,0,0.08);
+                        border-radius:24px;">
+
+                <!-- Header -->
+                <div class="d-flex align-items-center mb-4">
+                    <a href="/CommunityEngagement"
+                       class="btn btn-outline-secondary me-3"
+                       style="border-radius:8px;">
+                        ← Back
+                    </a>
+                    <h2 class="mb-0" style="color:var(--onejax-navy);">Collaborative Partner Touchpoints</h2>
+                </div>
+
+                <p class="text-center mb-4" style="color:var(--onejax-gray);">
+                    Track new collaborative partner and allied organizations — Goal: Add 3 new partners annually.
+                </p>
+
+                <!-- Stats Bar -->
+                <div class="row text-center mb-4">
+                    <div class="col-md-6">
+                        <div class="p-3" style="background:#f0f4ff; border-radius:12px;">
+                            <div class="fw-bold" style="font-size:1.6rem; color:var(--onejax-navy);">@ViewBag.TotalPartners</div>
+                            <div style="color:var(--onejax-gray); font-size:0.9rem;">Total Partners Logged</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3" style="background:#f0f4ff; border-radius:12px;">
+                            <div class="fw-bold" style="font-size:1.6rem; color:var(--onejax-navy);">@ViewBag.NewPartnersThisFY</div>
+                            <div style="color:var(--onejax-gray); font-size:0.9rem;">Partners This Fiscal Year</div>
+                        </div>
+                    </div>
+                </div>
+
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success text-center" style="border-radius:12px;">
+                        @TempData["Success"]
+                    </div>
+
+                    @if (ViewBag.ShowNewEntryButton == true)
+                    {
+                        <div class="text-center mb-4">
+                            <a href="/CommCollab47D/Index" class="btn btn-primary btn-lg"
+                               style="background-color:var(--onejax-navy); border-color:var(--onejax-navy); border-radius:12px;">
+                                Add New Entry
+                            </a>
+                        </div>
+                    }
+                }
+
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger text-center" style="border-radius:12px;">
+                        @TempData["Error"]
+                    </div>
+                }
+
+                <!-- Entry Form -->
+                @if (ViewBag.ShowNewEntryButton != true)
+                {
+                    <div class="survey-form">
+                        <h4 class="mb-4 text-center" style="color:var(--onejax-navy);">New Partner Entry</h4>
+
+                        <form asp-controller="CommCollab47D" asp-action="Index" method="post" novalidate>
+                            @Html.AntiForgeryToken()
+
+                            <div class="row">
+                                <!-- Fiscal Year -->
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="FiscalYear" class="form-label fw-bold">Fiscal Year</label>
+                                    <select asp-for="FiscalYear" class="form-select" required>
+                                        <option value="">-- Select Fiscal Year --</option>
+                                        <option value="FY2025-2026">FY2025-2026</option>
+                                        <option value="FY2026-2027">FY2026-2027</option>
+                                        <option value="FY2027-2028">FY2027-2028</option>
+                                        <option value="FY2028-2029">FY2028-2029</option>
+                                        <option value="FY2029-2030">FY2029-2030</option>
+                                    </select>
+                                    <span asp-validation-for="FiscalYear" class="text-danger"></span>
+                                </div>
+
+                                <!-- Event (Strategy dropdown) -->
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="StrategyId" class="form-label fw-bold">Event</label>
+                                    <select asp-for="StrategyId" class="form-select" asp-items="ViewBag.Strategies" required>
+                                        <option value="">-- Select Event --</option>
+                                    </select>
+                                    <span asp-validation-for="StrategyId" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <!-- Partner / Allied Organization -->
+                                <div class="col-12 mb-3">
+                                    <label asp-for="PartnerOrganization" class="form-label fw-bold">Partner / Allied Organization</label>
+                                    <input asp-for="PartnerOrganization" type="text" class="form-control"
+                                           placeholder="Enter organization name" maxlength="200" required />
+                                    <span asp-validation-for="PartnerOrganization" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <!-- Contact Name -->
+                                <div class="col-md-4 mb-3">
+                                    <label asp-for="Contact" class="form-label fw-bold">Contact</label>
+                                    <input asp-for="Contact" type="text" class="form-control"
+                                           placeholder="Full name" maxlength="150" required />
+                                    <span asp-validation-for="Contact" class="text-danger"></span>
+                                </div>
+
+                                <!-- Contact Email -->
+                                <div class="col-md-4 mb-3">
+                                    <label asp-for="ContactEmail" class="form-label fw-bold">Contact Email <span class="text-muted fw-normal">(Optional)</span></label>
+                                    <input asp-for="ContactEmail" type="email" class="form-control"
+                                           placeholder="email@example.com" maxlength="150" />
+                                    <span asp-validation-for="ContactEmail" class="text-danger"></span>
+                                </div>
+
+                                <!-- Contact Phone -->
+                                <div class="col-md-4 mb-3">
+                                    <label asp-for="ContactPhone" class="form-label fw-bold">Contact Phone <span class="text-muted fw-normal">(Optional)</span></label>
+                                    <input asp-for="ContactPhone" type="tel" class="form-control"
+                                           placeholder="(555) 000-0000" maxlength="30" />
+                                    <span asp-validation-for="ContactPhone" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <!-- Touchpoint -->
+                                <div class="col-12 mb-3">
+                                    <label asp-for="Touchpoint" class="form-label fw-bold">Touchpoint</label>
+                                    <textarea asp-for="Touchpoint" class="form-control" rows="3"
+                                              placeholder="Describe the nature of this touchpoint (e.g., introductory meeting, co-hosted event, signed MOU…)"
+                                              maxlength="500" required></textarea>
+                                    <span asp-validation-for="Touchpoint" class="text-danger"></span>
+                                    <small class="form-text text-muted">Maximum 500 characters</small>
+                                </div>
+                            </div>
+
+                            <!-- Submit -->
+                            <div class="text-center mt-4">
+                                <button type="submit" class="btn btn-primary btn-lg px-5 py-3"
+                                        style="background-color:var(--onejax-navy); border-color:var(--onejax-navy); border-radius:12px; font-weight:600;">
+                                    Submit Partner Record
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                }
+
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .survey-form {
+        padding: 1.5rem;
+        background: #f8f9fa;
+        border-radius: 12px;
+        margin-top: 1rem;
+    }
+
+    .form-label {
+        color: var(--onejax-navy);
+        margin-bottom: 0.4rem;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: var(--onejax-navy);
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 191, 0.25);
+    }
+
+    .card { border: none; }
+
+    .text-danger {
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        display: block;
+    }
+
+    textarea.form-control { resize: vertical; }
+
+    .btn-outline-secondary {
+        border-color: var(--onejax-navy);
+        color: var(--onejax-navy);
+    }
+
+    .btn-outline-secondary:hover {
+        background-color: var(--onejax-navy);
+        border-color: var(--onejax-navy);
+        color: white;
+    }
+</style>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

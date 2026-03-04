@@ -1,0 +1,94 @@
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using OneJaxDashboard.Data;
+using OneJaxDashboard.Models;
+//Karrie's
+namespace OneJaxDashboard.Controllers
+{
+    public class CommDiversity37DController : Controller
+    {
+        private readonly ApplicationDbContext _context;
+
+        public CommDiversity37DController(ApplicationDbContext context)
+        {
+            _context = context;
+        }
+
+        // GET: CommDiversity37D/Index
+        [HttpGet]
+        public IActionResult Index()
+        {
+            LoadStrategiesDropdown();
+            LoadStats();
+            return View(new Diversity_37D());
+        }
+
+        // POST: CommDiversity37D/Index
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Index(Diversity_37D model)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    model.CreatedDate = DateTime.Now;
+                    _context.Diversity_37D.Add(model);
+                    _context.SaveChanges();
+
+                    TempData["Success"] = "Diversity record submitted successfully!";
+                    ViewBag.ShowNewEntryButton = true;
+                }
+                catch (Exception ex)
+                {
+                    TempData["Error"] = $"Error saving record: {ex.Message}";
+                }
+            }
+
+            LoadStrategiesDropdown(model.StrategyId);
+            LoadStats();
+            return View(model);
+        }
+
+        // ── Helpers ──────────────────────────────────────────────────
+        private void LoadStrategiesDropdown(int? selectedId = null)
+        {
+            ViewBag.Strategies = new SelectList(
+                _context.Strategies.OrderBy(s => s.Name),
+                "Id", "Name", selectedId);
+        }
+
+        private void LoadStats()
+        {
+            var allEntries = _context.Diversity_37D
+                .Include(d => d.Strategy)
+                .OrderByDescending(d => d.CreatedDate)
+                .ToList();
+
+            ViewBag.TotalEntries = allEntries.Count;
+
+            if (allEntries.Any())
+            {
+                ViewBag.AvgSatisfactionRate = Math.Round(allEntries.Average(d => (double)d.SatisfactionRate), 1);
+                ViewBag.EventsMeetingSatisfactionGoal = allEntries.Count(d => d.SatisfactionGoalMet);
+                ViewBag.LatestDiversityCount = allEntries.First().DiversityCount;
+                ViewBag.LatestFiscalYear = allEntries.First().FiscalYear;
+
+                // Calculate % diversity growth between the two most recent entries
+                if (allEntries.Count >= 2)
+                {
+                    var latest = allEntries[0];
+                    var previous = allEntries[1];
+
+                    if (previous.DiversityCount > 0)
+                    {
+                        double growth = ((double)(latest.DiversityCount - previous.DiversityCount)
+                                        / previous.DiversityCount) * 100;
+                        ViewBag.DiversityGrowthPercent = Math.Round(growth, 1);
+                    }
+                }
+            }
+        }
+    }
+}

@@ -33,6 +33,12 @@ namespace OneJaxDashboard.Data
         public DbSet<volunteerProgram_40D> volunteerProgram_40D { get; set; } = default!;
         public DbSet<interfaith_11D> Interfaith_11D { get; set; } = default!;
         public DbSet<eventSatisfaction> EventSatisfaction_12D { get; set; } = default!;
+        public DbSet<CollabTouch_47D> CollabTouch_47D { get; set; } = default!;
+        public DbSet<FaithCommunity_13D> FaithCommunity_13D { get; set; } = default!;
+        public DbSet<ContactsInterfaith_14D> ContactsInterfaith_14D { get; set; } = default!;
+        public DbSet<YouthAttend_15D> YouthAttend_15D { get; set; } = default!;
+        public DbSet<Diversity_37D> Diversity_37D { get; set; } = default!;
+        public DbSet<FirstTime_38D> FirstTime_38D { get; set; } = default!;
         
 
 
