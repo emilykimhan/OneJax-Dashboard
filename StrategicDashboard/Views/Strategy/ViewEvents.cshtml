@@ -4,6 +4,7 @@
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "View Events";
+    var successMessage = TempData["SuccessMessage"] as string;
 
     // Prefer Goals provided by the controller (best: comes from a Goals table)
     var goals = ViewBag.Goals as List<SelectListItem>;
@@ -92,6 +93,18 @@
         color: var(--onejax-navy);
     }
 
+    .view-events-shell {
+        max-width: 1420px;
+    }
+
+    .page-header-card {
+        background: transparent;
+        border: none;
+        border-radius: 0;
+        padding: 0.25rem 0 0;
+        box-shadow: none;
+    }
+
     h1,
     h2,
     h3,
@@ -120,6 +133,7 @@
 
     .nav-pills {
         border-bottom: none;
+        gap: 4px;
     }
 
     .nav-pills .nav-link {
@@ -131,6 +145,7 @@
         padding: 8px 16px;
         margin: 0 4px;
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        font-weight: 600;
     }
 
     .nav-pills .nav-link.active {
@@ -246,7 +261,8 @@
     border: 1px solid rgba(16, 40, 64, 0.08);
     border-radius: 14px;
     overflow: visible !important;   /* ✅ allow dropdown to escape */
-    position: relative;   
+    position: relative;
+    box-shadow: 0 8px 18px rgba(16, 40, 64, 0.06);
     }
     .events-table-wrap .dropdown-menu {
         z-index: 9999;
@@ -296,6 +312,10 @@
 
     table.events-table tbody tr:hover {
         background: rgba(0, 112, 173, 0.04);
+    }
+
+    table.events-table tbody tr:nth-child(even) {
+        background: rgba(16, 40, 64, 0.015);
     }
 
     .cell-muted {
@@ -370,6 +390,37 @@
         justify-content: center;
         gap: 10px;
         margin-top: 10px;
+        flex-wrap: wrap;
+    }
+
+    .page-head-divider {
+        height: 1px;
+        max-width: 980px;
+        margin: 1rem auto 0;
+        background: linear-gradient(90deg, rgba(16, 40, 64, 0.05), rgba(0, 112, 173, 0.2), rgba(16, 40, 64, 0.05));
+    }
+
+    .desc-text {
+        display: inline-block;
+        max-width: 320px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .success-text {
+        color: #00A676;
+        font-weight: 600;
+        font-size: 1rem;
+        letter-spacing: 0.5px;
+        animation: fadeInOut 4s ease-in-out forwards;
+    }
+
+    @@keyframes fadeInOut {
+        0% { opacity: 0; transform: translateY(-8px); }
+        10% { opacity: 1; transform: translateY(0); }
+        90% { opacity: 1; transform: translateY(0); }
+        100% { opacity: 0; transform: translateY(-8px); }
     }
 
     @@media (max-width: 992px) {
@@ -392,9 +443,9 @@
 </style>
 
 <!-- End of removed extra Fiscal Year Tab Content UI -->
-<div class="container my-5">
+<div class="container my-5 view-events-shell">
 
-    <div class="text-center mb-3">
+    <div class="text-center mb-3 page-header-card">
         <h2 class="fw-bold text-uppercase" style="color: var(--onejax-blue);">View Events</h2>
         <p class="text-secondary mb-3">
             Browse all events and manage them by strategic goal. Use the tabs below to filter.
@@ -410,7 +461,15 @@
                 Create Events +
             </a>
         </div>
+        <div class="page-head-divider"></div>
     </div>
+
+    @if (!string.IsNullOrWhiteSpace(successMessage))
+    {
+        <div class="text-center mb-3">
+            <span class="success-text">@successMessage</span>
+        </div>
+    }
 
     <!-- Fiscal Year Tabs (server-side filter via query string) -->
     <ul class="nav nav-pills justify-content-center mb-4" id="fyTabs" role="tablist">
@@ -525,7 +584,7 @@
                                     <td data-label="Description">
                                         @if (!string.IsNullOrWhiteSpace(e.Description))
                                         {
-                                            <span>@e.Description</span>
+                                            <span class="desc-text" title="@e.Description">@e.Description</span>
                                         }
                                         else
                                         {
@@ -688,7 +747,7 @@
                                             <td data-label="Description">
                                                 @if (!string.IsNullOrWhiteSpace(e.Description))
                                                 {
-                                                    <span>@e.Description</span>
+                                                    <span class="desc-text" title="@e.Description">@e.Description</span>
                                                 }
                                                 else
                                                 {

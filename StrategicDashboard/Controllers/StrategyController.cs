@@ -9,6 +9,15 @@ public class StrategyController : Controller
 {
     private readonly ApplicationDbContext _context;
     private static readonly DateTime MaxEventDate = new(2030, 12, 31);
+    private static readonly string[] DefaultProgramTypes =
+    {
+        "Humanitarian Awards",
+        "Fundraising",
+        "Youth",
+        "Interfaith",
+        "Community",
+        "Donor"
+    };
 
     // Keep the static list for backward compatibility, but also save to database
     public static List<Strategy> Strategies { get; set; } = new();
@@ -52,10 +61,11 @@ public class StrategyController : Controller
 
         ViewBag.Goals = Goals;
         ViewBag.Programs = programOptions;
-        ViewBag.ProgramTypes = programOptions
-            .Select(p => p.ProgramType)
-            .Where(t => !string.IsNullOrWhiteSpace(t))
-            .Distinct()
+        ViewBag.ProgramTypes = DefaultProgramTypes
+            .Concat(programOptions
+                .Select(p => p.ProgramType)
+                .Where(t => !string.IsNullOrWhiteSpace(t)))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(t => t)
             .ToList();
 
@@ -136,10 +146,11 @@ public class StrategyController : Controller
             .OrderBy(p => p.ProgramName)
             .ToList();
         ViewBag.Programs = programOptions;
-        ViewBag.ProgramTypes = programOptions
-            .Select(p => p.ProgramType)
-            .Where(t => !string.IsNullOrWhiteSpace(t))
-            .Distinct()
+        ViewBag.ProgramTypes = DefaultProgramTypes
+            .Concat(programOptions
+                .Select(p => p.ProgramType)
+                .Where(t => !string.IsNullOrWhiteSpace(t)))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(t => t)
             .ToList();
         return View(evt); // Pass the strategy to the view
@@ -191,8 +202,8 @@ public class StrategyController : Controller
         // Save changes to the database
         _context.SaveChanges();
 
-        TempData["SuccessMessage"] = "Program updated successfully!";
-        return RedirectToAction("Index");
+        TempData["SuccessMessage"] = "Event updated successfully!";
+        return RedirectToAction(nameof(ViewEvents));
     }
 
     [HttpPost]

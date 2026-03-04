@@ -129,7 +129,7 @@ new { Id = 4, Name = "Community Engagement" }
                 <div class="col-12">
                     <label class="form-label fw-semibold">Program Name</label>
                     <select name="programId" id="programId" class="form-select">
-                        <option value="">(Optional) Select Program Name</option>
+                        <option value="">Select Program Name</option>
                         @foreach (var p in programOptions)
                         {
                             var selected = (Model?.ProgramId == p.Id) || ((Model?.ProgramId == null) && Model?.ProgramName == p.ProgramName);
@@ -148,7 +148,7 @@ new { Id = 4, Name = "Community Engagement" }
                 <div class="col-12">
                     <label class="form-label fw-semibold">Program Type</label>
                     <select name="programType" id="programType" class="form-select">
-                        <option value="">(Optional) Select Program Type</option>
+                        <option value="">Select Program Type</option>
                         @foreach (var type in programTypeOptions)
                         {
                             if (Model?.ProgramType == type)

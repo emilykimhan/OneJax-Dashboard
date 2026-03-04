@@ -18,6 +18,22 @@
             }
         }
     }
+
+    var tabOrder = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
+    {
+        ["Youth"] = 1,
+        ["Community"] = 2,
+        ["Interfaith"] = 3,
+        ["Donor"] = 4,
+        ["Humanitarian Awards"] = 5,
+        ["Fundraising"] = 6
+    };
+
+    typeTabs = typeTabs
+        .Distinct(StringComparer.OrdinalIgnoreCase)
+        .OrderBy(t => tabOrder.TryGetValue(t, out var order) ? order : 999)
+        .ThenBy(t => t)
+        .ToList();
 }
 
 <style>
@@ -148,6 +164,21 @@
         color: #6c757d;
         margin: 0;
     }
+
+    .success-text {
+        color: #00A676;
+        font-weight: 600;
+        font-size: 1rem;
+        letter-spacing: 0.5px;
+        animation: fadeInOut 4s ease-in-out forwards;
+    }
+
+    @@keyframes fadeInOut {
+        0% { opacity: 0; transform: translateY(-8px); }
+        10% { opacity: 1; transform: translateY(0); }
+        90% { opacity: 1; transform: translateY(0); }
+        100% { opacity: 0; transform: translateY(-8px); }
+    }
 </style>
 
 <div class="container my-5">
@@ -166,11 +197,13 @@
 
     @if (!string.IsNullOrWhiteSpace(successMessage))
     {
-        <div class="alert alert-success text-center">@successMessage</div>
+        <div class="text-center mb-3">
+            <span class="success-text">@successMessage</span>
+        </div>
     }
     @if (!string.IsNullOrWhiteSpace(errorMessage))
     {
-        <div class="alert alert-danger text-center">@errorMessage</div>
+        <div class="alert alert-danger text-center mb-3">@errorMessage</div>
     }
 
     <div class="card-soft p-4 mb-4">
@@ -202,7 +235,6 @@
 
             <div class="col-12 d-flex gap-2">
                 <button type="submit" class="btn btn-onejax pill-btn px-4">Add Program</button>
-                <a asp-action="Archive" asp-controller="Programs" class="btn btn-outline-secondary pill-btn px-4">View Archive</a>
             </div>
         </form>
     </div>
@@ -231,7 +263,10 @@
     }
 
     <div class="card-soft p-4">
-        <h4 class="fw-bold mb-3" style="color: var(--onejax-blue);">Active Programs</h4>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="fw-bold mb-0" style="color: var(--onejax-blue);">Active Programs</h4>
+            <a asp-action="Archive" asp-controller="Programs" class="btn btn-outline-secondary pill-btn px-4">View Archive</a>
+        </div>
 
         @if (Model == null || !Model.Any())
         {
