@@ -56,36 +56,8 @@ function resetFilters() {
 
 // Enhanced Notification System
 function showNotification(title, message, type = 'info') {
-    const notification = document.createElement('div');
-    notification.className = `alert alert-${type} floating-notification`;
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 9999;
-        min-width: 350px;
-        border-radius: 15px;
-        box-shadow: var(--shadow-strong);
-        backdrop-filter: blur(10px);
-        border: none;
-        animation: slideInRight 0.5s ease-out;
-    `;
-    notification.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 12px;">
-            <div style="font-weight: 700; color: var(--onejax-navy);">${title}</div>
-            <button type="button" class="btn-close" onclick="this.parentElement.parentElement.remove()"></button>
-        </div>
-        <div style="margin-top: 8px; color: var(--onejax-text-muted);">${message}</div>
-    `;
-    
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        if (notification.parentNode) {
-            notification.style.animation = 'slideOutRight 0.5s ease-in';
-            setTimeout(() => notification.remove(), 500);
-        }
-    }, 4000);
+    // Notifications disabled - function does nothing
+    return;
 }
 
 // Tab Switching Function (No Page Refresh)
@@ -326,8 +298,8 @@ function showDataRefresh() {
 document.addEventListener('DOMContentLoaded', function() {
     initializeDashboardInteractions();
     
-    // Welcome message
-    setTimeout(() => {
-        showNotification('Welcome to OneJax Dashboard', 'Explore your strategic initiatives with enhanced visuals and interactive features!', 'info');
-    }, 1000);
+    // Welcome message - DISABLED
+    // setTimeout(() => {
+    //     showNotification('Welcome to OneJax Dashboard', 'Explore your strategic initiatives with enhanced visuals and interactive features!', 'info');
+    // }, 1000);
 });

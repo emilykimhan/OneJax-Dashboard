@@ -184,36 +184,9 @@ namespace OneJaxDashboard.Services
                         Status = "Active",
                         TargetDate = DateTime.Parse("2027-06-30")
                     },
-                    new GoalMetric
-                    {
-                        Name = "Cross-Sector Collaborations",
-                        Description = "Number of unique cross-sector collaborations",
-                        StrategicGoalId = communityGoal.Id,
-                        Target = "10",
-                        CurrentValue = 3,
-                        Unit = "collaborations",
-                        DataSource = "Manual",
-                        MetricType = "Count",
-                        IsPublic = true,
-                        FiscalYear = "2026-2027",
-                        Status = "Active",
-                        TargetDate = DateTime.Parse("2027-06-30")
-                    },
-                    new GoalMetric
-                    {
-                        Name = "Interfaith Events Hosted",
-                        Description = "Number of interfaith collaborative events",
-                        StrategicGoalId = communityGoal.Id,
-                        Target = "4",
-                        CurrentValue = 0,
-                        Unit = "events",
-                        DataSource = "Form",
-                        MetricType = "Count",
-                        IsPublic = true,
-                        FiscalYear = "2025-2026",
-                        Status = "Active",
-                        TargetDate = DateTime.Parse("2026-06-30")
-                    },
+                    // NOTE: Cross-Sector Collaborations metric removed to prevent duplicates
+                    // Real metric is now dynamically calculated in HomeController from form data
+                    // Removed duplicate "Interfaith Events Hosted" - now handled by AddCommunityMetricsAsync with real data
                     new GoalMetric
                     {
                         Name = "Youth Program Satisfaction",
@@ -252,36 +225,6 @@ namespace OneJaxDashboard.Services
                         FiscalYear = "2026-2027",
                         Status = "Active",
                         TargetDate = DateTime.Parse("2027-06-30")
-                    },
-                    new GoalMetric
-                    {
-                        Name = "Budget Variance",
-                        Description = "Variance from annual budget",
-                        StrategicGoalId = financialGoal.Id,
-                        Target = "10",
-                        CurrentValue = 0,
-                        Unit = "%",
-                        DataSource = "Calculated",
-                        MetricType = "Percentage",
-                        IsPublic = true,
-                        FiscalYear = "2025-2026",
-                        Status = "Active",
-                        TargetDate = DateTime.Parse("2026-06-30")
-                    },
-                    new GoalMetric
-                    {
-                        Name = "Donor Communication Satisfaction",
-                        Description = "Annual donor satisfaction with communications",
-                        StrategicGoalId = financialGoal.Id,
-                        Target = "85",
-                        CurrentValue = 0,
-                        Unit = "%",
-                        DataSource = "Manual",
-                        MetricType = "Percentage",
-                        IsPublic = true,
-                        FiscalYear = "2025-2026",
-                        Status = "Active",
-                        TargetDate = DateTime.Parse("2026-06-30")
                     }
                 });
             }
