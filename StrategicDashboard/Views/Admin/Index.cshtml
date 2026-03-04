@@ -1,10 +1,19 @@
 @model IEnumerable<OneJaxDashboard.Models.Event>
+@inject TimeZoneInfo EasternTimeZone
 @{
     ViewData["Title"] = "Admin Dashboard";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var staffCount = ViewData["StaffCount"] as int? ?? 0;
     var eventCount = ViewData["EventCount"] as int? ?? 0;
     var recentActivities = ViewData["RecentActivities"] as List<OneJaxDashboard.Models.ActivityLogEntry> ?? new List<OneJaxDashboard.Models.ActivityLogEntry>();
+
+    DateTime ToEastern(DateTime timestamp)
+    {
+        var utcTimestamp = timestamp.Kind == DateTimeKind.Utc
+            ? timestamp
+            : DateTime.SpecifyKind(timestamp, DateTimeKind.Utc);
+        return TimeZoneInfo.ConvertTimeFromUtc(utcTimestamp, EasternTimeZone);
+    }
 }
 
 <div class="row mb-4">
@@ -94,7 +103,7 @@
                                         </h6>
                                         <small class="text-muted">@(activity.Notes ?? "—")</small>
                                     </div>
-                                    <small class="text-muted">@activity.Timestamp.ToString("MM/dd/yyyy hh:mm tt")</small>
+                                    <small class="text-muted">@ToEastern(activity.Timestamp).ToString("MM/dd/yyyy hh:mm tt")</small>
                                 </div>
                             </div>
                         }

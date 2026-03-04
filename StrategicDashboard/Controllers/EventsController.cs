@@ -15,15 +15,17 @@ namespace OneJaxDashboard.Controllers
         private readonly EventsService _events;
         private readonly StrategyService _strategyService;
         private readonly ActivityLogService _activityLog;
+        private readonly TimeZoneInfo _easternTimeZone;
         
+        private DateTime NowEastern => TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _easternTimeZone);
 
-
-        public EventsController(ApplicationDbContext context, EventsService events, StrategyService strategyService, ActivityLogService activityLog)
+        public EventsController(ApplicationDbContext context, EventsService events, StrategyService strategyService, ActivityLogService activityLog, TimeZoneInfo easternTimeZone)
         {
             _context = context;
             _events = events;
             _strategyService = strategyService;
             _activityLog = activityLog;
+            _easternTimeZone = easternTimeZone;
         }
 
         // GET: Events/Details/5 - Public access for dashboard
@@ -61,7 +63,7 @@ namespace OneJaxDashboard.Controllers
                         Type = strategy.EventType ?? "Community", // Use the event type from strategy
                         Status = "Planned",
                         StrategicGoalId = strategy.StrategicGoalId,
-                        DueDate = DateTime.TryParse(strategy.Date, out var date) ? date : DateTime.Now.AddDays(30),
+                        DueDate = DateTime.TryParse(strategy.Date, out var date) ? date : NowEastern.AddDays(30),
                         Notes = $"Added through Core Strategies tab. {(!string.IsNullOrEmpty(strategy.Time) ? $"Time: {strategy.Time}" : "")}",
                         Attendees = 0,
                         Location = string.IsNullOrEmpty(strategy.Time) ? "TBD" : $"Time: {strategy.Time}"
@@ -112,7 +114,7 @@ namespace OneJaxDashboard.Controllers
                 Description = "This is a test response",
                 Type = "Test",
                 Status = "Active",
-                DueDate = DateTime.Now.ToString("MMMM dd, yyyy"),
+                DueDate = NowEastern.ToString("MMMM dd, yyyy"),
                 Location = "Test Location",
                 Attendees = 10,
                 Notes = "This is a test note",
@@ -195,7 +197,7 @@ namespace OneJaxDashboard.Controllers
                         Description = strategy.Description,
                         Type = strategy.EventType ?? "Community",
                         Status = "Planned",
-                        DueDate = DateTime.TryParse(strategy.Date, out var date) ? date.ToString("MMMM dd, yyyy") : DateTime.Now.AddDays(30).ToString("MMMM dd, yyyy"),
+                        DueDate = DateTime.TryParse(strategy.Date, out var date) ? date.ToString("MMMM dd, yyyy") : NowEastern.AddDays(30).ToString("MMMM dd, yyyy"),
                         Location = string.IsNullOrEmpty(strategy.Time) ? "TBD" : $"Time: {strategy.Time}",
                         Attendees = 0,
                         Notes = $"Added through Core Strategies tab. {(!string.IsNullOrEmpty(strategy.Time) ? $"Time: {strategy.Time}" : "")}",
@@ -222,6 +224,8 @@ namespace OneJaxDashboard.Controllers
                 .ToList()
                 .Where(e => e.StrategyTemplateId.HasValue && _strategyService.GetStrategy(e.StrategyTemplateId.Value) != null)
                 .ToList();
+
+            PopulateEventDisplayData(items);
             return View(items);
         }
 
@@ -232,6 +236,8 @@ namespace OneJaxDashboard.Controllers
             var items = _events.GetArchivedByOwner(username)
                 .Where(e => e.StrategyTemplateId.HasValue && _strategyService.GetStrategy(e.StrategyTemplateId.Value) != null)
                 .ToList();
+
+            PopulateEventDisplayData(items);
             return View(items);
         }
 
@@ -289,8 +295,6 @@ namespace OneJaxDashboard.Controllers
 
             var added = _events.Add(eventModel);
 
-            var staff = _context.Staffauth.FirstOrDefault(s => s.Username == username);
-            var staffName = staff?.Name ?? username;
             _activityLog.Log(username, "Created Event", "Event", added.Id, notes: $"Created '{added.Title}'");
 
             TempData["SuccessMessage"] = "Event created successfully!";
@@ -325,6 +329,13 @@ namespace OneJaxDashboard.Controllers
 
             // Keep owner unchanged
             eventModel.OwnerUsername = existing.OwnerUsername;
+            // Preserve assignment/strategy metadata not edited on this form
+            eventModel.StrategyTemplateId = existing.StrategyTemplateId;
+            eventModel.StrategicGoalId = existing.StrategicGoalId;
+            eventModel.StrategyId = existing.StrategyId;
+            eventModel.IsAssignedByAdmin = existing.IsAssignedByAdmin;
+            eventModel.AssignmentDate = existing.AssignmentDate;
+            eventModel.AdminNotes = existing.AdminNotes;
 
             // Log status changes specifically
             var statusChanged = existing.Status != eventModel.Status;
@@ -334,20 +345,22 @@ namespace OneJaxDashboard.Controllers
             if (eventModel.Status == "Completed")
             {
                 eventModel.IsArchived = true;
-                eventModel.CompletionDate = DateTime.Now;
+                eventModel.CompletionDate = existing.CompletionDate ?? NowEastern;
+            }
+            else
+            {
+                eventModel.IsArchived = false;
+                eventModel.CompletionDate = null;
             }
 
             _events.Update(eventModel);
 
             //Get staff name for logging
             var username = User.Identity?.Name ?? string.Empty;
-            var staff = _context.Staffauth.FirstOrDefault(s => s.Username == username);
-            var staffName = staff?.Name ?? username;
-
             // Log the update with status change detail if applicable
             var logAction = statusChanged ? "Changed Event Status" : "Updated Event";
             var logNotes = statusChangeNote ?? $"Updated '{eventModel.Title}'";
-            _activityLog.Log(staffName, logAction, "Event", eventModel.Id, notes: logNotes);
+            _activityLog.Log(username, logAction, "Event", eventModel.Id, notes: logNotes);
 
             TempData["SuccessMessage"] = "Event updated successfully!";
             return RedirectToAction("Index");
@@ -372,12 +385,10 @@ namespace OneJaxDashboard.Controllers
             if (!IsOwner(eventModel)) return Forbid();
 
             var username = User.Identity?.Name ?? string.Empty;
-            var staff = _context.Staffauth.FirstOrDefault(s => s.Username == username);
-            var staffName = staff?.Name ?? username;
             var eventTitle = eventModel.Title;
 
             _events.Remove(id);
-            _activityLog.Log(eventModel.OwnerUsername, "Deleted Event", "Event", id, notes: $"Deleted '{eventTitle}'");
+            _activityLog.Log(username, "Deleted Event", "Event", id, notes: $"Deleted '{eventTitle}'");
 
             TempData["SuccessMessage"] = "Event deleted successfully!";
             return RedirectToAction("Index");
@@ -401,6 +412,46 @@ namespace OneJaxDashboard.Controllers
 
             // Load all strategies for display
             ViewBag.Strategies = new SelectList(allStrategies, "Id", "Name");
+        }
+
+        private void PopulateEventDisplayData(IEnumerable<Event> events)
+        {
+            var strategyIds = events
+                .Select(e => e.StrategyTemplateId ?? e.StrategyId)
+                .Where(id => id.HasValue)
+                .Select(id => id!.Value)
+                .Distinct()
+                .ToList();
+
+            var strategies = _context.Strategies
+                .Where(s => strategyIds.Contains(s.Id))
+                .Select(s => new { s.Id, s.StrategicGoalId, s.EventType })
+                .ToList();
+
+            var goalIds = events
+                .Where(e => e.StrategicGoalId.HasValue)
+                .Select(e => e.StrategicGoalId!.Value)
+                .Concat(strategies.Select(s => s.StrategicGoalId))
+                .Distinct()
+                .ToList();
+
+            var goalNamesByGoalId = _context.StrategicGoals
+                .Where(g => goalIds.Contains(g.Id))
+                .ToDictionary(g => g.Id, g => g.Name);
+
+            var goalNamesByStrategyId = strategies.ToDictionary(
+                s => s.Id,
+                s => goalNamesByGoalId.TryGetValue(s.StrategicGoalId, out var goalName)
+                    ? goalName
+                    : $"Strategic Goal {s.StrategicGoalId}");
+
+            var eventTypesByStrategyId = strategies.ToDictionary(
+                s => s.Id,
+                s => string.IsNullOrWhiteSpace(s.EventType) ? "Community" : s.EventType);
+
+            ViewBag.GoalNamesByGoalId = goalNamesByGoalId;
+            ViewBag.GoalNamesByStrategyId = goalNamesByStrategyId;
+            ViewBag.EventTypesByStrategyId = eventTypesByStrategyId;
         }
     }
 }

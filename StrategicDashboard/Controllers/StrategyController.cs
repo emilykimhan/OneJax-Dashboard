@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using OneJaxDashboard.Models;
 using OneJaxDashboard.Data;
+using OneJaxDashboard.Services;
 using System.Collections.Generic;
 using System.Linq;
 using DocumentFormat.OpenXml.Features;
@@ -9,13 +10,15 @@ using DocumentFormat.OpenXml.Features;
 public class StrategyController : Controller
 {
     private readonly ApplicationDbContext _context;
+    private readonly ActivityLogService _activityLog;
 
     // Keep the static list for backward compatibility, but also save to database
     public static List<Strategy> Strategies { get; set; } = new();
 
-    public StrategyController(ApplicationDbContext context)
+    public StrategyController(ApplicationDbContext context, ActivityLogService activityLog)
     {
         _context = context;
+        _activityLog = activityLog;
     }
 
     private static readonly List<SelectListItem> Goals = new()
@@ -79,7 +82,9 @@ public class StrategyController : Controller
         _context.SaveChanges();
 
         string goalName = Goals.FirstOrDefault(g => g.Value == goalId.ToString())?.Text ?? "Unknown Goal";
-
+        // Log the creation
+        _activityLog.Log("Admin", "Created Core Strategy Event", "Strategy", dbEvent.Id, 
+            notes: $"Created strategy event '{eventName}' under {goalName}");
         TempData["SuccessMessage"] = $"Successfully added program under “{goalName}”";
 
         return RedirectToAction("Index");
@@ -129,7 +134,7 @@ public class StrategyController : Controller
         // Save changes to the database
         _context.SaveChanges();
 
-        TempData["SuccessMessage"] = "Program updated successfully!";
+        TempData["SuccessMessage"] = "Event updated successfully!";
         return RedirectToAction("Index");
     }
 
@@ -147,7 +152,7 @@ public class StrategyController : Controller
         _context.Strategies.Remove(strategy);
         _context.SaveChanges();
 
-        TempData["SuccessMessage"] = "Program deleted successfully!";
+        TempData["SuccessMessage"] = "Event deleted successfully!";
         return RedirectToAction("ViewEvents");
     }
     public IActionResult ViewEvents()

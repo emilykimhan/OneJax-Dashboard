@@ -10,6 +10,15 @@
 @{
     var fullName = (ViewData["FullName"] as string) ?? string.Empty;
     var displayName = string.IsNullOrWhiteSpace(fullName) ? (User.Identity?.Name ?? "") : fullName;
+    var easternTimeZone = Context.RequestServices.GetRequiredService<TimeZoneInfo>();
+
+    DateTime ToEastern(DateTime timestamp)
+    {
+        var utcTimestamp = timestamp.Kind == DateTimeKind.Utc
+            ? timestamp
+            : DateTime.SpecifyKind(timestamp, DateTimeKind.Utc);
+        return TimeZoneInfo.ConvertTimeFromUtc(utcTimestamp, easternTimeZone);
+    }
 }
 
 <div class="row mb-4">
@@ -90,10 +99,13 @@
         <div class="card shadow-sm border-0">
             <div class="card-header bg-white border-0 pt-3 d-flex justify-content-between align-items-center">
                 <h5 class="fw-bold mb-0">Recent Activity</h5>
-                @if (recentActivities.Any())
-                {
-                    <span class="badge bg-primary">@recentActivities.Count recent</span>
-                }
+                <div class="d-flex align-items-center gap-2">
+                    @if (recentActivities.Any())
+                    {
+                        <span class="badge bg-primary">@recentActivities.Count recent</span>
+                    }
+                    <a href="/StaffPortal/ActivityLog" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
             </div>
             <div class="card-body">
                 @if (recentActivities.Any())
@@ -110,7 +122,7 @@
                                         </h6>
                                         <small class="text-muted">@(activity.Notes ?? "—")</small>
                                     </div>
-                                    <small class="text-muted">@activity.Timestamp.ToString("MM/dd/yyyy hh:mm tt")</small>
+                                    <small class="text-muted">@ToEastern(activity.Timestamp).ToString("MM/dd/yyyy hh:mm tt")</small>
                                 </div>
                             </div>
                         }
