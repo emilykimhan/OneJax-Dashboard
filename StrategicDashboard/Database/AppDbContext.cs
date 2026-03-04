@@ -29,8 +29,12 @@ namespace OneJaxDashboard.Data
         public DbSet<BudgetTracking_28D> BudgetTracking_28D { get; set; } = default!;
         public DbSet<BoardMemberRecruitment> BoardMember_29D { get; set; } = default!;
         public DbSet<BoardMeetingAttendance> BoardMeetingAttendance { get; set; } = default!;
+        public DbSet<selfAssess_31D> selfAssess_31D { get; set; } = default!;
+        public DbSet<volunteerProgram_40D> volunteerProgram_40D { get; set; } = default!;
         public DbSet<interfaith_11D> Interfaith_11D { get; set; } = default!;
         public DbSet<eventSatisfaction> EventSatisfaction_12D { get; set; } = default!;
+        
+
 
 
         // Dashboard tables

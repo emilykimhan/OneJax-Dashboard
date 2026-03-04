@@ -1,6 +1,6 @@
-@model OneJaxDashboard.Models.StaffSurvey_22D
+@model OneJaxDashboard.Models.selfAssess_31D
 @{
-    ViewData["Title"] = "Staff Survey";
+    ViewData["Title"] = "Board Self-Assessment";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -19,28 +19,30 @@
                        style="border-radius: 8px;">
                         ← Back
                     </a>
-                    <h2 class="mb-0" style="color:var(--onejax-navy);">Staff Survey</h2>
+                    <h2 class="mb-0" style="color:var(--onejax-navy);">Board Self-Assessment</h2>
                 </div>
                 
-                <!-- Survey Form -->
-                <div class="survey-form">
-                    <h4 class="mb-4 text-center" style="color:var(--onejax-navy);">Staff Satisfaction Survey</h4>
+                <!-- Form -->
+                <div class="assessment-form">
+                    <h4 class="mb-4 text-center" style="color:var(--onejax-navy);">Annual Board Self-Evaluation</h4>
 
-                    @if (TempData["SuccessMessage"] != null)
+                    @if (TempData["Success"] != null)
                     {
                         <div class="alert alert-success text-center">
-                            @TempData["SuccessMessage"]
+                            @TempData["Success"]
                         </div>
                     }
 
-                    @if (TempData["ErrorMessage"] != null)
+                    @if (TempData["Error"] != null)
                     {
                         <div class="alert alert-danger text-center">
-                            @TempData["ErrorMessage"]
+                            @TempData["Error"]
                         </div>
                     }
 
-                    <form asp-controller="StaffSurvey" asp-action="Index" method="post" novalidate>
+                    <form asp-controller="SelfAssessment" asp-action="Index" method="post" novalidate>
+                        @Html.AntiForgeryToken()
+                        
                         <div class="mb-3">
                             <label asp-for="Year" class="form-label fw-bold">Year:</label>
                             <input asp-for="Year" type="number" min="2020" max="2100"
@@ -49,16 +51,16 @@
                         </div>
 
                         <div class="mb-3">
-                            <label asp-for="SatisfactionRate" class="form-label fw-bold">Satisfaction Rate (0-100):</label>
-                            <input asp-for="SatisfactionRate" type="number" min="0" max="100"
-                                   class="form-control" placeholder="Enter satisfaction rate (0-100)" />
-                            <span asp-validation-for="SatisfactionRate" class="text-danger"></span>
+                            <label asp-for="SelfAssessmentScore" class="form-label fw-bold">Average Annual Board Self-Evaluation Score (0-100):</label>
+                            <input asp-for="SelfAssessmentScore" type="number" min="0" max="100"
+                                   class="form-control" placeholder="Enter average score (0-100)" />
+                            <span asp-validation-for="SelfAssessmentScore" class="text-danger"></span>
                         </div>
 
                         <div class="text-center">
                             <button type="submit" class="btn btn-primary px-4" 
                                     style="background-color:var(--onejax-navy); border-color:var(--onejax-navy);">
-                                Submit Survey
+                                Submit Assessment
                             </button>
                         </div>
                     </form>
@@ -79,42 +81,17 @@
         border-color: var(--onejax-navy);
         color: white;
     }
-    
-    .card {
-        border: none;
+
+    .stat-card {
+        transition: transform 0.2s;
     }
 
-    /* Survey Form Styles */
-    .survey-form {
-        padding: 1rem;
-        background: #f8f9fa;
-        border-radius: 12px;
-        margin-top: 1rem;
-    }
-
-    .form-control:focus {
-        border-color: var(--onejax-navy);
-        box-shadow: 0 0 0 0.2rem rgba(0, 123, 191, 0.25);
-    }
-
-    .form-select:focus {
-        border-color: var(--onejax-navy);
-        box-shadow: 0 0 0 0.2rem rgba(0, 123, 191, 0.25);
-    }
-
-    .btn:hover {
-        background-color: #1a365d !important;
-        border-color: #1a365d !important;
-    }
-
-    .alert {
-        border: none;
-        border-radius: 8px;
-    }
-
-    .text-danger {
-        font-size: 0.875rem;
-        margin-top: 0.25rem;
-        display: block;
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
 </style>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

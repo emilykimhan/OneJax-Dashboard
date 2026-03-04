@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OneJaxDashboard.Data;
 
@@ -10,9 +11,11 @@ using OneJaxDashboard.Data;
 namespace StrategicDashboard.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260304082739_RemoveNameAndProfDevFromStaffSurvey")]
+    partial class RemoveNameAndProfDevFromStaffSurvey
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.10");
@@ -517,11 +520,6 @@ namespace StrategicDashboard.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Activities")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("TEXT");
-
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("TEXT");
 
@@ -529,7 +527,10 @@ namespace StrategicDashboard.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Year")
+                    b.Property<int>("ProfessionalDevelopmentYear26")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ProfessionalDevelopmentYear27")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
@@ -547,9 +548,6 @@ namespace StrategicDashboard.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<int>("SatisfactionRate")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("Year")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
@@ -871,26 +869,6 @@ namespace StrategicDashboard.Migrations
                     b.ToTable("Interfaith_11D");
                 });
 
-            modelBuilder.Entity("OneJaxDashboard.Models.selfAssess_31D", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("SelfAssessmentScore")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("Year")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("selfAssess_31D");
-                });
-
             modelBuilder.Entity("OneJaxDashboard.Models.socialMedia_5D", b =>
                 {
                     b.Property<int>("Id")
@@ -921,50 +899,6 @@ namespace StrategicDashboard.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("socialMedia_5D");
-                });
-
-            modelBuilder.Entity("OneJaxDashboard.Models.volunteerProgram_40D", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("CommunicationsActivities")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("InitiativeDescriptions")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("NumberOfVolunteers")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("ProgramEstablished")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("Quarter")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("RecognitionActivities")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("VolunteerLedInitiatives")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("Year")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("volunteerProgram_40D");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.DonorEvent_19D", b =>

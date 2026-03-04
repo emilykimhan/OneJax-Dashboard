@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 //Karrie's 
 namespace OneJaxDashboard.Models
 {
-    public class ProfessionalDevelopment
+    public class selfAssess_31D
     {
         [Key]
         public int Id { get; set; }
@@ -11,11 +11,9 @@ namespace OneJaxDashboard.Models
         [Range(2020, 2100, ErrorMessage = "Year must be between 2020 and 2100.")]
         public int Year { get; set; }
 
-        [Required(ErrorMessage = "Please select a staff member.")]
-        public string Name { get; set; } = string.Empty;
-
-        [StringLength(2000)]
-        public string Activities { get; set; } = string.Empty; // List of professional development activities
+        [Required(ErrorMessage = "Please enter average annual board self-eval score.")]
+        [Range(0, 100, ErrorMessage = "Self-assessment score must be between 0 and 100.")]
+        public int SelfAssessmentScore { get; set; }
 
         public DateTime CreatedDate { get; set; } = DateTime.Now;
     }

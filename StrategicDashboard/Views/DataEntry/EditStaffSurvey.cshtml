@@ -18,21 +18,15 @@
             <input type="hidden" asp-for="CreatedDate" />
 
             <div class="mb-3">
-                <label asp-for="Name" class="form-label fw-bold">Staff Member Name</label>
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
+                <label asp-for="Year" class="form-label fw-bold">Year</label>
+                <input asp-for="Year" type="number" class="form-control" min="2020" max="2100" />
+                <span asp-validation-for="Year" class="text-danger"></span>
             </div>
 
             <div class="mb-3">
                 <label asp-for="SatisfactionRate" class="form-label fw-bold">Satisfaction Rate (%)</label>
                 <input asp-for="SatisfactionRate" type="number" class="form-control" min="0" max="100" />
                 <span asp-validation-for="SatisfactionRate" class="text-danger"></span>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="ProfessionalDevelopmentCount" class="form-label fw-bold">Professional Development Count</label>
-                <input asp-for="ProfessionalDevelopmentCount" type="number" class="form-control" min="1" />
-                <span asp-validation-for="ProfessionalDevelopmentCount" class="text-danger"></span>
             </div>
 
             <div class="d-flex gap-2 mt-4">

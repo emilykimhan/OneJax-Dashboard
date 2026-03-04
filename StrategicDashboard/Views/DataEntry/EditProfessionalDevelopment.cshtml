@@ -18,21 +18,21 @@
             <input type="hidden" asp-for="CreatedDate" />
 
             <div class="mb-3">
+                <label asp-for="Year" class="form-label fw-bold">Year</label>
+                <input asp-for="Year" type="number" class="form-control" min="2020" max="2100" />
+                <span asp-validation-for="Year" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
                 <label asp-for="Name" class="form-label fw-bold">Staff Member Name</label>
                 <input asp-for="Name" class="form-control" />
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
 
             <div class="mb-3">
-                <label asp-for="ProfessionalDevelopmentYear26" class="form-label fw-bold">2026 Activities</label>
-                <input asp-for="ProfessionalDevelopmentYear26" type="number" class="form-control" min="1" />
-                <span asp-validation-for="ProfessionalDevelopmentYear26" class="text-danger"></span>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="ProfessionalDevelopmentYear27" class="form-label fw-bold">2027 Activities</label>
-                <input asp-for="ProfessionalDevelopmentYear27" type="number" class="form-control" min="1" />
-                <span asp-validation-for="ProfessionalDevelopmentYear27" class="text-danger"></span>
+                <label asp-for="Activities" class="form-label fw-bold">Professional Development Activities</label>
+                <textarea asp-for="Activities" class="form-control" rows="5"></textarea>
+                <span asp-validation-for="Activities" class="text-danger"></span>
             </div>
 
             <div class="d-flex gap-2 mt-4">

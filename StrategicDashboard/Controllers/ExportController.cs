@@ -19,11 +19,11 @@ public class ExportController : Controller
         var surveys = _context.StaffSurveys_22D.ToList();
 
         var csv = new StringBuilder();
-        csv.AppendLine("Id,Name,SatisfactionRate,ProfessionalDevelopmentCount");
+        csv.AppendLine("Id,Year,SatisfactionRate,CreatedDate");
 
         foreach (var s in surveys)
         {
-            csv.AppendLine($"{s.Id},{s.Name},{s.SatisfactionRate},{s.ProfessionalDevelopmentCount}");
+            csv.AppendLine($"{s.Id},{s.Year},{s.SatisfactionRate},{s.CreatedDate}");
         }
 
         var bytes = Encoding.UTF8.GetBytes(csv.ToString());
@@ -38,17 +38,17 @@ public class ExportController : Controller
         {
             var worksheet = workbook.Worksheets.Add("Staff Survey 22D");
             worksheet.Cell(1, 1).Value = "Id";
-            worksheet.Cell(1, 2).Value = "Name";
+            worksheet.Cell(1, 2).Value = "Year";
             worksheet.Cell(1, 3).Value = "SatisfactionRate";
-            worksheet.Cell(1, 4).Value = "ProfessionalDevelopmentCount";
+            worksheet.Cell(1, 4).Value = "CreatedDate";
 
             for (int i = 0; i < surveys.Count; i++)
             {
                 var s = surveys[i];
                 worksheet.Cell(i + 2, 1).Value = s.Id;
-                worksheet.Cell(i + 2, 2).Value = s.Name;
+                worksheet.Cell(i + 2, 2).Value = s.Year;
                 worksheet.Cell(i + 2, 3).Value = s.SatisfactionRate;
-                worksheet.Cell(i + 2, 4).Value = s.ProfessionalDevelopmentCount;
+                worksheet.Cell(i + 2, 4).Value = s.CreatedDate;
             }
 
             worksheet.Columns().AdjustToContents();
