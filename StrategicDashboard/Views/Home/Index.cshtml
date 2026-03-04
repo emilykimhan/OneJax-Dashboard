@@ -326,176 +326,13 @@
                         <!-- Additional Charts Row 2 -->
                         <div class="row mb-4">
                             <!-- Goal Performance Radar -->
-                            <div class="col-md-6 mb-4">
+                            <div class="col-md-12 mb-4">
                                 <div class="card" style="border-radius: 12px; border: 1px solid var(--onejax-border); box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
                                     <div class="card-header" style="background: linear-gradient(135deg, #10B981, #059669); color: white; border-radius: 12px 12px 0 0;">
                                         <h6 class="mb-0">🎯 Goal Performance Radar</h6>
                                     </div>
                                     <div class="card-body">
                                         <canvas id="radarChart" width="400" height="300"></canvas>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Event Status Donut Chart -->
-                            <div class="col-md-6 mb-4">
-                                <div class="card" style="border-radius: 12px; border: 1px solid var(--onejax-border); box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-                                    <div class="card-header" style="background: linear-gradient(135deg, #F59E0B, #D97706); color: white; border-radius: 12px 12px 0 0;">
-                                        <h6 class="mb-0">📅 Event Status Overview</h6>
-                                    </div>
-                                    <div class="card-body">
-                                        <canvas id="eventStatusChart" width="400" height="300"></canvas>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Data Tables and Analytics Row -->
-                        <div class="row mb-4">
-                            <!-- Recent Activity Table -->
-                            <div class="col-md-8 mb-4">
-                                <div class="card" style="border-radius: 12px; border: 1px solid var(--onejax-border); box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-                                    <div class="card-header" style="background: linear-gradient(135deg, #6366F1, #4F46E5); color: white; border-radius: 12px 12px 0 0;">
-                                        <h6 class="mb-0">📊 Recent Activity & Data Entries</h6>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="table-responsive">
-                                            <table class="table table-hover" style="margin-bottom: 0;">
-                                                <thead style="background: rgba(59, 130, 246, 0.1);">
-                                                    <tr>
-                                                        <th style="border: none; padding: 12px; font-weight: 600; color: var(--onejax-navy);">Category</th>
-                                                        <th style="border: none; padding: 12px; font-weight: 600; color: var(--onejax-navy);">Latest Entry</th>
-                                                        <th style="border: none; padding: 12px; font-weight: 600; color: var(--onejax-navy);">Total Records</th>
-                                                        <th style="border: none; padding: 12px; font-weight: 600; color: var(--onejax-navy);">Status</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr style="border-bottom: 1px solid #f3f4f6;">
-                                                        <td style="padding: 12px; color: var(--onejax-navy); font-weight: 500;">
-                                                            <i class="fas fa-chart-line text-success me-2"></i>Website Traffic
-                                                        </td>
-                                                        <td style="padding: 12px; color: var(--onejax-text-muted);">
-                                                            @DateTime.Now.AddDays(-2).ToString("MMM dd, yyyy")
-                                                        </td>
-                                                        <td style="padding: 12px;">
-                                                            <span class="badge" style="background: var(--onejax-green); color: white;">@Model.Summary.TotalWebsiteTrafficEntries</span>
-                                                        </td>
-                                                        <td style="padding: 12px;">
-                                                            <span class="badge bg-success">Active</span>
-                                                        </td>
-                                                    </tr>
-                                                    <tr style="border-bottom: 1px solid #f3f4f6;">
-                                                        <td style="padding: 12px; color: var(--onejax-navy); font-weight: 500;">
-                                                            <i class="fas fa-users text-primary me-2"></i>Staff Surveys
-                                                        </td>
-                                                        <td style="padding: 12px; color: var(--onejax-text-muted);">
-                                                            @DateTime.Now.AddDays(-5).ToString("MMM dd, yyyy")
-                                                        </td>
-                                                        <td style="padding: 12px;">
-                                                            <span class="badge" style="background: var(--onejax-blue); color: white;">@Model.Summary.TotalStaffSurveys</span>
-                                                        </td>
-                                                        <td style="padding: 12px;">
-                                                            <span class="badge bg-success">Active</span>
-                                                        </td>
-                                                    </tr>
-                                                    <tr style="border-bottom: 1px solid #f3f4f6;">
-                                                        <td style="padding: 12px; color: var(--onejax-navy); font-weight: 500;">
-                                                            <i class="fas fa-newspaper text-warning me-2"></i>Media Placements
-                                                        </td>
-                                                        <td style="padding: 12px; color: var(--onejax-text-muted);">
-                                                            @DateTime.Now.AddDays(-3).ToString("MMM dd, yyyy")
-                                                        </td>
-                                                        <td style="padding: 12px;">
-                                                            <span class="badge" style="background: var(--onejax-orange); color: white;">@Model.Summary.TotalMediaPlacements</span>
-                                                        </td>
-                                                        <td style="padding: 12px;">
-                                                            <span class="badge bg-success">Active</span>
-                                                        </td>
-                                                    </tr>
-                                                    <tr style="border-bottom: 1px solid #f3f4f6;">
-                                                        <td style="padding: 12px; color: var(--onejax-navy); font-weight: 500;">
-                                                            <i class="fas fa-calendar text-danger me-2"></i>Strategic Events
-                                                        </td>
-                                                        <td style="padding: 12px; color: var(--onejax-text-muted);">
-                                                            @DateTime.Now.AddDays(-7).ToString("MMM dd, yyyy")
-                                                        </td>
-                                                        <td style="padding: 12px;">
-                                                            <span class="badge" style="background: #dc2626; color: white;">@Model.Summary.TotalEvents</span>
-                                                        </td>
-                                                        <td style="padding: 12px;">
-                                                            <span class="badge bg-success">Active</span>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td style="padding: 12px; color: var(--onejax-navy); font-weight: 500;">
-                                                            <i class="fas fa-tasks text-info me-2"></i>Activities
-                                                        </td>
-                                                        <td style="padding: 12px; color: var(--onejax-text-muted);">
-                                                            @DateTime.Now.AddDays(-4).ToString("MMM dd, yyyy")
-                                                        </td>
-                                                        <td style="padding: 12px;">
-                                                            <span class="badge" style="background: #0891b2; color: white;">@Model.Summary.TotalActivities</span>
-                                                        </td>
-                                                        <td style="padding: 12px;">
-                                                            <span class="badge bg-success">Active</span>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Completion Status Circle Charts -->
-                            <div class="col-md-4 mb-4">
-                                <div class="row">
-                                    <!-- Overall Completion Circle -->
-                                    <div class="col-12 mb-3">
-                                        <div class="card" style="border-radius: 12px; border: 1px solid var(--onejax-border); box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-                                            <div class="card-header text-center" style="background: linear-gradient(135deg, var(--onejax-navy), var(--onejax-blue)); color: white; border-radius: 12px 12px 0 0;">
-                                                <h6 class="mb-0">🎯 Overall Progress</h6>
-                                            </div>
-                                            <div class="card-body text-center" style="padding: 1.5rem;">
-                                                <div style="position: relative; width: 120px; height: 120px; margin: 0 auto;">
-                                                    <canvas id="overallProgressCircle" width="120" height="120"></canvas>
-                                                </div>
-                                                <div class="mt-3">
-                                                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--onejax-navy);">
-                                                        @Math.Round(overallProgress, 1)%
-                                                    </div>
-                                                    <small class="text-muted">Strategic Completion</small>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Data Collection Progress -->
-                                    <div class="col-12">
-                                        <div class="card" style="border-radius: 12px; border: 1px solid var(--onejax-border); box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-                                            <div class="card-header text-center" style="background: linear-gradient(135deg, var(--onejax-green), #059669); color: white; border-radius: 12px 12px 0 0;">
-                                                <h6 class="mb-0">📈 Data Collection</h6>
-                                            </div>
-                                            <div class="card-body text-center" style="padding: 1.5rem;">
-                                                <div style="position: relative; width: 120px; height: 120px; margin: 0 auto;">
-                                                    <canvas id="dataCollectionCircle" width="120" height="120"></canvas>
-                                                </div>
-                                                @{
-                                                    var totalDataEntriesForCard = Model.Summary.TotalWebsiteTrafficEntries + 
-                                                                      Model.Summary.TotalStaffSurveys + 
-                                                                      Model.Summary.TotalMediaPlacements + 
-                                                                      Model.Summary.TotalEvents + 
-                                                                      Model.Summary.TotalActivities;
-                                                    var dataProgressForCard = Math.Min((totalDataEntriesForCard / 100.0) * 100, 100); // Assuming 100 total entries as target
-                                                }
-                                                <div class="mt-3">
-                                                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--onejax-green);">
-                                                        @Math.Round(dataProgressForCard, 1)%
-                                                    </div>
-                                                    <small class="text-muted">@totalDataEntriesForCard Total Records</small>
-                                                </div>
-                                            </div>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -684,10 +521,21 @@
                             <!-- Metrics Section -->
                             @if (goal.Metrics != null && goal.Metrics.Any())
                             {
+                                var isFinancialGoal = goal.Name.Contains("Financial") || goal.Name.Contains("Sustainability");
+                                IEnumerable<GoalMetric> orderedMetrics = isFinancialGoal
+                                    ? goal.Metrics
+                                        .OrderBy(m =>
+                                            ((m.Name.Contains("Fee-for-Service") || m.Name.Contains("Service Income")) ? 1 :
+                                            ((m.Name.Contains("Donor") && m.Name.Contains("Communication") && m.Name.Contains("Satisfaction")) ? 2 :
+                                            ((m.Name.Contains("Donor") && m.Name.Contains("Engagement")) ? 3 :
+                                            ((m.Name.Contains("General Income") || m.Name.Contains("Income Streams") || m.Name.Contains("Diversified Income")) ? 4 : 99)))))
+                                        .ThenBy(m => m.Name)
+                                    : goal.Metrics.AsEnumerable();
+
                                 <div class="mb-4">
                                     <h5 style="color:var(--onejax-white); margin-bottom:15px;">Key Metrics</h5>
-                                    <div class="row d-flex flex-wrap">
-                                        @foreach (var metric in goal.Metrics)
+                                    <div class="row g-3">
+                                        @foreach (var metric in orderedMetrics)
                                         {
                                             @* Different visual styles based on metric type and goal *@
                                             @if (goal.Name == "Community Engagement" && metric.Name.Contains("Satisfaction"))
@@ -856,8 +704,8 @@
                                             else if ((metric.Name.Contains("Staff Satisfaction") || metric.Name.Contains("satisfaction") || metric.Name.Contains("Staff Survey")) && (goal.Name.Contains("Organizational") || goal.Name.Contains("Building")))
                                             {
                                                 <!-- Enhanced Staff Satisfaction Card -->
-                                                <div class="col-md-6 mb-3 order-1">
-                                                    <div class="card" style="background: linear-gradient(135deg, #f8fafc, #f1f5f9); border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); position: relative; overflow: hidden; height: 350px; display: flex; flex-direction: column;">
+                                                <div class="col-md-6 mb-3 order-1 d-flex">
+                                                    <div class="card w-100" style="background: linear-gradient(135deg, #f8fafc, #f1f5f9); border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); position: relative; overflow: visible; min-height: 320px; height: 100%; display: flex; flex-direction: column;">
                                                         <!-- Header with gradient -->
                                                         <div class="card-header" style="background: linear-gradient(135deg, var(--onejax-blue), var(--onejax-navy)); color: white; border: none; border-radius: 16px 16px 0 0; padding: 1rem; flex-shrink: 0;">
                                                             <div class="d-flex justify-content-between align-items-center">
@@ -884,7 +732,7 @@
                                                             </div>
                                                         </div>
                                                         
-                                                        <div class="card-body" style="padding: 1.5rem; flex: 1; overflow: hidden;">
+                                                        <div class="card-body" style="padding: 1.5rem; flex: 1;">
                                                             <!-- Main satisfaction display with circle chart -->
                                                             <div class="row align-items-center">
                                                                 <div class="col-md-6">
@@ -1122,8 +970,8 @@
                                             else if ((metric.Name.Contains("Professional Development") || metric.Name.Contains("development")) && (goal.Name.Contains("Organizational") || goal.Name.Contains("Building")))
                                             {
                                                 <!-- Enhanced Professional Development Employee Participation Card -->
-                                                <div class="col-md-6 mb-3 order-2">
-                                                    <div class="card" style="background: linear-gradient(135deg, #fef7f0, #fef3ec); border: 1px solid #fed7aa; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); position: relative; overflow: hidden; height: 350px; display: flex; flex-direction: column;">
+                                                <div class="col-md-6 mb-3 order-2 d-flex">
+                                                    <div class="card w-100" style="background: linear-gradient(135deg, #fef7f0, #fef3ec); border: 1px solid #fed7aa; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); position: relative; overflow: hidden; min-height: 320px; height: 100%; display: flex; flex-direction: column;">
                                                         <!-- Header with gradient -->
                                                         <div class="card-header" style="background: linear-gradient(135deg, var(--onejax-orange), #ea580c); color: white; border: none; border-radius: 16px 16px 0 0; padding: 1rem; flex-shrink: 0;">
                                                             <div class="d-flex justify-content-between align-items-center">
@@ -1135,10 +983,10 @@
                                                                 </div>
                                                                 <div class="text-end">
                                                                     @{
-                                                                        // Calculate participation rate (assuming 8 activities means 8 employees participated out of 25 total staff)
+                                                                        // Calculate participation rate from metric value (employee participants)
                                                                         decimal totalStaff = 25; // This should be configurable
-                                                                        // Handle case when CurrentValue is 0 - no activities recorded
-                                                                        decimal participatedEmployees = metric.CurrentValue >= 8 ? 8 : (metric.CurrentValue > 0 ? metric.CurrentValue : 0);
+                                                                        // Clamp to valid range [0, totalStaff]
+                                                                        decimal participatedEmployees = Math.Max(0, Math.Min(metric.CurrentValue, totalStaff));
                                                                         decimal participationRate = totalStaff > 0 ? (participatedEmployees / totalStaff) * 100 : 0;
                                                                         bool hasData = metric.CurrentValue > 0;
                                                                     }
@@ -1733,10 +1581,10 @@
                                             else if ((metric.Name.Contains("Fee-for-Service") || metric.Name.Contains("Service Income")) && (goal.Name.Contains("Financial") || goal.Name.Contains("Sustainability")))
                                             {
                                                 <!-- Enhanced Fee-for-Service Income Card -->
-                                                <div class="col-md-6 mb-3">
-                                                    <div class="card" style="background: linear-gradient(135deg, #f8fafc, #f1f5f9); border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); position: relative; overflow: hidden; height: 350px; display: flex; flex-direction: column;">
+                                                <div class="col-md-6 mb-3 d-flex">
+                                                    <div class="card w-100" style="background: linear-gradient(135deg, #fffbeb, #f8fafc), repeating-linear-gradient(-45deg, rgba(245, 158, 11, 0.06) 0 8px, rgba(245, 158, 11, 0.02) 8px 16px); border: 1px solid #fcd34d; border-radius: 22px; box-shadow: 0 8px 20px rgba(217, 119, 6, 0.12); position: relative; overflow: hidden; min-height: 350px; height: 100%; display: flex; flex-direction: column;">
                                                         <!-- Header with professional gray styling -->
-                                                        <div class="card-header" style="background: linear-gradient(135deg, var(--onejax-blue), #6b7280); color: white; border: none; border-radius: 16px 16px 0 0; padding: 1rem; flex-shrink: 0;">
+                                                        <div class="card-header" style="background: linear-gradient(135deg, #d97706, #f59e0b); color: white; border: none; border-radius: 22px 22px 0 0; padding: 1rem; flex-shrink: 0;">
                                                             <div class="d-flex justify-content-between align-items-center">
                                                                 <div>
                                                                     <h6 class="mb-0" style="font-weight: 600; font-size: 1rem;">
@@ -1748,6 +1596,9 @@
                                                                     @{
                                                                         decimal serviceTarget = 75000; // Based on MetricsService
                                                                         bool hasServiceData = metric.CurrentValue > 0;
+                                                                        var serviceCount = (int)Math.Max(0, Math.Round(metric.Q1Value));
+                                                                        var totalAttendees = (int)Math.Max(0, Math.Round(metric.Q2Value));
+                                                                        var avgPerService = serviceCount > 0 ? metric.CurrentValue / serviceCount : 0;
                                                                     }
                                                                     @if (hasServiceData && metric.CurrentValue >= serviceTarget * 0.8m)
                                                                     {
@@ -1777,26 +1628,26 @@
                                                                 <div style="font-size: 2.5rem; font-weight: 700; color: #f59e0b; line-height: 1;">
                                                                     $@((metric.CurrentValue).ToString("N0"))
                                                                 </div>
-                                                                <small style="color: var(--onejax-text-muted); font-size: 0.9rem;">Service Revenue Earned</small>
+                                                                <small style="color: var(--onejax-text-muted); font-size: 0.9rem;">Net Revenue Earned</small>
                                                             </div>
                                                             
                                                             <!-- Service metrics -->
                                                             <div class="row mb-3">
                                                                 <div class="col-4">
                                                                     <div class="text-center p-2" style="background: rgba(245, 158, 11, 0.1); border-radius: 8px;">
-                                                                        <div style="font-size: 1.5rem; font-weight: 600; color: #f59e0b;">@(hasServiceData ? "12" : "0")</div>
+                                                                        <div style="font-size: 1.5rem; font-weight: 600; color: #f59e0b;">@serviceCount</div>
                                                                         <small style="color: var(--onejax-text-muted); font-size: 0.7rem;">Services</small>
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-4">
                                                                     <div class="text-center p-2" style="background: rgba(245, 158, 11, 0.1); border-radius: 8px;">
-                                                                        <div style="font-size: 1.5rem; font-weight: 600; color: #f59e0b;">@(hasServiceData ? "285" : "0")</div>
+                                                                        <div style="font-size: 1.5rem; font-weight: 600; color: #f59e0b;">@totalAttendees</div>
                                                                         <small style="color: var(--onejax-text-muted); font-size: 0.7rem;">Attendees</small>
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-4">
                                                                     <div class="text-center p-2" style="background: rgba(245, 158, 11, 0.1); border-radius: 8px;">
-                                                                        <div style="font-size: 1.5rem; font-weight: 600; color: #f59e0b;">@(hasServiceData ? "$" + Math.Round(metric.CurrentValue / 12, 0).ToString("N0") : "$0")</div>
+                                                                        <div style="font-size: 1.5rem; font-weight: 600; color: #f59e0b;">@(serviceCount > 0 ? "$" + Math.Round(avgPerService, 0).ToString("N0") : "$0")</div>
                                                                         <small style="color: var(--onejax-text-muted); font-size: 0.7rem;">Avg/Service</small>
                                                                     </div>
                                                                 </div>
@@ -1820,13 +1671,84 @@
                                                     </div>
                                                 </div>
                                             }
+                                            else if (metric.Name.Contains("Donor") && metric.Name.Contains("Communication") && metric.Name.Contains("Satisfaction") && (goal.Name.Contains("Financial") || goal.Name.Contains("Sustainability")))
+                                            {
+                                                <!-- Donor Communication Satisfaction Card -->
+                                                <div class="col-md-6 mb-3 d-flex">
+                                                    <div class="card w-100" style="background: linear-gradient(160deg, #eff6ff, #f8fafc); border: 1px solid #93c5fd; border-left: 6px solid #1d4ed8; border-radius: 26px; box-shadow: 0 10px 22px rgba(29, 78, 216, 0.12); position: relative; overflow: visible; min-height: 350px; height: 100%; display: flex; flex-direction: column;">
+                                                        <div class="card-header" style="background: linear-gradient(135deg, #1e3a8a, #2563eb); color: white; border: none; border-radius: 26px 26px 0 0; padding: 1rem;">
+                                                            <div class="d-flex justify-content-between align-items-center">
+                                                                <div>
+                                                                    <h6 class="mb-0" style="font-weight: 600; font-size: 1rem;">
+                                                                        <i class="fas fa-comments me-2"></i>Donor Communication Satisfaction
+                                                                    </h6>
+                                                                    <small style="opacity: 0.9;">Annual donor satisfaction with communications</small>
+                                                                </div>
+                                                                <div class="text-end">
+                                                                    @if (metric.ProgressPercentage >= 100)
+                                                                    {
+                                                                        <span class="badge" style="background: #10b981; font-size: 0.75rem;">
+                                                                            <i class="fas fa-check-circle"></i> Target Met
+                                                                        </span>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <span class="badge" style="background: #f59e0b; font-size: 0.75rem;">
+                                                                            <i class="fas fa-clock"></i> In Progress
+                                                                        </span>
+                                                                    }
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="card-body" style="padding: 1.5rem; flex: 1;">
+                                                            <div class="text-center mb-3">
+                                                                <div style="font-size: 3rem; font-weight: 700; color: #1f2937; line-height: 1;">
+                                                                    @Math.Round(metric.CurrentValue, 1)<span style="font-size: 1.5rem;">%</span>
+                                                                </div>
+                                                                <small style="color: var(--onejax-text-muted); font-weight: 500;">Current Satisfaction</small>
+                                                            </div>
+
+                                                            <div class="mb-3 p-3" style="background: rgba(55, 65, 81, 0.06); border-radius: 10px;">
+                                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                                    <small style="color: var(--onejax-text-muted);">Progress to Target</small>
+                                                                    <small style="color: #1f2937; font-weight: 600;">@Math.Round(metric.ProgressPercentage, 1)%</small>
+                                                                </div>
+                                                                <div class="progress" style="height: 10px; border-radius: 6px; background: rgba(107, 114, 128, 0.2);">
+                                                                    <div class="progress-bar" style="width: @Math.Min(metric.ProgressPercentage, 100)%; background: linear-gradient(90deg, #6b7280, #374151); border-radius: 6px;" role="progressbar"></div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="row g-2">
+                                                                <div class="col-6">
+                                                                    <div class="p-3 text-center" style="background: rgba(14, 165, 233, 0.08); border-radius: 10px;">
+                                                                        <div style="font-size: 1.3rem; font-weight: 700; color: #1f2937;">@metric.Target%</div>
+                                                                        <small style="color: var(--onejax-text-muted);">Target Score</small>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-6">
+                                                                    <div class="p-3 text-center" style="background: rgba(16, 185, 129, 0.08); border-radius: 10px;">
+                                                                        <div style="font-size: 1.1rem; font-weight: 700; color: #1f2937;">@metric.TargetDate.ToString("MMM yyyy")</div>
+                                                                        <small style="color: var(--onejax-text-muted);">Target Date</small>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                                                <small style="color: var(--onejax-text-muted);">Status</small>
+                                                                <span class="badge @(metric.Status == "Active" ? "bg-success" : "bg-secondary")">@metric.Status</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
                                             else if ((metric.Name.Contains("Donor") && metric.Name.Contains("Engagement")) && (goal.Name.Contains("Financial") || goal.Name.Contains("Sustainability")))
                                             {
                                                 <!-- Enhanced Donor Engagement Events Card -->
                                                 <div class="col-md-12 mb-3">
-                                                    <div class="card" style="background: linear-gradient(135deg, #f8fafc, #f1f5f9); border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); position: relative; overflow: hidden;">
+                                                    <div class="card" style="background: radial-gradient(circle at 85% 15%, rgba(14, 165, 233, 0.12), transparent 45%), linear-gradient(135deg, #f8fafc, #ecfeff); border: 1px solid #99f6e4; border-radius: 14px 30px 14px 30px; box-shadow: 0 10px 24px rgba(15, 118, 110, 0.10); position: relative; overflow: hidden;">
                                                         <!-- Header with professional gray styling -->
-                                                        <div class="card-header" style="background: linear-gradient(135deg, #6b7280, #374151); color: white; border: none; border-radius: 16px 16px 0 0; padding: 1.25rem;">
+                                                        <div class="card-header" style="background: linear-gradient(135deg, #0f766e, #0ea5e9); color: white; border: none; border-radius: 14px 30px 0 0; padding: 1.25rem;">
                                                             <div class="d-flex justify-content-between align-items-center">
                                                                 <div>
                                                                     <h6 class="mb-0" style="font-weight: 600; font-size: 1.1rem;">
@@ -1838,6 +1760,8 @@
                                                                     @{
                                                                         decimal donorTarget = 200; // Based on participants target
                                                                         bool hasDonorData = metric.CurrentValue > 0;
+                                                                        var donorEventCount = (int)Math.Max(0, Math.Round(metric.Q1Value));
+                                                                        var donorSatisfactionRate = Math.Max(0, metric.Q2Value);
                                                                     }
                                                                     @if (hasDonorData && metric.CurrentValue >= donorTarget * 0.9m)
                                                                     {
@@ -1874,29 +1798,31 @@
                                                                 </div>
                                                                 <div class="col-md-3">
                                                                     <div class="text-center">
-                                                                        <div style="font-size: 2rem; font-weight: 600; color: #374151;">@(hasDonorData ? "3" : "0")</div>
+                                                                        <div style="font-size: 2rem; font-weight: 600; color: #374151;">@donorEventCount</div>
                                                                         <small style="color: var(--onejax-text-muted); font-weight: 500;">Events Hosted</small>
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-md-3">
                                                                     <div class="text-center">
-                                                                        <div style="font-size: 2rem; font-weight: 600; color: #374151;">@(hasDonorData ? Math.Round(metric.CurrentValue / 3, 0) : 0)</div>
+                                                                        <div style="font-size: 2rem; font-weight: 600; color: #374151;">
+                                                                            @(donorEventCount > 0 ? Math.Round(metric.CurrentValue / donorEventCount, 0) : 0)
+                                                                        </div>
                                                                         <small style="color: var(--onejax-text-muted); font-weight: 500;">Avg Attendance</small>
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-md-3">
                                                                     <div class="text-center">
-                                                                        <div style="font-size: 2rem; font-weight: 600; color: #374151;">@(hasDonorData ? "87%" : "0%")</div>
+                                                                        <div style="font-size: 2rem; font-weight: 600; color: #374151;">@(donorEventCount > 0 ? $"{Math.Round(donorSatisfactionRate, 1)}%" : "0%")</div>
                                                                         <small style="color: var(--onejax-text-muted); font-weight: 500;">Satisfaction Rate</small>
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                             
-                                                            <!-- Quarterly progress visualization -->
+                                                            <!-- Event-by-event growth visualization -->
                                                             <div class="mb-4">
                                                                 <div class="d-flex justify-content-between align-items-center mb-3">
-                                                                    <h6 style="color: #6b7280; font-weight: 600; margin: 0;">Quarterly Event Schedule</h6>
-                                                                    <small style="color: var(--onejax-text-muted);">Target: 3 events annually</small>
+                                                                    <h6 style="color: #6b7280; font-weight: 600; margin: 0;">Event-by-Event Engagement Growth</h6>
+                                                                    <small style="color: var(--onejax-text-muted);">Target: 3 events/year, +10% per event</small>
                                                                 </div>
                                                                 
                                                                 <div style="height: 150px; position: relative;">
@@ -1929,38 +1855,91 @@
                                                         if (donorCtx) {
                                                             const hasData = @hasDonorData.ToString().ToLower();
                                                             
-                                                            // Sample quarterly data
-                                                            const quarterlyData = hasData ? {
-                                                                participants: [@(hasDonorData ? Math.Round((double)metric.CurrentValue * 0.3, 0) : 0), @(hasDonorData ? Math.Round((double)metric.CurrentValue * 0.35, 0) : 0), @(hasDonorData ? Math.Round((double)metric.CurrentValue * 0.2, 0) : 0), @(hasDonorData ? Math.Round((double)metric.CurrentValue * 0.15, 0) : 0)],
-                                                                events: [@(hasDonorData ? "1" : "0"), @(hasDonorData ? "1" : "0"), @(hasDonorData ? "1" : "0"), @(hasDonorData ? "0" : "0")]
-                                                            } : {
-                                                                participants: [0, 0, 0, 0],
-                                                                events: [0, 0, 0, 0]
-                                                            };
+                                                            // Goal model: 3 events annually and +10% engagement per event.
+                                                            const engagementIndex = hasData ? [100, 110, 121] : [0, 0, 0];
+                                                            const recordedEventCount = @donorEventCount;
+                                                            const eventsHosted = hasData ? [
+                                                                recordedEventCount >= 1 ? 1 : 0,
+                                                                recordedEventCount >= 2 ? 1 : 0,
+                                                                recordedEventCount >= 3 ? 1 : 0
+                                                            ] : [0, 0, 0];
                                                             
                                                             new Chart(donorCtx, {
                                                                 type: 'bar',
                                                                 data: {
-                                                                    labels: ['Q1', 'Q2', 'Q3', 'Q4'],
-                                                                    datasets: [{
-                                                                        label: 'Participants',
-                                                                        data: quarterlyData.participants,
-                                                                        backgroundColor: '#0ea5e9',
-                                                                        borderColor: '#0284c7',
-                                                                        borderWidth: 1,
-                                                                        borderRadius: 4
-                                                                    }]
+                                                                    labels: ['Event 1', 'Event 2', 'Event 3'],
+                                                                    datasets: [
+                                                                        {
+                                                                            type: 'bar',
+                                                                            label: 'Events Hosted',
+                                                                            data: eventsHosted,
+                                                                            backgroundColor: 'rgba(14, 165, 233, 0.25)',
+                                                                            borderColor: '#0284c7',
+                                                                            borderWidth: 1,
+                                                                            borderRadius: 4,
+                                                                            yAxisID: 'yEvents'
+                                                                        },
+                                                                        {
+                                                                            type: 'line',
+                                                                            label: 'Engagement Index (Event 1 = 100)',
+                                                                            data: engagementIndex,
+                                                                            borderColor: '#0f766e',
+                                                                            backgroundColor: '#0f766e',
+                                                                            pointBackgroundColor: '#0f766e',
+                                                                            pointRadius: 4,
+                                                                            pointHoverRadius: 5,
+                                                                            borderWidth: 3,
+                                                                            tension: 0.3,
+                                                                            yAxisID: 'yEngagement'
+                                                                        }
+                                                                    ]
                                                                 },
                                                                 options: {
                                                                     responsive: true,
                                                                     maintainAspectRatio: false,
                                                                     plugins: {
-                                                                        legend: { display: false }
+                                                                        legend: {
+                                                                            display: true,
+                                                                            position: 'bottom'
+                                                                        },
+                                                                        tooltip: {
+                                                                            callbacks: {
+                                                                                label: function(context) {
+                                                                                    if (context.dataset.yAxisID === 'yEngagement') {
+                                                                                        return context.dataset.label + ': ' + context.parsed.y + '%';
+                                                                                    }
+                                                                                    return context.dataset.label + ': ' + context.parsed.y;
+                                                                                }
+                                                                            }
+                                                                        }
                                                                     },
                                                                     scales: {
-                                                                        y: {
+                                                                        yEvents: {
+                                                                            type: 'linear',
+                                                                            position: 'left',
                                                                             beginAtZero: true,
+                                                                            max: 1.5,
+                                                                            ticks: {
+                                                                                stepSize: 1,
+                                                                                color: '#64748b'
+                                                                            },
+                                                                            title: {
+                                                                                display: true,
+                                                                                text: 'Events'
+                                                                            },
+                                                                            grid: { display: false }
+                                                                        },
+                                                                        yEngagement: {
+                                                                            type: 'linear',
+                                                                            position: 'right',
+                                                                            beginAtZero: false,
+                                                                            min: hasData ? 90 : 0,
+                                                                            max: hasData ? 130 : 10,
                                                                             ticks: { color: '#64748b' },
+                                                                            title: {
+                                                                                display: true,
+                                                                                text: 'Engagement Index (%)'
+                                                                            },
                                                                             grid: { color: 'rgba(148, 163, 184, 0.2)' }
                                                                         },
                                                                         x: {
@@ -1978,9 +1957,9 @@
                                             {
                                                 <!-- Enhanced General Income Streams Card -->
                                                 <div class="col-md-12 mb-3">
-                                                    <div class="card" style="background: linear-gradient(135deg, #f8fafc, #f1f5f9); border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); position: relative; overflow: hidden;">
+                                                    <div class="card" style="background: linear-gradient(150deg, #fefce8, #f8fafc); border: 1px solid #eab308; border-radius: 28px 12px 28px 12px; box-shadow: 0 10px 22px rgba(161, 98, 7, 0.12); position: relative; overflow: hidden;">
                                                         <!-- Header with blue accent -->
-                                                        <div class="card-header" style="background: linear-gradient(135deg, var(--onejax-blue), #6b7280); color: white; border: none; border-radius: 16px 16px 0 0; padding: 1.25rem;">
+                                                        <div class="card-header" style="background: linear-gradient(135deg, #a16207, #ca8a04); color: white; border: none; border-radius: 28px 12px 0 0; padding: 1.25rem;">
                                                             <div class="d-flex justify-content-between align-items-center">
                                                                 <div>
                                                                     <h6 class="mb-0" style="font-weight: 600; font-size: 1.1rem;">
@@ -1992,6 +1971,7 @@
                                                                     @{
                                                                         decimal incomeTarget = 500000; // Based on comprehensive income tracking
                                                                         bool hasIncomeData = metric.CurrentValue > 0;
+                                                                        var incomeSourceCount = (int)Math.Max(0, Math.Round(metric.Q1Value));
                                                                     }
                                                                     @if (hasIncomeData && metric.CurrentValue >= incomeTarget * 0.85m)
                                                                     {
@@ -2035,104 +2015,72 @@
                                                                     </div>
                                                                 </div>
                                                                 
-                                                                <!-- Income stream breakdown -->
+                                                                <!-- Real data summary -->
                                                                 <div class="col-md-8">
                                                                     <h6 style="color: #6b7280; font-weight: 600; margin-bottom: 1.5rem;">
-                                                                        <i class="fas fa-stream me-2"></i>Income Stream Breakdown
+                                                                        <i class="fas fa-database me-2"></i>Income Data Summary
                                                                     </h6>
                                                                     
                                                                     <div class="row">
-                                                                        <!-- Corporate Giving -->
                                                                         <div class="col-md-6 mb-3">
                                                                             <div class="d-flex justify-content-between align-items-center p-3" style="background: rgba(75, 180, 200, 0.05); border-left: 4px solid var(--onejax-blue); border-radius: 0 8px 8px 0;">
                                                                                 <div>
-                                                                                    <div style="font-weight: 600; color: #6b7280;">Corporate Giving</div>
-                                                                                    <small style="color: var(--onejax-text-muted);">Business partnerships</small>
+                                                                                    <div style="font-weight: 600; color: #6b7280;">Income Entries</div>
+                                                                                    <small style="color: var(--onejax-text-muted);">Records from Income form</small>
                                                                                 </div>
                                                                                 <div class="text-end">
                                                                                     <div style="font-weight: 700; color: #374151; font-size: 1.1rem;">
-                                                                                        $@(hasIncomeData ? Math.Round((double)metric.CurrentValue * 0.25, 0).ToString("N0") : "0")
+                                                                                        @incomeSourceCount
                                                                                     </div>
-                                                                                    <small style="color: var(--onejax-text-muted);">25%</small>
+                                                                                    <small style="color: var(--onejax-text-muted);">entries</small>
                                                                                 </div>
                                                                             </div>
                                                                         </div>
                                                                         
-                                                                        <!-- Individual Giving -->
                                                                         <div class="col-md-6 mb-3">
                                                                             <div class="d-flex justify-content-between align-items-center p-3" style="background: rgba(75, 180, 200, 0.05); border-left: 4px solid var(--onejax-blue); border-radius: 0 8px 8px 0;">
                                                                                 <div>
-                                                                                    <div style="font-weight: 600; color: #6b7280;">Individual Giving</div>
-                                                                                    <small style="color: var(--onejax-text-muted);">Personal donations</small>
+                                                                                    <div style="font-weight: 600; color: #6b7280;">Average Per Entry</div>
+                                                                                    <small style="color: var(--onejax-text-muted);">Total income / entry count</small>
                                                                                 </div>
                                                                                 <div class="text-end">
                                                                                     <div style="font-weight: 700; color: #374151; font-size: 1.1rem;">
-                                                                                        $@(hasIncomeData ? Math.Round((double)metric.CurrentValue * 0.35, 0).ToString("N0") : "0")
+                                                                                        @(incomeSourceCount > 0 ? "$" + Math.Round(metric.CurrentValue / incomeSourceCount, 0).ToString("N0") : "$0")
                                                                                     </div>
-                                                                                    <small style="color: var(--onejax-text-muted);">35%</small>
+                                                                                    <small style="color: var(--onejax-text-muted);">per entry</small>
                                                                                 </div>
                                                                             </div>
                                                                         </div>
                                                                         
-                                                                        <!-- Grants & Foundations -->
                                                                         <div class="col-md-6 mb-3">
                                                                             <div class="d-flex justify-content-between align-items-center p-3" style="background: rgba(107, 114, 128, 0.05); border-left: 4px solid #d1d5db; border-radius: 0 8px 8px 0;">
                                                                                 <div>
-                                                                                    <div style="font-weight: 600; color: #6b7280;">Grants & Foundations</div>
-                                                                                    <small style="color: var(--onejax-text-muted);">Institutional funding</small>
+                                                                                    <div style="font-weight: 600; color: #6b7280;">Data Status</div>
+                                                                                    <small style="color: var(--onejax-text-muted);">Current availability</small>
                                                                                 </div>
                                                                                 <div class="text-end">
                                                                                     <div style="font-weight: 700; color: #374151; font-size: 1.1rem;">
-                                                                                        $@(hasIncomeData ? Math.Round((double)metric.CurrentValue * 0.20, 0).ToString("N0") : "0")
+                                                                                        @(hasIncomeData ? "Active" : "Planning")
                                                                                     </div>
-                                                                                    <small style="color: var(--onejax-text-muted);">20%</small>
+                                                                                    <small style="color: var(--onejax-text-muted);">from forms</small>
                                                                                 </div>
                                                                             </div>
                                                                         </div>
                                                                         
-                                                                        <!-- Community Events -->
                                                                         <div class="col-md-6 mb-3">
                                                                             <div class="d-flex justify-content-between align-items-center p-3" style="background: rgba(107, 114, 128, 0.05); border-left: 4px solid #e5e7eb; border-radius: 0 8px 8px 0;">
                                                                                 <div>
-                                                                                    <div style="font-weight: 600; color: #6b7280;">Community Events</div>
-                                                                                    <small style="color: var(--onejax-text-muted);">Fundraising events</small>
+                                                                                    <div style="font-weight: 600; color: #6b7280;">Target Remaining</div>
+                                                                                    <small style="color: var(--onejax-text-muted);">To annual target</small>
                                                                                 </div>
                                                                                 <div class="text-end">
                                                                                     <div style="font-weight: 700; color: #374151; font-size: 1.1rem;">
-                                                                                        $@(hasIncomeData ? Math.Round((double)metric.CurrentValue * 0.20, 0).ToString("N0") : "0")
+                                                                                        $@Math.Max(incomeTarget - metric.CurrentValue, 0).ToString("N0")
                                                                                     </div>
-                                                                                    <small style="color: var(--onejax-text-muted);">20%</small>
+                                                                                    <small style="color: var(--onejax-text-muted);">remaining</small>
                                                                                 </div>
                                                                             </div>
                                                                         </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            
-                                                            <!-- Performance indicators -->
-                                                            <div class="row mt-4 pt-3" style="border-top: 1px solid rgba(139, 92, 246, 0.2);">
-                                                                <div class="col-md-3">
-                                                                    <div class="text-center p-3" style="background: rgba(107, 114, 128, 0.05); border-radius: 8px;">
-                                                                        <div style="font-size: 1.5rem; font-weight: 600; color: #374151;">@(hasIncomeData ? "4" : "0")</div>
-                                                                        <small style="color: var(--onejax-text-muted); font-weight: 500;">Active Streams</small>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-md-3">
-                                                                    <div class="text-center p-3" style="background: rgba(107, 114, 128, 0.05); border-radius: 8px;">
-                                                                        <div style="font-size: 1.5rem; font-weight: 600; color: #374151;">@(hasIncomeData ? "95%" : "0%")</div>
-                                                                        <small style="color: var(--onejax-text-muted); font-weight: 500;">Reliability Score</small>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-md-3">
-                                                                    <div class="text-center p-3" style="background: rgba(107, 114, 128, 0.05); border-radius: 8px;">
-                                                                        <div style="font-size: 1.5rem; font-weight: 600; color: #374151;">@(hasIncomeData ? "+12%" : "0%")</div>
-                                                                        <small style="color: var(--onejax-text-muted); font-weight: 500;">YoY Growth</small>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-md-3">
-                                                                    <div class="text-center p-3" style="background: rgba(107, 114, 128, 0.05); border-radius: 8px;">
-                                                                        <div style="font-size: 1.5rem; font-weight: 600; color: #374151;">@(hasIncomeData ? "$" + Math.Round((double)metric.CurrentValue / 4, 0).ToString("N0") : "$0")</div>
-                                                                        <small style="color: var(--onejax-text-muted); font-weight: 500;">Avg per Stream</small>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -2143,15 +2091,28 @@
                                             else if (metric.Name.Contains("Media Placements") || 
                                                      metric.Name.Contains("Key Plan Milestones") || 
                                                      metric.Name.Contains("Content calendar") ||
-                                                     metric.Name.Contains("brand messaging"))
+                                                     metric.Name.Contains("brand messaging") ||
+                                                     metric.Name.Contains("Budget Variance", StringComparison.OrdinalIgnoreCase) ||
+                                                     metric.Description.Contains("Variance from annual budget", StringComparison.OrdinalIgnoreCase))
                                             {
                                                 // Skip these unwanted metrics - they don't have proper forms
                                             }
                                             else
                                             {
+                                                var financialDefaultCardStyle = "background:var(--onejax-white); border-radius:12px; border-left: 5px solid var(--onejax-orange);";
+                                                if (isFinancialGoal)
+                                                {
+                                                    var styleVariant = metric.Id % 3;
+                                                    financialDefaultCardStyle = styleVariant == 0
+                                                        ? "background: linear-gradient(145deg, #f8fafc, #eef2ff); border: 1px solid #c7d2fe; border-radius: 20px 10px 20px 10px; border-left: 6px solid #4f46e5; box-shadow: 0 8px 18px rgba(79, 70, 229, 0.10);"
+                                                        : styleVariant == 1
+                                                            ? "background: linear-gradient(145deg, #fffbeb, #fef3c7); border: 1px solid #fcd34d; border-radius: 10px 20px 10px 20px; border-left: 6px solid #d97706; box-shadow: 0 8px 18px rgba(217, 119, 6, 0.10);"
+                                                            : "background: linear-gradient(145deg, #ecfeff, #f0fdfa); border: 1px solid #99f6e4; border-radius: 18px; border-left: 6px solid #0f766e; box-shadow: 0 8px 18px rgba(15, 118, 110, 0.10);";
+                                                }
+
                                                 <!-- Default Progress Bar Style -->
-                                                <div class="col-md-6 mb-3">
-                                                    <div class="card" style="background:var(--onejax-white); border-radius:12px; border-left: 5px solid var(--onejax-orange);">
+                                                <div class="@(isFinancialGoal ? "col-md-12" : "col-md-6") mb-3">
+                                                    <div class="card" style="@financialDefaultCardStyle">
                                                         <div class="card-body">
                                                             <h6 class="card-title" style="color:var(--onejax-navy);">@metric.Name</h6>
                                                             <p class="card-text" style="color:var(--onejax-navy); font-size:0.9em;">@metric.Description</p>
@@ -2830,6 +2791,16 @@ function initializeTabs() {
     console.log('Tab initialization complete');
 }
 
+function getVisibleGoalSection() {
+    const sections = document.querySelectorAll('.goal-section');
+    for (const section of sections) {
+        if (window.getComputedStyle(section).display !== 'none') {
+            return section;
+        }
+    }
+    return null;
+}
+
 function switchTab(goalName, clickedTab) {
     console.log('Switching to tab:', goalName); // Debug log
     
@@ -2901,17 +2872,41 @@ function switchTab(goalName, clickedTab) {
 }
 
 // Initialize progress bars for a specific section
+function getDisplayProgressWidth(targetWidth, minVisiblePercent = 4) {
+    const parsed = parseFloat(targetWidth);
+    if (!isFinite(parsed) || parsed <= 0) return '0%';
+    if (parsed < minVisiblePercent) return `${minVisiblePercent}%`;
+    return `${Math.min(parsed, 100)}%`;
+}
+
 function initializeProgressBars(container) {
     const progressBars = container.querySelectorAll('.progress-bar');
     progressBars.forEach(bar => {
-        const targetWidth = bar.style.width;
+        if (!bar.dataset.targetWidth) {
+            bar.dataset.targetWidth = bar.style.width || '0%';
+        }
+        const targetWidth = bar.dataset.targetWidth;
+        const displayWidth = getDisplayProgressWidth(targetWidth);
+        const numericTarget = parseFloat(targetWidth);
+        if (isFinite(numericTarget) && numericTarget > 0 && numericTarget < 4) {
+            bar.title = `${numericTarget.toFixed(1)}% progress`;
+        }
+        
+        // On subsequent tab switches, apply width immediately so bars stay visible.
+        if (bar.dataset.progressInitialized === 'true') {
+            bar.style.transition = 'width 0.35s cubic-bezier(0.4, 0, 0.2, 1)';
+            bar.style.width = displayWidth;
+            return;
+        }
+
+        // First render: animate from zero.
         bar.style.width = '0%';
         bar.style.transition = 'none';
-        
         setTimeout(() => {
-            bar.style.transition = 'width 1s cubic-bezier(0.4, 0, 0.2, 1)';
-            bar.style.width = targetWidth;
-        }, 100);
+            bar.style.transition = 'width 0.9s cubic-bezier(0.4, 0, 0.2, 1)';
+            bar.style.width = displayWidth;
+            bar.dataset.progressInitialized = 'true';
+        }, 80);
     });
 }
 
@@ -2966,6 +2961,12 @@ function editMetric(metricId) {
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize tabs first - ensure all tabs are visible after page load
     initializeTabs();
+    
+    // Ensure progress bars render immediately on first load for visible section
+    const visibleSection = getVisibleGoalSection();
+    if (visibleSection && typeof initializeProgressBars === 'function') {
+        initializeProgressBars(visibleSection);
+    }
     
     // Initialize charts first
     initializeDashboardCharts();
@@ -3045,36 +3046,19 @@ document.addEventListener('DOMContentLoaded', function() {
 window.addEventListener('load', function() {
     setTimeout(() => {
         initializeTabs();
+        const visibleSection = getVisibleGoalSection();
+        if (visibleSection && typeof initializeProgressBars === 'function') {
+            initializeProgressBars(visibleSection);
+        }
         console.log('Window load backup tab initialization completed');
     }, 200);
 });
 
 // Enhanced Progress Bar Animation
 function initializeAnimations() {
-    const progressBars = document.querySelectorAll('.progress-bar');
-    const observerOptions = {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
-    };
-    
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const progressBar = entry.target;
-                const targetWidth = progressBar.style.width;
-                progressBar.style.width = '0%';
-                
-                setTimeout(() => {
-                    progressBar.style.width = targetWidth;
-                    progressBar.style.transition = 'width 2s cubic-bezier(0.4, 0, 0.2, 1)';
-                }, 200);
-                
-                observer.unobserve(progressBar);
-            }
-        });
-    }, observerOptions);
-    
-    progressBars.forEach(bar => observer.observe(bar));
+    // Use a single progress initializer path to avoid race conditions
+    // between tab switching and observer-triggered resets.
+    initializeProgressBars(document);
 }
 
 function showDataRefresh() {

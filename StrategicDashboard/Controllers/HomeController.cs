@@ -61,11 +61,9 @@ public class HomeController : Controller
 
     private DashboardViewModel ApplyFilters(DashboardViewModel dashboard, string status, string time, string goal, string fiscalYear, string quarter)
     {
-        // Filter goals if specific goal is requested
-        if (!string.IsNullOrEmpty(goal))
-        {
-            dashboard.StrategicGoals = dashboard.StrategicGoals.Where(g => g.Name == goal).ToList();
-        }
+        // Do not filter StrategicGoals by `goal` query param.
+        // The selected tab is handled in the view/client, and filtering here causes
+        // a refresh to render only one tab.
 
         // Apply time-based filters
         var timeFilter = GetTimeFilter(time, fiscalYear, quarter);
@@ -948,21 +946,26 @@ public class HomeController : Controller
     {
         var nextId = goal.Metrics.Count + 2000;
 
-        // 1. Staff Surveys
+        // 1. Staff Satisfaction (from Staff Surveys form)
         var staffSurveys = await _context.StaffSurveys_22D.ToListAsync();
         var avgSatisfaction = staffSurveys.Any() ? staffSurveys.Average(s => s.SatisfactionRate) : 0;
         
-        AddOrUpdateMetric(goal, "Staff Survey Responses", "Employee feedback collection", 
-            staffSurveys.Count, "responses", "25", staffSurveys.Any() ? "Active" : "Planning",
-            staffSurveys.Any() ? $"{staffSurveys.Count} responses, {avgSatisfaction:F1}% avg satisfaction" : "No staff surveys yet - Go to Data Entry → Staff Surveys", nextId++);
+        AddOrUpdateMetric(goal, "Staff Satisfaction Rating", "Annual Team Satisfaction Survey", 
+            Math.Round((decimal)avgSatisfaction, 1), "%", "85", staffSurveys.Any() ? "Active" : "Planning",
+            staffSurveys.Any()
+                ? $"{staffSurveys.Count} staff surveys submitted, {avgSatisfaction:F1}% average satisfaction | Form: Data Entry → Staff Surveys"
+                : "No staff surveys yet - Go to Data Entry → Staff Surveys", nextId++);
 
-        // 2. Professional Development
+        // 2. Professional Development (employee participation + activity totals)
         var profDevs = await _context.ProfessionalDevelopments.ToListAsync();
         var totalDevelopment = profDevs.Sum(p => p.ProfessionalDevelopmentYear26 + p.ProfessionalDevelopmentYear27);
+        var participatingEmployees = profDevs.Count;
         
         AddOrUpdateMetric(goal, "Professional Development Plans", "Staff growth initiatives", 
-            profDevs.Count, "plans", "30", profDevs.Any() ? "Active" : "Planning",
-            profDevs.Any() ? $"{profDevs.Count} development plans, {totalDevelopment} total activities" : "No professional development yet - Go to Data Entry → Professional Development", nextId++);
+            participatingEmployees, "employees", "25", profDevs.Any() ? "Active" : "Planning",
+            profDevs.Any()
+                ? $"{participatingEmployees} employees participating, {totalDevelopment} total activities | Form: Data Entry → Professional Development"
+                : "No professional development yet - Go to Data Entry → Professional Development", nextId++);
 
         // 3. Board Member Recruitment
         var boardMembers = await _context.BoardMember_29D.ToListAsync();
@@ -1017,10 +1020,24 @@ public class HomeController : Controller
         // 2. Fee-for-Service Revenue
         var feeServices = await _context.FeeForServices_21D.ToListAsync();
         var totalFeeRevenue = feeServices.Sum(f => f.RevenueReceived);
+        var totalFeeExpenses = feeServices.Sum(f => f.ExpenseReceived);
+        var totalFeeNetRevenue = totalFeeRevenue - totalFeeExpenses;
+        var totalFeeServices = feeServices.Count;
+        var totalFeeAttendees = feeServices.Sum(f => f.NumberOfAttendees);
+        var avgRevenuePerService = totalFeeServices > 0 ? totalFeeNetRevenue / totalFeeServices : 0;
         
         AddOrUpdateMetric(goal, "Fee-for-Service Income", "Service-based revenue generation", 
-            totalFeeRevenue, "dollars", "75000", feeServices.Any() ? "Active" : "Planning",
-            feeServices.Any() ? $"Service revenue: ${totalFeeRevenue:N0} from {feeServices.Count} services" : "No fee-for-service data yet - Go to Data Entry → Fee for Services", nextId++);
+            totalFeeNetRevenue, "dollars", "75000", feeServices.Any() ? "Active" : "Planning",
+            feeServices.Any() ? $"Gross: ${totalFeeRevenue:N0}, Expenses: ${totalFeeExpenses:N0}, Net: ${totalFeeNetRevenue:N0} from {totalFeeServices} services, {totalFeeAttendees} attendees" : "No fee-for-service data yet - Go to Data Entry → Fee for Services", nextId++);
+
+        // Store supporting values for dashboard card display
+        var feeMetric = goal.Metrics.FirstOrDefault(m => m.Name == "Fee-for-Service Income");
+        if (feeMetric != null)
+        {
+            feeMetric.Q1Value = totalFeeServices;
+            feeMetric.Q2Value = totalFeeAttendees;
+            feeMetric.Q3Value = Math.Round(avgRevenuePerService, 2);
+        }
 
         // 3. Income Tracking
         var incomeData = await _context.income_27D.ToListAsync();
@@ -1030,6 +1047,12 @@ public class HomeController : Controller
             totalIncome, "dollars", "100000", incomeData.Any() ? "Active" : "Planning",
             incomeData.Any() ? $"Total income: ${totalIncome:N0} from {incomeData.Count} sources" : "No income data yet - Go to Data Entry → Income Tracking", nextId++);
 
+        var incomeMetric = goal.Metrics.FirstOrDefault(m => m.Name == "General Income Streams");
+        if (incomeMetric != null)
+        {
+            incomeMetric.Q1Value = incomeData.Count;
+        }
+
         // 4. Donor Events
         var donorEvents = await _context.DonorEvents_19D.ToListAsync();
         var totalParticipants = donorEvents.Sum(d => d.NumberOfParticipants);
@@ -1037,7 +1060,25 @@ public class HomeController : Controller
         
         AddOrUpdateMetric(goal, "Donor Engagement Events", "Fundraising event effectiveness", 
             totalParticipants, "participants", "200", donorEvents.Any() ? "Active" : "Planning",
-            donorEvents.Any() ? $"{totalParticipants} participants, {avgSatisfaction:F1}/5 avg satisfaction" : "No donor events yet - Go to Data Entry → Donor Events", nextId++);
+            donorEvents.Any() ? $"{donorEvents.Count} events, {totalParticipants} participants, {avgSatisfaction:F1}% avg satisfaction" : "No donor events yet - Go to Data Entry → Donor Events", nextId++);
+
+        // Store donor event count for dashboard card visualizations
+        var donorEngagementMetric = goal.Metrics.FirstOrDefault(m => m.Name == "Donor Engagement Events");
+        if (donorEngagementMetric != null)
+        {
+            donorEngagementMetric.Q1Value = donorEvents.Count;
+            donorEngagementMetric.Q2Value = Math.Round((decimal)avgSatisfaction, 1);
+        }
+
+        // 5. Donor Communication Satisfaction (from Communication Rate form)
+        var commRate = await _context.CommunicationRate.ToListAsync();
+        var avgCommSatisfaction = commRate.Any() ? commRate.Average(c => c.AverageCommunicationSatisfaction) : 0;
+
+        AddOrUpdateMetric(goal, "Donor Communication Satisfaction", "Annual donor satisfaction with communications",
+            Math.Round((decimal)avgCommSatisfaction, 1), "%", "85", commRate.Any() ? "Active" : "Planning",
+            commRate.Any()
+                ? $"{commRate.Count} communication entries, {avgCommSatisfaction:F1}% average satisfaction | Form: Data Entry → Communication Rate"
+                : "No communication rate data yet - Go to Data Entry → Communication Rate", nextId++);
     }
 
     private async Task AddCommunityMetricsAsync(StrategicGoal goal)
