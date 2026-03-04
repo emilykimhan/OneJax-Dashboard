@@ -2,153 +2,135 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "My Dashboard";
     var eventCount = ViewData["EventCount"] as int? ?? 0;
-    var activities = ViewData["RecentActivities"] as IEnumerable<OneJaxDashboard.Models.ActivityLogEntry> ?? Enumerable.Empty<OneJaxDashboard.Models.ActivityLogEntry>();
+    var completedCount = ViewData["CompletedCount"] as int? ?? 0;
+    var inProgressCount = ViewData["InProgressCount"] as int? ?? 0;
+    var recentActivities = ViewData["RecentActivities"] as List<OneJaxDashboard.Models.ActivityLogEntry> ?? new List<OneJaxDashboard.Models.ActivityLogEntry>();
 }
 
 @{
     var fullName = (ViewData["FullName"] as string) ?? string.Empty;
-    var email = (ViewData["Email"] as string) ?? string.Empty;
     var displayName = string.IsNullOrWhiteSpace(fullName) ? (User.Identity?.Name ?? "") : fullName;
 }
 
 <div class="row mb-4">
     <div class="col-md-12">
-        <h2 class="fw-bold" style="color:var(--onejax-navy);">
-            <i class="bi bi-speedometer2 me-2"></i>Welcome, @displayName
-        </h2>
-        @if (!string.IsNullOrWhiteSpace(email))
-        {
-            <p class="text-muted mb-1"><i class="bi bi-envelope me-1"></i>@email</p>
-        }
-        <p class="text-muted">Manage your events and track your activity</p>
+        <h2 class="fw-bold" style="color:var(--onejax-navy);">Staff Dashboard</h2>
+        <p class="text-muted">Welcome back, @displayName</p>
     </div>
 </div>
 
-<div class="row g-4 mb-4">
-    <div class="col-md-6 col-lg-4">
-        <div class="card shadow-sm border-0 h-100">
-            <div class="card-body d-flex flex-column">
-                <div class="d-flex align-items-center mb-3">
-                    <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
-                        <i class="bi bi-calendar-event-fill text-primary" style="font-size: 1.5rem;"></i>
-                    </div>
-                    <div>
-                        <h5 class="card-title mb-0">My Events</h5>
-                        <p class="text-muted small mb-0">Total events</p>
-                    </div>
-                </div>
-                <p class="display-4 fw-bold mb-3" style="color:var(--onejax-navy);">@eventCount</p>
-                <div class="mt-auto">
-                    <a href="/Events" class="btn btn-onejax w-100">
-                        <i class="bi bi-arrow-right-circle me-1"></i>View Events
-                    </a>
-                </div>
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card bg-primary bg-opacity-10 border-primary">
+            <div class="card-body text-center">
+                <h3 class="fw-bold text-primary">@eventCount</h3>
+                <p class="mb-0">Total Events</p>
             </div>
         </div>
     </div>
-    <div class="col-md-6 col-lg-4">
-        <div class="card shadow-sm border-0 h-100">
-            <div class="card-body d-flex flex-column">
-                <div class="d-flex align-items-center mb-3">
-                    <div class="rounded-circle bg-success bg-opacity-10 p-3 me-3">
-                        <i class="bi bi-person-circle text-success" style="font-size: 1.5rem;"></i>
-                    </div>
-                    <div>
-                        <h5 class="card-title mb-0">My Profile</h5>
-                        <p class="text-muted small mb-0">Personal information</p>
-                    </div>
-                </div>
-                <p class="text-muted mb-3">Edit your contact info and preferences</p>
-                <div class="mt-auto">
-                    <a href="/StaffPortal/Profile" class="btn btn-outline-primary w-100">
-                        <i class="bi bi-pencil-square me-1"></i>Edit Profile
-                    </a>
-                </div>
+    <div class="col-md-4">
+        <div class="card bg-warning bg-opacity-10 border-warning">
+            <div class="card-body text-center">
+                <h3 class="fw-bold text-warning">@inProgressCount</h3>
+                <p class="mb-0">In Progress</p>
             </div>
         </div>
     </div>
-    <div class="col-md-6 col-lg-4">
-        <div class="card shadow-sm border-0 h-100">
-            <div class="card-body d-flex flex-column">
-                <div class="d-flex align-items-center mb-3">
-                    <div class="rounded-circle bg-warning bg-opacity-10 p-3 me-3">
-                        <i class="bi bi-plus-circle-fill text-warning" style="font-size: 1.5rem;"></i>
-                    </div>
-                    <div>
-                        <h5 class="card-title mb-0">Quick Actions</h5>
-                        <p class="text-muted small mb-0">Get started</p>
-                    </div>
-                </div>
-                <p class="text-muted mb-3">Create a new strategic event</p>
-                <div class="mt-auto">
-                    <a href="/Events/Create" class="btn btn-warning w-100 text-dark">
-                        <i class="bi bi-plus-lg me-1"></i>New Event
-                    </a>
-                </div>
+    <div class="col-md-4">
+        <div class="card bg-success bg-opacity-10 border-success">
+            <div class="card-body text-center">
+                <h3 class="fw-bold text-success">@completedCount</h3>
+                <p class="mb-0">Completed Events</p>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Management Tiles -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <a href="/Events" class="text-decoration-none">
+            <div class="card shadow-sm border-0 h-100 hover-card">
+                <div class="card-body text-center p-4">
+                    <i class="bi bi-calendar-event display-4 text-primary mb-3"></i>
+                    <h5 class="fw-bold">My Events</h5>
+                    <p class="text-muted">View and manage your events</p>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-4">
+        <a href="/Events/Create" class="text-decoration-none">
+            <div class="card shadow-sm border-0 h-100 hover-card">
+                <div class="card-body text-center p-4">
+                    <i class="bi bi-plus-circle display-4 text-success mb-3"></i>
+                    <h5 class="fw-bold">Create Event</h5>
+                    <p class="text-muted">Add a new strategic event</p>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-4">
+        <a href="/StaffPortal/Profile" class="text-decoration-none">
+            <div class="card shadow-sm border-0 h-100 hover-card">
+                <div class="card-body text-center p-4">
+                    <i class="bi bi-person-circle display-4 text-info mb-3"></i>
+                    <h5 class="fw-bold">My Profile</h5>
+                    <p class="text-muted">Update your information</p>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- Recent Activity -->
 <div class="row">
-    <div class="col-12">
+    <div class="col-md-12">
         <div class="card shadow-sm border-0">
-            <div class="card-header bg-white border-bottom">
-                <div class="d-flex align-items-center">
-                    <i class="bi bi-clock-history me-2 text-primary" style="font-size: 1.25rem;"></i>
-                    <h5 class="mb-0 fw-bold">Recent Activity</h5>
-                </div>
+            <div class="card-header bg-white border-0 pt-3 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0">Recent Activity</h5>
+                @if (recentActivities.Any())
+                {
+                    <span class="badge bg-primary">@recentActivities.Count recent</span>
+                }
             </div>
             <div class="card-body">
-                @if (!activities.Any())
-                {
-                    <div class="text-center py-5">
-                        <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
-                        <p class="text-muted mt-3 mb-0">No recent activity yet.</p>
-                        <p class="text-muted small">Your actions will appear here</p>
-                    </div>
-                }
-                else
+                @if (recentActivities.Any())
                 {
                     <div class="list-group list-group-flush">
-                        @foreach (var a in activities)
+                        @foreach (var activity in recentActivities)
                         {
-                            <div class="list-group-item border-0 border-bottom px-0">
-                                <div class="d-flex w-100 justify-content-between align-items-start">
-                                    <div class="flex-grow-1">
-                                        <div class="d-flex align-items-center mb-1">
-                                            @if (a.Action.Contains("Created"))
-                                            {
-                                                <i class="bi bi-plus-circle-fill text-success me-2"></i>
-                                            }
-                                            else if (a.Action.Contains("Updated") || a.Action.Contains("Edited"))
-                                            {
-                                                <i class="bi bi-pencil-fill text-primary me-2"></i>
-                                            }
-                                            else if (a.Action.Contains("Deleted"))
-                                            {
-                                                <i class="bi bi-trash-fill text-danger me-2"></i>
-                                            }
-                                            else
-                                            {
-                                                <i class="bi bi-circle-fill text-secondary me-2" style="font-size: 0.5rem;"></i>
-                                            }
-                                            <strong class="mb-0">@a.Action</strong>
-                                        </div>
-                                        @if (!string.IsNullOrEmpty(a.Notes))
-                                        {
-                                            <p class="text-muted small mb-0 ms-4">@a.Notes</p>
-                                        }
+                            <div class="list-group-item px-0">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">
+                                            <span class="badge bg-secondary me-2">@activity.Username</span>
+                                            @activity.Action
+                                        </h6>
+                                        <small class="text-muted">@(activity.Notes ?? "—")</small>
                                     </div>
-                                    <small class="text-muted ms-3">
-                                        <i class="bi bi-clock me-1"></i>@a.Timestamp.ToLocalTime().ToString("g")
-                                    </small>
+                                    <small class="text-muted">@activity.Timestamp.ToString("MM/dd/yyyy hh:mm tt")</small>
                                 </div>
                             </div>
                         }
                     </div>
                 }
+                else
+                {
+                    <p class="text-muted text-center mb-0">No recent activities</p>
+                }
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .hover-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .hover-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    }
+</style>

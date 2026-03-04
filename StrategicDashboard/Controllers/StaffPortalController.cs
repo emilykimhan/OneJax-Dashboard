@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using OneJaxDashboard.Services;
 using OneJaxDashboard.Models;
 using OneJaxDashboard.Data;
+using System.Security.Claims;
 //Talijah might delete
 namespace OneJaxDashboard.Controllers
 {
@@ -71,7 +72,8 @@ namespace OneJaxDashboard.Controllers
             
                 _db.SaveChanges();
             }
-            _activityLog.Log(username, "Updated Profile", "Profile", null, notes: $"Name={model.Name}; Email={model.Email}");
+            var staffName = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value ?? staff?.Name ?? username;
+            _activityLog.Log(staffName, "Updated Profile", "Profile", null, notes: $"Name={model.Name}; Email={model.Email}");
             TempData["SuccessMessage"] = "Profile updated.";
             return RedirectToAction("Profile");
         }
@@ -109,7 +111,9 @@ namespace OneJaxDashboard.Controllers
             staff.Password = model.NewPassword;
             _db.SaveChanges();
 
-            _activityLog.Log(username, "Changed Password", "Security", null, notes: "Password updated successfully");
+            var staffName = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value ?? staff?.Name ?? username;
+            _activityLog.Log(staffName, "Changed Password", "Security", null, notes: "Password updated successfully");
+            
             TempData["SuccessMessage"] = "Password changed successfully.";
             return RedirectToAction("Profile");
         }

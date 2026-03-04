@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using OneJaxDashboard.Services;
 using OneJaxDashboard.Models;
 using OneJaxDashboard.Data;
+using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml.Drawing.Chart;
 
 
 namespace OneJaxDashboard.Controllers
@@ -28,45 +30,27 @@ namespace OneJaxDashboard.Controllers
         public IActionResult Index()
         {
             var staffCount = _db.Staffauth.Count();
-            var totalEvents = _eventsService.GetAll().Count();
-            var assignedEvents = _eventsService.GetAll().Count(e => e.IsAssignedByAdmin);
-            var archivedEvents = _eventsService.GetArchived().Count();
+            
+            // Get all events (active and completed)
+            //var allEvents = _db.Events
+            //    .Include(e => e.AssignedStaff)
+             //   .Where(e => !e.IsArchived)
+            //    .ToList()
+            //    .Where(e => e.StrategyTemplateId.HasValue && _strategyService.GetStrategy(e.StrategyTemplateId.Value) != null)
+            //    .ToList();
 
-            ViewData["StaffCount"] = staffCount;
-            ViewData["TotalEvents"] = totalEvents;
-            ViewData["AssignedEvents"] = assignedEvents;
-            ViewData["ArchivedEvents"] = archivedEvents;
+            //var eventCount = allEvents.Count;
 
-            // Get all activity log entries from all staff
-            var allEntries = _activityLog.GetAllEntries().OrderByDescending(e => e.Timestamp).Take(15).ToList();
-            var activityLogData = allEntries
-                .Select(e => (e.Username, e.Action, e.EntityType, e.EntityId, e.Timestamp, e.Notes))
+            // Get recent activity log entries (last 10)
+            var recentActivities = _activityLog.GetAllEntries()
+                .OrderByDescending(a => a.Timestamp)
+                .Take(10)
                 .ToList();
-            ViewData["ActivityLog"] = activityLogData;
 
-            // Get event tracking data - recent activity on assigned events (only active ones)
-            var assignedEventsList = _eventsService.GetAll().Where(e => e.IsAssignedByAdmin).ToList();
-            var eventTrackingData = new List<(int EventId, string EventTitle, string CurrentStatus, List<(string Action, string? Notes, DateTime Timestamp)> History)>();
-            
-            foreach (var evt in assignedEventsList)
-            {
-                var eventActivityEntries = _activityLog.GetEntriesByEntityId("Event", evt.Id)
-                    .OrderByDescending(e => e.Timestamp)
-                    .ToList();
-                
-                var history = eventActivityEntries
-                    .Select(e => (e.Action, e.Notes, e.Timestamp))
-                    .ToList();
-                
-                eventTrackingData.Add((
-                    evt.Id,
-                    evt.Title,
-                    evt.Status,
-                    history
-                ));
-            }
-            
-            ViewData["EventTrackingLog"] = eventTrackingData;
+            // Pass data to view
+            ViewData["StaffCount"] = staffCount;
+           // ViewData["EventCount"] = eventCount;
+            ViewData["RecentActivities"] = recentActivities;
 
             return View();
         }
@@ -74,18 +58,44 @@ namespace OneJaxDashboard.Controllers
         // GET: /Admin/ManageEvents
         public IActionResult ManageEvents()
         {
-            var activeEvents = _eventsService.GetAll()
+            // Get all non-archived events
+            var allEvents = _db.Events
+                .Include(e => e.AssignedStaff)
+                .Where(e => !e.IsArchived)
+                .ToList()
                 .Where(e => e.StrategyTemplateId.HasValue && _strategyService.GetStrategy(e.StrategyTemplateId.Value) != null)
                 .ToList();
-            return View(activeEvents);
+
+            // Separate into active and completed
+            var activeEvents = allEvents.Where(e => e.Status != "Completed").ToList();
+            var completedEvents = allEvents.Where(e => e.Status == "Completed").ToList();
+
+            ViewData["ActiveEvents"] = activeEvents;
+            ViewData["CompletedEvents"] = completedEvents;
+
+            return View();
+        }
+
+        // GET: /Admin/ActivityLog
+        public IActionResult ActivityLog()
+        {
+            var allActivities = _activityLog.GetAllEntries()
+                .OrderByDescending(a => a.Timestamp)
+                .ToList();
+
+            return View(allActivities);
         }
 
         // GET: /Admin/ArchivedEvents
         public IActionResult ArchivedEvents()
         {
-            var archivedEvents = _eventsService.GetArchived()
+            var archivedEvents = _db.Events
+                .Include(e => e.AssignedStaff)
+                .Where(e => e.IsArchived)
+                .ToList()
                 .Where(e => e.StrategyTemplateId.HasValue && _strategyService.GetStrategy(e.StrategyTemplateId.Value) != null)
                 .ToList();
+
             return View(archivedEvents);
         }
 
@@ -137,6 +147,9 @@ namespace OneJaxDashboard.Controllers
                 return View(eventModel);
             }
 
+            var staffMember = _db.Staffauth.FirstOrDefault(s => s.Username == selectedStaffUsername);
+            var staffName = staffMember?.Name ?? selectedStaffUsername;
+
             // Set title and related fields from the strategy template
             eventModel.Title = strategy.Name;
             eventModel.StrategicGoalId = strategy.StrategicGoalId;
@@ -151,10 +164,10 @@ namespace OneJaxDashboard.Controllers
             
             // Log the assignment
             var adminUsername = User.Identity?.Name ?? string.Empty;
-            _activityLog.Log(adminUsername, "Assigned Event", "Event", addedEvent.Id, 
-                notes: $"Assigned '{addedEvent.Title}' to {selectedStaffUsername}");
+            _activityLog.Log("Admin", "Assigned Event", "Event", addedEvent.Id, 
+                notes: $"Assigned '{addedEvent.Title}' to {staffName}");
 
-            TempData["SuccessMessage"] = $"Event '{eventModel.Title}' has been assigned to {selectedStaffUsername}.";
+            TempData["SuccessMessage"] = $"Event '{eventModel.Title}' has been assigned to {staffName}.";
             return RedirectToAction("ManageEvents");
         }
 
@@ -186,14 +199,17 @@ namespace OneJaxDashboard.Controllers
                 return View(eventModel);
             }
 
+            var staffMember = _db.Staffauth.FirstOrDefault(s => s.Username == selectedStaffUsername);
+            var staffName = staffMember?.Name ?? selectedStaffUsername;
+
             // Update the event
             eventModel.OwnerUsername = selectedStaffUsername;
             _eventsService.Update(eventModel);
 
             // Log the update
             var adminUsername = User.Identity?.Name ?? string.Empty;
-            _activityLog.Log(adminUsername, "Updated Assigned Event", "Event", eventModel.Id, 
-                notes: $"Updated '{eventModel.Title}' for {selectedStaffUsername}");
+            _activityLog.Log("Admin", "Updated Assigned Event", "Event", eventModel.Id, 
+                notes: $"Updated '{eventModel.Title}' for {staffName}");
 
             TempData["SuccessMessage"] = $"Event '{eventModel.Title}' has been updated.";
             return RedirectToAction("ManageEvents");
@@ -207,12 +223,15 @@ namespace OneJaxDashboard.Controllers
             var eventModel = _eventsService.Get(id);
             if (eventModel == null) return NotFound();
 
+            var staffMember = _db.Staffauth.FirstOrDefault(s => s.Username == eventModel.OwnerUsername);
+            var staffName = staffMember?.Name ?? eventModel.OwnerUsername;
+
             _eventsService.Remove(id);
 
             // Log the deletion
             var adminUsername = User.Identity?.Name ?? string.Empty;
-            _activityLog.Log(adminUsername, "Deleted Assigned Event", "Event", id, 
-                notes: $"Deleted '{eventModel.Title}' assigned to {eventModel.OwnerUsername}");
+            _activityLog.Log("Admin", "Deleted Assigned Event", "Event", id, 
+                notes: $"Deleted '{eventModel.Title}' assigned to {staffName}");
 
             TempData["SuccessMessage"] = "Event has been deleted.";
             return RedirectToAction("ManageEvents");
@@ -230,7 +249,7 @@ namespace OneJaxDashboard.Controllers
 
             // Log the unarchive action
             var adminUsername = User.Identity?.Name ?? string.Empty;
-            _activityLog.Log(adminUsername, "Reactivated Archived Event", "Event", id, 
+            _activityLog.Log("Admin", "Reactivated Archived Event", "Event", id, 
                 notes: $"Reactivated '{eventModel.Title}'");
 
             TempData["SuccessMessage"] = $"Event '{eventModel.Title}' has been reactivated.";

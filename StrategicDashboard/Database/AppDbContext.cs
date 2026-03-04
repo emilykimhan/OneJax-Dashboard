@@ -30,7 +30,7 @@ namespace OneJaxDashboard.Data
         public DbSet<BoardMeetingAttendance> BoardMeetingAttendance { get; set; } = default!;
         public DbSet<interfaith_11D> Interfaith_11D { get; set; } = default!;
         public DbSet<eventSatisfaction> EventSatisfaction_12D { get; set; } = default!;
-        
+
 
         // Dashboard tables
         public DbSet<StrategicGoal> StrategicGoals { get; set; } = default!;
@@ -41,23 +41,22 @@ namespace OneJaxDashboard.Data
         public DbSet<Strategy> Strategies { get; set; } = default!;
 
         //Account tables
-        
-        
+
+
         public DbSet<Staffauth> Staffauth { get; set; } = default!;
-           protected override void OnModelCreating(ModelBuilder modelBuilder)
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
             // Add unique index for username on Staffauth table
             modelBuilder.Entity<Staffauth>()
                 .HasIndex(s => s.Username)
-                .IsUnique()
-                .HasFilter("[Username] IS NOT NULL"); // Only enforce uniqueness for non-null usernames
+                .IsUnique();
 
             // Configure Event relationships
             modelBuilder.Entity<Event>()
                 .HasOne(e => e.StrategicGoal)
-                .WithMany()
+                .WithMany(g => g.Events)
                 .HasForeignKey(e => e.StrategicGoalId)
                 .OnDelete(DeleteBehavior.SetNull);
 
@@ -73,6 +72,19 @@ namespace OneJaxDashboard.Data
                 .WithMany(g => g.Strategies)
                 .HasForeignKey(s => s.StrategicGoalId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Event>()
+                .HasOne(e => e.StrategyTemplate)
+                .WithMany()
+                .HasForeignKey(e => e.StrategyTemplateId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Event>()
+                .HasOne(e => e.AssignedStaff)
+                .WithMany()
+                .HasForeignKey(e => e.OwnerUsername)
+                .HasPrincipalKey(s => s.Username)
+                .OnDelete(DeleteBehavior.SetNull);
         }
 
     }

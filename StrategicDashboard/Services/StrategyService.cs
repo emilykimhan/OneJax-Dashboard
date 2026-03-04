@@ -1,21 +1,41 @@
+using Microsoft.EntityFrameworkCore;
+using OneJaxDashboard.Data;
 using OneJaxDashboard.Models;
-//Dina's , ask for in case 
+
 namespace OneJaxDashboard.Services
 {
     public class StrategyService
     {
-        // Reference the actual strategies from StrategyController
-        private List<Strategy> GetStrategiesFromController()
+        private readonly ApplicationDbContext _db;
+
+        public StrategyService(ApplicationDbContext db)
         {
-            return StrategyController.Strategies;
+            _db = db;
         }
 
-        // Get all strategic goals from the strategies
-        private List<StrategicGoal> GetStrategicGoalsFromStrategies()
+        // Get all strategies from the Strategies table in DB
+        public IEnumerable<Strategy> GetAllStrategies()
         {
-            var strategies = GetStrategiesFromController();
+            return _db.Strategies.ToList();
+        }
+
+        // Get strategies by strategic goal
+        public IEnumerable<Strategy> GetStrategiesByGoal(int goalId)
+        {
+            return _db.Strategies.Where(s => s.StrategicGoalId == goalId).ToList();
+        }
+
+        // Get a single strategy by ID
+        public Strategy? GetStrategy(int id)
+        {
+            return _db.Strategies.FirstOrDefault(s => s.Id == id);
+        }
+
+        // Get all strategic goals
+        public IEnumerable<StrategicGoal> GetAllStrategicGoals()
+        {
+            var strategies = _db.Strategies.ToList();
             
-            // Group strategies by their StrategicGoalId
             var goalGroups = strategies.GroupBy(s => s.StrategicGoalId);
             
             var goals = new List<StrategicGoal>();
@@ -35,6 +55,27 @@ namespace OneJaxDashboard.Services
             return goals;
         }
 
+        // Get a single strategic goal
+        public StrategicGoal? GetStrategicGoal(int id)
+        {
+            return GetAllStrategicGoals().FirstOrDefault(g => g.Id == id);
+        }
+
+        // Get strategy name
+        public string GetStrategyName(int? strategyId)
+        {
+            if (!strategyId.HasValue) return "No Strategy Assigned";
+            var strategy = GetStrategy(strategyId.Value);
+            return strategy?.Name ?? "Unknown Strategy";
+        }
+
+        // Get strategic goal name
+        public string GetStrategicGoalName(int? goalId)
+        {
+            if (!goalId.HasValue) return "No Goal Assigned";
+            return GetGoalNameById(goalId ?? 0);
+        }
+
         private string GetGoalNameById(int goalId)
         {
             return goalId switch
@@ -45,45 +86,6 @@ namespace OneJaxDashboard.Services
                 4 => "Community Engagement",
                 _ => "Unknown Goal"
             };
-        }
-
-        public IEnumerable<StrategicGoal> GetAllStrategicGoals()
-        {
-            return GetStrategicGoalsFromStrategies();
-        }
-
-        public StrategicGoal? GetStrategicGoal(int id)
-        {
-            return GetStrategicGoalsFromStrategies().FirstOrDefault(g => g.Id == id);
-        }
-
-        public IEnumerable<Strategy> GetAllStrategies()
-        {
-            return GetStrategiesFromController();
-        }
-
-        public IEnumerable<Strategy> GetStrategiesByGoal(int goalId)
-        {
-            return GetStrategiesFromController().Where(s => s.StrategicGoalId == goalId);
-        }
-
-        public Strategy? GetStrategy(int id)
-        {
-            return GetStrategiesFromController().FirstOrDefault(s => s.Id == id);
-        }
-
-        public string GetStrategyName(int? strategyId)
-        {
-            if (!strategyId.HasValue) return "No Strategy Assigned";
-            var strategy = GetStrategy(strategyId.Value);
-            return strategy?.Name ?? "Unknown Strategy";
-        }
-
-        public string GetStrategicGoalName(int? goalId)
-        {
-            if (!goalId.HasValue) return "No Goal Assigned";
-            var goal = GetStrategicGoal(goalId.Value);
-            return goal?.Name ?? "Unknown Goal";
         }
     }
 }

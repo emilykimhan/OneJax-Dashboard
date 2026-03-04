@@ -1,0 +1,78 @@
+@model IEnumerable<OneJaxDashboard.Models.ActivityLogEntry>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Activity Log";
+}
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="fw-bold mb-1" style="color:var(--onejax-navy);">Activity Log</h2>
+                <p class="text-muted mb-0">Complete history of all system activities</p>
+            </div>
+            <div>
+                <a class="btn btn-outline-secondary" href="/Admin/Index">
+                    <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="py-3">Timestamp</th>
+                            <th>User</th>
+                            <th>Action</th>
+                            <th>Entity</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var activity in Model)
+                        {
+                            <tr>
+                                <td class="py-3">
+                                    <small>@activity.Timestamp.ToString("MM/dd/yyyy hh:mm:ss tt")</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">@activity.Username</span>
+                                </td>
+                                <td>
+                                    <strong>@activity.Action</strong>
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(activity.EntityType))
+                                    {
+                                        <span class="badge bg-info">@activity.EntityType #@activity.EntityId</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                                <td>
+                                    <small class="text-muted">@(activity.Notes ?? "—")</small>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="bi bi-clock-history display-1 text-muted"></i>
+                <p class="text-muted mt-3">No activities recorded yet</p>
+            </div>
+        }
+    </div>
+</div>

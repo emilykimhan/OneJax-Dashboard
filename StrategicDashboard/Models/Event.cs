@@ -51,6 +51,9 @@ namespace OneJaxDashboard.Models
         // Ownership by username to align with current auth model
         public string OwnerUsername { get; set; } = string.Empty;
 
+        [ForeignKey("OwnerUsername")]
+        public virtual Staffauth? AssignedStaff { get; set; }
+
         // Admin assignment fields
         [Display(Name = "Assigned By Admin")]
         public bool IsAssignedByAdmin { get; set; } = false;
@@ -73,13 +76,10 @@ namespace OneJaxDashboard.Models
         public DateTime? CompletionDate { get; set; }
 
         // Navigation properties (optional for display purposes)
-        [ForeignKey("StrategicGoalId")]
-        public virtual StrategicGoal? StrategicGoal { get; set; }
-        
-        [ForeignKey("StrategyId")]
-        public virtual Strategy? Strategy { get; set; }
-        
-        [ForeignKey("StrategyTemplateId")]
+        public virtual StrategicGoal? StrategicGoal { get; set; }  
+
+        public virtual Strategy? Strategy { get; set; }  
+
         public virtual Strategy? StrategyTemplate { get; set; }
     }
 }

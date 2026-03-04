@@ -18,18 +18,9 @@ namespace OneJaxDashboard.Controllers
         // GET: /Account/Login
         [HttpGet]
         [Microsoft.AspNetCore.Authorization.AllowAnonymous]
-        public IActionResult Login()
+        public async Task<IActionResult> Login()
         {
-            // If user is already authenticated, redirect to appropriate page
-            if (User?.Identity?.IsAuthenticated ?? false)
-            {
-                if (User.IsInRole("Admin"))
-                {
-                    return RedirectToAction("Index", "Admin");
-                }
-                // Staff already-authenticated browsing to login -> go to Staff dashboard
-                return RedirectToAction("Index", "StaffPortal");
-            }
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             
             return View(new LoginViewModel());
         }

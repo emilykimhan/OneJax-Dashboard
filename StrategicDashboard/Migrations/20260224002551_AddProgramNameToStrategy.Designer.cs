@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OneJaxDashboard.Data;
 
@@ -10,9 +11,11 @@ using OneJaxDashboard.Data;
 namespace StrategicDashboard.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260224002551_AddProgramNameToStrategy")]
+    partial class AddProgramNameToStrategy
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.10");
@@ -168,6 +171,37 @@ namespace StrategicDashboard.Migrations
                     b.ToTable("CommunicationRate");
                 });
 
+            modelBuilder.Entity("OneJaxDashboard.Models.CrossSector10D", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("partner_satisfaction_ratings")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("CrossSectorCollabs");
+                });
+
             modelBuilder.Entity("OneJaxDashboard.Models.DonorEvent_19D", b =>
                 {
                     b.Property<int>("Id")
@@ -265,6 +299,9 @@ namespace StrategicDashboard.Migrations
                     b.Property<int?>("StrategicGoalId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int?>("StrategicGoalId1")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int?>("StrategyId")
                         .HasColumnType("INTEGER");
 
@@ -281,9 +318,9 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OwnerUsername");
-
                     b.HasIndex("StrategicGoalId");
+
+                    b.HasIndex("StrategicGoalId1");
 
                     b.HasIndex("StrategyId");
 
@@ -552,13 +589,13 @@ namespace StrategicDashboard.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Username")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
                     b.HasIndex("Username")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[Username] IS NOT NULL");
 
                     b.ToTable("Staffauth");
                 });
@@ -721,11 +758,11 @@ namespace StrategicDashboard.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("EventPartners")
-                        .HasMaxLength(500)
+                    b.Property<DateTime>("Date")
                         .HasColumnType("TEXT");
 
-                    b.Property<decimal>("ExpenseReceived")
+                    b.Property<string>("EventPartners")
+                        .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
                     b.Property<int>("NumberOfAttendees")
@@ -741,10 +778,18 @@ namespace StrategicDashboard.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Quarter")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
                     b.Property<decimal>("RevenueReceived")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("StrategyId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TotalNumberOfWorkshops")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("WorkshopDate")
@@ -880,17 +925,14 @@ namespace StrategicDashboard.Migrations
 
             modelBuilder.Entity("OneJaxDashboard.Models.Event", b =>
                 {
-                    b.HasOne("OneJaxDashboard.Models.Staffauth", "AssignedStaff")
-                        .WithMany()
-                        .HasForeignKey("OwnerUsername")
-                        .HasPrincipalKey("Username")
-                        .OnDelete(DeleteBehavior.SetNull)
-                        .IsRequired();
-
                     b.HasOne("OneJaxDashboard.Models.StrategicGoal", "StrategicGoal")
-                        .WithMany("Events")
+                        .WithMany()
                         .HasForeignKey("StrategicGoalId")
                         .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("OneJaxDashboard.Models.StrategicGoal", null)
+                        .WithMany("Events")
+                        .HasForeignKey("StrategicGoalId1");
 
                     b.HasOne("OneJaxDashboard.Models.Strategy", "Strategy")
                         .WithMany()
@@ -899,10 +941,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasOne("OneJaxDashboard.Models.Strategy", "StrategyTemplate")
                         .WithMany()
-                        .HasForeignKey("StrategyTemplateId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("AssignedStaff");
+                        .HasForeignKey("StrategyTemplateId");
 
                     b.Navigation("StrategicGoal");
 
