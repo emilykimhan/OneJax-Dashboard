@@ -7,16 +7,15 @@ namespace OneJaxDashboard.Models
         [Key]
         public int Id { get; set; }
 
+        [Required(ErrorMessage = "Please enter a year.")]
+        [Range(2020, 2100, ErrorMessage = "Year must be between 2020 and 2100.")]
+        public int Year { get; set; }
+
         [Required(ErrorMessage = "Please select a staff member.")]
         public string Name { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Please enter the number of professional development activities for the year 2026.")]
-        [Range(1, int.MaxValue, ErrorMessage = "Number of professional development activities must be at least 1.")]
-        public int ProfessionalDevelopmentYear26 { get; set; }
-
-         [Required(ErrorMessage = "Please enter the number of professional development activities for the year 2027.")]
-        [Range(1, int.MaxValue, ErrorMessage = "Number of professional development activities must be at least 1.")]
-        public int ProfessionalDevelopmentYear27 { get; set; }
+        [StringLength(2000)]
+        public string Activities { get; set; } = string.Empty; // List of professional development activities
 
         public DateTime CreatedDate { get; set; } = DateTime.Now;
     }

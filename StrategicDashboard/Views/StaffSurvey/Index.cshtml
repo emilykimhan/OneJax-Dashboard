@@ -1,5 +1,4 @@
 @model OneJaxDashboard.Models.StaffSurvey_22D
-@using Microsoft.AspNetCore.Mvc.Rendering
 @{
     ViewData["Title"] = "Staff Survey";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -43,11 +42,10 @@
 
                     <form asp-controller="StaffSurvey" asp-action="Index" method="post" novalidate>
                         <div class="mb-3">
-                            <label asp-for="Name" class="form-label fw-bold">Staff Member Name:</label>
-                            <select asp-for="Name" class="form-select" asp-items="ViewBag.StaffMembers">
-                                <option value="">-- Select a Staff Member --</option>
-                            </select>
-                            <span asp-validation-for="Name" class="text-danger"></span>
+                            <label asp-for="Year" class="form-label fw-bold">Year:</label>
+                            <input asp-for="Year" type="number" min="2020" max="2100"
+                                   class="form-control" placeholder="Enter year (e.g., 2026)" value="@DateTime.Now.Year" />
+                            <span asp-validation-for="Year" class="text-danger"></span>
                         </div>
 
                         <div class="mb-3">
@@ -55,13 +53,6 @@
                             <input asp-for="SatisfactionRate" type="number" min="0" max="100"
                                    class="form-control" placeholder="Enter satisfaction rate (0-100)" />
                             <span asp-validation-for="SatisfactionRate" class="text-danger"></span>
-                        </div>
-
-                        <div class="mb-3">
-                            <label asp-for="ProfessionalDevelopmentCount" class="form-label fw-bold">Professional Development Activities:</label>
-                            <input asp-for="ProfessionalDevelopmentCount" type="number" min="1" max="50"
-                                   class="form-control" placeholder="Enter number of professional development activities" />
-                            <span asp-validation-for="ProfessionalDevelopmentCount" class="text-danger"></span>
                         </div>
 
                         <div class="text-center">

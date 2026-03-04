@@ -42,27 +42,8 @@
 
                     <form asp-controller="BoardMemberRecruitment" asp-action="Index" method="post" novalidate>
                         
-                        <div class="mb-3">
-                            <label asp-for="MemberNames" class="form-label fw-bold">
-                                Board Member Names:
-                                <small class="text-muted">(Separate multiple names with commas)</small>
-                            </label>
-                            <textarea asp-for="MemberNames" class="form-control" rows="3" 
-                                      placeholder="e.g., John Smith, Jane Doe, Robert Chen"></textarea>
-                            <span asp-validation-for="MemberNames" class="text-danger"></span>
-                        </div>
-
                         <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label asp-for="NumberRecruited" class="form-label fw-bold">
-                                    Number Recruited:
-                                </label>
-                                <input asp-for="NumberRecruited" type="number" min="0" max="100" 
-                                       class="form-control" placeholder="Enter count" />
-                                <span asp-validation-for="NumberRecruited" class="text-danger"></span>
-                            </div>
-
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-6 mb-3">
                                 <label asp-for="Quarter" class="form-label fw-bold">Quarter:</label>
                                 <select asp-for="Quarter" class="form-select">
                                     <option value="">-- Select Quarter --</option>
@@ -74,11 +55,53 @@
                                 <span asp-validation-for="Quarter" class="text-danger"></span>
                             </div>
 
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-6 mb-3">
                                 <label asp-for="Year" class="form-label fw-bold">Year:</label>
                                 <input asp-for="Year" type="number" min="2020" max="2100" 
                                        class="form-control" placeholder="e.g., 2026" value="@DateTime.Now.Year" />
                                 <span asp-validation-for="Year" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="TotalProspectOutreach" class="form-label fw-bold">
+                                Total number of prospect outreach:
+                            </label>
+                            <input asp-for="TotalProspectOutreach" type="number" min="0" max="500" 
+                                   class="form-control" placeholder="Enter count" />
+                            <span asp-validation-for="TotalProspectOutreach" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                <label asp-for="ProspectNames" class="form-label fw-bold">
+                                    Prospect Names:
+                                    <small class="text-muted">(Separate multiple names with commas)</small>
+                                </label>
+                                <textarea asp-for="ProspectNames" class="form-control" rows="3" 
+                                          placeholder="e.g., Alex Johnson, Maria Garcia, James Lee"></textarea>
+                                <span asp-validation-for="ProspectNames" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="NumberRecruited" class="form-label fw-bold">
+                                Total number of new board members recruited:
+                            </label>
+                            <input asp-for="NumberRecruited" type="number" min="0" max="100" 
+                                   class="form-control" placeholder="Enter count" />
+                            <span asp-validation-for="NumberRecruited" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                <label asp-for="MemberNames" class="form-label fw-bold">
+                                    Board Member Names:
+                                    <small class="text-muted">(Separate multiple names with commas)</small>
+                                </label>
+                                <textarea asp-for="MemberNames" class="form-control" rows="3" 
+                                          placeholder="e.g., John Smith, Jane Doe, Robert Chen"></textarea>
+                                <span asp-validation-for="MemberNames" class="text-danger"></span>
                             </div>
                         </div>
 

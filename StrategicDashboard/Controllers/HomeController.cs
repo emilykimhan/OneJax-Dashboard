@@ -412,7 +412,7 @@ public class HomeController : Controller
                 {
                     Type = "Staff Survey",
                     Title = $"Staff Survey Completed",
-                    Description = $"{survey.Name} completed satisfaction survey (Rate: {survey.SatisfactionRate}%)",
+                    Description = $"Staff satisfaction survey completed (Rate: {survey.SatisfactionRate}%)",
                     Date = survey.CreatedDate,
                     Icon = "fas fa-user-check",
                     Color = "var(--onejax-blue)",
@@ -432,7 +432,7 @@ public class HomeController : Controller
                 {
                     Type = "Professional Development",
                     Title = "Development Plan Submitted",
-                    Description = $"{profDev.Name} planned {profDev.ProfessionalDevelopmentYear26 + profDev.ProfessionalDevelopmentYear27} activities",
+                    Description = $"{profDev.Name} submitted professional development plan",
                     Date = profDev.CreatedDate,
                     Icon = "fas fa-graduation-cap",
                     Color = "var(--onejax-green)",
@@ -615,38 +615,19 @@ public class HomeController : Controller
             TargetDate = DateTime.Now.AddMonths(12)
         });
 
-        var totalProfDevFromSurveys = staffSurveys.Any() ? staffSurveys.Sum(s => s.ProfessionalDevelopmentCount) : 0;
-        
+        // Generate metrics from professional development data (always create metrics, default to 0 if no data)
+        var totalDevelopmentRecords = profDev.Count();
         goal.Metrics.Add(new GoalMetric
         {
             Id = 2,
-            Name = "Professional Development Activities (Staff Reported)",
-            Description = staffSurveys.Any() ? $"Activities reported by staff members" : "No staff reports available - showing baseline",
-            StrategicGoalId = 1,
-            Target = "",
-            CurrentValue = totalProfDevFromSurveys,
-            Unit = "activities",
-            Status = staffSurveys.Any() ? "In Progress" : "Pending Data",
-            TargetDate = DateTime.Now.AddMonths(12)
-        });
-
-        // Generate metrics from professional development data (always create metrics, default to 0 if no data)
-        var totalDev26 = profDev.Any() ? profDev.Sum(p => p.ProfessionalDevelopmentYear26) : 0;
-        var totalDev27 = profDev.Any() ? profDev.Sum(p => p.ProfessionalDevelopmentYear27) : 0;
-        
-        goal.Metrics.Add(new GoalMetric
-        {
-            Id = 3,
             Name = "Professional Development Planning",
-            Description = profDev.Any() ? $"Planned activities for 2026-2027" : "No planning data available - showing baseline",
+            Description = profDev.Any() ? $"Professional development records submitted" : "No planning data available - showing baseline",
             StrategicGoalId = 1,
             Target = "",
-            CurrentValue = totalDev26 + totalDev27,
-            Unit = "activities",
+            CurrentValue = totalDevelopmentRecords,
+            Unit = "records",
             Status = profDev.Any() ? "In Progress" : "Pending Data",
-            TargetDate = DateTime.Now.AddMonths(12),
-            Q1Value = totalDev26,
-            Q2Value = totalDev27
+            TargetDate = DateTime.Now.AddMonths(12)
         });
 
         return goal;
@@ -950,13 +931,12 @@ public class HomeController : Controller
 
         // 2. Professional Development (employee participation + activity totals)
         var profDevs = await _context.ProfessionalDevelopments.ToListAsync();
-        var totalDevelopment = profDevs.Sum(p => p.ProfessionalDevelopmentYear26 + p.ProfessionalDevelopmentYear27);
         var participatingEmployees = profDevs.Count;
         
         AddOrUpdateMetric(goal, "Professional Development Plans", "Staff growth initiatives", 
             participatingEmployees, "employees", "25", profDevs.Any() ? "Active" : "Planning",
             profDevs.Any()
-                ? $"{participatingEmployees} employees participating, {totalDevelopment} total activities | Form: Data Entry → Professional Development"
+                ? $"{participatingEmployees} employees participating | Form: Data Entry → Professional Development"
                 : "No professional development yet - Go to Data Entry → Professional Development", nextId++);
 
         // 3. Board Member Recruitment
