@@ -1,49 +1,50 @@
 using Microsoft.AspNetCore.Mvc;
 using OneJaxDashboard.Data;
 using OneJaxDashboard.Models;
-//Karrie's
+
 namespace OneJaxDashboard.Controllers
 {
-    public class identityPlan_24DController : Controller
+    public class identitySocial_5DController : Controller
     {
         private readonly ApplicationDbContext _context;
 
-        public identityPlan_24DController(ApplicationDbContext context)
+        public identitySocial_5DController(ApplicationDbContext context)
         {
             _context = context;
         }
 
-        // GET: identityPlan_24D/Index
+        // GET: identitySocial_5D/Index
         [HttpGet]
         public IActionResult Index()
         {
             // Calculate statistics
-            var allEntries = _context.Plan2026_24D.ToList();
+            var allEntries = _context.socialMedia_5D.ToList();
             ViewBag.TotalEntries = allEntries.Count;
             
             if (allEntries.Any())
             {
-                ViewBag.LatestYear = allEntries.Max(e => e.Year);
+                ViewBag.AverageEngagement = allEntries.Average(e => e.AverageEngagementRate);
                 ViewBag.GoalMetCount = allEntries.Count(e => e.GoalMet);
+                ViewBag.LatestYear = allEntries.Max(e => e.Year);
             }
             
-            return View(new Plan2026_24D());
+            return View(new socialMedia_5D());
         }
 
-        // POST: identityPlan_24D/Index
+        // POST: identitySocial_5D/Index
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Index(Plan2026_24D model)
+        public IActionResult Index(socialMedia_5D model)
         {
             if (ModelState.IsValid)
             {
                 try
                 {
                     model.CreatedDate = DateTime.Now;
-                    _context.Plan2026_24D.Add(model);
+                    _context.socialMedia_5D.Add(model);
                     _context.SaveChanges();
                     
-                    TempData["Success"] = "Submitted successfully!";
+                    TempData["Success"] = "Social media engagement data submitted successfully!";
                     return RedirectToAction("Index");
                 }
                 catch (Exception ex)

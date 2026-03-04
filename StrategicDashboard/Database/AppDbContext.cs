@@ -21,6 +21,8 @@ namespace OneJaxDashboard.Data
         public DbSet<Annual_average_7D> Annual_average_7D { get; set; } = default!;
         public DbSet<demographics_8D> demographics_8D { get; set; } = default!;
         public DbSet<Plan2026_24D> Plan2026_24D { get; set; } = default!;
+        public DbSet<achieveMile_6D> achieveMile_6D { get; set; } = default!;
+        public DbSet<socialMedia_5D> socialMedia_5D { get; set; } = default!;
         public DbSet<DonorEvent_19D> DonorEvents_19D { get; set; } = default!;
         public DbSet<feeForService_21D> FeeForServices_21D { get; set; } = default!;
         public DbSet<income_27D> income_27D { get; set; } = default!;
