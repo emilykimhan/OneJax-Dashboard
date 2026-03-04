@@ -14,6 +14,23 @@ namespace OneJaxDashboard.Services
         public IEnumerable<ActivityLogEntry> GetAllEntries()
             => _entries.OrderByDescending(e => e.Timestamp);
 
+        public IEnumerable<ActivityLogEntry> GetRecentForUser(IEnumerable<string> identifiers, int take = 10)
+        {
+            var matches = BuildIdentifierSet(identifiers);
+            return _entries
+                .Where(e => matches.Contains(e.Username))
+                .OrderByDescending(e => e.Timestamp)
+                .Take(take);
+        }
+
+        public IEnumerable<ActivityLogEntry> GetAllForUser(IEnumerable<string> identifiers)
+        {
+            var matches = BuildIdentifierSet(identifiers);
+            return _entries
+                .Where(e => matches.Contains(e.Username))
+                .OrderByDescending(e => e.Timestamp);
+        }
+
         public IEnumerable<ActivityLogEntry> GetEntriesByEntityId(string entityType, int entityId)
             => _entries.Where(e => e.EntityType == entityType && e.EntityId == entityId)
                        .OrderByDescending(e => e.Timestamp);
@@ -30,6 +47,14 @@ namespace OneJaxDashboard.Services
                 Timestamp = DateTime.UtcNow,
                 Notes = notes
             });
+        }
+
+        private static HashSet<string> BuildIdentifierSet(IEnumerable<string> identifiers)
+        {
+            return identifiers
+                .Where(i => !string.IsNullOrWhiteSpace(i))
+                .Select(i => i.Trim())
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
         }
     }
 }

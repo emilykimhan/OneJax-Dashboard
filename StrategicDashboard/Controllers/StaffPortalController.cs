@@ -24,16 +24,35 @@ namespace OneJaxDashboard.Controllers
         public IActionResult Index()
         {
             var username = User.Identity?.Name ?? string.Empty;
-            var events = _eventsService.GetByOwner(username).ToList();
-            var recent = _activityLog.GetRecent(username).ToList();
+            var activeEvents = _eventsService.GetByOwner(username).ToList();
+            var archivedEvents = _eventsService.GetArchivedByOwner(username).ToList();
             var staff = _db.Staffauth.FirstOrDefault(s => s.Username == username);
+            var activityIdentifiers = GetActivityIdentifiers(username, staff);
+            var recent = _activityLog.GetRecentForUser(activityIdentifiers).ToList();
 
-            ViewData["EventCount"] = events.Count;
-            ViewData["AssignedEvents"] = events.Count(e => e.IsAssignedByAdmin);
+            var inProgressCount = activeEvents.Count(e => string.Equals(e.Status, "In Progress", StringComparison.OrdinalIgnoreCase));
+            var completedCount = archivedEvents.Count + activeEvents.Count(e => string.Equals(e.Status, "Completed", StringComparison.OrdinalIgnoreCase));
+
+            ViewData["EventCount"] = activeEvents.Count + archivedEvents.Count;
+            ViewData["InProgressCount"] = inProgressCount;
+            ViewData["CompletedCount"] = completedCount;
+            ViewData["AssignedEvents"] = activeEvents.Count(e => e.IsAssignedByAdmin) + archivedEvents.Count(e => e.IsAssignedByAdmin);
             ViewData["RecentActivities"] = recent;
             ViewData["FullName"] = staff?.Name ?? string.Empty;
             ViewData["Email"] = staff?.Email ?? string.Empty;
             return View();
+        }
+
+        [HttpGet]
+        public IActionResult ActivityLog()
+        {
+            var username = User.Identity?.Name ?? string.Empty;
+            var staff = _db.Staffauth.FirstOrDefault(s => s.Username == username);
+            var activityIdentifiers = GetActivityIdentifiers(username, staff);
+            var activities = _activityLog.GetAllForUser(activityIdentifiers).ToList();
+
+            ViewData["FullName"] = staff?.Name ?? string.Empty;
+            return View(activities);
         }
 
         [HttpGet]
@@ -116,6 +135,24 @@ namespace OneJaxDashboard.Controllers
             
             TempData["SuccessMessage"] = "Password changed successfully.";
             return RedirectToAction("Profile");
+        }
+
+        private List<string> GetActivityIdentifiers(string username, Staffauth? staff)
+        {
+            var identifiers = new List<string> { username };
+
+            if (!string.IsNullOrWhiteSpace(staff?.Name))
+            {
+                identifiers.Add(staff!.Name);
+            }
+
+            var claimName = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value;
+            if (!string.IsNullOrWhiteSpace(claimName))
+            {
+                identifiers.Add(claimName);
+            }
+
+            return identifiers;
         }
     }
 }
