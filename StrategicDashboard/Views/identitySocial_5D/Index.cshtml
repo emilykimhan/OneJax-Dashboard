@@ -1,0 +1,183 @@
+@model OneJaxDashboard.Models.socialMedia_5D
+@{
+    ViewData["Title"] = "Social Media Engagement Tracking";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card p-4"
+                 style="background-color:var(--onejax-white);
+                        box-shadow:0 4px 24px rgba(0,0,0,0.08);
+                        border-radius:24px;">
+                
+                <!-- Header -->
+                <div class="d-flex align-items-center mb-4">
+                    <a href="/Identity" 
+                       class="btn btn-outline-secondary me-3"
+                       style="border-radius: 8px;">
+                        ← Back
+                    </a>
+                    <h2 class="mb-0" style="color:var(--onejax-navy);">Social Media Engagement Tracking</h2>
+                </div>
+                
+                <p class="text-center mb-4" style="color:var(--onejax-gray);">
+                    Boost social media engagement by 30% within 12 months
+                </p>
+
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success text-center" style="border-radius: 12px;">
+                        @TempData["Success"]
+                    </div>
+                }
+
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger text-center" style="border-radius: 12px;">
+                        @TempData["Error"]
+                    </div>
+                }
+
+                <!-- Input Form -->
+                <form asp-controller="identitySocial_5D" asp-action="Index" method="post">
+                    <div class="row">
+                        <!-- Year -->
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Year" class="form-label fw-bold">Year</label>
+                            <input asp-for="Year" type="number" class="form-control" 
+                                   placeholder="Enter year (e.g., 2026)" 
+                                   min="2020" max="2100" required />
+                            <span asp-validation-for="Year" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <!-- Quarterly Engagement Rates -->
+                    <hr class="my-4">
+                    <h5 class="mb-3" style="color:var(--onejax-navy);">📊 Quarterly Engagement Rates</h5>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="JulySeptEngagementRate" class="form-label fw-bold">July-Sept Engagement Rate (%)</label>
+                            <div class="input-group">
+                                <input asp-for="JulySeptEngagementRate" type="number" class="form-control" 
+                                       placeholder="Enter rate (0-100)" 
+                                       min="0" max="100" step="0.01" />
+                                <span class="input-group-text">%</span>
+                            </div>
+                            <span asp-validation-for="JulySeptEngagementRate" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="OctDecEngagementRate" class="form-label fw-bold">Oct-Dec Engagement Rate (%)</label>
+                            <div class="input-group">
+                                <input asp-for="OctDecEngagementRate" type="number" class="form-control" 
+                                       placeholder="Enter rate (0-100)" 
+                                       min="0" max="100" step="0.01" />
+                                <span class="input-group-text">%</span>
+                            </div>
+                            <span asp-validation-for="OctDecEngagementRate" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="JanMarEngagementRate" class="form-label fw-bold">Jan-Mar Engagement Rate (%)</label>
+                            <div class="input-group">
+                                <input asp-for="JanMarEngagementRate" type="number" class="form-control" 
+                                       placeholder="Enter rate (0-100)" 
+                                       min="0" max="100" step="0.01" />
+                                <span class="input-group-text">%</span>
+                            </div>
+                            <span asp-validation-for="JanMarEngagementRate" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="AprilJuneEngagementRate" class="form-label fw-bold">April-June Engagement Rate (%)</label>
+                            <div class="input-group">
+                                <input asp-for="AprilJuneEngagementRate" type="number" class="form-control" 
+                                       placeholder="Enter rate (0-100)" 
+                                       min="0" max="100" step="0.01" />
+                                <span class="input-group-text">%</span>
+                            </div>
+                            <span asp-validation-for="AprilJuneEngagementRate" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <!-- Goal Met Checkbox -->
+                    <hr class="my-4">
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <div class="form-check">
+                                <input asp-for="GoalMet" type="checkbox" class="form-check-input" id="goalMetCheck" />
+                                <label asp-for="GoalMet" class="form-check-label fw-bold" for="goalMetCheck">
+                                    Goal Met (30% Increase in Engagement)
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Goal Status Display -->
+                    <div class="row">
+                        <div class="col-12 mb-4">
+                            <div class="alert alert-info" style="border-radius: 12px;">
+                                <strong>📈 Goal:</strong> 
+                                Boost social media engagement by 30% within 12 months
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg px-5 py-3"
+                                style="background-color:var(--onejax-navy); border-color:var(--onejax-navy); border-radius: 12px; font-weight: 600;">
+                            Submit Engagement Data
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-control:focus,
+    .form-select:focus {
+        border-color: var(--onejax-navy);
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 191, 0.25);
+    }
+    
+    .form-label {
+        color: var(--onejax-navy);
+        margin-bottom: 0.5rem;
+    }
+    
+    .card {
+        border: none;
+    }
+    
+    .input-group-text {
+        background-color: var(--onejax-navy);
+        color: white;
+        border-color: var(--onejax-navy);
+    }
+
+    .form-check-input:checked {
+        background-color: var(--onejax-navy);
+        border-color: var(--onejax-navy);
+    }
+
+    .form-check-input:focus {
+        border-color: var(--onejax-navy);
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 191, 0.25);
+    }
+
+    hr {
+        border-top: 2px solid #dee2e6;
+    }
+</style>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

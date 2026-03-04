@@ -932,14 +932,6 @@ public class HomeController : Controller
         AddOrUpdateMetric(goal, "Strategic Plan Completion", "2026 planning progress", 
             completedPlans, "goals met", "20", plan2026.Any() ? "Active" : "Planning",
             $"🎯 Plans Completed: {completedPlans}/{plan2026.Count} | Form: Data Entry → 2026 Planning", nextId++);
-
-        // 5. Issue Resolution (from planIssue_25D)
-        var planIssues = await _context.planIssue_25D.ToListAsync();
-        var resolvedIssues = planIssues.Count(i => i.IsCompliant);
-        
-        AddOrUpdateMetric(goal, "Issue Resolution Rate", "Strategic issues addressed", 
-            resolvedIssues, "resolved", "15", planIssues.Any() ? "Active" : "Planning",
-            $"⚡ Issues Resolved: {resolvedIssues}/{planIssues.Count} | Form: Data Entry → Plan Issues", nextId++);
     }
 
     private async Task AddOrganizationalMetricsAsync(StrategicGoal goal)
