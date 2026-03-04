@@ -371,14 +371,14 @@
 <div class="container my-5">
 
     <div class="text-center mb-3">
-        <h2 class="fw-bold text-uppercase" style="color: var(--onejax-blue);">View Programs</h2>
+        <h2 class="fw-bold text-uppercase" style="color: var(--onejax-blue);">View Events</h2>
         <p class="text-secondary mb-3">
-            Browse all programs and manage them by strategic goal. Use the tabs below to filter.
+            Browse all events and manage them by strategic goal. Use the tabs below to filter.
         </p>
 
         <a href="/Strategy/Index" class="btn"
            style="background-color: var(--onejax-blue); color: #fff; padding: 10px 22px; border-radius: 25px; font-weight: 600; box-shadow: 0 3px 8px rgba(0,0,0,0.15);">
-            Create Program +
+            Create Events +
         </a>
     </div>
 
@@ -400,7 +400,7 @@
         <li class="nav-item" role="presentation">
             <button class="nav-link active" id="all-events-tab" data-bs-toggle="tab" data-bs-target="#all-events"
                 type="button" role="tab">
-                All Programs
+                All Events
             </button>
         </li>
         
@@ -426,7 +426,7 @@
             {
                 <div class="empty-state">
                     <i class="bi bi-inbox"></i>
-                    <p class="mb-0">No programs have been created for fiscal year @(selectedFYAlt ?? selectedFY) yet.</p>
+                    <p class="mb-0">No events have been created for fiscal year @(selectedFYAlt ?? selectedFY) yet.</p>
                 </div>
             }
             else
@@ -564,7 +564,7 @@
                     {
                         <div class="empty-state">
                             <i class="bi bi-inbox"></i>
-                            <p class="mb-0">No programs for this goal yet.</p>
+                            <p class="mb-0">No events for this goal yet.</p>
                         </div>
                     }
                     else
@@ -698,14 +698,14 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title fw-semibold" id="deleteConfirmLabel">
-                    Delete Program?
+                    Delete Event?
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
             <div class="modal-body">
                 <p class="mb-2">
-                    You’re about to permanently delete this Program. This action cannot be undone.
+                    You’re about to permanently delete this Event. This action cannot be undone.
                 </p>
                 <p class="mb-3">
                     Type <strong>delete</strong> in lowercase to confirm.
