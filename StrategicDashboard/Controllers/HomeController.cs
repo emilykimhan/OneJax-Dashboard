@@ -929,13 +929,6 @@ public class HomeController : Controller
             uniqueZipCodes, "ZIP codes", "25", demographics.Any() ? "Active" : "Planning",
             demographics.Any() ? $"Program reach: {uniqueZipCodes} unique ZIP codes" : "No demographics data yet - Go to Data Entry → Demographics", nextId++);
 
-        // 4. Strategic Issues Tracking
-        var planIssues = await _context.planIssue_25D.ToListAsync();
-        
-        AddOrUpdateMetric(goal, "Strategic Issues Tracking", "Issues identified for planning", 
-            planIssues.Count, "issues", "15", planIssues.Any() ? "Active" : "Planning",
-            planIssues.Any() ? $"Issues tracked: {planIssues.Count}" : "No planning issues yet - Go to Data Entry → Planning Issues", nextId++);
-
         // 5. 2026 Strategic Plans
         var plan2026 = await _context.Plan2026_24D.ToListAsync();
         
