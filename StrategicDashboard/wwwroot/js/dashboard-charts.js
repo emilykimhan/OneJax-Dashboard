@@ -24,6 +24,12 @@ const OneJaxPalettes = {
 
 // Dashboard Charts Setup
 function initializeDashboardCharts() {
+    // Check if chart data exists
+    if (typeof window.chartData === 'undefined') {
+        console.warn('Chart data not available - charts may not display properly');
+        return;
+    }
+    
     // Goal Progress Chart (Doughnut)
     const progressCtx = document.getElementById('progressChart');
     if (progressCtx) {
