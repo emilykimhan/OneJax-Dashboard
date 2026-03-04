@@ -1,0 +1,97 @@
+@model OneJaxDashboard.Models.selfAssess_31D
+@{
+    ViewData["Title"] = "Board Self-Assessment";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card p-4"
+                 style="background-color:var(--onejax-white);
+                        box-shadow:0 4px 24px rgba(0,0,0,0.08);
+                        border-radius:24px;">
+                
+                <!-- Header with back button -->
+                <div class="d-flex align-items-center mb-4">
+                    <a href="/OrganizationalBuilding" 
+                       class="btn btn-outline-secondary me-3"
+                       style="border-radius: 8px;">
+                        ← Back
+                    </a>
+                    <h2 class="mb-0" style="color:var(--onejax-navy);">Board Self-Assessment</h2>
+                </div>
+                
+                <!-- Form -->
+                <div class="assessment-form">
+                    <h4 class="mb-4 text-center" style="color:var(--onejax-navy);">Annual Board Self-Evaluation</h4>
+
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success text-center">
+                            @TempData["Success"]
+                        </div>
+                    }
+
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger text-center">
+                            @TempData["Error"]
+                        </div>
+                    }
+
+                    <form asp-controller="SelfAssessment" asp-action="Index" method="post" novalidate>
+                        @Html.AntiForgeryToken()
+                        
+                        <div class="mb-3">
+                            <label asp-for="Year" class="form-label fw-bold">Year:</label>
+                            <input asp-for="Year" type="number" min="2020" max="2100"
+                                   class="form-control" placeholder="Enter year (e.g., 2026)" value="@DateTime.Now.Year" />
+                            <span asp-validation-for="Year" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="SelfAssessmentScore" class="form-label fw-bold">Average Annual Board Self-Evaluation Score (0-100):</label>
+                            <input asp-for="SelfAssessmentScore" type="number" min="0" max="100"
+                                   class="form-control" placeholder="Enter average score (0-100)" />
+                            <span asp-validation-for="SelfAssessmentScore" class="text-danger"></span>
+                        </div>
+
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary px-4" 
+                                    style="background-color:var(--onejax-navy); border-color:var(--onejax-navy);">
+                                Submit Assessment
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-outline-secondary {
+        border-color: var(--onejax-navy);
+        color: var(--onejax-navy);
+    }
+    
+    .btn-outline-secondary:hover {
+        background-color: var(--onejax-navy);
+        border-color: var(--onejax-navy);
+        color: white;
+    }
+
+    .stat-card {
+        transition: transform 0.2s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+</style>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
