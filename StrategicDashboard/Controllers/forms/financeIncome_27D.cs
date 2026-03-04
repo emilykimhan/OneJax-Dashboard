@@ -1,18 +1,23 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using OneJaxDashboard.Models;
 using OneJaxDashboard.Data;
+using OneJaxDashboard.Services;
 
 namespace OneJaxDashboard.Controllers
 {
+    [Authorize(Roles = "Admin,Staff")]
     public class Income27DController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ActivityLogService _activityLog;
 
-        public Income27DController(ApplicationDbContext context)
+        public Income27DController(ApplicationDbContext context, ActivityLogService activityLog)
         {
             _context = context;
+            _activityLog = activityLog;
         }
 
         // GET: Income27D/Index
@@ -42,6 +47,9 @@ namespace OneJaxDashboard.Controllers
                 {
                     _context.income_27D.Add(model);
                     _context.SaveChanges();
+
+                    var actor = User.Identity?.Name ?? "Unknown";
+                    _activityLog.Log(actor, "Created Earned Income Tracking Record", "Income", model.Id);
                     
                     // Recalculate totals after adding new entry
                     var allEntries = _context.income_27D.ToList();

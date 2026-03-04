@@ -72,13 +72,60 @@ namespace OneJaxDashboard.Controllers
         }
 
         // GET: /Admin/ActivityLog
-        public IActionResult ActivityLog()
+        public IActionResult ActivityLog(string? filter = "all")
         {
-            var allActivities = _activityLog.GetAllEntries()
+            var normalizedFilter = (filter ?? "all").Trim().ToLowerInvariant();
+
+            var allActivities = _activityLog.GetAllEntries();
+
+            var filteredActivities = normalizedFilter switch
+            {
+                "events" => allActivities.Where(IsEventActivity),
+                "data-entry" => allActivities.Where(IsDataEntryActivity),
+                _ => allActivities
+            };
+
+            var orderedActivities = filteredActivities
                 .OrderByDescending(a => a.Timestamp)
                 .ToList();
 
-            return View(allActivities);
+            ViewData["ActivityFilter"] = normalizedFilter;
+            return View(orderedActivities);
+        }
+
+        private static bool IsEventActivity(ActivityLogEntry entry)
+        {
+            var isEventEntity = string.Equals(entry.EntityType, "Event", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(entry.EntityType, "Strategy", StringComparison.OrdinalIgnoreCase);
+
+            if (!isEventEntity)
+            {
+                return false;
+            }
+
+            return entry.Action.Contains("Event", StringComparison.OrdinalIgnoreCase)
+                || entry.Action.Contains("Strategy", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool IsDataEntryActivity(ActivityLogEntry entry)
+        {
+            var dataEntryEntityTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "DonorEvent",
+                "CommunicationRate",
+                "FeeForService",
+                "Income",
+                "BudgetTracking"
+            };
+
+            if (string.IsNullOrWhiteSpace(entry.EntityType) || !dataEntryEntityTypes.Contains(entry.EntityType))
+            {
+                return false;
+            }
+
+            return entry.Action.StartsWith("Created", StringComparison.OrdinalIgnoreCase)
+                || entry.Action.StartsWith("Updated", StringComparison.OrdinalIgnoreCase)
+                || entry.Action.StartsWith("Submitted", StringComparison.OrdinalIgnoreCase);
         }
 
         // GET: /Admin/ArchivedEvents

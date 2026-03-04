@@ -47,13 +47,11 @@ namespace OneJaxDashboard.Controllers
                     _context.SaveChanges();
 
                     var actor = User.Identity?.Name ?? "Unknown";
-                    var actorRole = User.IsInRole("Admin") ? "Admin" : "Staff";
                     _activityLog.Log(
                         actor,
-                        "Submitted Communication Rate Record",
+                        "Created Communication Satisfaction Record",
                         "CommunicationRate",
-                        model.Id,
-                        notes: $"{actorRole} submitted communication rate for year {model.Year} with value {model.AverageCommunicationSatisfaction}."
+                        model.Id
                     );
                     
                     // Recalculate statistics after adding new entry
