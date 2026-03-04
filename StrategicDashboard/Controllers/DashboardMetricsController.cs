@@ -41,7 +41,7 @@ namespace OneJaxDashboard.Controllers
         public async Task<IActionResult> QuickUpdate(int metricId, decimal currentValue)
         {
             // Additional check to ensure user is authenticated
-            if (!User.Identity.IsAuthenticated)
+            if (!(User?.Identity?.IsAuthenticated ?? false))
             {
                 return Json(new { success = false, message = "Authentication required to edit metrics." });
             }

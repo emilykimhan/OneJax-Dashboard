@@ -4,8 +4,19 @@ using OneJaxDashboard.Data;
 OfficeOpenXml.ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+// Configure database based on environment
+if (builder.Environment.IsProduction())
+{
+    // Use Azure SQL Database in production
+    builder.Services.AddDbContext<ApplicationDbContext>(options =>
+        options.UseSqlServer(builder.Configuration.GetConnectionString("AzureSqlConnection")));
+}
+else
+{
+    // Use SQLite for development
+    builder.Services.AddDbContext<ApplicationDbContext>(options =>
+        options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+}
 
 builder.Services.AddControllersWithViews();
 
@@ -21,9 +32,6 @@ builder.Services.AddScoped<OneJaxDashboard.Services.EventsService>();
 builder.Services.AddScoped<OneJaxDashboard.Services.StrategyService>();
 builder.Services.AddSingleton<OneJaxDashboard.Services.ActivityLogService>();
 builder.Services.AddScoped<OneJaxDashboard.Services.MetricsService>();
-
-// Keep ProjectsService for backward compatibility during transition
-builder.Services.AddSingleton<OneJaxDashboard.Services.ProjectsService>();
 
 var app = builder.Build();
 

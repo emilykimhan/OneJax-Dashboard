@@ -28,17 +28,31 @@ public class HomeController : Controller
             // Apply filters
             dashboardData = ApplyFilters(dashboardData, status ?? "", time ?? "", goal ?? "", fiscalYear ?? "", quarter ?? "");
 
+            // Add board meeting attendance records for the enhanced view
+            ViewBag.BoardMeetingAttendance = await _context.BoardMeetingAttendance
+                .OrderByDescending(b => b.MeetingDate)
+                .Take(10) // Limit to last 10 meetings
+                .ToListAsync();
+
+            // Add budget tracking data for Financial Sustainability chart
+            var budgetTracking = await _context.BudgetTracking_28D.ToListAsync();
+            ViewBag.BudgetTracking = budgetTracking;
+
             return View(dashboardData);
         }
         catch (Exception ex)
         {
-            // Show error message but with empty data to encourage real data entry
+            // Enhanced error logging for Azure diagnostics
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
+            logger.LogError(ex, "Dashboard data loading failed. FiscalYear: {FiscalYear}, Goal: {Goal}", fiscalYear, goal);
+            
+            // Show error message but with empty data structure
             var errorData = new DashboardViewModel 
             { 
                 StrategicGoals = new List<StrategicGoal>(),
                 HasError = true,
-                ErrorMessage = $"Error accessing database: {ex.Message}. Please ensure data has been entered through the data entry forms.",
-                DataSource = "Error - No Data"
+                ErrorMessage = ex.InnerException?.Message ?? ex.Message,
+                DataSource = "Database Connection Error"
             };
             
             return View(errorData);
@@ -624,66 +638,56 @@ public class HomeController : Controller
             Metrics = new List<GoalMetric>()
         };
 
-        // Generate metrics from staff surveys
-        if (staffSurveys.Any())
+        // Generate metrics from staff surveys (always create metrics, default to 0 if no data)
+        var avgSatisfaction = staffSurveys.Any() ? staffSurveys.Average(s => s.SatisfactionRate) : 0;
+        var totalStaff = staffSurveys.Count;
+        
+        goal.Metrics.Add(new GoalMetric
         {
-            var avgSatisfaction = staffSurveys.Average(s => s.SatisfactionRate);
-            var totalStaff = staffSurveys.Count;
-            
-            goal.Metrics.Add(new GoalMetric
-            {
-                Id = 1,
-                Name = "Staff Satisfaction Rate",
-                Description = $"Based on {totalStaff} staff survey responses",
-                StrategicGoalId = 1,
-                Target = "",
-                CurrentValue = (decimal)Math.Round(avgSatisfaction, 1),
-                Unit = "%",
-                Status = "In Progress",
-                TargetDate = DateTime.Now.AddMonths(12)
-            });
+            Id = 1,
+            Name = "Staff Satisfaction Rate",
+            Description = totalStaff > 0 ? $"Based on {totalStaff} staff survey responses" : "No survey data available - showing baseline",
+            StrategicGoalId = 1,
+            Target = "90",
+            CurrentValue = (decimal)Math.Round(avgSatisfaction, 1),
+            Unit = "%",
+            Status = totalStaff > 0 ? "In Progress" : "Pending Data",
+            TargetDate = DateTime.Now.AddMonths(12)
+        });
 
-            var totalProfDevFromSurveys = staffSurveys.Sum(s => s.ProfessionalDevelopmentCount);
-            
-            goal.Metrics.Add(new GoalMetric
-            {
-                Id = 2,
-                Name = "Professional Development Activities (Staff Reported)",
-                Description = $"Activities reported by staff members",
-                StrategicGoalId = 1,
-                Target = "",
-                CurrentValue = totalProfDevFromSurveys,
-                Unit = "activities",
-                Status = "In Progress",
-                TargetDate = DateTime.Now.AddMonths(12)
-            });
-
-            // Metrics only - no automatic event creation for data entry
-        }
-
-        // Generate metrics from professional development data
-        if (profDev.Any())
+        var totalProfDevFromSurveys = staffSurveys.Any() ? staffSurveys.Sum(s => s.ProfessionalDevelopmentCount) : 0;
+        
+        goal.Metrics.Add(new GoalMetric
         {
-            var totalDev26 = profDev.Sum(p => p.ProfessionalDevelopmentYear26);
-            var totalDev27 = profDev.Sum(p => p.ProfessionalDevelopmentYear27);
-            
-            goal.Metrics.Add(new GoalMetric
-            {
-                Id = 3,
-                Name = "Professional Development Planning",
-                Description = $"Planned activities for 2026-2027",
-                StrategicGoalId = 1,
-                Target = "",
-                CurrentValue = totalDev26 + totalDev27,
-                Unit = "activities",
-                Status = "In Progress",
-                TargetDate = DateTime.Now.AddMonths(12),
-                Q1Value = totalDev26,
-                Q2Value = totalDev27
-            });
+            Id = 2,
+            Name = "Professional Development Activities (Staff Reported)",
+            Description = staffSurveys.Any() ? $"Activities reported by staff members" : "No staff reports available - showing baseline",
+            StrategicGoalId = 1,
+            Target = "",
+            CurrentValue = totalProfDevFromSurveys,
+            Unit = "activities",
+            Status = staffSurveys.Any() ? "In Progress" : "Pending Data",
+            TargetDate = DateTime.Now.AddMonths(12)
+        });
 
-            // Metrics only - no automatic event creation for data entry
-        }
+        // Generate metrics from professional development data (always create metrics, default to 0 if no data)
+        var totalDev26 = profDev.Any() ? profDev.Sum(p => p.ProfessionalDevelopmentYear26) : 0;
+        var totalDev27 = profDev.Any() ? profDev.Sum(p => p.ProfessionalDevelopmentYear27) : 0;
+        
+        goal.Metrics.Add(new GoalMetric
+        {
+            Id = 3,
+            Name = "Professional Development Planning",
+            Description = profDev.Any() ? $"Planned activities for 2026-2027" : "No planning data available - showing baseline",
+            StrategicGoalId = 1,
+            Target = "",
+            CurrentValue = totalDev26 + totalDev27,
+            Unit = "activities",
+            Status = profDev.Any() ? "In Progress" : "Pending Data",
+            TargetDate = DateTime.Now.AddMonths(12),
+            Q1Value = totalDev26,
+            Q2Value = totalDev27
+        });
 
         return goal;
     }
@@ -984,24 +988,11 @@ public class HomeController : Controller
 
     private async Task AddIdentityMetricsAsync(StrategicGoal goal)
     {
-        // First, clean up any old metrics that we don't want
-        var metricsToRemove = goal.Metrics.Where(m => 
-            (m.Name.Contains("Media Placements") && m.Name != "Earned Media Placements") ||
-            (m.Name.Contains("Website Traffic") && m.Name != "Website Traffic Q1") ||
-            m.Name.Contains("Key Plan Milestones") ||
-            m.Name.Contains("Content calendar") ||
-            m.Name.Contains("brand messaging")).ToList();
-            
-        foreach (var metric in metricsToRemove)
-        {
-            goal.Metrics.Remove(metric);
-        }
-
         var nextId = goal.Metrics.Count + 1000;
 
-        // Identity/Value Proposition metrics - exactly 6 total
+        // IDENTITY/VALUE PROPOSITION - Connect ALL relevant forms
         
-        // 1. Earned Media Placements (keep this one with proper name)
+        // 1. Media Placements (from MediaPlacements_3D table)
         var mediaPlacements = await _context.MediaPlacements_3D.ToListAsync();
         var totalPlacements = 0;
         foreach (var placement in mediaPlacements)
@@ -1016,57 +1007,58 @@ public class HomeController : Controller
         
         AddOrUpdateMetric(goal, "Earned Media Placements", "Professional media coverage tracking", 
             totalPlacements, "placements", "50", mediaPlacements.Any() ? "Active" : "Planning",
-            mediaPlacements.Any() ? $"Total media placements: {totalPlacements}" : "No media placements yet - Go to Data Entry → Media Placements", nextId++);
+            $"📺 Media Placements: {totalPlacements} | Form: Data Entry → Media Placements", nextId++);
 
-        // 2. Website Traffic
+        // 2. Website Traffic (from WebsiteTraffic table - FIXED table name)
         var websiteTraffic = await _context.WebsiteTraffic.ToListAsync();
         var totalTraffic = websiteTraffic.Sum(w => (w.Q1_JulySeptember ?? 0) + (w.Q2_OctoberDecember ?? 0) + 
                                                   (w.Q3_JanuaryMarch ?? 0) + (w.Q4_AprilJune ?? 0));
         
-        AddOrUpdateMetric(goal, "Website Traffic Q1", "Total website clicks per quarter", 
+        AddOrUpdateMetric(goal, "Website Traffic", "Quarterly website engagement", 
             totalTraffic, "clicks", "10000", websiteTraffic.Any() ? "Active" : "Planning",
-            websiteTraffic.Any() ? $"Total quarterly traffic: {totalTraffic:N0} clicks" : "No website traffic data yet - Go to Data Entry → Website Traffic", nextId++);
+            $"🌐 Website Traffic: {totalTraffic:N0} clicks | Form: Data Entry → Website Traffic", nextId++);
 
-        // 3. Geographic Reach
+        // 3. Geographic Reach (from demographics_8D)
         var demographics = await _context.demographics_8D.ToListAsync();
         var uniqueZipCodes = 0;
         if (demographics.Any())
         {
-            uniqueZipCodes = demographics.SelectMany(d => d.ZipCodes.Split(',', StringSplitOptions.RemoveEmptyEntries))
-                                       .Select(z => z.Trim()).Distinct().Count();
+            var allZipCodes = demographics.SelectMany(d => d.ZipCodes.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                                        .Select(z => z.Trim()).Where(z => !string.IsNullOrEmpty(z)).Distinct();
+            uniqueZipCodes = allZipCodes.Count();
         }
         
-        // Debug: Force at least 1 if we have demographics data but calculation returned 0
-        if (demographics.Any() && uniqueZipCodes == 0)
-        {
-            uniqueZipCodes = 1; // At least count the fact that we have some demographic data
-        }
-        
-        AddOrUpdateMetric(goal, "Geographic Reach", "Unique ZIP codes served", 
+        AddOrUpdateMetric(goal, "Geographic Reach", "Service area expansion", 
             uniqueZipCodes, "ZIP codes", "25", demographics.Any() ? "Active" : "Planning",
-            demographics.Any() ? $"Program reach: {uniqueZipCodes} unique ZIP codes" : "No demographics data yet - Go to Data Entry → Demographics", nextId++);
+            $"📍 ZIP Codes Served: {uniqueZipCodes} | Form: Data Entry → Demographics", nextId++);
 
-        // 4. Strategic Issues Tracking
-        var planIssues = await _context.planIssue_25D.ToListAsync();
+        // Note: Brand Trust Rate moved to Community Engagement tab as "Community Trust Rating"
+        // to avoid duplication and better align with data source context
+
+        // 4. Community Perception Survey (from Annual_average_7D)
+        var annualSurvey = await _context.Annual_average_7D.ToListAsync();
+        var latestSurvey = annualSurvey.OrderByDescending(s => s.Year).FirstOrDefault();
+        var trustRating = latestSurvey?.Percentage ?? 0;
         
-        AddOrUpdateMetric(goal, "Strategic Issues Tracking", "Issues identified for planning", 
-            planIssues.Count, "issues", "15", planIssues.Any() ? "Active" : "Planning",
-            planIssues.Any() ? $"Issues tracked: {planIssues.Count}" : "No planning issues yet - Go to Data Entry → Planning Issues", nextId++);
+        AddOrUpdateMetric(goal, "Community Perception Survey", "Biannual survey - 70% trust rating target by Q4 2025", 
+            trustRating, "%", "70", annualSurvey.Any() ? "Active" : "Planning",
+            $"🌟 {trustRating}% identify OneJax as trusted leader ({latestSurvey?.TotalRespondents} respondents, {latestSurvey?.Year}) | Form: Data Entry → Annual Survey", nextId++);
 
-        // 5. 2026 Strategic Plans
+        // 5. Strategic Planning (from Plan2026_24D)
         var plan2026 = await _context.Plan2026_24D.ToListAsync();
+        var completedPlans = plan2026.Count(p => p.GoalMet);
         
-        AddOrUpdateMetric(goal, "2026 Strategic Plans", "Future planning initiatives", 
-            plan2026.Count, "plans", "20", plan2026.Any() ? "Active" : "Planning",
-            plan2026.Any() ? $"Plans for 2026: {plan2026.Count}" : "No 2026 plans yet - Go to Data Entry → 2026 Planning", nextId++);
+        AddOrUpdateMetric(goal, "Strategic Plan Completion", "2026 planning progress", 
+            completedPlans, "goals met", "20", plan2026.Any() ? "Active" : "Planning",
+            $"🎯 Plans Completed: {completedPlans}/{plan2026.Count} | Form: Data Entry → 2026 Planning", nextId++);
 
-        // 6. Communication Rate (adding one more to make 6 total)
-        var commRate = await _context.CommunicationRate.ToListAsync();
-        var avgCommSatisfaction = commRate.Any() ? commRate.Average(c => c.AverageCommunicationSatisfaction) : 0;
+        // 5. Issue Resolution (from planIssue_25D)
+        var planIssues = await _context.planIssue_25D.ToListAsync();
+        var resolvedIssues = planIssues.Count(i => i.IsCompliant);
         
-        AddOrUpdateMetric(goal, "Communication Satisfaction", "Average communication satisfaction rate", 
-            avgCommSatisfaction, "%", "85", commRate.Any() ? "Active" : "Planning",
-            commRate.Any() ? $"Communication satisfaction: {avgCommSatisfaction:F1}%" : "No communication data yet", nextId++);
+        AddOrUpdateMetric(goal, "Issue Resolution Rate", "Strategic issues addressed", 
+            resolvedIssues, "resolved", "15", planIssues.Any() ? "Active" : "Planning",
+            $"⚡ Issues Resolved: {resolvedIssues}/{planIssues.Count} | Form: Data Entry → Plan Issues", nextId++);
     }
 
     private async Task AddOrganizationalMetricsAsync(StrategicGoal goal)
@@ -1099,11 +1091,19 @@ public class HomeController : Controller
 
         // 4. Board Meeting Attendance
         var boardAttendance = await _context.BoardMeetingAttendance.ToListAsync();
-        var avgAttendance = boardAttendance.Any() ? boardAttendance.Average(b => b.MembersInAttendance) : 0;
+        decimal avgAttendanceRate = 0;
+        if (boardAttendance.Any())
+        {
+            var attendanceRates = boardAttendance
+                .Where(b => b.TotalBoardMembers > 0)
+                .Select(b => (double)b.MembersInAttendance / b.TotalBoardMembers * 100);
+            var average = attendanceRates.Any() ? attendanceRates.Average() : 0;
+            avgAttendanceRate = average.HasValue ? (decimal)average.Value : 0;
+        }
         
         AddOrUpdateMetric(goal, "Board Meeting Participation", "Average meeting attendance", 
-            Math.Round((decimal)avgAttendance, 1), "members", "12", boardAttendance.Any() ? "Active" : "Planning",
-            boardAttendance.Any() ? $"Average attendance: {avgAttendance:F1} members" : "No board attendance data yet - Go to Data Entry → Board Management", nextId++);
+            Math.Round(avgAttendanceRate, 1), "%", "90", boardAttendance.Any() ? "Active" : "Planning",
+            boardAttendance.Any() ? $"Average attendance rate: {avgAttendanceRate:F1}%" : "No board attendance data yet - Go to Data Entry → Board Management", nextId++);
     }
 
     private async Task AddFinancialMetricsAsync(StrategicGoal goal)
@@ -1130,10 +1130,6 @@ public class HomeController : Controller
         AddOrUpdateMetric(goal, "Budget Revenue Tracking", "Total tracked revenue streams", 
             totalRevenue, "dollars", "500000", budgetTracking.Any() ? "Active" : "Planning",
             budgetTracking.Any() ? $"Total revenue: ${totalRevenue:N0}, Total expenses: ${totalExpenses:N0}" : "No budget data yet - Go to Data Entry → Budget Tracking", nextId++);
-            
-        AddOrUpdateMetric(goal, "Budget Expense Tracking", "Total tracked expense streams", 
-            totalExpenses, "dollars", "400000", budgetTracking.Any() ? "Active" : "Planning",
-            budgetTracking.Any() ? $"Total expenses: ${totalExpenses:N0}" : "No budget expense data yet", nextId++);
 
         // 2. Fee-for-Service Revenue
         var feeServices = await _context.FeeForServices_21D.ToListAsync();
@@ -1165,29 +1161,57 @@ public class HomeController : Controller
     {
         var nextId = goal.Metrics.Count + 4000;
 
-        // 1. Cross-Sector Collaborations
+        // 1. Interfaith Events (Update existing "Interfaith Events Hosted" metric)
+        var interfaithEvents = await _context.Interfaith_11D.ToListAsync();
+        var totalInterfaithAttendance = interfaithEvents.Sum(i => i.TotalAttendance);
+        var totalFaiths = interfaithEvents.Sum(i => i.NumberOfFaithsRepresented);
+        var avgSatisfaction = interfaithEvents.Any() ? interfaithEvents.Average(i => i.PostEventSatisfactionSurvey) : 0;
+        
+        AddOrUpdateMetric(goal, "Interfaith Events Hosted", "Multi-faith community engagement events", 
+            interfaithEvents.Count, "events", "4", interfaithEvents.Any() ? "Active" : "Planning",
+            $"🕊️ {interfaithEvents.Count} events, {totalInterfaithAttendance} attendees, {totalFaiths} faiths represented, {avgSatisfaction:F1}/5 satisfaction | Form: Interfaith Events", nextId++);
+
+        // 2. Cross-Sector Collaborations (Update existing metric)
         var crossSectorCollabs = await _context.CrossSectorCollabs.ToListAsync();
         var activeCollabs = crossSectorCollabs.Count(c => c.Status == "Active");
         
-        AddOrUpdateMetric(goal, "Cross-Sector Partnerships", "Strategic community alliances", 
-            crossSectorCollabs.Count, "partnerships", "20", crossSectorCollabs.Any() ? "Active" : "Planning",
-            crossSectorCollabs.Any() ? $"{crossSectorCollabs.Count} partnerships ({activeCollabs} active)" : "No cross-sector collaborations yet - Go to Data Entry → Cross-Sector Collaborations", nextId++);
+        AddOrUpdateMetric(goal, "Cross-Sector Collaborations", "Strategic community alliances", 
+            crossSectorCollabs.Count, "collaborations", "10", crossSectorCollabs.Any() ? "Active" : "Planning",
+            $"🤝 {crossSectorCollabs.Count} partnerships ({activeCollabs} active) | Form: Data Entry → Cross-Sector Collaborations", nextId++);
 
-        // 2. Communication Rate
+        // 3. Joint Initiative Satisfaction (Update existing metric)
+        var jointInitiatives = crossSectorCollabs.Where(c => c.partner_satisfaction_ratings > 0).ToList();
+        var avgJointSatisfaction = jointInitiatives.Any() ? jointInitiatives.Average(c => c.partner_satisfaction_ratings) : 0;
+        
+        AddOrUpdateMetric(goal, "Joint Initiative Satisfaction", "Partner satisfaction with joint initiatives", 
+            avgJointSatisfaction, "%", "85", jointInitiatives.Any() ? "Active" : "Planning",
+            $"🤝 {avgJointSatisfaction:F1}% satisfaction from {jointInitiatives.Count} joint initiatives | Form: Cross-Sector Collaborations", nextId++);
+
+        // 4. Communication Rate
         var commRate = await _context.CommunicationRate.ToListAsync();
+        var avgCommSatisfaction = commRate.Any() ? commRate.Average(c => c.AverageCommunicationSatisfaction) : 0;
         
-        AddOrUpdateMetric(goal, "Community Communications", "Outreach and engagement tracking", 
-            commRate.Count, "communications", "100", commRate.Any() ? "Active" : "Planning",
-            commRate.Any() ? $"Communication entries: {commRate.Count}" : "No communication data yet - Go to Data Entry → Communications", nextId++);
+        AddOrUpdateMetric(goal, "Community Communications", "Outreach and engagement satisfaction", 
+            avgCommSatisfaction, "%", "85", commRate.Any() ? "Active" : "Planning",
+            $"📢 {commRate.Count} communication entries, {avgCommSatisfaction:F1}% satisfaction | Form: Data Entry → Communications", nextId++);
 
-        // 3. Annual Community Survey
-        var annualSurvey = await _context.Annual_average_7D.ToListAsync();
-        var latestSurvey = annualSurvey.OrderByDescending(s => s.Year).FirstOrDefault();
-        var trustRating = latestSurvey?.Percentage ?? 0;
+        // 5. Event Satisfaction (from EventSatisfaction_12D)
+        var eventSatisfaction = await _context.EventSatisfaction_12D.ToListAsync();
+        var avgEventSatisfaction = eventSatisfaction.Any() ? eventSatisfaction.Average(e => e.EventAttendeeSatisfactionPercentage) : 0;
         
-        AddOrUpdateMetric(goal, "Community Trust Rating", "Annual community perception survey", 
-            trustRating, "percent", "80", annualSurvey.Any() ? "Active" : "Planning",
-            annualSurvey.Any() ? $"{trustRating}% trust rating ({latestSurvey?.TotalRespondents} respondents, {latestSurvey?.Year})" : "No community survey data yet - Go to Data Entry → Annual Survey", nextId++);
+        AddOrUpdateMetric(goal, "Event Quality Score", "Community event satisfaction", 
+            avgEventSatisfaction, "%", "90", eventSatisfaction.Any() ? "Active" : "Planning",
+            $"🎉 Event Satisfaction: {avgEventSatisfaction:F1}% from {eventSatisfaction.Count} events | Form: Data Entry → Event Satisfaction", nextId++);
+
+        // 6. Youth Program Satisfaction (Update existing metric - general event satisfaction as proxy)
+        var avgYouthSatisfaction = eventSatisfaction.Any() ? eventSatisfaction.Average(e => e.EventAttendeeSatisfactionPercentage) : 0;
+        
+        AddOrUpdateMetric(goal, "Youth Program Satisfaction", "Average satisfaction across all youth programs", 
+            avgYouthSatisfaction, "%", "85", eventSatisfaction.Any() ? "Active" : "Planning",
+            $"👥 {avgYouthSatisfaction:F1}% satisfaction from community events (youth-specific data via Event Satisfaction form) | Form: Data Entry → Event Satisfaction", nextId++);
+
+        // Note: Community Trust Rating moved to Identity/Value Proposition tab
+        // as "Community Perception Survey" to better match the actual form
     }
 
     private void AddOrUpdateMetric(StrategicGoal goal, string name, string description, decimal currentValue, 

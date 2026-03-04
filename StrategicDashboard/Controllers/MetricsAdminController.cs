@@ -40,7 +40,7 @@ namespace OneJaxDashboard.Controllers
 
         // Update manual entry metrics
         [HttpPost]
-        public async Task<IActionResult> UpdateMetric(int metricId, decimal currentValue, string returnUrl = null)
+        public async Task<IActionResult> UpdateMetric(int metricId, decimal currentValue, string? returnUrl = null)
         {
             await _metricsService.UpdateManualMetricAsync(metricId, currentValue);
             

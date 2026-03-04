@@ -260,16 +260,8 @@ function exportMetrics() {
 }
 
 function showToast(message, type = 'success') {
-    const toast = document.getElementById('updateToast');
-    const toastMessage = document.getElementById('toastMessage');
-    
-    toastMessage.textContent = message;
-    
-    // Add appropriate classes based on type
-    toast.className = `toast ${type === 'success' ? 'bg-success' : type === 'error' ? 'bg-danger' : 'bg-info'} text-white`;
-    
-    const bsToast = new bootstrap.Toast(toast);
-    bsToast.show();
+    // Toast notifications disabled
+    return;
 }
 
 // Listen for form submissions and show success messages
