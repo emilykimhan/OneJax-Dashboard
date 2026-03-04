@@ -58,7 +58,7 @@ namespace OneJaxDashboard.Controllers
                         Id = strategy.Id,
                         Title = strategy.Name,
                         Description = strategy.Description,
-                        Type = strategy.EventType ?? "Community", // Use the event type from strategy
+                        Type = string.IsNullOrWhiteSpace(strategy.ProgramName) ? "Program" : strategy.ProgramName,
                         Status = "Planned",
                         StrategicGoalId = strategy.StrategicGoalId,
                         DueDate = DateTime.TryParse(strategy.Date, out var date) ? date : DateTime.Now.AddDays(30),
@@ -193,7 +193,7 @@ namespace OneJaxDashboard.Controllers
                         Id = strategy.Id,
                         Title = strategy.Name,
                         Description = strategy.Description,
-                        Type = strategy.EventType ?? "Community",
+                        Type = string.IsNullOrWhiteSpace(strategy.ProgramName) ? "Program" : strategy.ProgramName,
                         Status = "Planned",
                         DueDate = DateTime.TryParse(strategy.Date, out var date) ? date.ToString("MMMM dd, yyyy") : DateTime.Now.AddDays(30).ToString("MMMM dd, yyyy"),
                         Location = string.IsNullOrEmpty(strategy.Time) ? "TBD" : $"Time: {strategy.Time}",

@@ -40,6 +40,7 @@ namespace OneJaxDashboard.Data
 
         // Core Strategies 
         public DbSet<Strategy> Strategies { get; set; } = default!;
+        public DbSet<Programs> Programs { get; set; } = default!;
 
         //Account tables
 
@@ -78,6 +79,12 @@ namespace OneJaxDashboard.Data
                 .HasOne(e => e.StrategyTemplate)
                 .WithMany()
                 .HasForeignKey(e => e.StrategyTemplateId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Strategy>()
+                .HasOne(s => s.Program)
+                .WithMany(p => p.Strategies)
+                .HasForeignKey(s => s.ProgramId)
                 .OnDelete(DeleteBehavior.SetNull);
 
             modelBuilder.Entity<Event>()

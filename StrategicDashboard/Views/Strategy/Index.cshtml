@@ -494,13 +494,11 @@ new { Id = 4, Name = "Community Engagement" }
 </div>
 
 <div class="col-md-6">
-    <label class="form-label fw-semibold">Program Type</label>
-    <select name="eventType" class="form-select" required>
-        <option value="" selected disabled>Select Program Type</option>
-        <option value="Youth">Youth</option>
-        <option value="Interfaith">Interfaith</option>
-        <option value="Humanitarian">Humanitarian</option>
-        <option value="Community">Community</option>
+    <label class="form-label fw-semibold">Cross Collaboration</label>
+    <select name="crossCollaboration" class="form-select" required>
+        <option value="" selected disabled>Select Option</option>
+        <option value="Yes">Yes</option>
+        <option value="No">No</option>
     </select>
 </div>
 
@@ -579,7 +577,7 @@ new { Id = 4, Name = "Community Engagement" }
                                 <tr>
                                     <th>Program</th>
                                     <th>Event</th>
-                                    <th>Type</th>
+                                    <th>Cross Collaboration</th>
                                     <th>FY</th>
                                     <th>Date</th>
                                     <th>Time</th>
@@ -622,10 +620,10 @@ new { Id = 4, Name = "Community Engagement" }
                                             }
                                         </td>
 
-                                        <td data-label="Type">
-                                            @if (!string.IsNullOrWhiteSpace(e.EventType))
+                                        <td data-label="Cross Collaboration">
+                                            @if (!string.IsNullOrWhiteSpace(e.CrossCollaboration))
                                             {
-                                                <span class="type-chip type-@e.EventType.ToLower()"><i class="bi bi-tag"></i> @e.EventType</span>
+                                                <span class="type-chip"><i class="bi bi-people"></i> @e.CrossCollaboration</span>
                                             }
                                             else
                                             {

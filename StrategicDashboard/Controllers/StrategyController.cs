@@ -31,14 +31,6 @@ public class StrategyController : Controller
     {
         ViewBag.Goals = Goals;
 
-        // Ensure existing strategies have a default EventType
-        var strategies = _context.Strategies.Where(s => string.IsNullOrEmpty(s.EventType)).ToList();
-        foreach (var strategy in strategies)
-        {
-            strategy.EventType = "Community";
-        }
-        _context.SaveChanges();
-
         var goalStrategies = goalId.HasValue
             ? _context.Strategies.Where(s => s.StrategicGoalId == goalId.Value).ToList()
             : _context.Strategies.ToList();
@@ -52,7 +44,7 @@ public class StrategyController : Controller
     }
 
     [HttpPost]
-    public IActionResult Add(int goalId, string eventName, string eventDescription, string? eventDate, string? eventTime, string eventType = "Community", string? fiscalYear = null, string? programName = null)
+    public IActionResult Add(int goalId, string eventName, string eventDescription, string? eventDate, string? eventTime, string? crossCollaboration = null, string? fiscalYear = null, string? programName = null)
     {
         int newId = Strategies.Any() ? Strategies.Max(s => s.Id) + 1 : 1;
 
@@ -65,7 +57,7 @@ public class StrategyController : Controller
             StrategicGoalId = goalId,
             Date = eventDate,
             Time = eventTime,
-            EventType = eventType,
+            CrossCollaboration = crossCollaboration ?? string.Empty,
             EventFYear = fiscalYear ?? string.Empty
         };
         // Also persist to FiscalYear if the model has that property (keeps older/newer versions in sync)
@@ -101,7 +93,7 @@ public class StrategyController : Controller
     }
 
     [HttpPost]
-    public IActionResult Edit(int id, string eventName, string eventDescription, string eventDate, string eventTime, int goalId, string eventType, string? fiscalYear, string? programName=null)
+    public IActionResult Edit(int id, string eventName, string eventDescription, string eventDate, string eventTime, int goalId, string? crossCollaboration, string? fiscalYear, string? programName=null)
     {
         // Fetch the strategy from the database
         var evt = _context.Strategies.FirstOrDefault(s => s.Id == id);
@@ -113,7 +105,7 @@ public class StrategyController : Controller
         // Update the strategy's properties
         evt.Name = string.IsNullOrWhiteSpace(eventName) ? (programName ?? string.Empty) : eventName;
         evt.ProgramName = programName ?? string.Empty;
-        evt.EventType = eventType;
+        evt.CrossCollaboration = crossCollaboration ?? string.Empty;
         evt.Description = eventDescription;
         evt.Date = eventDate;
         evt.Time = eventTime;
@@ -150,7 +142,7 @@ public class StrategyController : Controller
         TempData["SuccessMessage"] = "Program deleted successfully!";
         return RedirectToAction("ViewEvents");
     }
-    public IActionResult ViewEvents()
+    public IActionResult ViewEvents() 
     {
         // Fetch all events from the database
         var events = _context.Strategies.ToList();

@@ -437,7 +437,7 @@
                             <tr>
                                 <th>Program</th>
                                 <th>Event</th>
-                                <th>Type</th>
+                                <th>Cross Collaboration</th>
                                 <th>FY</th>
                                 <th>Date</th>
                                 <th>Time</th>
@@ -462,15 +462,6 @@
                                     timeDisplay = parsedTime.ToString("h:mm tt");
                                 }
 
-                                var typeClass = (e.EventType ?? string.Empty)
-                                    .Trim()
-                                    .Replace(" ", "")
-                                    .ToLowerInvariant();
-                                if (typeClass != "youth" && typeClass != "interfaith" && typeClass != "humanitarian" && typeClass != "community")
-                                {
-                                    typeClass = "default";
-                                }
-
                                 <tr>
                                     <td data-label="Program">
                                         <div class="cell-title">@program</div>
@@ -487,10 +478,10 @@
                                         }
                                     </td>
 
-                                    <td data-label="Type">
-                                        @if (!string.IsNullOrWhiteSpace(e.EventType))
+                                    <td data-label="Cross Collaboration">
+                                        @if (!string.IsNullOrWhiteSpace(e.CrossCollaboration))
                                         {
-                                            <span class="type-chip type-@typeClass"><i class="bi bi-tag"></i> @e.EventType</span>
+                                            <span class="type-chip"><i class="bi bi-people"></i> @e.CrossCollaboration</span>
                                         }
                                         else
                                         {
@@ -584,7 +575,7 @@
                                     <tr>
                                         <th>Program</th>
                                         <th>Event</th>
-                                        <th>Type</th>
+                                        <th>Cross Collaboration</th>
                                         <th>FY</th>
                                         <th>Date</th>
                                         <th>Time</th>
@@ -609,15 +600,6 @@
                                             timeDisplay = parsedTime.ToString("h:mm tt");
                                         }
 
-                                        var typeClass = (e.EventType ?? string.Empty)
-                                            .Trim()
-                                            .Replace(" ", "")
-                                            .ToLowerInvariant();
-                                        if (typeClass != "youth" && typeClass != "interfaith" && typeClass != "humanitarian" && typeClass != "community")
-                                        {
-                                            typeClass = "default";
-                                        }
-
                                         <tr>
                                             <td data-label="Program">
                                                 <div class="cell-title">@program</div>
@@ -634,10 +616,10 @@
                                                 }
                                             </td>
 
-                                            <td data-label="Type">
-                                                @if (!string.IsNullOrWhiteSpace(e.EventType))
+                                            <td data-label="Cross Collaboration">
+                                                @if (!string.IsNullOrWhiteSpace(e.CrossCollaboration))
                                                 {
-                                                    <span class="type-chip type-@typeClass"><i class="bi bi-tag"></i> @e.EventType</span>
+                                                    <span class="type-chip"><i class="bi bi-people"></i> @e.CrossCollaboration</span>
                                                 }
                                                 else
                                                 {
