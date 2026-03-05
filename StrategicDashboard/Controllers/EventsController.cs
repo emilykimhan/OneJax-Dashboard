@@ -60,7 +60,9 @@ namespace OneJaxDashboard.Controllers
                         Id = strategy.Id,
                         Title = strategy.Name,
                         Description = strategy.Description,
-                        Type = strategy.EventType ?? "Community", // Use the event type from strategy
+                        Type = !string.IsNullOrWhiteSpace(strategy.ProgramName)
+                            ? strategy.ProgramName
+                            : (!string.IsNullOrWhiteSpace(strategy.ProgramType) ? strategy.ProgramType : "Program"),
                         Status = "Planned",
                         StrategicGoalId = strategy.StrategicGoalId,
                         DueDate = DateTime.TryParse(strategy.Date, out var date) ? date : NowEastern.AddDays(30),
@@ -195,7 +197,9 @@ namespace OneJaxDashboard.Controllers
                         Id = strategy.Id,
                         Title = strategy.Name,
                         Description = strategy.Description,
-                        Type = strategy.EventType ?? "Community",
+                        Type = !string.IsNullOrWhiteSpace(strategy.ProgramName)
+                            ? strategy.ProgramName
+                            : (!string.IsNullOrWhiteSpace(strategy.ProgramType) ? strategy.ProgramType : "Program"),
                         Status = "Planned",
                         DueDate = DateTime.TryParse(strategy.Date, out var date) ? date.ToString("MMMM dd, yyyy") : NowEastern.AddDays(30).ToString("MMMM dd, yyyy"),
                         Location = string.IsNullOrEmpty(strategy.Time) ? "TBD" : $"Time: {strategy.Time}",
@@ -425,7 +429,7 @@ namespace OneJaxDashboard.Controllers
 
             var strategies = _context.Strategies
                 .Where(s => strategyIds.Contains(s.Id))
-                .Select(s => new { s.Id, s.StrategicGoalId, s.EventType })
+                .Select(s => new { s.Id, s.StrategicGoalId, s.ProgramType })
                 .ToList();
 
             var goalIds = events
@@ -447,7 +451,7 @@ namespace OneJaxDashboard.Controllers
 
             var eventTypesByStrategyId = strategies.ToDictionary(
                 s => s.Id,
-                s => string.IsNullOrWhiteSpace(s.EventType) ? "Community" : s.EventType);
+                s => string.IsNullOrWhiteSpace(s.ProgramType) ? "Community" : s.ProgramType);
 
             ViewBag.GoalNamesByGoalId = goalNamesByGoalId;
             ViewBag.GoalNamesByStrategyId = goalNamesByStrategyId;

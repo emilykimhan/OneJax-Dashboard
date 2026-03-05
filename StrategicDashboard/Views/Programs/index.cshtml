@@ -1,0 +1,416 @@
+@model List<OneJaxDashboard.Models.Programs>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var successMessage = TempData["ProgramsSuccess"] as string;
+    var errorMessage = TempData["ProgramsError"] as string;
+    var programTypes = ViewBag.ProgramTypes as string[] ?? Array.Empty<string>();
+    var typeTabs = programTypes.ToList();
+    if (Model != null)
+    {
+        foreach (var modelType in Model
+            .Where(p => !string.IsNullOrWhiteSpace(p.ProgramType))
+            .Select(p => p.ProgramType.Trim())
+            .Distinct())
+        {
+            if (!typeTabs.Contains(modelType))
+            {
+                typeTabs.Add(modelType);
+            }
+        }
+    }
+
+    var tabOrder = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
+    {
+        ["Youth"] = 1,
+        ["Community"] = 2,
+        ["Interfaith"] = 3,
+        ["Donor"] = 4,
+        ["Humanitarian Awards"] = 5,
+        ["Fundraising"] = 6
+    };
+
+    typeTabs = typeTabs
+        .Distinct(StringComparer.OrdinalIgnoreCase)
+        .OrderBy(t => tabOrder.TryGetValue(t, out var order) ? order : 999)
+        .ThenBy(t => t)
+        .ToList();
+}
+
+<style>
+    :root {
+        --onejax-blue: #0070AD;
+        --onejax-teal: #00A3AD;
+        --onejax-navy: #102840;
+        --onejax-light: #F7F9FB;
+    }
+
+    body {
+        background-color: var(--onejax-light);
+        color: var(--onejax-navy);
+    }
+
+    .card-soft {
+        background: #fff;
+        border: none;
+        border-radius: 18px;
+        box-shadow: 0 6px 18px rgba(16, 40, 64, 0.08);
+    }
+
+    .pill-btn {
+        border-radius: 999px;
+        font-weight: 600;
+    }
+
+    .btn-onejax {
+        background-color: var(--onejax-blue);
+        border-color: var(--onejax-blue);
+        color: #fff;
+    }
+
+    .btn-onejax:hover {
+        background-color: var(--onejax-teal);
+        border-color: var(--onejax-teal);
+        color: #fff;
+    }
+
+    .table thead th {
+        color: var(--onejax-navy);
+        font-weight: 700;
+    }
+
+    .badge-type {
+        background-color: rgba(0, 163, 173, 0.15);
+        color: var(--onejax-navy);
+        border-radius: 999px;
+        padding: 0.35rem 0.7rem;
+        font-weight: 600;
+    }
+
+    .actions-cell {
+        white-space: nowrap;
+        text-align: right;
+    }
+
+    .nav-pills .nav-link {
+        color: var(--onejax-navy);
+        border-radius: 25px;
+        background-color: #fff;
+        border: 1px solid transparent;
+        transition: all 0.3s ease-in-out;
+        padding: 8px 16px;
+        margin: 0 4px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        font-weight: 600;
+    }
+
+    .nav-pills .nav-link.active {
+        background-color: var(--onejax-blue);
+        color: #fff;
+        box-shadow: 0 4px 10px rgba(0, 112, 173, 0.3);
+    }
+
+    .nav-pills .nav-link:hover {
+        background-color: var(--onejax-teal);
+        color: #fff;
+        transform: scale(1.02);
+    }
+
+    .programs-tabs {
+        position: relative;
+        z-index: 2;
+        margin-top: -12px;
+        margin-bottom: 14px;
+    }
+
+    .programs-table-wrap {
+        background: #fff;
+        border: 1px solid rgba(16, 40, 64, 0.08);
+        border-radius: 14px;
+        overflow: hidden;
+    }
+
+    table.programs-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0;
+    }
+
+    table.programs-table thead th {
+        background: var(--onejax-blue);
+        color: #fff;
+        font-weight: 800;
+        font-size: 0.85rem;
+        letter-spacing: 0.4px;
+        text-transform: uppercase;
+        padding: 14px 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+        white-space: nowrap;
+    }
+
+    table.programs-table tbody td {
+        padding: 14px 16px;
+        border-bottom: 1px solid rgba(16, 40, 64, 0.06);
+        vertical-align: middle;
+        color: #213547;
+        font-weight: 500;
+    }
+
+    table.programs-table tbody tr:hover {
+        background: rgba(0, 112, 173, 0.04);
+    }
+
+    .tab-empty-state {
+        padding: 20px 16px;
+        color: #6c757d;
+        margin: 0;
+    }
+
+    .success-text {
+        color: #00A676;
+        font-weight: 600;
+        font-size: 1rem;
+        letter-spacing: 0.5px;
+        animation: fadeInOut 4s ease-in-out forwards;
+    }
+
+    @@keyframes fadeInOut {
+        0% { opacity: 0; transform: translateY(-8px); }
+        10% { opacity: 1; transform: translateY(0); }
+        90% { opacity: 1; transform: translateY(0); }
+        100% { opacity: 0; transform: translateY(-8px); }
+    }
+</style>
+
+<div class="container my-5">
+    <div class="text-center mb-4">
+        <h1 class="fw-bold text-uppercase" style="color: var(--onejax-blue);">Programs</h1>
+        <p class="text-secondary fs-5">Manage program records and keep types organized.</p>
+    </div>
+
+    <!-- View Events button --> 
+    <div class="text-center mb-4">
+        <a href="/Strategy/ViewEvents" class="btn" style="background-color: var(--onejax-blue); color: #fff; padding: 10px 22px; border-radius: 25px; 
+                  font-weight: 600; box-shadow: 0 3px 8px rgba(0,0,0,0.15);">
+            View Events
+        </a>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(successMessage))
+    {
+        <div class="text-center mb-3">
+            <span class="success-text">@successMessage</span>
+        </div>
+    }
+    @if (!string.IsNullOrWhiteSpace(errorMessage))
+    {
+        <div class="alert alert-danger text-center mb-3">@errorMessage</div>
+    }
+
+    <div class="card-soft p-4 mb-4">
+        <h4 class="fw-bold mb-3" style="color: var(--onejax-blue);">Add Program</h4>
+
+        <form asp-action="Index" asp-controller="Programs" method="post" class="row g-3">
+            @Html.AntiForgeryToken()
+
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Program Name</label>
+                <input type="text" name="programName" class="form-control" placeholder="Enter program name" required />
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Program Type</label>
+                <select name="programType" class="form-select" required>
+                    <option value="" selected disabled>Select program type</option>
+                    @foreach (var type in programTypes)
+                    {
+                        <option value="@type">@type</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-12">
+                <label class="form-label fw-semibold">Description (Optional)</label>
+                <textarea name="description" class="form-control" rows="3" placeholder="Add details (optional)"></textarea>
+            </div>
+
+            <div class="col-12 d-flex gap-2">
+                <button type="submit" class="btn btn-onejax pill-btn px-4">Add Program</button>
+            </div>
+        </form>
+    </div>
+
+    @if (Model != null && Model.Any())
+    {
+        <ul class="nav nav-pills justify-content-center programs-tabs" id="programTypeTabs" role="tablist">
+            @for (int i = 0; i < typeTabs.Count; i++)
+            {
+                var type = typeTabs[i];
+                var safeTypeId = new string(type.Select(ch => char.IsLetterOrDigit(ch) ? char.ToLowerInvariant(ch) : '-').ToArray());
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link @(i == 0 ? "active" : "")"
+                            id="tab-@safeTypeId"
+                            data-bs-toggle="tab"
+                            data-bs-target="#pane-@safeTypeId"
+                            type="button"
+                            role="tab"
+                            aria-controls="pane-@safeTypeId"
+                            aria-selected="@(i == 0 ? "true" : "false")">
+                        @type
+                    </button>
+                </li>
+            }
+        </ul>
+    }
+
+    <div class="card-soft p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="fw-bold mb-0" style="color: var(--onejax-blue);">Active Programs</h4>
+            <a asp-action="Archive" asp-controller="Programs" class="btn btn-outline-secondary pill-btn px-4">View Archive</a>
+        </div>
+
+        @if (Model == null || !Model.Any())
+        {
+            <p class="text-muted mb-0">No programs yet.</p>
+        }
+        else
+        {
+            <div class="tab-content" id="programTypeTabsContent">
+                @for (int i = 0; i < typeTabs.Count; i++)
+                {
+                    var type = typeTabs[i];
+                    var safeTypeId = new string(type.Select(ch => char.IsLetterOrDigit(ch) ? char.ToLowerInvariant(ch) : '-').ToArray());
+                    var programsForType = Model.Where(p => p.ProgramType == type).OrderByDescending(p => p.Id).ToList();
+
+                    <div class="tab-pane fade @(i == 0 ? "show active" : "")" id="pane-@safeTypeId" role="tabpanel" aria-labelledby="tab-@safeTypeId">
+                        <div class="programs-table-wrap">
+                            @if (!programsForType.Any())
+                            {
+                                <p class="tab-empty-state">No programs in this type yet.</p>
+                            }
+                            else
+                            {
+                                <div class="table-responsive">
+                                    <table class="programs-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Program Name</th>
+                                                <th>Program Type</th>
+                                                <th>Description</th>
+                                                <th class="text-end">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var program in programsForType)
+                                            {
+                                                <tr>
+                                                    <td class="fw-semibold">@program.ProgramName</td>
+                                                    <td><span class="badge-type">@program.ProgramType</span></td>
+                                                    <td>@(string.IsNullOrWhiteSpace(program.Description) ? "-" : program.Description)</td>
+                                                    <td class="actions-cell">
+                                                        <div class="dropdown">
+                                                            <button class="btn btn-light btn-sm border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                                <i class="bi bi-three-dots fs-5 text-dark"></i>
+                                                            </button>
+                                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                                <li>
+                                                                    <a class="dropdown-item text-primary" asp-action="Edit" asp-controller="Programs" asp-route-id="@program.Id">
+                                                                        Edit
+                                                                    </a>
+                                                                </li>
+                                                                <li>
+                                                                    <button type="button" class="dropdown-item text-danger"
+                                                                            data-bs-toggle="modal"
+                                                                            data-bs-target="#deleteConfirmModal"
+                                                                            data-program-id="@program.Id">
+                                                                        Delete
+                                                                    </button>
+                                                                </li>
+                                                                <li>
+                                                                    <form asp-action="Archive" asp-controller="Programs" method="post" class="m-0">
+                                                                        @Html.AntiForgeryToken()
+                                                                        <input type="hidden" name="id" value="@program.Id" />
+                                                                        <button type="submit" class="dropdown-item text-secondary">
+                                                                            Archive
+                                                                        </button>
+                                                                    </form>
+                                                                </li>
+                                                            </ul>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-semibold" id="deleteConfirmLabel">
+                    Delete Program?
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <p class="mb-2">
+                    You're about to permanently delete this Program. This action cannot be undone.
+                </p>
+                <p class="mb-3">
+                    Type <strong>delete</strong> in lowercase to confirm.
+                </p>
+
+                <form id="deleteConfirmForm" asp-action="Delete" asp-controller="Programs" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="deleteProgramId" name="id" />
+
+                    <input type="text" id="deleteConfirmInput" class="form-control mb-3"
+                           placeholder='Type "delete" to continue' />
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-danger" id="deleteConfirmButton" disabled>
+                            Delete
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var deleteModal = document.getElementById('deleteConfirmModal');
+        var input = document.getElementById('deleteConfirmInput');
+        var button = document.getElementById('deleteConfirmButton');
+        var hiddenId = document.getElementById('deleteProgramId');
+
+        if (!deleteModal) return;
+
+        deleteModal.addEventListener('show.bs.modal', function (event) {
+            var triggerButton = event.relatedTarget;
+            var programId = triggerButton.getAttribute('data-program-id');
+
+            hiddenId.value = programId;
+            input.value = '';
+            button.disabled = true;
+        });
+
+        input.addEventListener('input', function () {
+            button.disabled = (input.value !== 'delete');
+        });
+    });
+</script>

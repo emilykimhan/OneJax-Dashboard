@@ -11,13 +11,16 @@ public class Strategy
 {
     public int Id { get; set; }
     public required string Name { get; set; } 
-    public string ProgramName { get; set; } = string.Empty;
+    public string? ProgramName { get; set; }
+    public string? ProgramType { get; set; }
+    public int? ProgramId { get; set; }
     public int StrategicGoalId { get; set; } 
     public string Description { get; set; } = string.Empty;
-    public List<Metric> Metrics { get; set; } = new(); 
     public string? Date { get; set; }  
     public string? Time { get; set; }
-    public string EventType { get; set; } = "Community"; // Default to Community
+    public string CrossCollaboration { get; set; } = string.Empty;
+    public string Partners { get; set; } = string.Empty;
     public string EventFYear { get; set; } = string.Empty;
     public StrategicGoal? StrategicGoal { get; set; }
+    public Programs? Program { get; set; }
 }
