@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using OneJaxDashboard.Data; 
 using System.Runtime.InteropServices;
 OfficeOpenXml.ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
@@ -10,13 +11,17 @@ if (builder.Environment.IsProduction())
 {
     // Use Azure SQL Database in production
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
-        options.UseSqlServer(builder.Configuration.GetConnectionString("AzureSqlConnection")));
+        options
+            .UseSqlServer(builder.Configuration.GetConnectionString("AzureSqlConnection"))
+            .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning)));
 }
 else
 {
     // Use SQLite for development
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
-        options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+        options
+            .UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"))
+            .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning)));
 }
 
 builder.Services.AddControllersWithViews();

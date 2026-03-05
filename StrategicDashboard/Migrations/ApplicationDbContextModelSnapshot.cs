@@ -1380,8 +1380,6 @@ namespace StrategicDashboard.Migrations
                 {
                     b.Navigation("Events");
 
-                    b.Navigation("Metrics");
-
                     b.Navigation("Strategies");
                 });
 #pragma warning restore 612, 618
