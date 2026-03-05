@@ -1,5 +1,6 @@
 @model OneJaxDashboard.Models.Strategy
 @using System.Collections.Generic
+@using Microsoft.AspNetCore.Mvc.Rendering
 
 @{
     var successMessage = TempData["SuccessMessage"] as string;
@@ -27,15 +28,7 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     var programOptions = ViewBag.Programs as List<OneJaxDashboard.Models.Programs> ?? new List<OneJaxDashboard.Models.Programs>();
     var programTypeOptions = ViewBag.ProgramTypes as List<string> ?? new List<string>();
-
-    // same goals list as Index.cshtml
-    var goals = new List<dynamic>
-{
-new { Id = 1, Name = "Organizational Building" },
-new { Id = 2, Name = "Financial Sustainability" },
-new { Id = 3, Name = "Identity/Value Proposition" },
-new { Id = 4, Name = "Community Engagement" }
-};
+    var goals = ViewBag.Goals as List<SelectListItem> ?? new List<SelectListItem>();
 }
 
 <style>
@@ -207,13 +200,13 @@ new { Id = 4, Name = "Community Engagement" }
                         <option value="">Select a Goal</option>
                         @foreach (var goal in goals)
                         {
-                            if (goal.Id == Model?.StrategicGoalId)
+                            if (goal.Value == Model?.StrategicGoalId.ToString())
                             {
-                                <option value="@goal.Id" selected>@goal.Name</option>
+                                <option value="@goal.Value" selected>@goal.Text</option>
                             }
                             else
                             {
-                                <option value="@goal.Id">@goal.Name</option>
+                                <option value="@goal.Value">@goal.Text</option>
                             }
                         }
                     </select>

@@ -46,6 +46,12 @@ var easternTimeZoneId = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "E
 builder.Services.AddSingleton(TimeZoneInfo.FindSystemTimeZoneById(easternTimeZoneId));
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    EnsureStrategicGoalsExist(db);
+}
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -68,3 +74,28 @@ app.MapControllerRoute(
 );
 
 app.Run();
+
+static void EnsureStrategicGoalsExist(ApplicationDbContext db)
+{
+    var defaultGoals = new[]
+    {
+        new { Id = 1, Name = "Organizational Building" },
+        new { Id = 2, Name = "Financial Sustainability" },
+        new { Id = 3, Name = "Identity/Value Proposition" },
+        new { Id = 4, Name = "Community Engagement" }
+    };
+
+    foreach (var goal in defaultGoals)
+    {
+        if (!db.StrategicGoals.Any(g => g.Id == goal.Id))
+        {
+            db.StrategicGoals.Add(new OneJaxDashboard.Models.StrategicGoal
+            {
+                Id = goal.Id,
+                Name = goal.Name
+            });
+        }
+    }
+
+    db.SaveChanges();
+}

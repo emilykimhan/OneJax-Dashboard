@@ -1,4 +1,5 @@
 @model List<Strategy>
+@using Microsoft.AspNetCore.Mvc.Rendering
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
     var successMessage = TempData["SuccessMessage"] as string;
@@ -6,13 +7,7 @@
     var programOptions = ViewBag.Programs as List<OneJaxDashboard.Models.Programs> ?? new List<OneJaxDashboard.Models.Programs>();
     var programTypeOptions = ViewBag.ProgramTypes as List<string> ?? new List<string>();
 
-    var goals = new List<dynamic>
-{
-new { Id = 1, Name = "Organizational Building" },
-new { Id = 2, Name = "Financial Sustainability" },
-new { Id = 3, Name = "Identity/Value Proposition" },
-new { Id = 4, Name = "Community Engagement" }
-};
+    var goals = ViewBag.Goals as List<SelectListItem> ?? new List<SelectListItem>();
 }
 
 <!-- OneJax Color Theme -->
@@ -539,7 +534,7 @@ new { Id = 4, Name = "Community Engagement" }
         <option value="" selected disabled>Select a Goal</option>
         @foreach (var goal in goals)
         {
-            <option value="@goal.Id">@goal.Name</option>
+            <option value="@goal.Value">@goal.Text</option>
         }
     </select>
 </div>

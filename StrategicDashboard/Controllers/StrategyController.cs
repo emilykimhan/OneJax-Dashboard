@@ -38,6 +38,44 @@ public class StrategyController : Controller
         new SelectListItem { Value = "4", Text = "Community Engagement" }
     };
 
+    private List<SelectListItem> GetGoalOptions()
+    {
+        var dbGoals = _context.StrategicGoals
+            .OrderBy(g => g.Id)
+            .Select(g => new SelectListItem
+            {
+                Value = g.Id.ToString(),
+                Text = g.Name
+            })
+            .ToList();
+
+        return dbGoals.Count > 0 ? dbGoals : Goals;
+    }
+
+    private StrategicGoal? EnsureGoalExists(int goalId)
+    {
+        var existingGoal = _context.StrategicGoals.FirstOrDefault(g => g.Id == goalId);
+        if (existingGoal != null)
+        {
+            return existingGoal;
+        }
+
+        var fallbackGoalName = Goals.FirstOrDefault(g => g.Value == goalId.ToString())?.Text;
+        if (string.IsNullOrWhiteSpace(fallbackGoalName))
+        {
+            return null;
+        }
+
+        var newGoal = new StrategicGoal
+        {
+            Id = goalId,
+            Name = fallbackGoalName
+        };
+
+        _context.StrategicGoals.Add(newGoal);
+        return newGoal;
+    }
+
     private static string ComputeFiscalYear(string? eventDate)
     {
         if (string.IsNullOrWhiteSpace(eventDate) || !DateTime.TryParse(eventDate, out var parsedDate))
@@ -62,7 +100,8 @@ public class StrategyController : Controller
             .OrderBy(p => p.ProgramName)
             .ToList();
 
-        ViewBag.Goals = Goals;
+        var goalOptions = GetGoalOptions();
+        ViewBag.Goals = goalOptions;
         ViewBag.Programs = programOptions;
         ViewBag.ProgramTypes = DefaultProgramTypes
             .Concat(programOptions
@@ -90,6 +129,13 @@ public class StrategyController : Controller
         if (IsPastMaxEventDate(eventDate))
         {
             TempData["ErrorMessage"] = "Event date cannot be later than 12/31/2030.";
+            return RedirectToAction("Index");
+        }
+
+        var selectedGoal = EnsureGoalExists(goalId);
+        if (selectedGoal == null)
+        {
+            TempData["ErrorMessage"] = "Please select a valid goal before creating an event.";
             return RedirectToAction("Index");
         }
 
@@ -126,7 +172,7 @@ public class StrategyController : Controller
         _context.Strategies.Add(dbEvent);
         _context.SaveChanges();
 
-        string goalName = Goals.FirstOrDefault(g => g.Value == goalId.ToString())?.Text ?? "Unknown Goal";
+        string goalName = selectedGoal.Name;
         // Log the creation
         _activityLog.Log("Admin", "Created Core Strategy Event", "Strategy", dbEvent.Id, 
             notes: $"Created strategy event '{eventName}' under {goalName}");
@@ -146,7 +192,7 @@ public class StrategyController : Controller
             return NotFound(); // Return 404 if the strategy doesn't exist
         }
 
-        ViewBag.Goals = Goals; // Pass goals for the dropdown
+        ViewBag.Goals = GetGoalOptions(); // Pass goals for the dropdown
         var programOptions = _context.Programs
             .OrderBy(p => p.ProgramName)
             .ToList();
@@ -167,6 +213,12 @@ public class StrategyController : Controller
         if (IsPastMaxEventDate(eventDate))
         {
             TempData["ErrorMessage"] = "Event date cannot be later than 12/31/2030.";
+            return RedirectToAction(nameof(Edit), new { id });
+        }
+
+        if (EnsureGoalExists(goalId) == null)
+        {
+            TempData["ErrorMessage"] = "Please select a valid goal before updating the event.";
             return RedirectToAction(nameof(Edit), new { id });
         }
 
