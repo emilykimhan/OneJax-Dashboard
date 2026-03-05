@@ -4,6 +4,7 @@
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "View Events";
+    var successMessage = TempData["SuccessMessage"] as string;
 
     // Prefer Goals provided by the controller (best: comes from a Goals table)
     var goals = ViewBag.Goals as List<SelectListItem>;
@@ -92,6 +93,18 @@
         color: var(--onejax-navy);
     }
 
+    .view-events-shell {
+        max-width: 1420px;
+    }
+
+    .page-header-card {
+        background: transparent;
+        border: none;
+        border-radius: 0;
+        padding: 0.25rem 0 0;
+        box-shadow: none;
+    }
+
     h1,
     h2,
     h3,
@@ -120,6 +133,7 @@
 
     .nav-pills {
         border-bottom: none;
+        gap: 4px;
     }
 
     .nav-pills .nav-link {
@@ -131,6 +145,7 @@
         padding: 8px 16px;
         margin: 0 4px;
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        font-weight: 600;
     }
 
     .nav-pills .nav-link.active {
@@ -246,10 +261,18 @@
     border: 1px solid rgba(16, 40, 64, 0.08);
     border-radius: 14px;
     overflow: visible !important;   /* ✅ allow dropdown to escape */
-    position: relative;   
+    position: relative;
+    box-shadow: 0 8px 18px rgba(16, 40, 64, 0.06);
     }
     .events-table-wrap .dropdown-menu {
         z-index: 9999;
+    }
+
+    .events-table-wrap .action-dropdown-menu {
+        left: 50% !important;
+        right: auto !important;
+        transform: translateX(-50%);
+        margin-top: 0.25rem;
     }
 
     .events-table-wrap td,
@@ -289,6 +312,10 @@
 
     table.events-table tbody tr:hover {
         background: rgba(0, 112, 173, 0.04);
+    }
+
+    table.events-table tbody tr:nth-child(even) {
+        background: rgba(16, 40, 64, 0.015);
     }
 
     .cell-muted {
@@ -348,6 +375,54 @@
         text-align: right;
     }
 
+    .time-cell-text {
+        white-space: nowrap;
+        display: inline-block;
+    }
+
+    .quick-action-btn {
+        min-width: 185px;
+        text-align: center;
+    }
+
+    .quick-action-row {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 10px;
+        flex-wrap: wrap;
+    }
+
+    .page-head-divider {
+        height: 1px;
+        max-width: 980px;
+        margin: 1rem auto 0;
+        background: linear-gradient(90deg, rgba(16, 40, 64, 0.05), rgba(0, 112, 173, 0.2), rgba(16, 40, 64, 0.05));
+    }
+
+    .desc-text {
+        display: inline-block;
+        max-width: 320px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .success-text {
+        color: #00A676;
+        font-weight: 600;
+        font-size: 1rem;
+        letter-spacing: 0.5px;
+        animation: fadeInOut 4s ease-in-out forwards;
+    }
+
+    @@keyframes fadeInOut {
+        0% { opacity: 0; transform: translateY(-8px); }
+        10% { opacity: 1; transform: translateY(0); }
+        90% { opacity: 1; transform: translateY(0); }
+        100% { opacity: 0; transform: translateY(-8px); }
+    }
+
     @@media (max-width: 992px) {
         table.events-table thead { display: none; }
         table.events-table, table.events-table tbody, table.events-table tr, table.events-table td { display: block; width: 100%; }
@@ -368,19 +443,33 @@
 </style>
 
 <!-- End of removed extra Fiscal Year Tab Content UI -->
-<div class="container my-5">
+<div class="container my-5 view-events-shell">
 
-    <div class="text-center mb-3">
-        <h2 class="fw-bold text-uppercase" style="color: var(--onejax-blue);">View Programs</h2>
+    <div class="text-center mb-3 page-header-card">
+        <h2 class="fw-bold text-uppercase" style="color: var(--onejax-blue);">View Events</h2>
         <p class="text-secondary mb-3">
-            Browse all programs and manage them by strategic goal. Use the tabs below to filter.
+            Browse all events and manage them by strategic goal. Use the tabs below to filter.
         </p>
 
-        <a href="/Strategy/Index" class="btn"
-           style="background-color: var(--onejax-blue); color: #fff; padding: 10px 22px; border-radius: 25px; font-weight: 600; box-shadow: 0 3px 8px rgba(0,0,0,0.15);">
-            Create Program +
-        </a>
+        <div class="quick-action-row">
+            <a href="/Programs/Index" class="btn quick-action-btn"
+               style="background-color: var(--onejax-blue); color: #fff; padding: 10px 22px; border-radius: 25px; font-weight: 600; box-shadow: 0 3px 8px rgba(0,0,0,0.15);">
+                Create Programs +
+            </a>
+            <a href="/Strategy/Index" class="btn quick-action-btn"
+               style="background-color: var(--onejax-blue); color: #fff; padding: 10px 22px; border-radius: 25px; font-weight: 600; box-shadow: 0 3px 8px rgba(0,0,0,0.15);">
+                Create Events +
+            </a>
+        </div>
+        <div class="page-head-divider"></div>
     </div>
+
+    @if (!string.IsNullOrWhiteSpace(successMessage))
+    {
+        <div class="text-center mb-3">
+            <span class="success-text">@successMessage</span>
+        </div>
+    }
 
     <!-- Fiscal Year Tabs (server-side filter via query string) -->
     <ul class="nav nav-pills justify-content-center mb-4" id="fyTabs" role="tablist">
@@ -400,7 +489,7 @@
         <li class="nav-item" role="presentation">
             <button class="nav-link active" id="all-events-tab" data-bs-toggle="tab" data-bs-target="#all-events"
                 type="button" role="tab">
-                All Programs
+                All Events
             </button>
         </li>
         
@@ -426,7 +515,7 @@
             {
                 <div class="empty-state">
                     <i class="bi bi-inbox"></i>
-                    <p class="mb-0">No programs have been created for fiscal year @(selectedFYAlt ?? selectedFY) yet.</p>
+                    <p class="mb-0">No events have been created for fiscal year @(selectedFYAlt ?? selectedFY) yet.</p>
                 </div>
             }
             else
@@ -435,10 +524,12 @@
                     <table class="events-table">
                         <thead>
                             <tr>
-                                <th>Program</th>
+                                <th>Program Name</th>
+                                <th>Program Type</th>
                                 <th>Event</th>
-                                <th>Type</th>
-                                <th>FY</th>
+                                <th>Description</th>
+                                <th>Cross-Collabs</th>
+                                <th>Partners</th>
                                 <th>Date</th>
                                 <th>Time</th>
                                 <th class="text-end">Actions</th>
@@ -447,7 +538,8 @@
                         <tbody>
                             @foreach (var e in filteredEvents.OrderByDescending(x => x.Id))
                             {
-                                var program = string.IsNullOrWhiteSpace(e.ProgramName) ? "(No Program)" : e.ProgramName;
+                                var programNameDisplay = !string.IsNullOrWhiteSpace(e.ProgramName) ? e.ProgramName : "—";
+                                var programTypeDisplay = !string.IsNullOrWhiteSpace(e.ProgramType) ? e.ProgramType : "—";
                                 var eventName = e.Name;
 
                                 var dateDisplay = e.Date;
@@ -462,22 +554,24 @@
                                     timeDisplay = parsedTime.ToString("h:mm tt");
                                 }
 
-                                var typeClass = (e.EventType ?? string.Empty)
-                                    .Trim()
-                                    .Replace(" ", "")
-                                    .ToLowerInvariant();
-                                if (typeClass != "youth" && typeClass != "interfaith" && typeClass != "humanitarian" && typeClass != "community")
-                                {
-                                    typeClass = "default";
-                                }
-
                                 <tr>
-                                    <td data-label="Program">
-                                        <div class="cell-title">@program</div>
+                                    <td data-label="Program Name">
+                                        <div class="cell-title">@programNameDisplay</div>
+                                    </td>
+
+                                    <td data-label="Program Type">
+                                        @if (programTypeDisplay == "—")
+                                        {
+                                            <span class="cell-muted">—</span>
+                                        }
+                                        else
+                                        {
+                                            <div class="cell-title">@programTypeDisplay</div>
+                                        }
                                     </td>
 
                                     <td data-label="Event">
-                                        @if (!string.IsNullOrWhiteSpace(eventName) && eventName != program)
+                                        @if (!string.IsNullOrWhiteSpace(eventName))
                                         {
                                             <div class="cell-subtitle">@eventName</div>
                                         }
@@ -487,10 +581,10 @@
                                         }
                                     </td>
 
-                                    <td data-label="Type">
-                                        @if (!string.IsNullOrWhiteSpace(e.EventType))
+                                    <td data-label="Description">
+                                        @if (!string.IsNullOrWhiteSpace(e.Description))
                                         {
-                                            <span class="type-chip type-@typeClass"><i class="bi bi-tag"></i> @e.EventType</span>
+                                            <span class="desc-text" title="@e.Description">@e.Description</span>
                                         }
                                         else
                                         {
@@ -498,10 +592,21 @@
                                         }
                                     </td>
 
-                                    <td data-label="FY">
-                                        @if (!string.IsNullOrWhiteSpace(e.EventFYear))
+                                    <td data-label="Cross Collaboration">
+                                        @if (!string.IsNullOrWhiteSpace(e.CrossCollaboration))
                                         {
-                                            <span class="fy-chip"><i class="bi bi-calendar2-range"></i> @e.EventFYear</span>
+                                            <span class="type-chip"><i class="bi bi-people"></i> @e.CrossCollaboration</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="cell-muted">—</span>
+                                        }
+                                    </td>
+
+                                    <td data-label="Partners">
+                                        @if (!string.IsNullOrWhiteSpace(e.Partners))
+                                        {
+                                            <span>@e.Partners</span>
                                         }
                                         else
                                         {
@@ -523,7 +628,7 @@
                                     <td data-label="Time">
                                         @if (!string.IsNullOrWhiteSpace(timeDisplay))
                                         {
-                                            <span>@timeDisplay</span>
+                                            <span class="time-cell-text">@timeDisplay</span>
                                         }
                                         else
                                         {
@@ -536,7 +641,7 @@
                                             <button class="btn btn-light btn-sm border-0" type="button" data-bs-toggle="dropdown">
                                                 <i class="bi bi-three-dots fs-5 text-dark"></i>
                                             </button>
-                                            <ul class="dropdown-menu dropdown-menu-end">
+                                            <ul class="dropdown-menu action-dropdown-menu">
                                                 <li>
                                                     <a class="dropdown-item text-primary" asp-controller="Strategy"
                                                        asp-action="Edit" asp-route-id="@e.Id">
@@ -573,7 +678,7 @@
                     {
                         <div class="empty-state">
                             <i class="bi bi-inbox"></i>
-                            <p class="mb-0">No programs for this goal yet.</p>
+                            <p class="mb-0">No events for this goal yet.</p>
                         </div>
                     }
                     else
@@ -582,10 +687,12 @@
                             <table class="events-table">
                                 <thead>
                                     <tr>
-                                        <th>Program</th>
+                                        <th>Program Name</th>
+                                        <th>Program Type</th>
                                         <th>Event</th>
-                                        <th>Type</th>
-                                        <th>FY</th>
+                                        <th>Description</th>
+                                        <th>Cross Collaboration</th>
+                                        <th>Partners</th>
                                         <th>Date</th>
                                         <th>Time</th>
                                         <th class="text-end">Actions</th>
@@ -594,7 +701,8 @@
                                 <tbody>
                                     @foreach (var e in eventsForGoal.OrderByDescending(x => x.Id))
                                     {
-                                        var program = string.IsNullOrWhiteSpace(e.ProgramName) ? "(No Program)" : e.ProgramName;
+                                        var programNameDisplay = !string.IsNullOrWhiteSpace(e.ProgramName) ? e.ProgramName : "—";
+                                        var programTypeDisplay = !string.IsNullOrWhiteSpace(e.ProgramType) ? e.ProgramType : "—";
                                         var eventName = e.Name;
 
                                         var dateDisplay = e.Date;
@@ -609,22 +717,24 @@
                                             timeDisplay = parsedTime.ToString("h:mm tt");
                                         }
 
-                                        var typeClass = (e.EventType ?? string.Empty)
-                                            .Trim()
-                                            .Replace(" ", "")
-                                            .ToLowerInvariant();
-                                        if (typeClass != "youth" && typeClass != "interfaith" && typeClass != "humanitarian" && typeClass != "community")
-                                        {
-                                            typeClass = "default";
-                                        }
-
                                         <tr>
-                                            <td data-label="Program">
-                                                <div class="cell-title">@program</div>
+                                            <td data-label="Program Name">
+                                                <div class="cell-title">@programNameDisplay</div>
+                                            </td>
+
+                                            <td data-label="Program Type">
+                                                @if (programTypeDisplay == "—")
+                                                {
+                                                    <span class="cell-muted">—</span>
+                                                }
+                                                else
+                                                {
+                                                    <div class="cell-title">@programTypeDisplay</div>
+                                                }
                                             </td>
 
                                             <td data-label="Event">
-                                                @if (!string.IsNullOrWhiteSpace(eventName) && eventName != program)
+                                                @if (!string.IsNullOrWhiteSpace(eventName))
                                                 {
                                                     <div class="cell-subtitle">@eventName</div>
                                                 }
@@ -634,10 +744,10 @@
                                                 }
                                             </td>
 
-                                            <td data-label="Type">
-                                                @if (!string.IsNullOrWhiteSpace(e.EventType))
+                                            <td data-label="Description">
+                                                @if (!string.IsNullOrWhiteSpace(e.Description))
                                                 {
-                                                    <span class="type-chip type-@typeClass"><i class="bi bi-tag"></i> @e.EventType</span>
+                                                    <span class="desc-text" title="@e.Description">@e.Description</span>
                                                 }
                                                 else
                                                 {
@@ -645,10 +755,21 @@
                                                 }
                                             </td>
 
-                                            <td data-label="FY">
-                                                @if (!string.IsNullOrWhiteSpace(e.EventFYear))
+                                            <td data-label="Cross Collaboration">
+                                                @if (!string.IsNullOrWhiteSpace(e.CrossCollaboration))
                                                 {
-                                                    <span class="fy-chip"><i class="bi bi-calendar2-range"></i> @e.EventFYear</span>
+                                                    <span class="type-chip"><i class="bi bi-people"></i> @e.CrossCollaboration</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="cell-muted">—</span>
+                                                }
+                                            </td>
+
+                                            <td data-label="Partners">
+                                                @if (!string.IsNullOrWhiteSpace(e.Partners))
+                                                {
+                                                    <span>@e.Partners</span>
                                                 }
                                                 else
                                                 {
@@ -670,7 +791,7 @@
                                             <td data-label="Time">
                                                 @if (!string.IsNullOrWhiteSpace(timeDisplay))
                                                 {
-                                                    <span>@timeDisplay</span>
+                                                    <span class="time-cell-text">@timeDisplay</span>
                                                 }
                                                 else
                                                 {
@@ -683,7 +804,7 @@
                                                     <button class="btn btn-light btn-sm border-0" type="button" data-bs-toggle="dropdown">
                                                         <i class="bi bi-three-dots fs-5 text-dark"></i>
                                                     </button>
-                                                    <ul class="dropdown-menu dropdown-menu-end">
+                                                    <ul class="dropdown-menu action-dropdown-menu">
                                                         <li>
                                                             <a class="dropdown-item text-primary" asp-controller="Strategy"
                                                                asp-action="Edit" asp-route-id="@e.Id">
@@ -716,14 +837,14 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title fw-semibold" id="deleteConfirmLabel">
-                    Delete Program?
+                    Delete Event?
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
             <div class="modal-body">
                 <p class="mb-2">
-                    You’re about to permanently delete this Program. This action cannot be undone.
+                    You’re about to permanently delete this Event. This action cannot be undone.
                 </p>
                 <p class="mb-3">
                     Type <strong>delete</strong> in lowercase to confirm.

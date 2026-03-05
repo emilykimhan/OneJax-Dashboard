@@ -1,0 +1,86 @@
+@model List<OneJaxDashboard.Models.ArchivedProgram>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var successMessage = TempData["ProgramsSuccess"] as string;
+}
+
+<style>
+    :root {
+        --onejax-blue: #0070AD;
+        --onejax-teal: #00A3AD;
+        --onejax-navy: #102840;
+        --onejax-light: #F7F9FB;
+    }
+
+    body {
+        background-color: var(--onejax-light);
+        color: var(--onejax-navy);
+    }
+
+    .card-soft {
+        background: #fff;
+        border: none;
+        border-radius: 18px;
+        box-shadow: 0 6px 18px rgba(16, 40, 64, 0.08);
+    }
+
+    .pill-btn {
+        border-radius: 999px;
+        font-weight: 600;
+    }
+</style>
+
+<div class="container my-5">
+    <div class="text-center mb-4">
+        <h1 class="fw-bold text-uppercase" style="color: var(--onejax-blue);">Archived Programs</h1>
+        <p class="text-secondary fs-5">Review and restore archived programs.</p>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(successMessage))
+    {
+        <div class="alert alert-success text-center">@successMessage</div>
+    }
+
+    <div class="card-soft p-4">
+        <div class="d-flex justify-content-end mb-3">
+            <a asp-action="Index" asp-controller="Programs" class="btn btn-outline-secondary pill-btn">Back to Programs</a>
+        </div>
+
+        @if (Model == null || !Model.Any())
+        {
+            <p class="text-muted mb-0">No archived programs.</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Program Name</th>
+                            <th>Program Type</th>
+                            <th>Description</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var program in Model)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@program.ProgramName</td>
+                                <td>@program.ProgramType</td>
+                                <td>@(string.IsNullOrWhiteSpace(program.Description) ? "-" : program.Description)</td>
+                                <td class="text-end">
+                                    <form asp-action="Restore" asp-controller="Programs" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@program.Id" />
+                                        <button type="submit" class="btn btn-sm btn-outline-primary pill-btn">Restore</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

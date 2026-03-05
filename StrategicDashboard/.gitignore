@@ -491,3 +491,5 @@ $RECYCLE.BIN/
 
 #MAC System .DS_STORE file
 .DS_Store
+# Local SQLite backups
+*.db.pre_*
