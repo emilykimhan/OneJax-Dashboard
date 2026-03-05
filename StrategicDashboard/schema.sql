@@ -11,8 +11,9 @@ CREATE TABLE IF NOT EXISTS "ProfessionalDevelopments" (
     "Id" INTEGER NOT NULL CONSTRAINT "PK_ProfessionalDevelopments" PRIMARY KEY AUTOINCREMENT,
     "Name" TEXT NOT NULL,
     "ProfessionalDevelopmentYear26" INTEGER NOT NULL,
-    "ProfessionalDevelopmentYear27" INTEGER NOT NULL
-, "CreatedDate" TEXT NOT NULL DEFAULT '0001-01-01 00:00:00');
+    "ProfessionalDevelopmentYear27" INTEGER NOT NULL,
+    "CreatedDate" TEXT NOT NULL DEFAULT '0001-01-01 00:00:00'
+);
 CREATE TABLE sqlite_sequence(name,seq);
 CREATE TABLE IF NOT EXISTS "Staffauth" (
     "Id" INTEGER NOT NULL CONSTRAINT "PK_Staffauth" PRIMARY KEY AUTOINCREMENT,
@@ -25,8 +26,9 @@ CREATE TABLE IF NOT EXISTS "StaffSurveys_22D" (
     "Id" INTEGER NOT NULL CONSTRAINT "PK_StaffSurveys_22D" PRIMARY KEY AUTOINCREMENT,
     "Name" TEXT NOT NULL,
     "SatisfactionRate" INTEGER NOT NULL,
-    "ProfessionalDevelopmentCount" INTEGER NOT NULL
-, "CreatedDate" TEXT NOT NULL DEFAULT '0001-01-01 00:00:00');
+    "ProfessionalDevelopmentCount" INTEGER NOT NULL,
+    "CreatedDate" TEXT NOT NULL DEFAULT '0001-01-01 00:00:00'
+);
 CREATE TABLE IF NOT EXISTS "StrategicGoals" (
     "Id" INTEGER NOT NULL CONSTRAINT "PK_StrategicGoals" PRIMARY KEY AUTOINCREMENT,
     "Name" TEXT NOT NULL,
@@ -46,7 +48,11 @@ CREATE TABLE IF NOT EXISTS "GoalMetrics" (
     "Q1Value" TEXT NOT NULL,
     "Q2Value" TEXT NOT NULL,
     "Q3Value" TEXT NOT NULL,
-    "Q4Value" TEXT NOT NULL, "DataSource" TEXT NOT NULL DEFAULT '', "FiscalYear" TEXT NOT NULL DEFAULT '', "IsPublic" INTEGER NOT NULL DEFAULT 0, "MetricType" TEXT NOT NULL DEFAULT '',
+    "Q4Value" TEXT NOT NULL,
+    "DataSource" TEXT NOT NULL DEFAULT '',
+    "FiscalYear" TEXT NOT NULL DEFAULT '',
+    "IsPublic" INTEGER NOT NULL DEFAULT 0,
+    "MetricType" TEXT NOT NULL DEFAULT '',
     CONSTRAINT "FK_GoalMetrics_StrategicGoals_StrategicGoalId" FOREIGN KEY ("StrategicGoalId") REFERENCES "StrategicGoals" ("Id") ON DELETE CASCADE
 );
 CREATE TABLE IF NOT EXISTS "Strategies" (
@@ -55,7 +61,9 @@ CREATE TABLE IF NOT EXISTS "Strategies" (
     "StrategicGoalId" INTEGER NOT NULL,
     "Description" TEXT NOT NULL,
     "Date" TEXT NULL,
-    "Time" TEXT NULL, "EventType" TEXT NOT NULL DEFAULT '', "EventFYear" TEXT NOT NULL DEFAULT '',
+    "Time" TEXT NULL,
+    "EventType" TEXT NOT NULL DEFAULT '',
+    "EventFYear" TEXT NOT NULL DEFAULT '',
     CONSTRAINT "FK_Strategies_StrategicGoals_StrategicGoalId" FOREIGN KEY ("StrategicGoalId") REFERENCES "StrategicGoals" ("Id") ON DELETE CASCADE
 );
 CREATE TABLE IF NOT EXISTS "Metric" (
@@ -171,8 +179,9 @@ CREATE TABLE IF NOT EXISTS "Plan2026_24D" (
     "FrameworkStatus" TEXT NOT NULL,
     "Notes" TEXT NULL,
     "GoalMet" INTEGER NOT NULL,
-    "CreatedDate" TEXT NOT NULL
-, "Name" TEXT NOT NULL DEFAULT '');
+    "CreatedDate" TEXT NOT NULL,
+    "Name" TEXT NOT NULL DEFAULT ''
+);
 CREATE TABLE IF NOT EXISTS "planIssue_25D" (
     "Id" INTEGER NOT NULL CONSTRAINT "PK_planIssue_25D" PRIMARY KEY AUTOINCREMENT,
     "PlanId" INTEGER NOT NULL,
@@ -190,7 +199,8 @@ CREATE TABLE IF NOT EXISTS "DonorEvents_19D" (
     "StrategyId" INTEGER NOT NULL,
     "NumberOfParticipants" INTEGER NOT NULL,
     "EventSatisfactionRating" INTEGER NOT NULL,
-    "CreatedDate" TEXT NOT NULL, "CreatedBy" TEXT NULL,
+    "CreatedDate" TEXT NOT NULL,
+    "CreatedBy" TEXT NULL,
     CONSTRAINT "FK_DonorEvents_19D_Strategies_StrategyId" FOREIGN KEY ("StrategyId") REFERENCES "Strategies" ("Id") ON DELETE CASCADE
 );
 CREATE INDEX "IX_DonorEvents_19D_StrategyId" ON "DonorEvents_19D" ("StrategyId");
@@ -210,7 +220,8 @@ CREATE TABLE IF NOT EXISTS "FeeForServices_21D" (
     "RevenueReceived" TEXT NOT NULL,
     "Quarter" TEXT NOT NULL,
     "Year" INTEGER NOT NULL,
-    "CreatedDate" TEXT NOT NULL, "ProgramTitle" TEXT NULL,
+    "CreatedDate" TEXT NOT NULL,
+    "ProgramTitle" TEXT NULL,
     CONSTRAINT "FK_FeeForServices_21D_Strategies_StrategyId" FOREIGN KEY ("StrategyId") REFERENCES "Strategies" ("Id") ON DELETE CASCADE
 );
 CREATE INDEX "IX_FeeForServices_21D_StrategyId" ON "FeeForServices_21D" ("StrategyId");

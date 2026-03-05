@@ -491,3 +491,10 @@ $RECYCLE.BIN/
 
 #MAC System .DS_STORE file
 .DS_Store
+
+# Auto-generated database schema files
+OneJax_Clean_DDL.sql
+OneJax_Complete_Schema.sql
+OneJax_Simple_DDL.sql
+OneJax_ERD.xml
+Dashboard_Form_Connection_Report.md
