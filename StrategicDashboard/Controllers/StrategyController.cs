@@ -112,8 +112,8 @@ public class StrategyController : Controller
             .ToList();
 
         var goalStrategies = goalId.HasValue
-            ? _context.Strategies.Where(s => s.StrategicGoalId == goalId.Value).ToList()
-            : _context.Strategies.ToList();
+            ? _context.Strategies.Where(s => !s.IsArchived && s.StrategicGoalId == goalId.Value).ToList()
+            : _context.Strategies.Where(s => !s.IsArchived).ToList();
 
         goalStrategies = goalStrategies.OrderByDescending(s => s.Id).ToList();
 
@@ -280,10 +280,31 @@ public class StrategyController : Controller
         TempData["SuccessMessage"] = "Event deleted successfully!";
         return RedirectToAction("ViewEvents");
     }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult Archive(int id)
+    {
+        var strategy = _context.Strategies.FirstOrDefault(s => s.Id == id);
+        if (strategy == null)
+        {
+            return NotFound();
+        }
+
+        strategy.IsArchived = true;
+        strategy.ArchivedAtUtc = DateTime.UtcNow;
+        _context.SaveChanges();
+
+        TempData["ProgramsSuccess"] = "Event archived.";
+        return RedirectToAction("Archive", "Programs");
+    }
+
     public IActionResult ViewEvents() 
     {
         // Fetch all events from the database
-        var events = _context.Strategies.ToList();
+        var events = _context.Strategies
+            .Where(s => !s.IsArchived)
+            .ToList();
         var hasUpdates = false;
         foreach (var evt in events)
         {

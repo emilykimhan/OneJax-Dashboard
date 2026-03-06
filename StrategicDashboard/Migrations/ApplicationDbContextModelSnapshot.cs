@@ -44,7 +44,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Annual_average_7D");
+                    b.ToTable("Annual_average_7D", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.ArchivedProgram", b =>
@@ -73,7 +73,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ArchivedPrograms");
+                    b.ToTable("ArchivedPrograms", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.BoardMeetingAttendance", b =>
@@ -96,7 +96,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("BoardMeetingAttendance");
+                    b.ToTable("BoardMeetingAttendance", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.BoardMemberRecruitment", b =>
@@ -113,15 +113,7 @@ namespace StrategicDashboard.Migrations
                     b.Property<int>("NumberRecruited")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("ProspectNames")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("TEXT");
-
                     b.Property<int>("Quarter")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("TotalProspectOutreach")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("Year")
@@ -129,7 +121,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("BoardMember_29D");
+                    b.ToTable("BoardMember_29D", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.BudgetTracking_28D", b =>
@@ -162,12 +154,6 @@ namespace StrategicDashboard.Migrations
                     b.Property<decimal?>("InterfaithPrograms")
                         .HasColumnType("TEXT");
 
-                    b.Property<decimal?>("MiscellaneousExpenses")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal?>("MiscellaneousRevenue")
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("Notes")
                         .HasMaxLength(1000)
                         .HasColumnType("TEXT");
@@ -188,54 +174,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("BudgetTracking_28D");
-                });
-
-            modelBuilder.Entity("OneJaxDashboard.Models.CollabTouch_47D", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Contact")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("ContactEmail")
-                        .HasMaxLength(150)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("ContactPhone")
-                        .HasMaxLength(30)
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("FiscalYear")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("PartnerOrganization")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("StrategyId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Touchpoint")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("StrategyId");
-
-                    b.ToTable("CollabTouch_47D");
+                    b.ToTable("BudgetTracking_28D", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.Comm_rate20D", b =>
@@ -255,10 +194,10 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("CommunicationRate");
+                    b.ToTable("CommunicationRate", (string)null);
                 });
 
-            modelBuilder.Entity("OneJaxDashboard.Models.ContactsInterfaith_14D", b =>
+            modelBuilder.Entity("OneJaxDashboard.Models.CrossSector10D", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -267,44 +206,26 @@ namespace StrategicDashboard.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("TotalInterfaithContacts")
-                        .HasColumnType("INTEGER");
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("Year")
                         .HasColumnType("INTEGER");
 
-                    b.HasKey("Id");
-
-                    b.ToTable("ContactsInterfaith_14D");
-                });
-
-            modelBuilder.Entity("OneJaxDashboard.Models.Diversity_37D", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("CreatedDate")
+                    b.Property<decimal>("partner_satisfaction_ratings")
                         .HasColumnType("TEXT");
-
-                    b.Property<int>("DiversityCount")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("FiscalYear")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("SatisfactionRate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("StrategyId")
-                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("StrategyId");
-
-                    b.ToTable("Diversity_37D");
+                    b.ToTable("CrossSectorCollabs", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.DonorEvent_19D", b =>
@@ -333,7 +254,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasIndex("StrategyId");
 
-                    b.ToTable("DonorEvents_19D");
+                    b.ToTable("DonorEvents_19D", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.Event", b =>
@@ -428,58 +349,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasIndex("StrategyTemplateId");
 
-                    b.ToTable("Events");
-                });
-
-            modelBuilder.Entity("OneJaxDashboard.Models.FaithCommunity_13D", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("NumberOfFaithsRepresented")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("StrategyId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("StrategyId");
-
-                    b.ToTable("FaithCommunity_13D");
-                });
-
-            modelBuilder.Entity("OneJaxDashboard.Models.FirstTime_38D", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("FiscalYear")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("NumberOfFirstTimeParticipants")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("StrategyId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("TotalAttendees")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("StrategyId");
-
-                    b.ToTable("FirstTime_38D");
+                    b.ToTable("Events", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.GoalMetric", b =>
@@ -548,7 +418,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasIndex("StrategicGoalId");
 
-                    b.ToTable("GoalMetrics");
+                    b.ToTable("GoalMetrics", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.MediaPlacements_3D", b =>
@@ -598,43 +468,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("MediaPlacements_3D");
-                });
-
-            modelBuilder.Entity("OneJaxDashboard.Models.Metric", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Progress")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("StrategyId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Target")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("TimePeriod")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("StrategyId");
-
-                    b.ToTable("Metric");
+                    b.ToTable("MediaPlacements_3D", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.Plan2026_24D", b =>
@@ -643,12 +477,7 @@ namespace StrategicDashboard.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("IssueName")
-                        .HasMaxLength(200)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("CrisisDescription")
-                        .HasMaxLength(1000)
+                    b.Property<DateTime>("CreatedDate")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("FrameworkStatus")
@@ -658,13 +487,6 @@ namespace StrategicDashboard.Migrations
 
                     b.Property<bool>("GoalMet")
                         .HasColumnType("INTEGER");
-
-                    b.Property<bool>("IssueHandled")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("IssueName")
-                        .HasMaxLength(200)
-                        .HasColumnType("TEXT");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -685,7 +507,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Plan2026_24D");
+                    b.ToTable("Plan2026_24D", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.ProfessionalDevelopment", b =>
@@ -694,11 +516,6 @@ namespace StrategicDashboard.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Activities")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("TEXT");
-
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("TEXT");
 
@@ -706,15 +523,18 @@ namespace StrategicDashboard.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Year")
+                    b.Property<int>("ProfessionalDevelopmentYear26")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ProfessionalDevelopmentYear27")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
-                    b.ToTable("ProfessionalDevelopments");
+                    b.ToTable("ProfessionalDevelopments", (string)null);
                 });
 
-            modelBuilder.Entity("OneJaxDashboard.Models.StaffSurvey_22D", b =>
+            modelBuilder.Entity("OneJaxDashboard.Models.Programs", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -724,18 +544,41 @@ namespace StrategicDashboard.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("ProgramName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ProgramType")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Programs", (string)null);
+                });
+
+            modelBuilder.Entity("OneJaxDashboard.Models.StaffSurvey_22D", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ProfessionalDevelopmentCount")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("SatisfactionRate")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("Year")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("Year")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
-                    b.ToTable("StaffSurveys_22D");
+                    b.ToTable("StaffSurveys_22D", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.Staffauth", b =>
@@ -764,7 +607,7 @@ namespace StrategicDashboard.Migrations
                     b.HasIndex("Username")
                         .IsUnique();
 
-                    b.ToTable("Staffauth");
+                    b.ToTable("Staffauth", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.StrategicGoal", b =>
@@ -787,7 +630,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("StrategicGoals");
+                    b.ToTable("StrategicGoals", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.Strategy", b =>
@@ -800,6 +643,9 @@ namespace StrategicDashboard.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime?>("ArchivedAtUtc")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Date")
                         .HasColumnType("TEXT");
 
@@ -810,6 +656,9 @@ namespace StrategicDashboard.Migrations
                     b.Property<string>("EventFYear")
                         .IsRequired()
                         .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsArchived")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -840,7 +689,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasIndex("StrategicGoalId");
 
-                    b.ToTable("Strategies");
+                    b.ToTable("Strategies", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.WebsiteTraffic_4D", b =>
@@ -866,58 +715,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("WebsiteTraffic");
-                });
-
-            modelBuilder.Entity("OneJaxDashboard.Models.YouthAttend_15D", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<decimal>("AveragePostAssessment")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("AveragePreAssessment")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("NumberOfYouthAttendees")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<decimal>("PostEventSurveySatisfaction")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("StrategyId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("StrategyId");
-
-                    b.ToTable("YouthAttend_15D");
-                });
-
-            modelBuilder.Entity("OneJaxDashboard.Models.achieveMile_6D", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("Percentage")
-                        .HasColumnType("TEXT");
-
-                    b.Property<bool>("achievedReview")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("achieveMile_6D");
+                    b.ToTable("WebsiteTraffic", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.demographics_8D", b =>
@@ -948,7 +746,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasIndex("StrategyId");
 
-                    b.ToTable("demographics_8D");
+                    b.ToTable("demographics_8D", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.eventSatisfaction", b =>
@@ -970,7 +768,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasIndex("StrategyId");
 
-                    b.ToTable("EventSatisfaction_12D");
+                    b.ToTable("EventSatisfaction_12D", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.feeForService_21D", b =>
@@ -987,15 +785,11 @@ namespace StrategicDashboard.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("EventName")
-                        .HasMaxLength(200)
+                    b.Property<DateTime>("Date")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("EventPartners")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("ExpenseReceived")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("NumberOfAttendees")
@@ -1007,10 +801,22 @@ namespace StrategicDashboard.Migrations
                     b.Property<decimal>("PartnerSatisfactionRating")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("ProgramTitle")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Quarter")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
                     b.Property<decimal>("RevenueReceived")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("StrategyId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TotalNumberOfWorkshops")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("WorkshopDate")
@@ -1032,7 +838,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasIndex("StrategyId");
 
-                    b.ToTable("FeeForServices_21D");
+                    b.ToTable("FeeForServices_21D", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.income_27D", b =>
@@ -1063,7 +869,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("income_27D");
+                    b.ToTable("income_27D", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.interfaith_11D", b =>
@@ -1091,10 +897,10 @@ namespace StrategicDashboard.Migrations
 
                     b.HasIndex("StrategyId");
 
-                    b.ToTable("Interfaith_11D");
+                    b.ToTable("Interfaith_11D", (string)null);
                 });
 
-            modelBuilder.Entity("OneJaxDashboard.Models.selfAssess_31D", b =>
+            modelBuilder.Entity("OneJaxDashboard.Models.planIssue_25D", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1103,7 +909,24 @@ namespace StrategicDashboard.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("SelfAssessmentScore")
+                    b.Property<string>("CrisisDescription")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsCompliant")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("IssueName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("PlanId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("Year")
@@ -1111,105 +934,9 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("selfAssess_31D");
-                });
+                    b.HasIndex("PlanId");
 
-            modelBuilder.Entity("OneJaxDashboard.Models.socialMedia_5D", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<decimal?>("AprilJuneEngagementRate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<bool>("GoalMet")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<decimal?>("JanMarEngagementRate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal?>("JulySeptEngagementRate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal?>("OctDecEngagementRate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Year")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("socialMedia_5D");
-                });
-
-            modelBuilder.Entity("OneJaxDashboard.Models.volunteerProgram_40D", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("CommunicationsActivities")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("InitiativeDescriptions")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("NumberOfVolunteers")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("ProgramEstablished")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("Quarter")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("RecognitionActivities")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("VolunteerLedInitiatives")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("Year")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("volunteerProgram_40D");
-                });
-
-            modelBuilder.Entity("OneJaxDashboard.Models.CollabTouch_47D", b =>
-                {
-                    b.HasOne("OneJaxDashboard.Models.Strategy", "Strategy")
-                        .WithMany()
-                        .HasForeignKey("StrategyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Strategy");
-                });
-
-            modelBuilder.Entity("OneJaxDashboard.Models.Diversity_37D", b =>
-                {
-                    b.HasOne("OneJaxDashboard.Models.Strategy", "Strategy")
-                        .WithMany()
-                        .HasForeignKey("StrategyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Strategy");
+                    b.ToTable("planIssue_25D", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.DonorEvent_19D", b =>
@@ -1256,44 +983,11 @@ namespace StrategicDashboard.Migrations
                     b.Navigation("StrategyTemplate");
                 });
 
-            modelBuilder.Entity("OneJaxDashboard.Models.FaithCommunity_13D", b =>
-                {
-                    b.HasOne("OneJaxDashboard.Models.Strategy", "Strategy")
-                        .WithMany()
-                        .HasForeignKey("StrategyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Strategy");
-                });
-
-            modelBuilder.Entity("OneJaxDashboard.Models.FirstTime_38D", b =>
-                {
-                    b.HasOne("OneJaxDashboard.Models.Strategy", "Strategy")
-                        .WithMany()
-                        .HasForeignKey("StrategyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Strategy");
-                });
-
             modelBuilder.Entity("OneJaxDashboard.Models.GoalMetric", b =>
                 {
-                    b.HasOne("OneJaxDashboard.Models.Strategy", "Strategy")
-                        .WithMany()
-                        .HasForeignKey("StrategyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Strategy");
-                });
-
-            modelBuilder.Entity("OneJaxDashboard.Models.Metric", b =>
-                {
-                    b.HasOne("OneJaxDashboard.Models.Strategy", null)
+                    b.HasOne("OneJaxDashboard.Models.StrategicGoal", null)
                         .WithMany("Metrics")
-                        .HasForeignKey("StrategyId")
+                        .HasForeignKey("StrategicGoalId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -1314,17 +1008,6 @@ namespace StrategicDashboard.Migrations
                     b.Navigation("Program");
 
                     b.Navigation("StrategicGoal");
-                });
-
-            modelBuilder.Entity("OneJaxDashboard.Models.YouthAttend_15D", b =>
-                {
-                    b.HasOne("OneJaxDashboard.Models.Strategy", "Strategy")
-                        .WithMany()
-                        .HasForeignKey("StrategyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Strategy");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.demographics_8D", b =>
@@ -1371,6 +1054,17 @@ namespace StrategicDashboard.Migrations
                     b.Navigation("Strategy");
                 });
 
+            modelBuilder.Entity("OneJaxDashboard.Models.planIssue_25D", b =>
+                {
+                    b.HasOne("OneJaxDashboard.Models.Plan2026_24D", "Plan")
+                        .WithMany()
+                        .HasForeignKey("PlanId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Plan");
+                });
+
             modelBuilder.Entity("OneJaxDashboard.Models.Programs", b =>
                 {
                     b.Navigation("Strategies");
@@ -1379,6 +1073,8 @@ namespace StrategicDashboard.Migrations
             modelBuilder.Entity("OneJaxDashboard.Models.StrategicGoal", b =>
                 {
                     b.Navigation("Events");
+
+                    b.Navigation("Metrics");
 
                     b.Navigation("Strategies");
                 });

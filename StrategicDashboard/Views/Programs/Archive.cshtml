@@ -1,7 +1,10 @@
-@model List<OneJaxDashboard.Models.ArchivedProgram>
+@model OneJaxDashboard.Models.ProgramArchiveViewModel
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
     var successMessage = TempData["ProgramsSuccess"] as string;
+    var archivedPrograms = Model?.Programs ?? new List<OneJaxDashboard.Models.ArchivedProgram>();
+    var archivedEvents = Model?.Events ?? new List<OneJaxDashboard.Models.Strategy>();
+    var hasArchivedItems = archivedPrograms.Any() || archivedEvents.Any();
 }
 
 <style>
@@ -28,12 +31,36 @@
         border-radius: 999px;
         font-weight: 600;
     }
+
+    .nav-pills .nav-link {
+        color: var(--onejax-navy);
+        border-radius: 25px;
+        background-color: #fff;
+        border: 1px solid transparent;
+        transition: all 0.3s ease-in-out;
+        padding: 8px 16px;
+        margin: 0 4px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        font-weight: 600;
+    }
+
+    .nav-pills .nav-link.active {
+        background-color: var(--onejax-blue);
+        color: #fff;
+        box-shadow: 0 4px 10px rgba(0, 112, 173, 0.3);
+    }
+
+    .nav-pills .nav-link:hover {
+        background-color: var(--onejax-teal);
+        color: #fff;
+        transform: scale(1.02);
+    }
 </style>
 
 <div class="container my-5">
     <div class="text-center mb-4">
-        <h1 class="fw-bold text-uppercase" style="color: var(--onejax-blue);">Archived Programs</h1>
-        <p class="text-secondary fs-5">Review and restore archived programs.</p>
+        <h1 class="fw-bold text-uppercase" style="color: var(--onejax-blue);">Archive</h1>
+        <p class="text-secondary fs-5">Review and restore archived programs and events.</p>
     </div>
 
     @if (!string.IsNullOrWhiteSpace(successMessage))
@@ -46,40 +73,160 @@
             <a asp-action="Index" asp-controller="Programs" class="btn btn-outline-secondary pill-btn">Back to Programs</a>
         </div>
 
-        @if (Model == null || !Model.Any())
+        <ul class="nav nav-pills mb-4" id="archiveTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all-pane" type="button" role="tab" aria-controls="all-pane" aria-selected="true">
+                    All Archived
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="programs-tab" data-bs-toggle="tab" data-bs-target="#programs-pane" type="button" role="tab" aria-controls="programs-pane" aria-selected="false">
+                    Programs
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="events-tab" data-bs-toggle="tab" data-bs-target="#events-pane" type="button" role="tab" aria-controls="events-pane" aria-selected="false">
+                    Events
+                </button>
+            </li>
+        </ul>
+
+        @if (!hasArchivedItems)
         {
-            <p class="text-muted mb-0">No archived programs.</p>
+            <p class="text-muted mb-0">No archived items.</p>
         }
         else
         {
-            <div class="table-responsive">
-                <table class="table align-middle">
-                    <thead>
-                        <tr>
-                            <th>Program Name</th>
-                            <th>Program Type</th>
-                            <th>Description</th>
-                            <th class="text-end">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var program in Model)
-                        {
-                            <tr>
-                                <td class="fw-semibold">@program.ProgramName</td>
-                                <td>@program.ProgramType</td>
-                                <td>@(string.IsNullOrWhiteSpace(program.Description) ? "-" : program.Description)</td>
-                                <td class="text-end">
-                                    <form asp-action="Restore" asp-controller="Programs" method="post" class="d-inline">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="id" value="@program.Id" />
-                                        <button type="submit" class="btn btn-sm btn-outline-primary pill-btn">Restore</button>
-                                    </form>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+            <div class="tab-content" id="archiveTabsContent">
+                <div class="tab-pane fade show active" id="all-pane" role="tabpanel" aria-labelledby="all-tab">
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Record Type</th>
+                                    <th>Name</th>
+                                    <th>Category</th>
+                                    <th>Description</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var program in archivedPrograms)
+                                {
+                                    <tr>
+                                        <td class="fw-semibold">Program</td>
+                                        <td>@program.ProgramName</td>
+                                        <td>@program.ProgramType</td>
+                                        <td>@(string.IsNullOrWhiteSpace(program.Description) ? "-" : program.Description)</td>
+                                        <td class="text-end">
+                                            <form asp-action="Restore" asp-controller="Programs" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@program.Id" />
+                                                <button type="submit" class="btn btn-sm btn-outline-primary pill-btn">Restore</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                                @foreach (var evt in archivedEvents)
+                                {
+                                    <tr>
+                                        <td class="fw-semibold">Event</td>
+                                        <td>@evt.Name</td>
+                                        <td>@(string.IsNullOrWhiteSpace(evt.ProgramType) ? "-" : evt.ProgramType)</td>
+                                        <td>@(string.IsNullOrWhiteSpace(evt.Description) ? "-" : evt.Description)</td>
+                                        <td class="text-end">
+                                            <form asp-action="RestoreEvent" asp-controller="Programs" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@evt.Id" />
+                                                <button type="submit" class="btn btn-sm btn-outline-primary pill-btn">Restore</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="programs-pane" role="tabpanel" aria-labelledby="programs-tab">
+                    @if (!archivedPrograms.Any())
+                    {
+                        <p class="text-muted mb-0">No archived programs.</p>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Program Name</th>
+                                        <th>Program Type</th>
+                                        <th>Description</th>
+                                        <th class="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var program in archivedPrograms)
+                                    {
+                                        <tr>
+                                            <td class="fw-semibold">@program.ProgramName</td>
+                                            <td>@program.ProgramType</td>
+                                            <td>@(string.IsNullOrWhiteSpace(program.Description) ? "-" : program.Description)</td>
+                                            <td class="text-end">
+                                                <form asp-action="Restore" asp-controller="Programs" method="post" class="d-inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@program.Id" />
+                                                    <button type="submit" class="btn btn-sm btn-outline-primary pill-btn">Restore</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+
+                <div class="tab-pane fade" id="events-pane" role="tabpanel" aria-labelledby="events-tab">
+                    @if (!archivedEvents.Any())
+                    {
+                        <p class="text-muted mb-0">No archived events.</p>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Event</th>
+                                        <th>Program</th>
+                                        <th>Program Type</th>
+                                        <th>Description</th>
+                                        <th class="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var evt in archivedEvents)
+                                    {
+                                        <tr>
+                                            <td class="fw-semibold">@evt.Name</td>
+                                            <td>@(string.IsNullOrWhiteSpace(evt.ProgramName) ? "-" : evt.ProgramName)</td>
+                                            <td>@(string.IsNullOrWhiteSpace(evt.ProgramType) ? "-" : evt.ProgramType)</td>
+                                            <td>@(string.IsNullOrWhiteSpace(evt.Description) ? "-" : evt.Description)</td>
+                                            <td class="text-end">
+                                                <form asp-action="RestoreEvent" asp-controller="Programs" method="post" class="d-inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@evt.Id" />
+                                                    <button type="submit" class="btn btn-sm btn-outline-primary pill-btn">Restore</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
             </div>
         }
     </div>

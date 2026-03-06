@@ -21,6 +21,8 @@ public class Strategy
     public string CrossCollaboration { get; set; } = string.Empty;
     public string Partners { get; set; } = string.Empty;
     public string EventFYear { get; set; } = string.Empty;
+    public bool IsArchived { get; set; }
+    public DateTime? ArchivedAtUtc { get; set; }
     public StrategicGoal? StrategicGoal { get; set; }
     public Programs? Program { get; set; }
 }

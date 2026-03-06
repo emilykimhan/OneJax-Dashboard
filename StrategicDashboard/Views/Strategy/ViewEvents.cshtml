@@ -654,6 +654,15 @@
                                                         Delete
                                                     </button>
                                                 </li>
+                                                <li>
+                                                    <form asp-controller="Strategy" asp-action="Archive" method="post" class="m-0">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="id" value="@e.Id" />
+                                                        <button type="submit" class="dropdown-item text-secondary">
+                                                            Archive
+                                                        </button>
+                                                    </form>
+                                                </li>
                                             </ul>
                                         </div>
                                     </td>
@@ -816,6 +825,15 @@
                                                                     data-bs-target="#deleteConfirmModal" data-event-id="@e.Id">
                                                                 Delete
                                                             </button>
+                                                        </li>
+                                                        <li>
+                                                            <form asp-controller="Strategy" asp-action="Archive" method="post" class="m-0">
+                                                                @Html.AntiForgeryToken()
+                                                                <input type="hidden" name="id" value="@e.Id" />
+                                                                <button type="submit" class="dropdown-item text-secondary">
+                                                                    Archive
+                                                                </button>
+                                                            </form>
                                                         </li>
                                                     </ul>
                                                 </div>
