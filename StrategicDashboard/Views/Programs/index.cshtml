@@ -34,6 +34,10 @@
         .OrderBy(t => tabOrder.TryGetValue(t, out var order) ? order : 999)
         .ThenBy(t => t)
         .ToList();
+
+    const string allProgramsTabLabel = "All Programs";
+    var allTabs = new List<string> { allProgramsTabLabel };
+    allTabs.AddRange(typeTabs);
 }
 
 <style>
@@ -174,11 +178,27 @@
     }
 
     @@keyframes fadeInOut {
-        0% { opacity: 0; transform: translateY(-8px); }
-        10% { opacity: 1; transform: translateY(0); }
-        90% { opacity: 1; transform: translateY(0); }
-        100% { opacity: 0; transform: translateY(-8px); }
+        0% {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        10% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        90% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        100% {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
     }
+
 </style>
 
 <div class="container my-5">
@@ -242,9 +262,9 @@
     @if (Model != null && Model.Any())
     {
         <ul class="nav nav-pills justify-content-center programs-tabs" id="programTypeTabs" role="tablist">
-            @for (int i = 0; i < typeTabs.Count; i++)
+            @for (int i = 0; i < allTabs.Count; i++)
             {
-                var type = typeTabs[i];
+                var type = allTabs[i];
                 var safeTypeId = new string(type.Select(ch => char.IsLetterOrDigit(ch) ? char.ToLowerInvariant(ch) : '-').ToArray());
                 <li class="nav-item" role="presentation">
                     <button class="nav-link @(i == 0 ? "active" : "")"
@@ -275,17 +295,19 @@
         else
         {
             <div class="tab-content" id="programTypeTabsContent">
-                @for (int i = 0; i < typeTabs.Count; i++)
+                @for (int i = 0; i < allTabs.Count; i++)
                 {
-                    var type = typeTabs[i];
+                    var type = allTabs[i];
                     var safeTypeId = new string(type.Select(ch => char.IsLetterOrDigit(ch) ? char.ToLowerInvariant(ch) : '-').ToArray());
-                    var programsForType = Model.Where(p => p.ProgramType == type).OrderByDescending(p => p.Id).ToList();
+                    var programsForType = string.Equals(type, allProgramsTabLabel, StringComparison.OrdinalIgnoreCase)
+                        ? Model.OrderByDescending(p => p.Id).ToList()
+                        : Model.Where(p => string.Equals(p.ProgramType, type, StringComparison.OrdinalIgnoreCase)).OrderByDescending(p => p.Id).ToList();
 
                     <div class="tab-pane fade @(i == 0 ? "show active" : "")" id="pane-@safeTypeId" role="tabpanel" aria-labelledby="tab-@safeTypeId">
                         <div class="programs-table-wrap">
                             @if (!programsForType.Any())
                             {
-                                <p class="tab-empty-state">No programs in this type yet.</p>
+                                <p class="tab-empty-state">No programs in this tab yet.</p>
                             }
                             else
                             {

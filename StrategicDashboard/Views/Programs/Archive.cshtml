@@ -2,6 +2,7 @@
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
     var successMessage = TempData["ProgramsSuccess"] as string;
+    var errorMessage = TempData["ProgramsError"] as string;
     var archivedPrograms = Model?.Programs ?? new List<OneJaxDashboard.Models.ArchivedProgram>();
     var archivedEvents = Model?.Events ?? new List<OneJaxDashboard.Models.Strategy>();
     var hasArchivedItems = archivedPrograms.Any() || archivedEvents.Any();
@@ -55,6 +56,36 @@
         color: #fff;
         transform: scale(1.02);
     }
+
+    .success-text {
+        color: #00A676;
+        font-weight: 600;
+        font-size: 1rem;
+        letter-spacing: 0.5px;
+        animation: fadeInOut 4s ease-in-out forwards;
+    }
+
+    @@keyframes fadeInOut {
+        0% {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        10% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        90% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        100% {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+    }
 </style>
 
 <div class="container my-5">
@@ -65,7 +96,13 @@
 
     @if (!string.IsNullOrWhiteSpace(successMessage))
     {
-        <div class="alert alert-success text-center">@successMessage</div>
+        <div class="text-center mb-3">
+            <span class="success-text">@successMessage</span>
+        </div>
+    }
+    @if (!string.IsNullOrWhiteSpace(errorMessage))
+    {
+        <div class="alert alert-danger text-center mb-3">@errorMessage</div>
     }
 
     <div class="card-soft p-4">
