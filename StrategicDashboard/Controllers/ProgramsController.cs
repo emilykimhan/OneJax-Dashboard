@@ -133,7 +133,19 @@ public class ProgramsController : Controller
             .OrderByDescending(p => p.Id)
             .ToList();
 
-        return View(programs);
+        var events = _context.Strategies
+            .Where(s => s.IsArchived)
+            .OrderByDescending(s => s.ArchivedAtUtc ?? DateTime.MinValue)
+            .ThenByDescending(s => s.Id)
+            .ToList();
+
+        var model = new ProgramArchiveViewModel
+        {
+            Programs = programs,
+            Events = events
+        };
+
+        return View(model);
     }
 
     [HttpPost]
@@ -164,6 +176,22 @@ public class ProgramsController : Controller
 
             transaction.Commit();
             TempData["ProgramsSuccess"] = "Program restored.";
+        }
+
+        return RedirectToAction(nameof(Archive));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult RestoreEvent(int id)
+    {
+        var archivedEvent = _context.Strategies.FirstOrDefault(s => s.Id == id && s.IsArchived);
+        if (archivedEvent != null)
+        {
+            archivedEvent.IsArchived = false;
+            archivedEvent.ArchivedAtUtc = null;
+            _context.SaveChanges();
+            TempData["ProgramsSuccess"] = "Event restored.";
         }
 
         return RedirectToAction(nameof(Archive));

@@ -393,6 +393,24 @@
         flex-wrap: wrap;
     }
 
+    .archive-action-btn {
+        background-color: transparent;
+        color: #7a7f82;
+        border: 1px solid #7a7f82;
+        padding: 10px 22px;
+        border-radius: 25px;
+        font-weight: 600;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+        transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .archive-action-btn:hover,
+    .archive-action-btn:focus {
+        background-color: #7a7f82;
+        color: #fff;
+        border-color: #7a7f82;
+    }
+
     .page-head-divider {
         height: 1px;
         max-width: 980px;
@@ -459,6 +477,9 @@
             <a href="/Strategy/Index" class="btn quick-action-btn"
                style="background-color: var(--onejax-blue); color: #fff; padding: 10px 22px; border-radius: 25px; font-weight: 600; box-shadow: 0 3px 8px rgba(0,0,0,0.15);">
                 Create Events +
+            </a>
+            <a href="/Programs/Archive" class="btn quick-action-btn archive-action-btn">
+                View Archive
             </a>
         </div>
         <div class="page-head-divider"></div>
@@ -654,6 +675,15 @@
                                                         Delete
                                                     </button>
                                                 </li>
+                                                <li>
+                                                    <form asp-controller="Strategy" asp-action="Archive" method="post" class="m-0">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="id" value="@e.Id" />
+                                                        <button type="submit" class="dropdown-item text-secondary">
+                                                            Archive
+                                                        </button>
+                                                    </form>
+                                                </li>
                                             </ul>
                                         </div>
                                     </td>
@@ -816,6 +846,15 @@
                                                                     data-bs-target="#deleteConfirmModal" data-event-id="@e.Id">
                                                                 Delete
                                                             </button>
+                                                        </li>
+                                                        <li>
+                                                            <form asp-controller="Strategy" asp-action="Archive" method="post" class="m-0">
+                                                                @Html.AntiForgeryToken()
+                                                                <input type="hidden" name="id" value="@e.Id" />
+                                                                <button type="submit" class="dropdown-item text-secondary">
+                                                                    Archive
+                                                                </button>
+                                                            </form>
                                                         </li>
                                                     </ul>
                                                 </div>
