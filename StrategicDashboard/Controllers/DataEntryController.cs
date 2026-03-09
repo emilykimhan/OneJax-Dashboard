@@ -34,6 +34,9 @@ namespace OneJaxDashboard.Controllers
             var allIncomeRecords = _context.income_27D.ToList();
             var allBudgetRecords = _context.BudgetTracking_28D.ToList();
             var allSocialMedia = _context.socialMedia_5D.ToList();
+            var allMilestones = _context.achieveMile_6D.ToList();
+            var allCommunityPerception = _context.Annual_average_7D.ToList();
+            var allDemographics = _context.demographics_8D.Include(d => d.Strategy).ToList();
             
             // Apply filters
             var filteredStaffSurveys = allStaffSurveys;
@@ -46,6 +49,9 @@ namespace OneJaxDashboard.Controllers
             var filteredIncomeRecords = allIncomeRecords;
             var filteredBudgetRecords = allBudgetRecords;
             var filteredSocialMedia = allSocialMedia;
+            var filteredMilestones = allMilestones;
+            var filteredCommunityPerception = allCommunityPerception;
+            var filteredDemographics = allDemographics;
             
             // Filter by date
             DateTime filterStartDate = DateTime.MinValue;
@@ -105,6 +111,15 @@ namespace OneJaxDashboard.Controllers
                     filteredSocialMedia = filteredSocialMedia
                         .Where(s => s.CreatedDate >= filterStartDate && s.CreatedDate <= filterEndDate)
                         .ToList();
+                    filteredMilestones = filteredMilestones
+                        .Where(m => m.CreatedDate >= filterStartDate && m.CreatedDate <= filterEndDate)
+                        .ToList();
+                    filteredCommunityPerception = filteredCommunityPerception
+                        .Where(c => c.CreatedDate >= filterStartDate && c.CreatedDate <= filterEndDate)
+                        .ToList();
+                    filteredDemographics = filteredDemographics
+                        .Where(d => d.CreatedDate >= filterStartDate && d.CreatedDate <= filterEndDate)
+                        .ToList();
                 }
             }
             
@@ -120,6 +135,9 @@ namespace OneJaxDashboard.Controllers
                 filteredIncomeRecords = new List<income_27D>();
                 filteredBudgetRecords = new List<BudgetTracking_28D>();
                 filteredSocialMedia = new List<socialMedia_5D>();
+                filteredMilestones = new List<achieveMile_6D>();
+                filteredCommunityPerception = new List<Annual_average_7D>();
+                filteredDemographics = new List<demographics_8D>();
             }
             else if (recordType == "professional-development")
             {
@@ -132,6 +150,9 @@ namespace OneJaxDashboard.Controllers
                 filteredIncomeRecords = new List<income_27D>();
                 filteredBudgetRecords = new List<BudgetTracking_28D>();
                 filteredSocialMedia = new List<socialMedia_5D>();
+                filteredMilestones = new List<achieveMile_6D>();
+                filteredCommunityPerception = new List<Annual_average_7D>();
+                filteredDemographics = new List<demographics_8D>();
             }
             else if (recordType == "media-placements")
             {
@@ -144,6 +165,9 @@ namespace OneJaxDashboard.Controllers
                 filteredIncomeRecords = new List<income_27D>();
                 filteredBudgetRecords = new List<BudgetTracking_28D>();
                 filteredSocialMedia = new List<socialMedia_5D>();
+                filteredMilestones = new List<achieveMile_6D>();
+                filteredCommunityPerception = new List<Annual_average_7D>();
+                filteredDemographics = new List<demographics_8D>();
             }
             else if (recordType == "website-traffic")
             {
@@ -156,6 +180,9 @@ namespace OneJaxDashboard.Controllers
                 filteredIncomeRecords = new List<income_27D>();
                 filteredBudgetRecords = new List<BudgetTracking_28D>();
                 filteredSocialMedia = new List<socialMedia_5D>();
+                filteredMilestones = new List<achieveMile_6D>();
+                filteredCommunityPerception = new List<Annual_average_7D>();
+                filteredDemographics = new List<demographics_8D>();
             }
             else if (recordType == "donor-events")
             {
@@ -168,6 +195,9 @@ namespace OneJaxDashboard.Controllers
                 filteredIncomeRecords = new List<income_27D>();
                 filteredBudgetRecords = new List<BudgetTracking_28D>();
                 filteredSocialMedia = new List<socialMedia_5D>();
+                filteredMilestones = new List<achieveMile_6D>();
+                filteredCommunityPerception = new List<Annual_average_7D>();
+                filteredDemographics = new List<demographics_8D>();
             }
             else if (recordType == "comm-rate")
             {
@@ -180,6 +210,9 @@ namespace OneJaxDashboard.Controllers
                 filteredIncomeRecords = new List<income_27D>();
                 filteredBudgetRecords = new List<BudgetTracking_28D>();
                 filteredSocialMedia = new List<socialMedia_5D>();
+                filteredMilestones = new List<achieveMile_6D>();
+                filteredCommunityPerception = new List<Annual_average_7D>();
+                filteredDemographics = new List<demographics_8D>();
             }
             else if (recordType == "fee-for-service")
             {
@@ -192,6 +225,9 @@ namespace OneJaxDashboard.Controllers
                 filteredIncomeRecords = new List<income_27D>();
                 filteredBudgetRecords = new List<BudgetTracking_28D>();
                 filteredSocialMedia = new List<socialMedia_5D>();
+                filteredMilestones = new List<achieveMile_6D>();
+                filteredCommunityPerception = new List<Annual_average_7D>();
+                filteredDemographics = new List<demographics_8D>();
             }
             else if (recordType == "earned-income")
             {
@@ -204,6 +240,9 @@ namespace OneJaxDashboard.Controllers
                 filteredFeeForServices = new List<feeForService_21D>();
                 filteredBudgetRecords = new List<BudgetTracking_28D>();
                 filteredSocialMedia = new List<socialMedia_5D>();
+                filteredMilestones = new List<achieveMile_6D>();
+                filteredCommunityPerception = new List<Annual_average_7D>();
+                filteredDemographics = new List<demographics_8D>();
             }
             else if (recordType == "budget-tracking")
             {
@@ -216,6 +255,9 @@ namespace OneJaxDashboard.Controllers
                 filteredFeeForServices = new List<feeForService_21D>();
                 filteredIncomeRecords = new List<income_27D>();
                 filteredSocialMedia = new List<socialMedia_5D>();
+                filteredMilestones = new List<achieveMile_6D>();
+                filteredCommunityPerception = new List<Annual_average_7D>();
+                filteredDemographics = new List<demographics_8D>();
             }
             else if (recordType == "social-media")
             {
@@ -228,6 +270,54 @@ namespace OneJaxDashboard.Controllers
                 filteredFeeForServices = new List<feeForService_21D>();
                 filteredIncomeRecords = new List<income_27D>();
                 filteredBudgetRecords = new List<BudgetTracking_28D>();
+                filteredMilestones = new List<achieveMile_6D>();
+                filteredCommunityPerception = new List<Annual_average_7D>();
+                filteredDemographics = new List<demographics_8D>();
+            }
+            else if (recordType == "milestone")
+            {
+                filteredStaffSurveys = new List<StaffSurvey_22D>();
+                filteredProfDev = new List<ProfessionalDevelopment>();
+                filteredMediaPlacements = new List<MediaPlacements_3D>();
+                filteredWebsiteTraffic = new List<WebsiteTraffic_4D>();
+                filteredDonorEvents = new List<DonorEvent_19D>();
+                filteredCommRates = new List<Comm_rate20D>();
+                filteredFeeForServices = new List<feeForService_21D>();
+                filteredIncomeRecords = new List<income_27D>();
+                filteredBudgetRecords = new List<BudgetTracking_28D>();
+                filteredSocialMedia = new List<socialMedia_5D>();
+                filteredCommunityPerception = new List<Annual_average_7D>();
+                filteredDemographics = new List<demographics_8D>();
+            }
+            else if (recordType == "community-perception")
+            {
+                filteredStaffSurveys = new List<StaffSurvey_22D>();
+                filteredProfDev = new List<ProfessionalDevelopment>();
+                filteredMediaPlacements = new List<MediaPlacements_3D>();
+                filteredWebsiteTraffic = new List<WebsiteTraffic_4D>();
+                filteredDonorEvents = new List<DonorEvent_19D>();
+                filteredCommRates = new List<Comm_rate20D>();
+                filteredFeeForServices = new List<feeForService_21D>();
+                filteredIncomeRecords = new List<income_27D>();
+                filteredBudgetRecords = new List<BudgetTracking_28D>();
+                filteredSocialMedia = new List<socialMedia_5D>();
+                filteredMilestones = new List<achieveMile_6D>();
+                filteredDemographics = new List<demographics_8D>();
+            }
+            else if (recordType == "programs-demographics")
+            {
+                filteredStaffSurveys = new List<StaffSurvey_22D>();
+                filteredProfDev = new List<ProfessionalDevelopment>();
+                filteredMediaPlacements = new List<MediaPlacements_3D>();
+                filteredWebsiteTraffic = new List<WebsiteTraffic_4D>();
+                filteredDonorEvents = new List<DonorEvent_19D>();
+                filteredCommRates = new List<Comm_rate20D>();
+                filteredFeeForServices = new List<feeForService_21D>();
+                filteredIncomeRecords = new List<income_27D>();
+                filteredBudgetRecords = new List<BudgetTracking_28D>();
+                filteredSocialMedia = new List<socialMedia_5D>();
+                filteredMilestones = new List<achieveMile_6D>();
+                filteredCommunityPerception = new List<Annual_average_7D>();
             }
             
             // Set ViewBag data
@@ -241,14 +331,189 @@ namespace OneJaxDashboard.Controllers
             ViewBag.IncomeRecords = filteredIncomeRecords;
             ViewBag.BudgetRecords = filteredBudgetRecords;
             ViewBag.SocialMedia = filteredSocialMedia;
+            ViewBag.Milestones = filteredMilestones;
+            ViewBag.CommunityPerception = filteredCommunityPerception;
+            ViewBag.Demographics = filteredDemographics;
             ViewBag.RecordType = recordType ?? "all";
             ViewBag.DateFilter = dateFilter ?? "all";
             ViewBag.StartDate = startDate?.ToString("yyyy-MM-dd");
             ViewBag.EndDate = endDate?.ToString("yyyy-MM-dd");
-            ViewBag.TotalCount = allStaffSurveys.Count + allProfDev.Count + allMediaPlacements.Count + allWebsiteTraffic.Count + allDonorEvents.Count + allCommRates.Count + allFeeForServices.Count + allIncomeRecords.Count + allBudgetRecords.Count + allSocialMedia.Count;
-            ViewBag.VisibleCount = filteredStaffSurveys.Count + filteredProfDev.Count + filteredMediaPlacements.Count + filteredWebsiteTraffic.Count + filteredDonorEvents.Count + filteredCommRates.Count + filteredFeeForServices.Count + filteredIncomeRecords.Count + filteredBudgetRecords.Count + filteredSocialMedia.Count;
+            ViewBag.TotalCount = allStaffSurveys.Count + allProfDev.Count + allMediaPlacements.Count + allWebsiteTraffic.Count + allDonorEvents.Count + allCommRates.Count + allFeeForServices.Count + allIncomeRecords.Count + allBudgetRecords.Count + allSocialMedia.Count + allMilestones.Count + allCommunityPerception.Count + allDemographics.Count;
+            ViewBag.VisibleCount = filteredStaffSurveys.Count + filteredProfDev.Count + filteredMediaPlacements.Count + filteredWebsiteTraffic.Count + filteredDonorEvents.Count + filteredCommRates.Count + filteredFeeForServices.Count + filteredIncomeRecords.Count + filteredBudgetRecords.Count + filteredSocialMedia.Count + filteredMilestones.Count + filteredCommunityPerception.Count + filteredDemographics.Count;
             
             return View();
+        }
+
+        // Delete Programs Demographics
+        [HttpPost]
+        public IActionResult DeleteDemographics(int id)
+        {
+            var record = _context.demographics_8D.Find(id);
+            if (record != null)
+            {
+                _context.demographics_8D.Remove(record);
+                _context.SaveChanges();
+                TempData["Success"] = "Programs Demographics record deleted successfully!";
+            }
+            else
+            {
+                TempData["Error"] = "Record not found.";
+            }
+            return RedirectToAction("RecordHistory");
+        }
+
+        // Edit Programs Demographics - GET
+        [HttpGet]
+        public IActionResult EditDemographics(int id)
+        {
+            var record = _context.demographics_8D.Include(d => d.Strategy).FirstOrDefault(d => d.Id == id);
+            if (record == null)
+            {
+                TempData["Error"] = "Record not found.";
+                return RedirectToAction("RecordHistory");
+            }
+            ViewBag.Strategies = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(_context.Strategies.OrderBy(s => s.Name), "Id", "Name", record.StrategyId);
+            return View(record);
+        }
+
+        // Edit Programs Demographics - POST
+        [HttpPost]
+        public IActionResult EditDemographics(demographics_8D model)
+        {
+            if (ModelState.IsValid)
+            {
+                var existing = _context.demographics_8D.Find(model.Id);
+                if (existing != null)
+                {
+                    existing.StrategyId = model.StrategyId;
+                    existing.Year = model.Year;
+                    existing.ZipCodes = model.ZipCodes;
+                    existing.Notes = model.Notes;
+                    _context.SaveChanges();
+                    TempData["Success"] = "Programs Demographics record updated successfully!";
+                    return RedirectToAction("RecordHistory");
+                }
+                else
+                {
+                    TempData["Error"] = "Record not found.";
+                    return RedirectToAction("RecordHistory");
+                }
+            }
+            ViewBag.Strategies = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(_context.Strategies.OrderBy(s => s.Name), "Id", "Name", model.StrategyId);
+            return View(model);
+        }
+
+        // Delete Community Perception Survey
+        [HttpPost]
+        public IActionResult DeleteCommunityPerception(int id)
+        {
+            var record = _context.Annual_average_7D.Find(id);
+            if (record != null)
+            {
+                _context.Annual_average_7D.Remove(record);
+                _context.SaveChanges();
+                TempData["Success"] = "Community Perception Survey record deleted successfully!";
+            }
+            else
+            {
+                TempData["Error"] = "Record not found.";
+            }
+            return RedirectToAction("RecordHistory");
+        }
+
+        // Edit Community Perception Survey - GET
+        [HttpGet]
+        public IActionResult EditCommunityPerception(int id)
+        {
+            var record = _context.Annual_average_7D.Find(id);
+            if (record == null)
+            {
+                TempData["Error"] = "Record not found.";
+                return RedirectToAction("RecordHistory");
+            }
+            return View(record);
+        }
+
+        // Edit Community Perception Survey - POST
+        [HttpPost]
+        public IActionResult EditCommunityPerception(Annual_average_7D model)
+        {
+            if (ModelState.IsValid)
+            {
+                var existing = _context.Annual_average_7D.Find(model.Id);
+                if (existing != null)
+                {
+                    existing.Year = model.Year;
+                    existing.Percentage = model.Percentage;
+                    existing.TotalRespondents = model.TotalRespondents;
+                    existing.RespondentsIdentifyingAsTrusted = model.RespondentsIdentifyingAsTrusted;
+                    existing.Notes = model.Notes;
+                    _context.SaveChanges();
+                    TempData["Success"] = "Community Perception Survey record updated successfully!";
+                    return RedirectToAction("RecordHistory");
+                }
+                else
+                {
+                    TempData["Error"] = "Record not found.";
+                    return RedirectToAction("RecordHistory");
+                }
+            }
+            return View(model);
+        }
+
+        // Delete Milestone Achievement
+        [HttpPost]
+        public IActionResult DeleteMilestone(int id)
+        {
+            var record = _context.achieveMile_6D.Find(id);
+            if (record != null)
+            {
+                _context.achieveMile_6D.Remove(record);
+                _context.SaveChanges();
+                TempData["Success"] = "Milestone Achievement record deleted successfully!";
+            }
+            else
+            {
+                TempData["Error"] = "Record not found.";
+            }
+            return RedirectToAction("RecordHistory");
+        }
+
+        // Edit Milestone Achievement - GET
+        [HttpGet]
+        public IActionResult EditMilestone(int id)
+        {
+            var record = _context.achieveMile_6D.Find(id);
+            if (record == null)
+            {
+                TempData["Error"] = "Record not found.";
+                return RedirectToAction("RecordHistory");
+            }
+            return View(record);
+        }
+
+        // Edit Milestone Achievement - POST
+        [HttpPost]
+        public IActionResult EditMilestone(achieveMile_6D model)
+        {
+            if (ModelState.IsValid)
+            {
+                var existing = _context.achieveMile_6D.Find(model.Id);
+                if (existing != null)
+                {
+                    existing.Percentage = model.Percentage;
+                    existing.achievedReview = model.achievedReview;
+                    _context.SaveChanges();
+                    TempData["Success"] = "Milestone Achievement record updated successfully!";
+                    return RedirectToAction("RecordHistory");
+                }
+                else
+                {
+                    TempData["Error"] = "Record not found.";
+                    return RedirectToAction("RecordHistory");
+                }
+            }
+            return View(model);
         }
 
         // Delete Annual Budget Tracking
