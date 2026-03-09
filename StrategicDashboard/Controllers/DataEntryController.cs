@@ -32,6 +32,7 @@ namespace OneJaxDashboard.Controllers
             var allCommRates = _context.CommunicationRate.ToList();
             var allFeeForServices = _context.FeeForServices_21D.Include(f => f.Strategy).ToList();
             var allIncomeRecords = _context.income_27D.ToList();
+            var allBudgetRecords = _context.BudgetTracking_28D.ToList();
             
             // Apply filters
             var filteredStaffSurveys = allStaffSurveys;
@@ -42,6 +43,7 @@ namespace OneJaxDashboard.Controllers
             var filteredCommRates = allCommRates;
             var filteredFeeForServices = allFeeForServices;
             var filteredIncomeRecords = allIncomeRecords;
+            var filteredBudgetRecords = allBudgetRecords;
             
             // Filter by date
             DateTime filterStartDate = DateTime.MinValue;
@@ -95,6 +97,9 @@ namespace OneJaxDashboard.Controllers
                     filteredIncomeRecords = filteredIncomeRecords
                         .Where(i => i.CreatedDate >= filterStartDate && i.CreatedDate <= filterEndDate)
                         .ToList();
+                    filteredBudgetRecords = filteredBudgetRecords
+                        .Where(b => b.CreatedDate >= filterStartDate && b.CreatedDate <= filterEndDate)
+                        .ToList();
                 }
             }
             
@@ -108,6 +113,7 @@ namespace OneJaxDashboard.Controllers
                 filteredCommRates = new List<Comm_rate20D>();
                 filteredFeeForServices = new List<feeForService_21D>();
                 filteredIncomeRecords = new List<income_27D>();
+                filteredBudgetRecords = new List<BudgetTracking_28D>();
             }
             else if (recordType == "professional-development")
             {
@@ -118,6 +124,7 @@ namespace OneJaxDashboard.Controllers
                 filteredCommRates = new List<Comm_rate20D>();
                 filteredFeeForServices = new List<feeForService_21D>();
                 filteredIncomeRecords = new List<income_27D>();
+                filteredBudgetRecords = new List<BudgetTracking_28D>();
             }
             else if (recordType == "media-placements")
             {
@@ -128,6 +135,7 @@ namespace OneJaxDashboard.Controllers
                 filteredCommRates = new List<Comm_rate20D>();
                 filteredFeeForServices = new List<feeForService_21D>();
                 filteredIncomeRecords = new List<income_27D>();
+                filteredBudgetRecords = new List<BudgetTracking_28D>();
             }
             else if (recordType == "website-traffic")
             {
@@ -138,6 +146,7 @@ namespace OneJaxDashboard.Controllers
                 filteredCommRates = new List<Comm_rate20D>();
                 filteredFeeForServices = new List<feeForService_21D>();
                 filteredIncomeRecords = new List<income_27D>();
+                filteredBudgetRecords = new List<BudgetTracking_28D>();
             }
             else if (recordType == "donor-events")
             {
@@ -148,6 +157,7 @@ namespace OneJaxDashboard.Controllers
                 filteredCommRates = new List<Comm_rate20D>();
                 filteredFeeForServices = new List<feeForService_21D>();
                 filteredIncomeRecords = new List<income_27D>();
+                filteredBudgetRecords = new List<BudgetTracking_28D>();
             }
             else if (recordType == "comm-rate")
             {
@@ -158,6 +168,7 @@ namespace OneJaxDashboard.Controllers
                 filteredDonorEvents = new List<DonorEvent_19D>();
                 filteredFeeForServices = new List<feeForService_21D>();
                 filteredIncomeRecords = new List<income_27D>();
+                filteredBudgetRecords = new List<BudgetTracking_28D>();
             }
             else if (recordType == "fee-for-service")
             {
@@ -168,6 +179,7 @@ namespace OneJaxDashboard.Controllers
                 filteredDonorEvents = new List<DonorEvent_19D>();
                 filteredCommRates = new List<Comm_rate20D>();
                 filteredIncomeRecords = new List<income_27D>();
+                filteredBudgetRecords = new List<BudgetTracking_28D>();
             }
             else if (recordType == "earned-income")
             {
@@ -178,6 +190,18 @@ namespace OneJaxDashboard.Controllers
                 filteredDonorEvents = new List<DonorEvent_19D>();
                 filteredCommRates = new List<Comm_rate20D>();
                 filteredFeeForServices = new List<feeForService_21D>();
+                filteredBudgetRecords = new List<BudgetTracking_28D>();
+            }
+            else if (recordType == "budget-tracking")
+            {
+                filteredStaffSurveys = new List<StaffSurvey_22D>();
+                filteredProfDev = new List<ProfessionalDevelopment>();
+                filteredMediaPlacements = new List<MediaPlacements_3D>();
+                filteredWebsiteTraffic = new List<WebsiteTraffic_4D>();
+                filteredDonorEvents = new List<DonorEvent_19D>();
+                filteredCommRates = new List<Comm_rate20D>();
+                filteredFeeForServices = new List<feeForService_21D>();
+                filteredIncomeRecords = new List<income_27D>();
             }
             
             // Set ViewBag data
@@ -189,14 +213,82 @@ namespace OneJaxDashboard.Controllers
             ViewBag.CommRates = filteredCommRates;
             ViewBag.FeeForServices = filteredFeeForServices;
             ViewBag.IncomeRecords = filteredIncomeRecords;
+            ViewBag.BudgetRecords = filteredBudgetRecords;
             ViewBag.RecordType = recordType ?? "all";
             ViewBag.DateFilter = dateFilter ?? "all";
             ViewBag.StartDate = startDate?.ToString("yyyy-MM-dd");
             ViewBag.EndDate = endDate?.ToString("yyyy-MM-dd");
-            ViewBag.TotalCount = allStaffSurveys.Count + allProfDev.Count + allMediaPlacements.Count + allWebsiteTraffic.Count + allDonorEvents.Count + allCommRates.Count + allFeeForServices.Count + allIncomeRecords.Count;
-            ViewBag.VisibleCount = filteredStaffSurveys.Count + filteredProfDev.Count + filteredMediaPlacements.Count + filteredWebsiteTraffic.Count + filteredDonorEvents.Count + filteredCommRates.Count + filteredFeeForServices.Count + filteredIncomeRecords.Count;
+            ViewBag.TotalCount = allStaffSurveys.Count + allProfDev.Count + allMediaPlacements.Count + allWebsiteTraffic.Count + allDonorEvents.Count + allCommRates.Count + allFeeForServices.Count + allIncomeRecords.Count + allBudgetRecords.Count;
+            ViewBag.VisibleCount = filteredStaffSurveys.Count + filteredProfDev.Count + filteredMediaPlacements.Count + filteredWebsiteTraffic.Count + filteredDonorEvents.Count + filteredCommRates.Count + filteredFeeForServices.Count + filteredIncomeRecords.Count + filteredBudgetRecords.Count;
             
             return View();
+        }
+
+        // Delete Annual Budget Tracking
+        [HttpPost]
+        public IActionResult DeleteBudgetRecord(int id)
+        {
+            var record = _context.BudgetTracking_28D.Find(id);
+            if (record != null)
+            {
+                _context.BudgetTracking_28D.Remove(record);
+                _context.SaveChanges();
+                TempData["Success"] = "Annual Budget Tracking record deleted successfully!";
+            }
+            else
+            {
+                TempData["Error"] = "Record not found.";
+            }
+            return RedirectToAction("RecordHistory");
+        }
+
+        // Edit Annual Budget Tracking - GET
+        [HttpGet]
+        public IActionResult EditBudgetRecord(int id)
+        {
+            var record = _context.BudgetTracking_28D.Find(id);
+            if (record == null)
+            {
+                TempData["Error"] = "Record not found.";
+                return RedirectToAction("RecordHistory");
+            }
+            return View(record);
+        }
+
+        // Edit Annual Budget Tracking - POST
+        [HttpPost]
+        public IActionResult EditBudgetRecord(BudgetTracking_28D model)
+        {
+            if (ModelState.IsValid)
+            {
+                var existing = _context.BudgetTracking_28D.Find(model.Id);
+                if (existing != null)
+                {
+                    existing.Quarter = model.Quarter;
+                    existing.Year = model.Year;
+                    existing.CommunityPrograms = model.CommunityPrograms;
+                    existing.OneYouthPrograms = model.OneYouthPrograms;
+                    existing.InterfaithPrograms = model.InterfaithPrograms;
+                    existing.HumanitarianEvent = model.HumanitarianEvent;
+                    existing.MiscellaneousExpenses = model.MiscellaneousExpenses;
+                    existing.CorporateGiving = model.CorporateGiving;
+                    existing.IndividualGiving = model.IndividualGiving;
+                    existing.GrantsFoundations = model.GrantsFoundations;
+                    existing.CommunityEvents = model.CommunityEvents;
+                    existing.PeopleCultureWorkshops = model.PeopleCultureWorkshops;
+                    existing.MiscellaneousRevenue = model.MiscellaneousRevenue;
+                    existing.Notes = model.Notes;
+                    _context.SaveChanges();
+                    TempData["Success"] = "Annual Budget Tracking record updated successfully!";
+                    return RedirectToAction("RecordHistory");
+                }
+                else
+                {
+                    TempData["Error"] = "Record not found.";
+                    return RedirectToAction("RecordHistory");
+                }
+            }
+            return View(model);
         }
 
         // Delete Staff Survey

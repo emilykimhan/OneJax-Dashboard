@@ -44,6 +44,7 @@
                             <option value="comm-rate" selected="@(ViewBag.RecordType == "comm-rate" ? "selected" : null)">Communication Satisfaction Only</option>
                             <option value="fee-for-service" selected="@(ViewBag.RecordType == "fee-for-service" ? "selected" : null)">Fee-For-Service Revenue Only</option>
                             <option value="earned-income" selected="@(ViewBag.RecordType == "earned-income" ? "selected" : null)">Earned Income Tracking Only</option>
+                            <option value="budget-tracking" selected="@(ViewBag.RecordType == "budget-tracking" ? "selected" : null)">Annual Budget Tracking Only</option>
                         </select>
                     </div>
                     <div class="col-md-6 mb-3">
@@ -564,6 +565,63 @@
             else
             {
                 <p class="no-records">No Earned Income Tracking records found.</p>
+            }
+        </div>
+        }
+
+        @if (ViewBag.RecordType == "all" || ViewBag.RecordType == "budget-tracking")
+        {
+        <!-- Annual Budget Tracking Records -->
+        <div class="record-section">
+            <h5 class="section-title">Annual Budget Tracking Records</h5>
+            @if (ViewBag.BudgetRecords != null && ((List<OneJaxDashboard.Models.BudgetTracking_28D>)ViewBag.BudgetRecords).Any())
+            {
+                <div class="records-list">
+                    @foreach (var budget in (List<OneJaxDashboard.Models.BudgetTracking_28D>)ViewBag.BudgetRecords)
+                    {
+                        <div class="record-item">
+                            <div class="record-header">
+                                <span class="record-type">Annual Budget Tracking</span>
+                                <span class="record-id">ID: @budget.Id</span>
+                            </div>
+                            <div class="record-details">
+                                <div class="detail-item">
+                                    <strong>Quarter:</strong> @budget.Quarter &mdash; <strong>Year:</strong> @budget.Year
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Total Revenues:</strong> @budget.TotalRevenues.ToString("C")
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Total Expenses:</strong> @budget.TotalExpenses.ToString("C")
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Net (Revenue - Expense):</strong> @budget.NetAmount.ToString("C")
+                                </div>
+                                @if (!string.IsNullOrEmpty(budget.Notes))
+                                {
+                                <div class="detail-item">
+                                    <strong>Notes:</strong> @budget.Notes
+                                </div>
+                                }
+                                <div class="detail-item">
+                                    <strong>Created Date:</strong> @budget.CreatedDate.ToString("MM/dd/yyyy")
+                                </div>
+                            </div>
+                            <div class="record-actions mt-3">
+                                <a asp-controller="DataEntry" asp-action="EditBudgetRecord" asp-route-id="@budget.Id" class="btn btn-primary btn-sm">Edit</a>
+                                <form asp-controller="DataEntry" asp-action="DeleteBudgetRecord" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                    <input type="hidden" name="id" value="@budget.Id" />
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="no-records">No Annual Budget Tracking records found.</p>
             }
         </div>
         }
