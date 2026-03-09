@@ -23,7 +23,7 @@
                 </div>
 
                 <p class="text-center mb-4" style="color:var(--onejax-gray);">
-                    Track participant diversity — Goal: Increase diversity by 10% compared to FY 26-27 and maintain satisfaction ratings of 85%+.
+                    Track participant diversity — Goal: Increase diversity by 10% compared to FY 26-27.
                 </p>
 
                 @if (TempData["Success"] != null)
@@ -86,21 +86,13 @@
 
                             <div class="row">
                                 <!-- Diversity Count -->
-                                <div class="col-md-6 mb-3">
+                                <div class="col-md-12 mb-3">
                                     <label asp-for="DiversityCount" class="form-label fw-bold">Number of Diverse Participants</label>
                                     <input asp-for="DiversityCount" type="number" class="form-control"
                                            placeholder="e.g. 75" min="0" max="100000" required />
                                     <span asp-validation-for="DiversityCount" class="text-danger"></span>
                                 </div>
 
-                                <!-- Satisfaction Rate -->
-                                <div class="col-md-6 mb-3">
-                                    <label asp-for="SatisfactionRate" class="form-label fw-bold">Satisfaction Rate (%)</label>
-                                    <input asp-for="SatisfactionRate" type="number" class="form-control"
-                                           placeholder="0 – 100" min="0" max="100" step="0.1" required />
-                                    <span asp-validation-for="SatisfactionRate" class="text-danger"></span>
-                                    <small class="form-text text-muted">Target: 85% or higher</small>
-                                </div>
                             </div>
 
                             <!-- Submit -->
