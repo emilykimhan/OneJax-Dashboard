@@ -28,12 +28,16 @@ namespace OneJaxDashboard.Controllers
             var allProfDev = _context.ProfessionalDevelopments.ToList();
             var allMediaPlacements = _context.MediaPlacements_3D.ToList();
             var allWebsiteTraffic = _context.WebsiteTraffic.ToList();
+            var allDonorEvents = _context.DonorEvents_19D.Include(d => d.Strategy).ToList();
+            var allCommRates = _context.CommunicationRate.ToList();
             
             // Apply filters
             var filteredStaffSurveys = allStaffSurveys;
             var filteredProfDev = allProfDev;
             var filteredMediaPlacements = allMediaPlacements;
             var filteredWebsiteTraffic = allWebsiteTraffic;
+            var filteredDonorEvents = allDonorEvents;
+            var filteredCommRates = allCommRates;
             
             // Filter by date
             DateTime filterStartDate = DateTime.MinValue;
@@ -75,6 +79,12 @@ namespace OneJaxDashboard.Controllers
                     filteredWebsiteTraffic = filteredWebsiteTraffic
                         .Where(w => w.CreatedDate >= filterStartDate && w.CreatedDate <= filterEndDate)
                         .ToList();
+                    filteredDonorEvents = filteredDonorEvents
+                        .Where(d => d.CreatedDate >= filterStartDate && d.CreatedDate <= filterEndDate)
+                        .ToList();
+                    filteredCommRates = filteredCommRates
+                        .Where(c => c.CreatedDate >= filterStartDate && c.CreatedDate <= filterEndDate)
+                        .ToList();
                 }
             }
             
@@ -84,24 +94,48 @@ namespace OneJaxDashboard.Controllers
                 filteredProfDev = new List<ProfessionalDevelopment>();
                 filteredMediaPlacements = new List<MediaPlacements_3D>();
                 filteredWebsiteTraffic = new List<WebsiteTraffic_4D>();
+                filteredDonorEvents = new List<DonorEvent_19D>();
+                filteredCommRates = new List<Comm_rate20D>();
             }
             else if (recordType == "professional-development")
             {
                 filteredStaffSurveys = new List<StaffSurvey_22D>();
                 filteredMediaPlacements = new List<MediaPlacements_3D>();
                 filteredWebsiteTraffic = new List<WebsiteTraffic_4D>();
+                filteredDonorEvents = new List<DonorEvent_19D>();
+                filteredCommRates = new List<Comm_rate20D>();
             }
             else if (recordType == "media-placements")
             {
                 filteredStaffSurveys = new List<StaffSurvey_22D>();
                 filteredProfDev = new List<ProfessionalDevelopment>();
                 filteredWebsiteTraffic = new List<WebsiteTraffic_4D>();
+                filteredDonorEvents = new List<DonorEvent_19D>();
+                filteredCommRates = new List<Comm_rate20D>();
             }
             else if (recordType == "website-traffic")
             {
                 filteredStaffSurveys = new List<StaffSurvey_22D>();
                 filteredProfDev = new List<ProfessionalDevelopment>();
                 filteredMediaPlacements = new List<MediaPlacements_3D>();
+                filteredDonorEvents = new List<DonorEvent_19D>();
+                filteredCommRates = new List<Comm_rate20D>();
+            }
+            else if (recordType == "donor-events")
+            {
+                filteredStaffSurveys = new List<StaffSurvey_22D>();
+                filteredProfDev = new List<ProfessionalDevelopment>();
+                filteredMediaPlacements = new List<MediaPlacements_3D>();
+                filteredWebsiteTraffic = new List<WebsiteTraffic_4D>();
+                filteredCommRates = new List<Comm_rate20D>();
+            }
+            else if (recordType == "comm-rate")
+            {
+                filteredStaffSurveys = new List<StaffSurvey_22D>();
+                filteredProfDev = new List<ProfessionalDevelopment>();
+                filteredMediaPlacements = new List<MediaPlacements_3D>();
+                filteredWebsiteTraffic = new List<WebsiteTraffic_4D>();
+                filteredDonorEvents = new List<DonorEvent_19D>();
             }
             
             // Set ViewBag data
@@ -109,12 +143,14 @@ namespace OneJaxDashboard.Controllers
             ViewBag.ProfessionalDevelopments = filteredProfDev;
             ViewBag.MediaPlacements = filteredMediaPlacements;
             ViewBag.WebsiteTraffic = filteredWebsiteTraffic;
+            ViewBag.DonorEvents = filteredDonorEvents;
+            ViewBag.CommRates = filteredCommRates;
             ViewBag.RecordType = recordType ?? "all";
             ViewBag.DateFilter = dateFilter ?? "all";
             ViewBag.StartDate = startDate?.ToString("yyyy-MM-dd");
             ViewBag.EndDate = endDate?.ToString("yyyy-MM-dd");
-            ViewBag.TotalCount = allStaffSurveys.Count + allProfDev.Count + allMediaPlacements.Count + allWebsiteTraffic.Count;
-            ViewBag.VisibleCount = filteredStaffSurveys.Count + filteredProfDev.Count + filteredMediaPlacements.Count + filteredWebsiteTraffic.Count;
+            ViewBag.TotalCount = allStaffSurveys.Count + allProfDev.Count + allMediaPlacements.Count + allWebsiteTraffic.Count + allDonorEvents.Count + allCommRates.Count;
+            ViewBag.VisibleCount = filteredStaffSurveys.Count + filteredProfDev.Count + filteredMediaPlacements.Count + filteredWebsiteTraffic.Count + filteredDonorEvents.Count + filteredCommRates.Count;
             
             return View();
         }
@@ -171,6 +207,129 @@ namespace OneJaxDashboard.Controllers
                 TempData["Error"] = "Record not found.";
             }
             return RedirectToAction("RecordHistory");
+        }
+
+        // Delete Communication Satisfaction
+        [HttpPost]
+        public IActionResult DeleteCommRate(int id)
+        {
+            var record = _context.CommunicationRate.Find(id);
+            if (record != null)
+            {
+                _context.CommunicationRate.Remove(record);
+                _context.SaveChanges();
+                TempData["Success"] = "Communication Satisfaction record deleted successfully!";
+            }
+            else
+            {
+                TempData["Error"] = "Record not found.";
+            }
+            return RedirectToAction("RecordHistory");
+        }
+
+        // Edit Communication Satisfaction - GET
+        [HttpGet]
+        public IActionResult EditCommRate(int id)
+        {
+            var record = _context.CommunicationRate.Find(id);
+            if (record == null)
+            {
+                TempData["Error"] = "Record not found.";
+                return RedirectToAction("RecordHistory");
+            }
+            return View(record);
+        }
+
+        // Edit Communication Satisfaction - POST
+        [HttpPost]
+        public IActionResult EditCommRate(Comm_rate20D model)
+        {
+            if (ModelState.IsValid)
+            {
+                var existing = _context.CommunicationRate.Find(model.Id);
+                if (existing != null)
+                {
+                    existing.Year = model.Year;
+                    existing.AverageCommunicationSatisfaction = model.AverageCommunicationSatisfaction;
+                    _context.SaveChanges();
+                    TempData["Success"] = "Communication Satisfaction record updated successfully!";
+                    return RedirectToAction("RecordHistory");
+                }
+                else
+                {
+                    TempData["Error"] = "Record not found.";
+                }
+            }
+            return View(model);
+        }
+
+        // Delete Donor Event
+        [HttpPost]
+        public IActionResult DeleteDonorEvent(int id)
+        {
+            var donorEvent = _context.DonorEvents_19D.Find(id);
+            if (donorEvent != null)
+            {
+                _context.DonorEvents_19D.Remove(donorEvent);
+                _context.SaveChanges();
+                TempData["Success"] = "Donor Event record deleted successfully!";
+            }
+            else
+            {
+                TempData["Error"] = "Record not found.";
+            }
+            return RedirectToAction("RecordHistory");
+        }
+
+        // Edit Donor Event - GET
+        [HttpGet]
+        public IActionResult EditDonorEvent(int id)
+        {
+            var donorEvent = _context.DonorEvents_19D.Find(id);
+            if (donorEvent == null)
+            {
+                TempData["Error"] = "Record not found.";
+                return RedirectToAction("RecordHistory");
+            }
+            ViewBag.Strategies = _context.Strategies
+                .Select(s => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.Name,
+                    Selected = s.Id == donorEvent.StrategyId
+                }).ToList();
+            return View(donorEvent);
+        }
+
+        // Edit Donor Event - POST
+        [HttpPost]
+        public IActionResult EditDonorEvent(DonorEvent_19D model)
+        {
+            if (ModelState.IsValid)
+            {
+                var existing = _context.DonorEvents_19D.Find(model.Id);
+                if (existing != null)
+                {
+                    existing.StrategyId = model.StrategyId;
+                    existing.NumberOfParticipants = model.NumberOfParticipants;
+                    existing.EventSatisfactionRating = model.EventSatisfactionRating;
+                    _context.SaveChanges();
+                    TempData["Success"] = "Donor Event record updated successfully!";
+                    return RedirectToAction("RecordHistory");
+                }
+                else
+                {
+                    TempData["Error"] = "Record not found.";
+                }
+            }
+            ViewBag.Strategies = _context.Strategies
+                .Select(s => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.Name,
+                    Selected = s.Id == model.StrategyId
+                }).ToList();
+            return View(model);
         }
 
         // Delete Website Traffic

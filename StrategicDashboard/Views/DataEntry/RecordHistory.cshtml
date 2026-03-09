@@ -40,6 +40,8 @@
                             <option value="professional-development" selected="@(ViewBag.RecordType == "professional-development" ? "selected" : null)">Professional Development Only</option>
                             <option value="media-placements" selected="@(ViewBag.RecordType == "media-placements" ? "selected" : null)">Media Placements Only</option>
                             <option value="website-traffic" selected="@(ViewBag.RecordType == "website-traffic" ? "selected" : null)">Website Traffic Only</option>
+                            <option value="donor-events" selected="@(ViewBag.RecordType == "donor-events" ? "selected" : null)">Donor/Honoree Engagement Only</option>
+                            <option value="comm-rate" selected="@(ViewBag.RecordType == "comm-rate" ? "selected" : null)">Communication Satisfaction Only</option>
                         </select>
                     </div>
                     <div class="col-md-6 mb-3">
@@ -79,6 +81,8 @@
     
    
         
+        @if (ViewBag.RecordType == "all" || ViewBag.RecordType == "staff-survey")
+        {
         <!-- Staff Survey Records -->
         <div class="record-section">
             <h5 class="section-title">Staff Survey Records</h5>
@@ -123,7 +127,10 @@
                 <p class="no-records">No Staff Survey records found.</p>
             }
         </div>
+        }
 
+        @if (ViewBag.RecordType == "all" || ViewBag.RecordType == "professional-development")
+        {
         <!-- Professional Development Records -->
         <div class="record-section">
             <h5 class="section-title">Professional Development Records</h5>
@@ -171,7 +178,10 @@
                 <p class="no-records">No Professional Development records found.</p>
             }
         </div>
+        }
 
+        @if (ViewBag.RecordType == "all" || ViewBag.RecordType == "media-placements")
+        {
         <!-- Media Placements Records -->
         <div class="record-section">
             <h5 class="section-title">Media Placements Records</h5>
@@ -266,7 +276,10 @@
                 <p class="no-records">No Media Placements records found.</p>
             }
         </div>
+        }
 
+        @if (ViewBag.RecordType == "all" || ViewBag.RecordType == "website-traffic")
+        {
         <!-- Website Traffic Records -->
         <div class="record-section">
             <h5 class="section-title">Website Traffic Records</h5>
@@ -329,6 +342,100 @@
                 <p class="no-records">No Website Traffic records found.</p>
             }
         </div>
+        }
+
+        @if (ViewBag.RecordType == "all" || ViewBag.RecordType == "donor-events")
+        {
+        <!-- Donor/Honoree Engagement Records -->
+        <div class="record-section">
+            <h5 class="section-title">Donor/Honoree Engagement Records</h5>
+            @if (ViewBag.DonorEvents != null && ((List<OneJaxDashboard.Models.DonorEvent_19D>)ViewBag.DonorEvents).Any())
+            {
+                <div class="records-list">
+                    @foreach (var donor in (List<OneJaxDashboard.Models.DonorEvent_19D>)ViewBag.DonorEvents)
+                    {
+                        <div class="record-item">
+                            <div class="record-header">
+                                <span class="record-type">Donor/Honoree Engagement</span>
+                                <span class="record-id">ID: @donor.Id</span>
+                            </div>
+                            <div class="record-details">
+                                <div class="detail-item">
+                                    <strong>Created Date:</strong> @donor.CreatedDate.ToString("MM/dd/yyyy")
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Event:</strong> @(donor.Strategy?.Name ?? "N/A")
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Number of Participants:</strong> @donor.NumberOfParticipants
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Event Satisfaction Rating:</strong> @donor.EventSatisfactionRating%
+                                </div>
+                            </div>
+                            <div class="record-actions mt-3">
+                                <a asp-controller="DataEntry" asp-action="EditDonorEvent" asp-route-id="@donor.Id" class="btn btn-primary btn-sm">Edit</a>
+                                <form asp-controller="DataEntry" asp-action="DeleteDonorEvent" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                    <input type="hidden" name="id" value="@donor.Id" />
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="no-records">No Donor/Honoree Engagement records found.</p>
+            }
+        </div>
+        }
+
+        @if (ViewBag.RecordType == "all" || ViewBag.RecordType == "comm-rate")
+        {
+        <!-- Communication Satisfaction Records -->
+        <div class="record-section">
+            <h5 class="section-title">Communication Satisfaction Records</h5>
+            @if (ViewBag.CommRates != null && ((List<OneJaxDashboard.Models.Comm_rate20D>)ViewBag.CommRates).Any())
+            {
+                <div class="records-list">
+                    @foreach (var rate in (List<OneJaxDashboard.Models.Comm_rate20D>)ViewBag.CommRates)
+                    {
+                        <div class="record-item">
+                            <div class="record-header">
+                                <span class="record-type">Communication Satisfaction</span>
+                                <span class="record-id">ID: @rate.Id</span>
+                            </div>
+                            <div class="record-details">
+                                <div class="detail-item">
+                                    <strong>Year:</strong> @rate.Year
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Average Communication Satisfaction:</strong> @rate.AverageCommunicationSatisfaction%
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Created Date:</strong> @rate.CreatedDate.ToString("MM/dd/yyyy")
+                                </div>
+                            </div>
+                            <div class="record-actions mt-3">
+                                <a asp-controller="DataEntry" asp-action="EditCommRate" asp-route-id="@rate.Id" class="btn btn-primary btn-sm">Edit</a>
+                                <form asp-controller="DataEntry" asp-action="DeleteCommRate" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                    <input type="hidden" name="id" value="@rate.Id" />
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="no-records">No Communication Satisfaction records found.</p>
+            }
+        </div>
+        }
 
         <!-- Back to Data Entry Button -->
         <div class="back-navigation mt-4">
