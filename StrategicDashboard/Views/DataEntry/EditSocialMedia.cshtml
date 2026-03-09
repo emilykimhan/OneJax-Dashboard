@@ -1,0 +1,76 @@
+@model OneJaxDashboard.Models.socialMedia_5D
+
+@{
+    ViewData["Title"] = "Edit Social Media Engagement";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Edit Social Media Engagement Record</h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="EditSocialMedia" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="CreatedDate" />
+
+                        <div class="mb-3">
+                            <label asp-for="Year" class="form-label fw-bold">Year</label>
+                            <input asp-for="Year" type="number" class="form-control" min="2020" max="2100" required />
+                            <span asp-validation-for="Year" class="text-danger"></span>
+                        </div>
+
+                        <hr />
+                        <h6 class="fw-bold text-secondary mb-3">Quarterly Engagement Rates (%)</h6>
+
+                        <div class="mb-3">
+                            <label asp-for="JulySeptEngagementRate" class="form-label">July – September Engagement Rate (%)</label>
+                            <input asp-for="JulySeptEngagementRate" type="number" class="form-control" min="0" max="100" step="0.01" placeholder="e.g. 4.75" />
+                            <span asp-validation-for="JulySeptEngagementRate" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="OctDecEngagementRate" class="form-label">October – December Engagement Rate (%)</label>
+                            <input asp-for="OctDecEngagementRate" type="number" class="form-control" min="0" max="100" step="0.01" placeholder="e.g. 5.10" />
+                            <span asp-validation-for="OctDecEngagementRate" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="JanMarEngagementRate" class="form-label">January – March Engagement Rate (%)</label>
+                            <input asp-for="JanMarEngagementRate" type="number" class="form-control" min="0" max="100" step="0.01" placeholder="e.g. 3.80" />
+                            <span asp-validation-for="JanMarEngagementRate" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="AprilJuneEngagementRate" class="form-label">April – June Engagement Rate (%)</label>
+                            <input asp-for="AprilJuneEngagementRate" type="number" class="form-control" min="0" max="100" step="0.01" placeholder="e.g. 6.20" />
+                            <span asp-validation-for="AprilJuneEngagementRate" class="text-danger"></span>
+                        </div>
+
+                        <hr />
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input asp-for="GoalMet" class="form-check-input" type="checkbox" />
+                                <label asp-for="GoalMet" class="form-check-label fw-bold">Goal Met (30% Increase in Engagement)</label>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-success">Save Changes</button>
+                            <a asp-action="RecordHistory" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

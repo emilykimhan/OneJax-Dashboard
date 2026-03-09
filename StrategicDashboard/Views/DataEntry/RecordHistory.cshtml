@@ -45,6 +45,7 @@
                             <option value="fee-for-service" selected="@(ViewBag.RecordType == "fee-for-service" ? "selected" : null)">Fee-For-Service Revenue Only</option>
                             <option value="earned-income" selected="@(ViewBag.RecordType == "earned-income" ? "selected" : null)">Earned Income Tracking Only</option>
                             <option value="budget-tracking" selected="@(ViewBag.RecordType == "budget-tracking" ? "selected" : null)">Annual Budget Tracking Only</option>
+                            <option value="social-media" selected="@(ViewBag.RecordType == "social-media" ? "selected" : null)">Social Media Engagement Only</option>
                         </select>
                     </div>
                     <div class="col-md-6 mb-3">
@@ -622,6 +623,75 @@
             else
             {
                 <p class="no-records">No Annual Budget Tracking records found.</p>
+            }
+        </div>
+        }
+
+        @if (ViewBag.RecordType == "all" || ViewBag.RecordType == "social-media")
+        {
+        <!-- Social Media Engagement Records -->
+        <div class="record-section">
+            <h5 class="section-title">Social Media Engagement Records</h5>
+            @if (ViewBag.SocialMedia != null && ((List<OneJaxDashboard.Models.socialMedia_5D>)ViewBag.SocialMedia).Any())
+            {
+                <div class="records-list">
+                    @foreach (var sm in (List<OneJaxDashboard.Models.socialMedia_5D>)ViewBag.SocialMedia)
+                    {
+                        <div class="record-item">
+                            <div class="record-header">
+                                <span class="record-type">Social Media Engagement</span>
+                                <span class="record-id">ID: @sm.Id</span>
+                            </div>
+                            <div class="record-details">
+                                <div class="detail-item">
+                                    <strong>Year:</strong> @sm.Year
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Average Engagement Rate:</strong> @sm.AverageEngagementRate.ToString("F2")%
+                                </div>
+                                <div class="monthly-breakdown">
+                                    <strong>Quarterly Breakdown:</strong>
+                                    <div class="months-grid">
+                                        @if (sm.JulySeptEngagementRate.HasValue)
+                                        {
+                                            <span class="month-badge">Jul-Sep: @sm.JulySeptEngagementRate%</span>
+                                        }
+                                        @if (sm.OctDecEngagementRate.HasValue)
+                                        {
+                                            <span class="month-badge">Oct-Dec: @sm.OctDecEngagementRate%</span>
+                                        }
+                                        @if (sm.JanMarEngagementRate.HasValue)
+                                        {
+                                            <span class="month-badge">Jan-Mar: @sm.JanMarEngagementRate%</span>
+                                        }
+                                        @if (sm.AprilJuneEngagementRate.HasValue)
+                                        {
+                                            <span class="month-badge">Apr-Jun: @sm.AprilJuneEngagementRate%</span>
+                                        }
+                                    </div>
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Goal Met (30% Increase):</strong> @(sm.GoalMet ? "Yes" : "No")
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Created Date:</strong> @sm.CreatedDate.ToString("MM/dd/yyyy")
+                                </div>
+                            </div>
+                            <div class="record-actions mt-3">
+                                <a asp-controller="DataEntry" asp-action="EditSocialMedia" asp-route-id="@sm.Id" class="btn btn-primary btn-sm">Edit</a>
+                                <form asp-controller="DataEntry" asp-action="DeleteSocialMedia" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                    <input type="hidden" name="id" value="@sm.Id" />
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="no-records">No Social Media Engagement records found.</p>
             }
         </div>
         }

@@ -33,6 +33,7 @@ namespace OneJaxDashboard.Controllers
             var allFeeForServices = _context.FeeForServices_21D.Include(f => f.Strategy).ToList();
             var allIncomeRecords = _context.income_27D.ToList();
             var allBudgetRecords = _context.BudgetTracking_28D.ToList();
+            var allSocialMedia = _context.socialMedia_5D.ToList();
             
             // Apply filters
             var filteredStaffSurveys = allStaffSurveys;
@@ -44,6 +45,7 @@ namespace OneJaxDashboard.Controllers
             var filteredFeeForServices = allFeeForServices;
             var filteredIncomeRecords = allIncomeRecords;
             var filteredBudgetRecords = allBudgetRecords;
+            var filteredSocialMedia = allSocialMedia;
             
             // Filter by date
             DateTime filterStartDate = DateTime.MinValue;
@@ -100,6 +102,9 @@ namespace OneJaxDashboard.Controllers
                     filteredBudgetRecords = filteredBudgetRecords
                         .Where(b => b.CreatedDate >= filterStartDate && b.CreatedDate <= filterEndDate)
                         .ToList();
+                    filteredSocialMedia = filteredSocialMedia
+                        .Where(s => s.CreatedDate >= filterStartDate && s.CreatedDate <= filterEndDate)
+                        .ToList();
                 }
             }
             
@@ -114,6 +119,7 @@ namespace OneJaxDashboard.Controllers
                 filteredFeeForServices = new List<feeForService_21D>();
                 filteredIncomeRecords = new List<income_27D>();
                 filteredBudgetRecords = new List<BudgetTracking_28D>();
+                filteredSocialMedia = new List<socialMedia_5D>();
             }
             else if (recordType == "professional-development")
             {
@@ -125,6 +131,7 @@ namespace OneJaxDashboard.Controllers
                 filteredFeeForServices = new List<feeForService_21D>();
                 filteredIncomeRecords = new List<income_27D>();
                 filteredBudgetRecords = new List<BudgetTracking_28D>();
+                filteredSocialMedia = new List<socialMedia_5D>();
             }
             else if (recordType == "media-placements")
             {
@@ -136,6 +143,7 @@ namespace OneJaxDashboard.Controllers
                 filteredFeeForServices = new List<feeForService_21D>();
                 filteredIncomeRecords = new List<income_27D>();
                 filteredBudgetRecords = new List<BudgetTracking_28D>();
+                filteredSocialMedia = new List<socialMedia_5D>();
             }
             else if (recordType == "website-traffic")
             {
@@ -147,6 +155,7 @@ namespace OneJaxDashboard.Controllers
                 filteredFeeForServices = new List<feeForService_21D>();
                 filteredIncomeRecords = new List<income_27D>();
                 filteredBudgetRecords = new List<BudgetTracking_28D>();
+                filteredSocialMedia = new List<socialMedia_5D>();
             }
             else if (recordType == "donor-events")
             {
@@ -158,6 +167,7 @@ namespace OneJaxDashboard.Controllers
                 filteredFeeForServices = new List<feeForService_21D>();
                 filteredIncomeRecords = new List<income_27D>();
                 filteredBudgetRecords = new List<BudgetTracking_28D>();
+                filteredSocialMedia = new List<socialMedia_5D>();
             }
             else if (recordType == "comm-rate")
             {
@@ -169,6 +179,7 @@ namespace OneJaxDashboard.Controllers
                 filteredFeeForServices = new List<feeForService_21D>();
                 filteredIncomeRecords = new List<income_27D>();
                 filteredBudgetRecords = new List<BudgetTracking_28D>();
+                filteredSocialMedia = new List<socialMedia_5D>();
             }
             else if (recordType == "fee-for-service")
             {
@@ -180,6 +191,7 @@ namespace OneJaxDashboard.Controllers
                 filteredCommRates = new List<Comm_rate20D>();
                 filteredIncomeRecords = new List<income_27D>();
                 filteredBudgetRecords = new List<BudgetTracking_28D>();
+                filteredSocialMedia = new List<socialMedia_5D>();
             }
             else if (recordType == "earned-income")
             {
@@ -191,6 +203,7 @@ namespace OneJaxDashboard.Controllers
                 filteredCommRates = new List<Comm_rate20D>();
                 filteredFeeForServices = new List<feeForService_21D>();
                 filteredBudgetRecords = new List<BudgetTracking_28D>();
+                filteredSocialMedia = new List<socialMedia_5D>();
             }
             else if (recordType == "budget-tracking")
             {
@@ -202,6 +215,19 @@ namespace OneJaxDashboard.Controllers
                 filteredCommRates = new List<Comm_rate20D>();
                 filteredFeeForServices = new List<feeForService_21D>();
                 filteredIncomeRecords = new List<income_27D>();
+                filteredSocialMedia = new List<socialMedia_5D>();
+            }
+            else if (recordType == "social-media")
+            {
+                filteredStaffSurveys = new List<StaffSurvey_22D>();
+                filteredProfDev = new List<ProfessionalDevelopment>();
+                filteredMediaPlacements = new List<MediaPlacements_3D>();
+                filteredWebsiteTraffic = new List<WebsiteTraffic_4D>();
+                filteredDonorEvents = new List<DonorEvent_19D>();
+                filteredCommRates = new List<Comm_rate20D>();
+                filteredFeeForServices = new List<feeForService_21D>();
+                filteredIncomeRecords = new List<income_27D>();
+                filteredBudgetRecords = new List<BudgetTracking_28D>();
             }
             
             // Set ViewBag data
@@ -214,12 +240,13 @@ namespace OneJaxDashboard.Controllers
             ViewBag.FeeForServices = filteredFeeForServices;
             ViewBag.IncomeRecords = filteredIncomeRecords;
             ViewBag.BudgetRecords = filteredBudgetRecords;
+            ViewBag.SocialMedia = filteredSocialMedia;
             ViewBag.RecordType = recordType ?? "all";
             ViewBag.DateFilter = dateFilter ?? "all";
             ViewBag.StartDate = startDate?.ToString("yyyy-MM-dd");
             ViewBag.EndDate = endDate?.ToString("yyyy-MM-dd");
-            ViewBag.TotalCount = allStaffSurveys.Count + allProfDev.Count + allMediaPlacements.Count + allWebsiteTraffic.Count + allDonorEvents.Count + allCommRates.Count + allFeeForServices.Count + allIncomeRecords.Count + allBudgetRecords.Count;
-            ViewBag.VisibleCount = filteredStaffSurveys.Count + filteredProfDev.Count + filteredMediaPlacements.Count + filteredWebsiteTraffic.Count + filteredDonorEvents.Count + filteredCommRates.Count + filteredFeeForServices.Count + filteredIncomeRecords.Count + filteredBudgetRecords.Count;
+            ViewBag.TotalCount = allStaffSurveys.Count + allProfDev.Count + allMediaPlacements.Count + allWebsiteTraffic.Count + allDonorEvents.Count + allCommRates.Count + allFeeForServices.Count + allIncomeRecords.Count + allBudgetRecords.Count + allSocialMedia.Count;
+            ViewBag.VisibleCount = filteredStaffSurveys.Count + filteredProfDev.Count + filteredMediaPlacements.Count + filteredWebsiteTraffic.Count + filteredDonorEvents.Count + filteredCommRates.Count + filteredFeeForServices.Count + filteredIncomeRecords.Count + filteredBudgetRecords.Count + filteredSocialMedia.Count;
             
             return View();
         }
@@ -280,6 +307,65 @@ namespace OneJaxDashboard.Controllers
                     existing.Notes = model.Notes;
                     _context.SaveChanges();
                     TempData["Success"] = "Annual Budget Tracking record updated successfully!";
+                    return RedirectToAction("RecordHistory");
+                }
+                else
+                {
+                    TempData["Error"] = "Record not found.";
+                    return RedirectToAction("RecordHistory");
+                }
+            }
+            return View(model);
+        }
+
+        // Delete Social Media Engagement
+        [HttpPost]
+        public IActionResult DeleteSocialMedia(int id)
+        {
+            var record = _context.socialMedia_5D.Find(id);
+            if (record != null)
+            {
+                _context.socialMedia_5D.Remove(record);
+                _context.SaveChanges();
+                TempData["Success"] = "Social Media Engagement record deleted successfully!";
+            }
+            else
+            {
+                TempData["Error"] = "Record not found.";
+            }
+            return RedirectToAction("RecordHistory");
+        }
+
+        // Edit Social Media Engagement - GET
+        [HttpGet]
+        public IActionResult EditSocialMedia(int id)
+        {
+            var record = _context.socialMedia_5D.Find(id);
+            if (record == null)
+            {
+                TempData["Error"] = "Record not found.";
+                return RedirectToAction("RecordHistory");
+            }
+            return View(record);
+        }
+
+        // Edit Social Media Engagement - POST
+        [HttpPost]
+        public IActionResult EditSocialMedia(socialMedia_5D model)
+        {
+            if (ModelState.IsValid)
+            {
+                var existing = _context.socialMedia_5D.Find(model.Id);
+                if (existing != null)
+                {
+                    existing.Year = model.Year;
+                    existing.JulySeptEngagementRate = model.JulySeptEngagementRate;
+                    existing.OctDecEngagementRate = model.OctDecEngagementRate;
+                    existing.JanMarEngagementRate = model.JanMarEngagementRate;
+                    existing.AprilJuneEngagementRate = model.AprilJuneEngagementRate;
+                    existing.GoalMet = model.GoalMet;
+                    _context.SaveChanges();
+                    TempData["Success"] = "Social Media Engagement record updated successfully!";
                     return RedirectToAction("RecordHistory");
                 }
                 else
