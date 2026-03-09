@@ -1,0 +1,69 @@
+@model OneJaxDashboard.Models.income_27D
+@{
+    ViewData["Title"] = "Edit Earned Income Record";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var currentYear = DateTime.Now.Year;
+    var monthNames = new[] { "January", "February", "March", "April", "May", "June",
+                             "July", "August", "September", "October", "November", "December" };
+    var monthOptions = new List<string>();
+    for (int year = currentYear - 1; year <= currentYear + 2; year++)
+    {
+        foreach (var m in monthNames)
+        {
+            monthOptions.Add($"{m} {year}");
+        }
+    }
+}
+
+<h1 class="headline mb-4" style="color:var(--onejax-navy);">Edit Earned Income Record</h1>
+
+<div class="container mt-4">
+    <div class="card p-4" style="background-color:var(--onejax-white); box-shadow:0 4px 24px rgba(0,0,0,0.08); border-radius:24px; max-width:800px;">
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger">@TempData["Error"]</div>
+        }
+
+        <form asp-controller="DataEntry" asp-action="EditIncomeRecord" method="post">
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="CreatedDate" />
+
+            <div class="mb-3">
+                <label asp-for="IncomeSource" class="form-label fw-bold">Income Source</label>
+                <input asp-for="IncomeSource" class="form-control" />
+                <span asp-validation-for="IncomeSource" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Amount" class="form-label fw-bold">Amount ($)</label>
+                <input asp-for="Amount" type="number" step="0.01" min="0.01" class="form-control" />
+                <span asp-validation-for="Amount" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Month" class="form-label fw-bold">Month</label>
+                <select asp-for="Month" class="form-select">
+                    <option value="">-- Select Month --</option>
+                    @foreach (var option in monthOptions)
+                    {
+                        <option value="@option" selected="@(Model.Month == option ? "selected" : null)">@option</option>
+                    }
+                </select>
+                <span asp-validation-for="Month" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Notes" class="form-label fw-bold">Notes <span class="text-muted fw-normal">(optional)</span></label>
+                <textarea asp-for="Notes" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="Notes" class="text-danger"></span>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <a asp-controller="DataEntry" asp-action="RecordHistory" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>

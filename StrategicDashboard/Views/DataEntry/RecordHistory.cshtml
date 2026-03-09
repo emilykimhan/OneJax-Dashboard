@@ -42,6 +42,8 @@
                             <option value="website-traffic" selected="@(ViewBag.RecordType == "website-traffic" ? "selected" : null)">Website Traffic Only</option>
                             <option value="donor-events" selected="@(ViewBag.RecordType == "donor-events" ? "selected" : null)">Donor/Honoree Engagement Only</option>
                             <option value="comm-rate" selected="@(ViewBag.RecordType == "comm-rate" ? "selected" : null)">Communication Satisfaction Only</option>
+                            <option value="fee-for-service" selected="@(ViewBag.RecordType == "fee-for-service" ? "selected" : null)">Fee-For-Service Revenue Only</option>
+                            <option value="earned-income" selected="@(ViewBag.RecordType == "earned-income" ? "selected" : null)">Earned Income Tracking Only</option>
                         </select>
                     </div>
                     <div class="col-md-6 mb-3">
@@ -433,6 +435,135 @@
             else
             {
                 <p class="no-records">No Communication Satisfaction records found.</p>
+            }
+        </div>
+        }
+
+        @if (ViewBag.RecordType == "all" || ViewBag.RecordType == "fee-for-service")
+        {
+        <!-- Fee-For-Service Revenue Records -->
+        <div class="record-section">
+            <h5 class="section-title">Fee-For-Service Revenue Records</h5>
+            @if (ViewBag.FeeForServices != null && ((List<OneJaxDashboard.Models.feeForService_21D>)ViewBag.FeeForServices).Any())
+            {
+                <div class="records-list">
+                    @foreach (var fee in (List<OneJaxDashboard.Models.feeForService_21D>)ViewBag.FeeForServices)
+                    {
+                        <div class="record-item">
+                            <div class="record-header">
+                                <span class="record-type">Fee-For-Service Revenue</span>
+                                <span class="record-id">ID: @fee.Id</span>
+                            </div>
+                            <div class="record-details">
+                                <div class="detail-item">
+                                    <strong>Client Name:</strong> @fee.ClientName
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Event:</strong> @(fee.Strategy?.Name ?? fee.EventName ?? "N/A")
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Workshop Format:</strong> @fee.WorkshopFormat
+                                </div>
+                                @if (!string.IsNullOrEmpty(fee.WorkshopLocation))
+                                {
+                                <div class="detail-item">
+                                    <strong>Location:</strong> @fee.WorkshopLocation
+                                </div>
+                                }
+                                <div class="detail-item">
+                                    <strong>Workshop Date:</strong> @fee.WorkshopDate.ToString("MM/dd/yyyy")
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Number of Attendees:</strong> @fee.NumberOfAttendees
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Participant Satisfaction:</strong> @fee.ParticipantSatisfactionRating%
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Partner Satisfaction:</strong> @fee.PartnerSatisfactionRating%
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Revenue Received:</strong> @fee.RevenueReceived.ToString("C")
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Expense:</strong> @fee.ExpenseReceived.ToString("C")
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Year:</strong> @fee.Year
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Created Date:</strong> @fee.CreatedDate.ToString("MM/dd/yyyy")
+                                </div>
+                            </div>
+                            <div class="record-actions mt-3">
+                                <a asp-controller="DataEntry" asp-action="EditFeeForService" asp-route-id="@fee.Id" class="btn btn-primary btn-sm">Edit</a>
+                                <form asp-controller="DataEntry" asp-action="DeleteFeeForService" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                    <input type="hidden" name="id" value="@fee.Id" />
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="no-records">No Fee-For-Service Revenue records found.</p>
+            }
+        </div>
+        }
+
+        @if (ViewBag.RecordType == "all" || ViewBag.RecordType == "earned-income")
+        {
+        <!-- Earned Income Tracking Records -->
+        <div class="record-section">
+            <h5 class="section-title">Earned Income Tracking Records</h5>
+            @if (ViewBag.IncomeRecords != null && ((List<OneJaxDashboard.Models.income_27D>)ViewBag.IncomeRecords).Any())
+            {
+                <div class="records-list">
+                    @foreach (var income in (List<OneJaxDashboard.Models.income_27D>)ViewBag.IncomeRecords)
+                    {
+                        <div class="record-item">
+                            <div class="record-header">
+                                <span class="record-type">Earned Income Tracking</span>
+                                <span class="record-id">ID: @income.Id</span>
+                            </div>
+                            <div class="record-details">
+                                <div class="detail-item">
+                                    <strong>Income Source:</strong> @income.IncomeSource
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Amount:</strong> @income.Amount.ToString("C")
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Month:</strong> @income.Month
+                                </div>
+                                @if (!string.IsNullOrEmpty(income.Notes))
+                                {
+                                <div class="detail-item">
+                                    <strong>Notes:</strong> @income.Notes
+                                </div>
+                                }
+                                <div class="detail-item">
+                                    <strong>Created Date:</strong> @income.CreatedDate.ToString("MM/dd/yyyy")
+                                </div>
+                            </div>
+                            <div class="record-actions mt-3">
+                                <a asp-controller="DataEntry" asp-action="EditIncomeRecord" asp-route-id="@income.Id" class="btn btn-primary btn-sm">Edit</a>
+                                <form asp-controller="DataEntry" asp-action="DeleteIncomeRecord" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                    <input type="hidden" name="id" value="@income.Id" />
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="no-records">No Earned Income Tracking records found.</p>
             }
         </div>
         }

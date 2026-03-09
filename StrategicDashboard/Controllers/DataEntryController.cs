@@ -30,6 +30,8 @@ namespace OneJaxDashboard.Controllers
             var allWebsiteTraffic = _context.WebsiteTraffic.ToList();
             var allDonorEvents = _context.DonorEvents_19D.Include(d => d.Strategy).ToList();
             var allCommRates = _context.CommunicationRate.ToList();
+            var allFeeForServices = _context.FeeForServices_21D.Include(f => f.Strategy).ToList();
+            var allIncomeRecords = _context.income_27D.ToList();
             
             // Apply filters
             var filteredStaffSurveys = allStaffSurveys;
@@ -38,6 +40,8 @@ namespace OneJaxDashboard.Controllers
             var filteredWebsiteTraffic = allWebsiteTraffic;
             var filteredDonorEvents = allDonorEvents;
             var filteredCommRates = allCommRates;
+            var filteredFeeForServices = allFeeForServices;
+            var filteredIncomeRecords = allIncomeRecords;
             
             // Filter by date
             DateTime filterStartDate = DateTime.MinValue;
@@ -85,6 +89,12 @@ namespace OneJaxDashboard.Controllers
                     filteredCommRates = filteredCommRates
                         .Where(c => c.CreatedDate >= filterStartDate && c.CreatedDate <= filterEndDate)
                         .ToList();
+                    filteredFeeForServices = filteredFeeForServices
+                        .Where(f => f.CreatedDate >= filterStartDate && f.CreatedDate <= filterEndDate)
+                        .ToList();
+                    filteredIncomeRecords = filteredIncomeRecords
+                        .Where(i => i.CreatedDate >= filterStartDate && i.CreatedDate <= filterEndDate)
+                        .ToList();
                 }
             }
             
@@ -96,6 +106,8 @@ namespace OneJaxDashboard.Controllers
                 filteredWebsiteTraffic = new List<WebsiteTraffic_4D>();
                 filteredDonorEvents = new List<DonorEvent_19D>();
                 filteredCommRates = new List<Comm_rate20D>();
+                filteredFeeForServices = new List<feeForService_21D>();
+                filteredIncomeRecords = new List<income_27D>();
             }
             else if (recordType == "professional-development")
             {
@@ -104,6 +116,8 @@ namespace OneJaxDashboard.Controllers
                 filteredWebsiteTraffic = new List<WebsiteTraffic_4D>();
                 filteredDonorEvents = new List<DonorEvent_19D>();
                 filteredCommRates = new List<Comm_rate20D>();
+                filteredFeeForServices = new List<feeForService_21D>();
+                filteredIncomeRecords = new List<income_27D>();
             }
             else if (recordType == "media-placements")
             {
@@ -112,6 +126,8 @@ namespace OneJaxDashboard.Controllers
                 filteredWebsiteTraffic = new List<WebsiteTraffic_4D>();
                 filteredDonorEvents = new List<DonorEvent_19D>();
                 filteredCommRates = new List<Comm_rate20D>();
+                filteredFeeForServices = new List<feeForService_21D>();
+                filteredIncomeRecords = new List<income_27D>();
             }
             else if (recordType == "website-traffic")
             {
@@ -120,6 +136,8 @@ namespace OneJaxDashboard.Controllers
                 filteredMediaPlacements = new List<MediaPlacements_3D>();
                 filteredDonorEvents = new List<DonorEvent_19D>();
                 filteredCommRates = new List<Comm_rate20D>();
+                filteredFeeForServices = new List<feeForService_21D>();
+                filteredIncomeRecords = new List<income_27D>();
             }
             else if (recordType == "donor-events")
             {
@@ -128,6 +146,8 @@ namespace OneJaxDashboard.Controllers
                 filteredMediaPlacements = new List<MediaPlacements_3D>();
                 filteredWebsiteTraffic = new List<WebsiteTraffic_4D>();
                 filteredCommRates = new List<Comm_rate20D>();
+                filteredFeeForServices = new List<feeForService_21D>();
+                filteredIncomeRecords = new List<income_27D>();
             }
             else if (recordType == "comm-rate")
             {
@@ -136,6 +156,28 @@ namespace OneJaxDashboard.Controllers
                 filteredMediaPlacements = new List<MediaPlacements_3D>();
                 filteredWebsiteTraffic = new List<WebsiteTraffic_4D>();
                 filteredDonorEvents = new List<DonorEvent_19D>();
+                filteredFeeForServices = new List<feeForService_21D>();
+                filteredIncomeRecords = new List<income_27D>();
+            }
+            else if (recordType == "fee-for-service")
+            {
+                filteredStaffSurveys = new List<StaffSurvey_22D>();
+                filteredProfDev = new List<ProfessionalDevelopment>();
+                filteredMediaPlacements = new List<MediaPlacements_3D>();
+                filteredWebsiteTraffic = new List<WebsiteTraffic_4D>();
+                filteredDonorEvents = new List<DonorEvent_19D>();
+                filteredCommRates = new List<Comm_rate20D>();
+                filteredIncomeRecords = new List<income_27D>();
+            }
+            else if (recordType == "earned-income")
+            {
+                filteredStaffSurveys = new List<StaffSurvey_22D>();
+                filteredProfDev = new List<ProfessionalDevelopment>();
+                filteredMediaPlacements = new List<MediaPlacements_3D>();
+                filteredWebsiteTraffic = new List<WebsiteTraffic_4D>();
+                filteredDonorEvents = new List<DonorEvent_19D>();
+                filteredCommRates = new List<Comm_rate20D>();
+                filteredFeeForServices = new List<feeForService_21D>();
             }
             
             // Set ViewBag data
@@ -145,12 +187,14 @@ namespace OneJaxDashboard.Controllers
             ViewBag.WebsiteTraffic = filteredWebsiteTraffic;
             ViewBag.DonorEvents = filteredDonorEvents;
             ViewBag.CommRates = filteredCommRates;
+            ViewBag.FeeForServices = filteredFeeForServices;
+            ViewBag.IncomeRecords = filteredIncomeRecords;
             ViewBag.RecordType = recordType ?? "all";
             ViewBag.DateFilter = dateFilter ?? "all";
             ViewBag.StartDate = startDate?.ToString("yyyy-MM-dd");
             ViewBag.EndDate = endDate?.ToString("yyyy-MM-dd");
-            ViewBag.TotalCount = allStaffSurveys.Count + allProfDev.Count + allMediaPlacements.Count + allWebsiteTraffic.Count + allDonorEvents.Count + allCommRates.Count;
-            ViewBag.VisibleCount = filteredStaffSurveys.Count + filteredProfDev.Count + filteredMediaPlacements.Count + filteredWebsiteTraffic.Count + filteredDonorEvents.Count + filteredCommRates.Count;
+            ViewBag.TotalCount = allStaffSurveys.Count + allProfDev.Count + allMediaPlacements.Count + allWebsiteTraffic.Count + allDonorEvents.Count + allCommRates.Count + allFeeForServices.Count + allIncomeRecords.Count;
+            ViewBag.VisibleCount = filteredStaffSurveys.Count + filteredProfDev.Count + filteredMediaPlacements.Count + filteredWebsiteTraffic.Count + filteredDonorEvents.Count + filteredCommRates.Count + filteredFeeForServices.Count + filteredIncomeRecords.Count;
             
             return View();
         }
@@ -207,6 +251,136 @@ namespace OneJaxDashboard.Controllers
                 TempData["Error"] = "Record not found.";
             }
             return RedirectToAction("RecordHistory");
+        }
+
+        // Delete Fee-For-Service Revenue
+        [HttpPost]
+        public IActionResult DeleteFeeForService(int id)
+        {
+            var record = _context.FeeForServices_21D.Find(id);
+            if (record != null)
+            {
+                _context.FeeForServices_21D.Remove(record);
+                _context.SaveChanges();
+                TempData["Success"] = "Fee-For-Service Revenue record deleted successfully!";
+            }
+            else
+            {
+                TempData["Error"] = "Record not found.";
+            }
+            return RedirectToAction("RecordHistory");
+        }
+
+        // Edit Fee-For-Service Revenue - GET
+        [HttpGet]
+        public IActionResult EditFeeForService(int id)
+        {
+            var record = _context.FeeForServices_21D.Find(id);
+            if (record == null)
+            {
+                TempData["Error"] = "Record not found.";
+                return RedirectToAction("RecordHistory");
+            }
+            ViewBag.Strategies = _context.Strategies
+                .Select(s => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem { Value = s.Id.ToString(), Text = s.Name })
+                .ToList();
+            return View(record);
+        }
+
+        // Edit Fee-For-Service Revenue - POST
+        [HttpPost]
+        public IActionResult EditFeeForService(feeForService_21D model)
+        {
+            if (ModelState.IsValid)
+            {
+                var existing = _context.FeeForServices_21D.Find(model.Id);
+                if (existing != null)
+                {
+                    var strategy = _context.Strategies.Find(model.StrategyId);
+                    existing.ClientName = model.ClientName;
+                    existing.StrategyId = model.StrategyId;
+                    existing.EventName = strategy?.Name;
+                    existing.WorkshopFormat = model.WorkshopFormat;
+                    existing.WorkshopLocation = model.WorkshopLocation;
+                    existing.WorkshopDate = model.WorkshopDate;
+                    existing.EventPartners = model.EventPartners;
+                    existing.NumberOfAttendees = model.NumberOfAttendees;
+                    existing.ParticipantSatisfactionRating = model.ParticipantSatisfactionRating;
+                    existing.PartnerSatisfactionRating = model.PartnerSatisfactionRating;
+                    existing.RevenueReceived = model.RevenueReceived;
+                    existing.ExpenseReceived = model.ExpenseReceived;
+                    existing.Year = model.Year;
+                    _context.SaveChanges();
+                    TempData["Success"] = "Fee-For-Service Revenue record updated successfully!";
+                    return RedirectToAction("RecordHistory");
+                }
+                else
+                {
+                    TempData["Error"] = "Record not found.";
+                    return RedirectToAction("RecordHistory");
+                }
+            }
+            ViewBag.Strategies = _context.Strategies
+                .Select(s => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem { Value = s.Id.ToString(), Text = s.Name })
+                .ToList();
+            return View(model);
+        }
+
+        // Delete Earned Income
+        [HttpPost]
+        public IActionResult DeleteIncomeRecord(int id)
+        {
+            var record = _context.income_27D.Find(id);
+            if (record != null)
+            {
+                _context.income_27D.Remove(record);
+                _context.SaveChanges();
+                TempData["Success"] = "Earned Income record deleted successfully!";
+            }
+            else
+            {
+                TempData["Error"] = "Record not found.";
+            }
+            return RedirectToAction("RecordHistory");
+        }
+
+        // Edit Earned Income - GET
+        [HttpGet]
+        public IActionResult EditIncomeRecord(int id)
+        {
+            var record = _context.income_27D.Find(id);
+            if (record == null)
+            {
+                TempData["Error"] = "Record not found.";
+                return RedirectToAction("RecordHistory");
+            }
+            return View(record);
+        }
+
+        // Edit Earned Income - POST
+        [HttpPost]
+        public IActionResult EditIncomeRecord(income_27D model)
+        {
+            if (ModelState.IsValid)
+            {
+                var existing = _context.income_27D.Find(model.Id);
+                if (existing != null)
+                {
+                    existing.IncomeSource = model.IncomeSource;
+                    existing.Amount = model.Amount;
+                    existing.Month = model.Month;
+                    existing.Notes = model.Notes;
+                    _context.SaveChanges();
+                    TempData["Success"] = "Earned Income record updated successfully!";
+                    return RedirectToAction("RecordHistory");
+                }
+                else
+                {
+                    TempData["Error"] = "Record not found.";
+                    return RedirectToAction("RecordHistory");
+                }
+            }
+            return View(model);
         }
 
         // Delete Communication Satisfaction
