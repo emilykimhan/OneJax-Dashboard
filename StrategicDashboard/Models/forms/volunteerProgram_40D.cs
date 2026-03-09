@@ -19,8 +19,6 @@ namespace OneJaxDashboard.Models
         [Range(0, 10000, ErrorMessage = "Number of volunteers must be between 0 and 10,000.")]
         public int NumberOfVolunteers { get; set; }
 
-        public bool ProgramEstablished { get; set; } = false;
-
         [StringLength(2000)]
         public string CommunicationsActivities { get; set; } = string.Empty;
 

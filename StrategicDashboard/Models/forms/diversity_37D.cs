@@ -4,7 +4,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace OneJaxDashboard.Models
 {
     // Tracks: Increase participant diversity by 10% compared to FY 26-27
-    //         and maintain satisfaction ratings of 85%+
     public class Diversity_37D
     {
         [Key]
@@ -28,15 +27,6 @@ namespace OneJaxDashboard.Models
         [Display(Name = "Number of Diverse Participants")]
         public int DiversityCount { get; set; }
 
-        // Satisfaction rate: target 85%+
-        [Required(ErrorMessage = "Please enter the satisfaction rate.")]
-        [Range(0, 100, ErrorMessage = "Satisfaction rate must be between 0 and 100.")]
-        [Display(Name = "Satisfaction Rate (%)")]
-        public decimal SatisfactionRate { get; set; }
-
         public DateTime CreatedDate { get; set; } = DateTime.Now;
-
-        // Helper: whether satisfaction target is met
-        public bool SatisfactionGoalMet => SatisfactionRate >= 85;
     }
 }
