@@ -1,0 +1,118 @@
+@model OneJaxDashboard.Models.Plan2026_24D
+
+@{
+    ViewData["Title"] = "Edit Framework Development Plan";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1 class="headline mb-4" style="color:var(--onejax-navy);">Edit Framework Development Plan</h1>
+
+<div class="container mt-4">
+    <div class="card p-4"
+        style="background-color:var(--onejax-white);
+               box-shadow:0 4px 24px rgba(0,0,0,0.08);
+               border-radius:24px;
+               max-width:900px;">
+
+        <form asp-action="EditFrameworkPlan" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="CreatedDate" />
+
+            <p class="mb-4">Update the framework development plan details below.</p>
+
+            <div class="mb-3">
+                <label asp-for="Name" class="form-label fw-bold">Name</label>
+                <input asp-for="Name" type="text" class="form-control" placeholder="e.g. Strategic Framework 2026" required />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Year" class="form-label fw-bold">Year</label>
+                <input asp-for="Year" type="number" class="form-control" min="2020" max="2100" placeholder="e.g. 2026" required />
+                <span asp-validation-for="Year" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Quarter" class="form-label fw-bold">Quarter</label>
+                <select asp-for="Quarter" class="form-select" required>
+                    <option value="">-- Select Quarter --</option>
+                    <option value="Q1">Q1</option>
+                    <option value="Q2">Q2</option>
+                    <option value="Q3">Q3</option>
+                    <option value="Q4">Q4</option>
+                </select>
+                <span asp-validation-for="Quarter" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="FrameworkStatus" class="form-label fw-bold">Framework Status</label>
+                <input asp-for="FrameworkStatus" type="text" class="form-control" placeholder="e.g. In Progress, Completed" required />
+                <span asp-validation-for="FrameworkStatus" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <div class="form-check">
+                    <input asp-for="GoalMet" class="form-check-input" type="checkbox" />
+                    <label asp-for="GoalMet" class="form-check-label fw-bold">Goal Met</label>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="IssueName" class="form-label fw-bold">Issue Name (optional)</label>
+                <input asp-for="IssueName" type="text" class="form-control" placeholder="e.g. Budget Shortfall" />
+                <span asp-validation-for="IssueName" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="CrisisDescription" class="form-label fw-bold">Crisis Description (optional)</label>
+                <textarea asp-for="CrisisDescription" class="form-control" rows="3" placeholder="Describe any crisis or issue encountered..."></textarea>
+                <span asp-validation-for="CrisisDescription" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <div class="form-check">
+                    <input asp-for="IssueHandled" class="form-check-input" type="checkbox" />
+                    <label asp-for="IssueHandled" class="form-check-label fw-bold">Issue Handled</label>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Notes" class="form-label fw-bold">Notes (optional)</label>
+                <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Any additional notes..."></textarea>
+                <span asp-validation-for="Notes" class="text-danger"></span>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <a asp-action="RecordHistory" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+
+<style>
+    .form-label {
+        color: var(--onejax-navy);
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: var(--onejax-navy);
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 191, 0.25);
+    }
+
+    .btn-primary {
+        background-color: var(--onejax-navy);
+        border-color: var(--onejax-navy);
+    }
+
+    .btn-primary:hover {
+        background-color: #1a365d;
+        border-color: #1a365d;
+    }
+</style>
