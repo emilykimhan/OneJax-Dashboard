@@ -70,8 +70,6 @@ namespace OneJaxDashboard.Controllers
 
             if (allEntries.Any())
             {
-                ViewBag.AvgSatisfactionRate = Math.Round(allEntries.Average(d => (double)d.SatisfactionRate), 1);
-                ViewBag.EventsMeetingSatisfactionGoal = allEntries.Count(d => d.SatisfactionGoalMet);
                 ViewBag.LatestDiversityCount = allEntries.First().DiversityCount;
                 ViewBag.LatestFiscalYear = allEntries.First().FiscalYear;
 

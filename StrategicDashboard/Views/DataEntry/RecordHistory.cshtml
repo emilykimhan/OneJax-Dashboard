@@ -40,6 +40,16 @@
                             <option value="professional-development" selected="@(ViewBag.RecordType == "professional-development" ? "selected" : null)">Professional Development Only</option>
                             <option value="media-placements" selected="@(ViewBag.RecordType == "media-placements" ? "selected" : null)">Media Placements Only</option>
                             <option value="website-traffic" selected="@(ViewBag.RecordType == "website-traffic" ? "selected" : null)">Website Traffic Only</option>
+                            <option value="donor-events" selected="@(ViewBag.RecordType == "donor-events" ? "selected" : null)">Donor/Honoree Engagement Only</option>
+                            <option value="comm-rate" selected="@(ViewBag.RecordType == "comm-rate" ? "selected" : null)">Communication Satisfaction Only</option>
+                            <option value="fee-for-service" selected="@(ViewBag.RecordType == "fee-for-service" ? "selected" : null)">Fee-For-Service Revenue Only</option>
+                            <option value="earned-income" selected="@(ViewBag.RecordType == "earned-income" ? "selected" : null)">Earned Income Tracking Only</option>
+                            <option value="budget-tracking" selected="@(ViewBag.RecordType == "budget-tracking" ? "selected" : null)">Annual Budget Tracking Only</option>
+                            <option value="social-media" selected="@(ViewBag.RecordType == "social-media" ? "selected" : null)">Social Media Engagement Only</option>
+                            <option value="milestone" selected="@(ViewBag.RecordType == "milestone" ? "selected" : null)">Milestone Achievement Only</option>
+                            <option value="community-perception" selected="@(ViewBag.RecordType == "community-perception" ? "selected" : null)">Community Perception Survey Only</option>
+                            <option value="programs-demographics" selected="@(ViewBag.RecordType == "programs-demographics" ? "selected" : null)">Programs Demographics Only</option>
+                            <option value="framework-plan" selected="@(ViewBag.RecordType == "framework-plan" ? "selected" : null)">Framework Development Plan Only</option>
                         </select>
                     </div>
                     <div class="col-md-6 mb-3">
@@ -79,6 +89,8 @@
     
    
         
+        @if (ViewBag.RecordType == "all" || ViewBag.RecordType == "staff-survey")
+        {
         <!-- Staff Survey Records -->
         <div class="record-section">
             <h5 class="section-title">Staff Survey Records</h5>
@@ -123,7 +135,10 @@
                 <p class="no-records">No Staff Survey records found.</p>
             }
         </div>
+        }
 
+        @if (ViewBag.RecordType == "all" || ViewBag.RecordType == "professional-development")
+        {
         <!-- Professional Development Records -->
         <div class="record-section">
             <h5 class="section-title">Professional Development Records</h5>
@@ -171,7 +186,10 @@
                 <p class="no-records">No Professional Development records found.</p>
             }
         </div>
+        }
 
+        @if (ViewBag.RecordType == "all" || ViewBag.RecordType == "media-placements")
+        {
         <!-- Media Placements Records -->
         <div class="record-section">
             <h5 class="section-title">Media Placements Records</h5>
@@ -266,7 +284,10 @@
                 <p class="no-records">No Media Placements records found.</p>
             }
         </div>
+        }
 
+        @if (ViewBag.RecordType == "all" || ViewBag.RecordType == "website-traffic")
+        {
         <!-- Website Traffic Records -->
         <div class="record-section">
             <h5 class="section-title">Website Traffic Records</h5>
@@ -329,6 +350,598 @@
                 <p class="no-records">No Website Traffic records found.</p>
             }
         </div>
+        }
+
+        @if (ViewBag.RecordType == "all" || ViewBag.RecordType == "donor-events")
+        {
+        <!-- Donor/Honoree Engagement Records -->
+        <div class="record-section">
+            <h5 class="section-title">Donor/Honoree Engagement Records</h5>
+            @if (ViewBag.DonorEvents != null && ((List<OneJaxDashboard.Models.DonorEvent_19D>)ViewBag.DonorEvents).Any())
+            {
+                <div class="records-list">
+                    @foreach (var donor in (List<OneJaxDashboard.Models.DonorEvent_19D>)ViewBag.DonorEvents)
+                    {
+                        <div class="record-item">
+                            <div class="record-header">
+                                <span class="record-type">Donor/Honoree Engagement</span>
+                                <span class="record-id">ID: @donor.Id</span>
+                            </div>
+                            <div class="record-details">
+                                <div class="detail-item">
+                                    <strong>Created Date:</strong> @donor.CreatedDate.ToString("MM/dd/yyyy")
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Event:</strong> @(donor.Strategy?.Name ?? "N/A")
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Number of Participants:</strong> @donor.NumberOfParticipants
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Event Satisfaction Rating:</strong> @donor.EventSatisfactionRating%
+                                </div>
+                            </div>
+                            <div class="record-actions mt-3">
+                                <a asp-controller="DataEntry" asp-action="EditDonorEvent" asp-route-id="@donor.Id" class="btn btn-primary btn-sm">Edit</a>
+                                <form asp-controller="DataEntry" asp-action="DeleteDonorEvent" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                    <input type="hidden" name="id" value="@donor.Id" />
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="no-records">No Donor/Honoree Engagement records found.</p>
+            }
+        </div>
+        }
+
+        @if (ViewBag.RecordType == "all" || ViewBag.RecordType == "comm-rate")
+        {
+        <!-- Communication Satisfaction Records -->
+        <div class="record-section">
+            <h5 class="section-title">Communication Satisfaction Records</h5>
+            @if (ViewBag.CommRates != null && ((List<OneJaxDashboard.Models.Comm_rate20D>)ViewBag.CommRates).Any())
+            {
+                <div class="records-list">
+                    @foreach (var rate in (List<OneJaxDashboard.Models.Comm_rate20D>)ViewBag.CommRates)
+                    {
+                        <div class="record-item">
+                            <div class="record-header">
+                                <span class="record-type">Communication Satisfaction</span>
+                                <span class="record-id">ID: @rate.Id</span>
+                            </div>
+                            <div class="record-details">
+                                <div class="detail-item">
+                                    <strong>Year:</strong> @rate.Year
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Average Communication Satisfaction:</strong> @rate.AverageCommunicationSatisfaction%
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Created Date:</strong> @rate.CreatedDate.ToString("MM/dd/yyyy")
+                                </div>
+                            </div>
+                            <div class="record-actions mt-3">
+                                <a asp-controller="DataEntry" asp-action="EditCommRate" asp-route-id="@rate.Id" class="btn btn-primary btn-sm">Edit</a>
+                                <form asp-controller="DataEntry" asp-action="DeleteCommRate" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                    <input type="hidden" name="id" value="@rate.Id" />
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="no-records">No Communication Satisfaction records found.</p>
+            }
+        </div>
+        }
+
+        @if (ViewBag.RecordType == "all" || ViewBag.RecordType == "fee-for-service")
+        {
+        <!-- Fee-For-Service Revenue Records -->
+        <div class="record-section">
+            <h5 class="section-title">Fee-For-Service Revenue Records</h5>
+            @if (ViewBag.FeeForServices != null && ((List<OneJaxDashboard.Models.feeForService_21D>)ViewBag.FeeForServices).Any())
+            {
+                <div class="records-list">
+                    @foreach (var fee in (List<OneJaxDashboard.Models.feeForService_21D>)ViewBag.FeeForServices)
+                    {
+                        <div class="record-item">
+                            <div class="record-header">
+                                <span class="record-type">Fee-For-Service Revenue</span>
+                                <span class="record-id">ID: @fee.Id</span>
+                            </div>
+                            <div class="record-details">
+                                <div class="detail-item">
+                                    <strong>Client Name:</strong> @fee.ClientName
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Event:</strong> @(fee.Strategy?.Name ?? fee.EventName ?? "N/A")
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Workshop Format:</strong> @fee.WorkshopFormat
+                                </div>
+                                @if (!string.IsNullOrEmpty(fee.WorkshopLocation))
+                                {
+                                <div class="detail-item">
+                                    <strong>Location:</strong> @fee.WorkshopLocation
+                                </div>
+                                }
+                                <div class="detail-item">
+                                    <strong>Workshop Date:</strong> @fee.WorkshopDate.ToString("MM/dd/yyyy")
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Number of Attendees:</strong> @fee.NumberOfAttendees
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Participant Satisfaction:</strong> @fee.ParticipantSatisfactionRating%
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Partner Satisfaction:</strong> @fee.PartnerSatisfactionRating%
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Revenue Received:</strong> @fee.RevenueReceived.ToString("C")
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Expense:</strong> @fee.ExpenseReceived.ToString("C")
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Year:</strong> @fee.Year
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Created Date:</strong> @fee.CreatedDate.ToString("MM/dd/yyyy")
+                                </div>
+                            </div>
+                            <div class="record-actions mt-3">
+                                <a asp-controller="DataEntry" asp-action="EditFeeForService" asp-route-id="@fee.Id" class="btn btn-primary btn-sm">Edit</a>
+                                <form asp-controller="DataEntry" asp-action="DeleteFeeForService" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                    <input type="hidden" name="id" value="@fee.Id" />
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="no-records">No Fee-For-Service Revenue records found.</p>
+            }
+        </div>
+        }
+
+        @if (ViewBag.RecordType == "all" || ViewBag.RecordType == "earned-income")
+        {
+        <!-- Earned Income Tracking Records -->
+        <div class="record-section">
+            <h5 class="section-title">Earned Income Tracking Records</h5>
+            @if (ViewBag.IncomeRecords != null && ((List<OneJaxDashboard.Models.income_27D>)ViewBag.IncomeRecords).Any())
+            {
+                <div class="records-list">
+                    @foreach (var income in (List<OneJaxDashboard.Models.income_27D>)ViewBag.IncomeRecords)
+                    {
+                        <div class="record-item">
+                            <div class="record-header">
+                                <span class="record-type">Earned Income Tracking</span>
+                                <span class="record-id">ID: @income.Id</span>
+                            </div>
+                            <div class="record-details">
+                                <div class="detail-item">
+                                    <strong>Income Source:</strong> @income.IncomeSource
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Amount:</strong> @income.Amount.ToString("C")
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Month:</strong> @income.Month
+                                </div>
+                                @if (!string.IsNullOrEmpty(income.Notes))
+                                {
+                                <div class="detail-item">
+                                    <strong>Notes:</strong> @income.Notes
+                                </div>
+                                }
+                                <div class="detail-item">
+                                    <strong>Created Date:</strong> @income.CreatedDate.ToString("MM/dd/yyyy")
+                                </div>
+                            </div>
+                            <div class="record-actions mt-3">
+                                <a asp-controller="DataEntry" asp-action="EditIncomeRecord" asp-route-id="@income.Id" class="btn btn-primary btn-sm">Edit</a>
+                                <form asp-controller="DataEntry" asp-action="DeleteIncomeRecord" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                    <input type="hidden" name="id" value="@income.Id" />
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="no-records">No Earned Income Tracking records found.</p>
+            }
+        </div>
+        }
+
+        @if (ViewBag.RecordType == "all" || ViewBag.RecordType == "budget-tracking")
+        {
+        <!-- Annual Budget Tracking Records -->
+        <div class="record-section">
+            <h5 class="section-title">Annual Budget Tracking Records</h5>
+            @if (ViewBag.BudgetRecords != null && ((List<OneJaxDashboard.Models.BudgetTracking_28D>)ViewBag.BudgetRecords).Any())
+            {
+                <div class="records-list">
+                    @foreach (var budget in (List<OneJaxDashboard.Models.BudgetTracking_28D>)ViewBag.BudgetRecords)
+                    {
+                        <div class="record-item">
+                            <div class="record-header">
+                                <span class="record-type">Annual Budget Tracking</span>
+                                <span class="record-id">ID: @budget.Id</span>
+                            </div>
+                            <div class="record-details">
+                                <div class="detail-item">
+                                    <strong>Quarter:</strong> @budget.Quarter &mdash; <strong>Year:</strong> @budget.Year
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Total Revenues:</strong> @budget.TotalRevenues.ToString("C")
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Total Expenses:</strong> @budget.TotalExpenses.ToString("C")
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Net (Revenue - Expense):</strong> @budget.NetAmount.ToString("C")
+                                </div>
+                                @if (!string.IsNullOrEmpty(budget.Notes))
+                                {
+                                <div class="detail-item">
+                                    <strong>Notes:</strong> @budget.Notes
+                                </div>
+                                }
+                                <div class="detail-item">
+                                    <strong>Created Date:</strong> @budget.CreatedDate.ToString("MM/dd/yyyy")
+                                </div>
+                            </div>
+                            <div class="record-actions mt-3">
+                                <a asp-controller="DataEntry" asp-action="EditBudgetRecord" asp-route-id="@budget.Id" class="btn btn-primary btn-sm">Edit</a>
+                                <form asp-controller="DataEntry" asp-action="DeleteBudgetRecord" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                    <input type="hidden" name="id" value="@budget.Id" />
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="no-records">No Annual Budget Tracking records found.</p>
+            }
+        </div>
+        }
+
+        @if (ViewBag.RecordType == "all" || ViewBag.RecordType == "social-media")
+        {
+        <!-- Social Media Engagement Records -->
+        <div class="record-section">
+            <h5 class="section-title">Social Media Engagement Records</h5>
+            @if (ViewBag.SocialMedia != null && ((List<OneJaxDashboard.Models.socialMedia_5D>)ViewBag.SocialMedia).Any())
+            {
+                <div class="records-list">
+                    @foreach (var sm in (List<OneJaxDashboard.Models.socialMedia_5D>)ViewBag.SocialMedia)
+                    {
+                        <div class="record-item">
+                            <div class="record-header">
+                                <span class="record-type">Social Media Engagement</span>
+                                <span class="record-id">ID: @sm.Id</span>
+                            </div>
+                            <div class="record-details">
+                                <div class="detail-item">
+                                    <strong>Year:</strong> @sm.Year
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Average Engagement Rate:</strong> @sm.AverageEngagementRate.ToString("F2")%
+                                </div>
+                                <div class="monthly-breakdown">
+                                    <strong>Quarterly Breakdown:</strong>
+                                    <div class="months-grid">
+                                        @if (sm.JulySeptEngagementRate.HasValue)
+                                        {
+                                            <span class="month-badge">Jul-Sep: @sm.JulySeptEngagementRate%</span>
+                                        }
+                                        @if (sm.OctDecEngagementRate.HasValue)
+                                        {
+                                            <span class="month-badge">Oct-Dec: @sm.OctDecEngagementRate%</span>
+                                        }
+                                        @if (sm.JanMarEngagementRate.HasValue)
+                                        {
+                                            <span class="month-badge">Jan-Mar: @sm.JanMarEngagementRate%</span>
+                                        }
+                                        @if (sm.AprilJuneEngagementRate.HasValue)
+                                        {
+                                            <span class="month-badge">Apr-Jun: @sm.AprilJuneEngagementRate%</span>
+                                        }
+                                    </div>
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Goal Met (30% Increase):</strong> @(sm.GoalMet ? "Yes" : "No")
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Created Date:</strong> @sm.CreatedDate.ToString("MM/dd/yyyy")
+                                </div>
+                            </div>
+                            <div class="record-actions mt-3">
+                                <a asp-controller="DataEntry" asp-action="EditSocialMedia" asp-route-id="@sm.Id" class="btn btn-primary btn-sm">Edit</a>
+                                <form asp-controller="DataEntry" asp-action="DeleteSocialMedia" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                    <input type="hidden" name="id" value="@sm.Id" />
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="no-records">No Social Media Engagement records found.</p>
+            }
+        </div>
+        }
+
+        @if (ViewBag.RecordType == "all" || ViewBag.RecordType == "milestone")
+        {
+        <!-- Milestone Achievement Records -->
+        <div class="record-section">
+            <h5 class="section-title">Milestone Achievement Records</h5>
+            @if (ViewBag.Milestones != null && ((List<OneJaxDashboard.Models.achieveMile_6D>)ViewBag.Milestones).Any())
+            {
+                <div class="records-list">
+                    @foreach (var milestone in (List<OneJaxDashboard.Models.achieveMile_6D>)ViewBag.Milestones)
+                    {
+                        <div class="record-item">
+                            <div class="record-header">
+                                <span class="record-type">Milestone Achievement</span>
+                                <span class="record-id">ID: @milestone.Id</span>
+                            </div>
+                            <div class="record-details">
+                                <div class="detail-item">
+                                    <strong>Milestones Achieved:</strong> @milestone.Percentage%
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Achieved in 6-Month Review:</strong> @(milestone.achievedReview ? "Yes" : "No")
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Goal Met (≥75%):</strong> @(milestone.GoalMet ? "Yes" : "No")
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Created Date:</strong> @milestone.CreatedDate.ToString("MM/dd/yyyy")
+                                </div>
+                            </div>
+                            <div class="record-actions mt-3">
+                                <a asp-controller="DataEntry" asp-action="EditMilestone" asp-route-id="@milestone.Id" class="btn btn-primary btn-sm">Edit</a>
+                                <form asp-controller="DataEntry" asp-action="DeleteMilestone" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                    <input type="hidden" name="id" value="@milestone.Id" />
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="no-records">No Milestone Achievement records found.</p>
+            }
+        </div>
+        }
+
+        @if (ViewBag.RecordType == "all" || ViewBag.RecordType == "community-perception")
+        {
+        <!-- Community Perception Survey Records -->
+        <div class="record-section">
+            <h5 class="section-title">Community Perception Survey Records</h5>
+            @if (ViewBag.CommunityPerception != null && ((List<OneJaxDashboard.Models.Annual_average_7D>)ViewBag.CommunityPerception).Any())
+            {
+                <div class="records-list">
+                    @foreach (var cp in (List<OneJaxDashboard.Models.Annual_average_7D>)ViewBag.CommunityPerception)
+                    {
+                        <div class="record-item">
+                            <div class="record-header">
+                                <span class="record-type">Community Perception Survey</span>
+                                <span class="record-id">ID: @cp.Id</span>
+                            </div>
+                            <div class="record-details">
+                                <div class="detail-item">
+                                    <strong>Year:</strong> @cp.Year
+                                </div>
+                                <div class="detail-item">
+                                    <strong>% Identifying OneJax as Trusted Leader:</strong> @cp.Percentage%
+                                </div>
+                                @if (cp.TotalRespondents.HasValue)
+                                {
+                                <div class="detail-item">
+                                    <strong>Total Respondents:</strong> @cp.TotalRespondents
+                                </div>
+                                }
+                                @if (cp.RespondentsIdentifyingAsTrusted.HasValue)
+                                {
+                                <div class="detail-item">
+                                    <strong>Respondents Identifying as Trusted:</strong> @cp.RespondentsIdentifyingAsTrusted
+                                </div>
+                                }
+                                @if (!string.IsNullOrEmpty(cp.Notes))
+                                {
+                                <div class="detail-item">
+                                    <strong>Notes:</strong> @cp.Notes
+                                </div>
+                                }
+                                <div class="detail-item">
+                                    <strong>Goal Met (≥70%):</strong> @(cp.GoalMet ? "Yes" : "No")
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Created Date:</strong> @cp.CreatedDate.ToString("MM/dd/yyyy")
+                                </div>
+                            </div>
+                            <div class="record-actions mt-3">
+                                <a asp-controller="DataEntry" asp-action="EditCommunityPerception" asp-route-id="@cp.Id" class="btn btn-primary btn-sm">Edit</a>
+                                <form asp-controller="DataEntry" asp-action="DeleteCommunityPerception" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                    <input type="hidden" name="id" value="@cp.Id" />
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="no-records">No Community Perception Survey records found.</p>
+            }
+        </div>
+        }
+
+        @if (ViewBag.RecordType == "all" || ViewBag.RecordType == "programs-demographics")
+        {
+        <!-- Programs Demographics Records -->
+        <div class="record-section">
+            <h5 class="section-title">Programs Demographics Records</h5>
+            @if (ViewBag.Demographics != null && ((List<OneJaxDashboard.Models.demographics_8D>)ViewBag.Demographics).Any())
+            {
+                <div class="records-list">
+                    @foreach (var demo in (List<OneJaxDashboard.Models.demographics_8D>)ViewBag.Demographics)
+                    {
+                        <div class="record-item">
+                            <div class="record-header">
+                                <span class="record-type">Programs Demographics</span>
+                                <span class="record-id">ID: @demo.Id</span>
+                            </div>
+                            <div class="record-details">
+                                <div class="detail-item">
+                                    <strong>Event:</strong> @(demo.Strategy?.Name ?? "—")
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Year:</strong> @demo.Year
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Zip Codes:</strong> @demo.ZipCodes
+                                </div>
+                                @if (!string.IsNullOrEmpty(demo.Notes))
+                                {
+                                <div class="detail-item">
+                                    <strong>Notes:</strong> @demo.Notes
+                                </div>
+                                }
+                                <div class="detail-item">
+                                    <strong>Created Date:</strong> @demo.CreatedDate.ToString("MM/dd/yyyy")
+                                </div>
+                            </div>
+                            <div class="record-actions mt-3">
+                                <a asp-controller="DataEntry" asp-action="EditDemographics" asp-route-id="@demo.Id" class="btn btn-primary btn-sm">Edit</a>
+                                <form asp-controller="DataEntry" asp-action="DeleteDemographics" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                    <input type="hidden" name="id" value="@demo.Id" />
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="no-records">No Programs Demographics records found.</p>
+            }
+        </div>
+        }
+
+        @if (ViewBag.RecordType == "all" || ViewBag.RecordType == "framework-plan")
+        {
+        <!-- Framework Development Plan Records -->
+        <div class="record-section">
+            <h5 class="section-title">Framework Development Plan Records</h5>
+            @if (ViewBag.FrameworkPlans != null && ((List<OneJaxDashboard.Models.Plan2026_24D>)ViewBag.FrameworkPlans).Any())
+            {
+                <div class="records-list">
+                    @foreach (var plan in (List<OneJaxDashboard.Models.Plan2026_24D>)ViewBag.FrameworkPlans)
+                    {
+                        <div class="record-item">
+                            <div class="record-header">
+                                <span class="record-type">Framework Development Plan</span>
+                                <span class="record-id">ID: @plan.Id</span>
+                            </div>
+                            <div class="record-details">
+                                <div class="detail-item">
+                                    <strong>Name:</strong> @plan.Name
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Year:</strong> @plan.Year
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Quarter:</strong> @plan.Quarter
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Framework Status:</strong> @plan.FrameworkStatus
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Goal Met:</strong> @(plan.GoalMet ? "Yes" : "No")
+                                </div>
+                                @if (!string.IsNullOrEmpty(plan.IssueName))
+                                {
+                                    <div class="detail-item">
+                                        <strong>Issue Name:</strong> @plan.IssueName
+                                    </div>
+                                }
+                                @if (!string.IsNullOrEmpty(plan.CrisisDescription))
+                                {
+                                    <div class="detail-item">
+                                        <strong>Crisis Description:</strong> @plan.CrisisDescription
+                                    </div>
+                                }
+                                <div class="detail-item">
+                                    <strong>Issue Handled:</strong> @(plan.IssueHandled ? "Yes" : "No")
+                                </div>
+                                @if (!string.IsNullOrEmpty(plan.Notes))
+                                {
+                                    <div class="detail-item">
+                                        <strong>Notes:</strong> @plan.Notes
+                                    </div>
+                                }
+                                <div class="detail-item">
+                                    <strong>Created Date:</strong> @plan.CreatedDate.ToString("MM/dd/yyyy")
+                                </div>
+                            </div>
+                            <div class="record-actions mt-3">
+                                <a asp-controller="DataEntry" asp-action="EditFrameworkPlan" asp-route-id="@plan.Id" class="btn btn-primary btn-sm">Edit</a>
+                                <form asp-controller="DataEntry" asp-action="DeleteFrameworkPlan" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                    <input type="hidden" name="id" value="@plan.Id" />
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="no-records">No Framework Development Plan records found.</p>
+            }
+        </div>
+        }
 
         <!-- Back to Data Entry Button -->
         <div class="back-navigation mt-4">

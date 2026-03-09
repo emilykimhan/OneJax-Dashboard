@@ -25,11 +25,9 @@ namespace OneJaxDashboard.Controllers
             
             var totalVolunteers = allEntries.Any() ? allEntries.OrderByDescending(v => v.CreatedDate).FirstOrDefault()?.NumberOfVolunteers ?? 0 : 0;
             var totalInitiatives = allEntries.Sum(v => v.VolunteerLedInitiatives);
-            var isProgramEstablished = allEntries.Any(v => v.ProgramEstablished);
             
             ViewBag.TotalVolunteers = totalVolunteers;
             ViewBag.TotalInitiatives = totalInitiatives;
-            ViewBag.ProgramEstablished = isProgramEstablished;
             ViewBag.TotalEntries = allEntries.Count;
             
             return View(new volunteerProgram_40D());
@@ -63,7 +61,6 @@ namespace OneJaxDashboard.Controllers
             
             ViewBag.TotalVolunteers = allEntries.Any() ? allEntries.OrderByDescending(v => v.CreatedDate).FirstOrDefault()?.NumberOfVolunteers ?? 0 : 0;
             ViewBag.TotalInitiatives = allEntries.Sum(v => v.VolunteerLedInitiatives);
-            ViewBag.ProgramEstablished = allEntries.Any(v => v.ProgramEstablished);
             ViewBag.TotalEntries = allEntries.Count;
             
             return View(model);
