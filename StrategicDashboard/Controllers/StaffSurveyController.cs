@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OneJaxDashboard.Models;
@@ -5,6 +6,7 @@ using OneJaxDashboard.Data;
 //karrie 
 namespace OneJaxDashboard.Controllers
 {
+    [Authorize(Roles = "Admin,Staff")]
     public class StaffSurveyController : Controller
     {
         private readonly ApplicationDbContext _context;

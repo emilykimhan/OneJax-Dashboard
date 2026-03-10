@@ -33,6 +33,79 @@ public class HomeController : Controller
             // Apply filters
             dashboardData = ApplyFilters(dashboardData, status ?? "", time ?? "", goal ?? "", appliedFiscalYearFilter, quarter ?? "");
 
+            // Community Engagement visuals (dashboard only): Youth Attendance + Partner Touchpoints charts/tables.
+            // Keep public safe: aggregate values only, and latest-entries table excludes partner/contact PII.
+            try
+            {
+                (DateTime StartDate, DateTime EndDate)? selectedFiscalYearRange = null;
+                if (TryParseFiscalYearEnd(selectedFiscalYear, out var selectedFiscalYearEnd))
+                {
+                    selectedFiscalYearRange = GetFiscalYearRange(selectedFiscalYearEnd);
+                }
+
+                // Youth Attendance (YouthAttend_15D): line chart of attendees per event over time + avg pre/post assessment bars.
+                var youthRows = await _context.YouthAttend_15D
+                    .Include(y => y.Strategy)
+                    .OrderBy(y => y.CreatedDate)
+                    .ToListAsync();
+
+                if (selectedFiscalYearRange != null)
+                {
+                    youthRows = youthRows
+                        .Where(y => y.CreatedDate >= selectedFiscalYearRange.Value.StartDate && y.CreatedDate <= selectedFiscalYearRange.Value.EndDate)
+                        .ToList();
+                }
+
+                var youthRecent = youthRows
+                    .OrderBy(y => y.CreatedDate)
+                    .TakeLast(20)
+                    .ToList();
+
+                ViewBag.CommunityYouthAttendanceSeries = youthRecent
+                    .Select(y => new
+                    {
+                        label = y.CreatedDate.ToString("MMM d", CultureInfo.InvariantCulture),
+                        attendees = y.NumberOfYouthAttendees
+                    })
+                    .ToList();
+
+                ViewBag.CommunityYouthPrePostAvg = new
+                {
+                    pre = youthRows.Any() ? Math.Round(youthRows.Average(y => (double)y.AveragePreAssessment), 1) : 0.0,
+                    post = youthRows.Any() ? Math.Round(youthRows.Average(y => (double)y.AveragePostAssessment), 1) : 0.0
+                };
+
+                // Collaborative Partner Touchpoints (CollabTouch_47D): FY bar chart + latest 5 table (date + strategy only).
+                var collabRows = await _context.CollabTouch_47D
+                    .Include(c => c.Strategy)
+                    .OrderByDescending(c => c.CreatedDate)
+                    .ToListAsync();
+
+                if (selectedFiscalYearRange != null)
+                {
+                    collabRows = collabRows
+                        .Where(c => c.CreatedDate >= selectedFiscalYearRange.Value.StartDate && c.CreatedDate <= selectedFiscalYearRange.Value.EndDate)
+                        .ToList();
+                }
+
+                ViewBag.CommunityPartnersByFiscalYear = collabRows
+                    .GroupBy(c => string.IsNullOrWhiteSpace(c.FiscalYear) ? "Unknown" : c.FiscalYear.Trim())
+                    .OrderBy(g => g.Key)
+                    .Select(g => new { fiscalYear = g.Key, count = g.Count() })
+                    .ToList();
+
+                ViewBag.CommunityPartnersLatest = collabRows
+                    .OrderByDescending(c => c.CreatedDate)
+                    .Take(5)
+                    .Select(c => new
+                    {
+                        date = c.CreatedDate.ToString("MMM d, yyyy", CultureInfo.InvariantCulture),
+                        strategy = c.Strategy?.Name ?? "Unassigned"
+                    })
+                    .ToList();
+            }
+            catch { }
+
             // Add board meeting attendance records for the enhanced view
             ViewBag.BoardMeetingAttendance = await _context.BoardMeetingAttendance
                 .OrderByDescending(b => b.MeetingDate)

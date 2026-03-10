@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OneJaxDashboard.Data;
 using OneJaxDashboard.Models;
@@ -5,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace OneJaxDashboard.Controllers
 {
+    [Authorize(Roles = "Admin,Staff")]
     public class BoardMemberRecruitmentController : Controller
     {
         private readonly ApplicationDbContext _context;
