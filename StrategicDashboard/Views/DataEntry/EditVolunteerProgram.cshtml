@@ -1,70 +1,101 @@
 @model OneJaxDashboard.Models.volunteerProgram_40D
 @{
     ViewData["Title"] = "Edit Volunteer Program";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <h1 class="headline mb-4" style="color:var(--onejax-navy);">Edit Volunteer Program</h1>
 
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger">@TempData["Error"]</div>
+<div class="container mt-4">
+    <div class="card p-4"
+        style="background-color:var(--onejax-white); 
+               box-shadow:0 4px 24px rgba(0,0,0,0.08); 
+               border-radius:24px; 
+               max-width:900px;">
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger">@TempData["Error"]</div>
+        }
+
+        <form asp-action="EditVolunteerProgram" method="post">
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="CreatedDate" />
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Quarter" class="form-label fw-bold">Quarter (1–4)</label>
+                    <input asp-for="Quarter" type="number" class="form-control" min="1" max="4" placeholder="Enter 1, 2, 3, or 4" />
+                    <span asp-validation-for="Quarter" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Year" class="form-label fw-bold">Year</label>
+                    <input asp-for="Year" type="number" class="form-control" min="2020" max="2100" />
+                    <span asp-validation-for="Year" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="NumberOfVolunteers" class="form-label fw-bold">Number of Volunteers</label>
+                    <input asp-for="NumberOfVolunteers" type="number" class="form-control" min="0" />
+                    <span asp-validation-for="NumberOfVolunteers" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="VolunteerLedInitiatives" class="form-label fw-bold">Volunteer-Led Initiatives</label>
+                    <input asp-for="VolunteerLedInitiatives" type="number" class="form-control" min="0" max="100" />
+                    <span asp-validation-for="VolunteerLedInitiatives" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-12 mb-3">
+                    <label asp-for="CommunicationsActivities" class="form-label fw-bold">Communications Activities</label>
+                    <textarea asp-for="CommunicationsActivities" class="form-control" rows="3"></textarea>
+                    <span asp-validation-for="CommunicationsActivities" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-12 mb-3">
+                    <label asp-for="RecognitionActivities" class="form-label fw-bold">Recognition Activities</label>
+                    <textarea asp-for="RecognitionActivities" class="form-control" rows="3"></textarea>
+                    <span asp-validation-for="RecognitionActivities" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-12 mb-3">
+                    <label asp-for="InitiativeDescriptions" class="form-label fw-bold">Initiative Descriptions</label>
+                    <textarea asp-for="InitiativeDescriptions" class="form-control" rows="3"></textarea>
+                    <span asp-validation-for="InitiativeDescriptions" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <a asp-action="RecordHistory" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }
 
-<div class="form-card">
-    <form asp-action="EditVolunteerProgram" method="post">
-        <input type="hidden" asp-for="Id" />
-        <input type="hidden" asp-for="CreatedDate" />
+<style>
+    .form-label {
+        color: var(--onejax-navy);
+    }
 
-        <div class="mb-3">
-            <label asp-for="Quarter" class="form-label">Quarter</label>
-            <select asp-for="Quarter" class="form-select">
-                <option value="1">Q1 (Jan–Mar)</option>
-                <option value="2">Q2 (Apr–Jun)</option>
-                <option value="3">Q3 (Jul–Sep)</option>
-                <option value="4">Q4 (Oct–Dec)</option>
-            </select>
-            <span asp-validation-for="Quarter" class="text-danger"></span>
-        </div>
+    .form-control:focus,
+    .form-select:focus {
+        border-color: var(--onejax-navy);
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 191, 0.25);
+    }
 
-        <div class="mb-3">
-            <label asp-for="Year" class="form-label">Year</label>
-            <input asp-for="Year" class="form-control" type="number" min="2020" max="2100" />
-            <span asp-validation-for="Year" class="text-danger"></span>
-        </div>
+    .btn-primary {
+        background-color: var(--onejax-navy);
+        border-color: var(--onejax-navy);
+    }
 
-        <div class="mb-3">
-            <label asp-for="NumberOfVolunteers" class="form-label">Number of Volunteers</label>
-            <input asp-for="NumberOfVolunteers" class="form-control" type="number" min="0" />
-            <span asp-validation-for="NumberOfVolunteers" class="text-danger"></span>
-        </div>
-
-        <div class="mb-3">
-            <label asp-for="VolunteerLedInitiatives" class="form-label">Volunteer-Led Initiatives</label>
-            <input asp-for="VolunteerLedInitiatives" class="form-control" type="number" min="0" max="100" />
-            <span asp-validation-for="VolunteerLedInitiatives" class="text-danger"></span>
-        </div>
-
-        <div class="mb-3">
-            <label asp-for="CommunicationsActivities" class="form-label">Communications Activities</label>
-            <textarea asp-for="CommunicationsActivities" class="form-control" rows="3"></textarea>
-            <span asp-validation-for="CommunicationsActivities" class="text-danger"></span>
-        </div>
-
-        <div class="mb-3">
-            <label asp-for="RecognitionActivities" class="form-label">Recognition Activities</label>
-            <textarea asp-for="RecognitionActivities" class="form-control" rows="3"></textarea>
-            <span asp-validation-for="RecognitionActivities" class="text-danger"></span>
-        </div>
-
-        <div class="mb-3">
-            <label asp-for="InitiativeDescriptions" class="form-label">Initiative Descriptions</label>
-            <textarea asp-for="InitiativeDescriptions" class="form-control" rows="3"></textarea>
-            <span asp-validation-for="InitiativeDescriptions" class="text-danger"></span>
-        </div>
-
-        <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-primary">Save Changes</button>
-            <a asp-controller="DataEntry" asp-action="RecordHistory" class="btn btn-secondary">Cancel</a>
-        </div>
-    </form>
-</div>
+    .btn-primary:hover {
+        background-color: #1a365d;
+        border-color: #1a365d;
+    }
+</style>
