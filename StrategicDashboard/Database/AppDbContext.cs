@@ -47,6 +47,7 @@ namespace OneJaxDashboard.Data
         public DbSet<StrategicGoal> StrategicGoals { get; set; } = default!;
         public DbSet<GoalMetric> GoalMetrics { get; set; } = default!;
         public DbSet<Event> Events { get; set; } = default!;
+        public DbSet<ActivityLogEntry> ActivityLogs { get; set; } = default!;
 
         // Core Strategies 
         public DbSet<Strategy> Strategies { get; set; } = default!;

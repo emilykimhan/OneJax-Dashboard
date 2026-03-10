@@ -1,18 +1,23 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using OneJaxDashboard.Models;
 using OneJaxDashboard.Data;
+using OneJaxDashboard.Services;
 
 namespace OneJaxDashboard.Controllers
 {
+    [Authorize(Roles = "Admin,Staff")]
     public class Interfaith11DController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ActivityLogService _activityLog;
 
-        public Interfaith11DController(ApplicationDbContext context)
+        public Interfaith11DController(ApplicationDbContext context, ActivityLogService activityLog)
         {
             _context = context;
+            _activityLog = activityLog;
         }
 
         // GET: Interfaith11D/Index
@@ -34,6 +39,9 @@ namespace OneJaxDashboard.Controllers
                 {
                     _context.Interfaith_11D.Add(model);
                     _context.SaveChanges();
+                    var actor = User?.Identity?.Name ?? "Unknown";
+                    _activityLog.Log(actor, "Created Interfaith Event Record", "InterfaithEvent",
+                        details: $"Id={model.Id}");
                     
                     TempData["Success"] = "Interfaith event record submitted successfully!";
                     ViewBag.ShowNewEntryButton = true;

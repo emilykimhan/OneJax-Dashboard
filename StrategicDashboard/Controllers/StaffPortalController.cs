@@ -10,6 +10,7 @@ namespace OneJaxDashboard.Controllers
     [Authorize(Roles = "Staff")]
     public class StaffPortalController : Controller
     {
+        private const int RecentActivityLimit = 10;
         private readonly ApplicationDbContext _db;
         private readonly EventsService _eventsService;
         private readonly ActivityLogService _activityLog;
@@ -28,7 +29,7 @@ namespace OneJaxDashboard.Controllers
             var archivedEvents = _eventsService.GetArchivedByOwner(username).ToList();
             var staff = _db.Staffauth.FirstOrDefault(s => s.Username == username);
             var activityIdentifiers = GetActivityIdentifiers(username, staff);
-            var recent = _activityLog.GetRecentForUser(activityIdentifiers).ToList();
+            var recent = _activityLog.GetRecentForUser(activityIdentifiers, RecentActivityLimit).ToList();
 
             var inProgressCount = activeEvents.Count(e => string.Equals(e.Status, "In Progress", StringComparison.OrdinalIgnoreCase));
             var completedCount = archivedEvents.Count + activeEvents.Count(e => string.Equals(e.Status, "Completed", StringComparison.OrdinalIgnoreCase));
@@ -38,6 +39,7 @@ namespace OneJaxDashboard.Controllers
             ViewData["CompletedCount"] = completedCount;
             ViewData["AssignedEvents"] = activeEvents.Count(e => e.IsAssignedByAdmin) + archivedEvents.Count(e => e.IsAssignedByAdmin);
             ViewData["RecentActivities"] = recent;
+            ViewData["RecentActivityLimit"] = RecentActivityLimit;
             ViewData["FullName"] = staff?.Name ?? string.Empty;
             ViewData["Email"] = staff?.Email ?? string.Empty;
             return View();
@@ -92,8 +94,9 @@ namespace OneJaxDashboard.Controllers
                 _db.SaveChanges();
             }
             var staffName = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value ?? staff?.Name ?? username;
-            _activityLog.Log(staffName, "Updated Profile", "Profile", null, notes: $"Name={model.Name}; Email={model.Email}");
-            TempData["SuccessMessage"] = "Profile updated.";
+            _activityLog.Log(staffName, "Updated Profile", "Profile",
+                details: $"Name={model.Name}; Email={model.Email}");
+            TempData["StaffPortalSuccessMessage"] = "Profile updated.";
             return RedirectToAction("Profile");
         }
 
@@ -131,9 +134,10 @@ namespace OneJaxDashboard.Controllers
             _db.SaveChanges();
 
             var staffName = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value ?? staff?.Name ?? username;
-            _activityLog.Log(staffName, "Changed Password", "Security", null, notes: "Password updated successfully");
+            _activityLog.Log(staffName, "Changed Password", "Security",
+                details: "Password updated successfully");
             
-            TempData["SuccessMessage"] = "Password changed successfully.";
+            TempData["StaffPortalSuccessMessage"] = "Password changed successfully.";
             return RedirectToAction("Profile");
         }
 

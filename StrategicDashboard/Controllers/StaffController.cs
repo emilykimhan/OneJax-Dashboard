@@ -47,7 +47,8 @@ namespace OneJaxDashboard.Controllers
             _db.SaveChanges();
 
             var adminName = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value ?? User.Identity?.Name ?? "Admin";
-            _activityLog.Log(adminName, "Created Staff Member", "Staff", staff.Id, notes: $"Created staff member '{staff.Name}'");
+            _activityLog.Log(adminName, "Created Staff Member", "Staff",
+                details: $"Id={staff.Id}; Created staff member '{staff.Name}'");
 
             return RedirectToAction("Index");
         }
@@ -87,7 +88,8 @@ namespace OneJaxDashboard.Controllers
             _db.SaveChanges();
 
             var adminName = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value ?? User.Identity?.Name ?? "Admin";
-            _activityLog.Log(adminName, "Updated Staff Member", "Staff", staff.Id, notes: $"Updated staff member '{staff.Name}'");
+            _activityLog.Log(adminName, "Updated Staff Member", "Staff",
+                details: $"Id={staff.Id}; Updated staff member '{staff.Name}'");
 
             return RedirectToAction("Index");
         }
@@ -109,7 +111,8 @@ namespace OneJaxDashboard.Controllers
                 _db.SaveChanges();
 
                 var adminName = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value ?? User.Identity?.Name ?? "Admin";
-                _activityLog.Log(adminName, "Deleted Staff Member", "Staff", id, notes: $"Deleted staff member '{staff.Name}'");
+                _activityLog.Log(adminName, "Deleted Staff Member", "Staff",
+                    details: $"Id={id}; Deleted staff member '{staff.Name}'");
             }
             return RedirectToAction("Index");
         }

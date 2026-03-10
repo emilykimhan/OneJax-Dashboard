@@ -1,18 +1,23 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using OneJaxDashboard.Data;
 using OneJaxDashboard.Models;
+using OneJaxDashboard.Services;
 //Karrie's
 namespace OneJaxDashboard.Controllers
 {
+    [Authorize(Roles = "Admin,Staff")]
     public class CommFaith13DController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ActivityLogService _activityLog;
 
-        public CommFaith13DController(ApplicationDbContext context)
+        public CommFaith13DController(ApplicationDbContext context, ActivityLogService activityLog)
         {
             _context = context;
+            _activityLog = activityLog;
         }
 
         // GET: CommFaith13D/Index
@@ -46,6 +51,9 @@ namespace OneJaxDashboard.Controllers
                     model.CreatedDate = DateTime.Now;
                     _context.FaithCommunity_13D.Add(model);
                     _context.SaveChanges();
+                    var actor = User?.Identity?.Name ?? "Unknown";
+                    _activityLog.Log(actor, "Created Faith Community Participation Record", "FaithCommunity",
+                        details: $"Id={model.Id}");
 
                     TempData["Success"] = "Faith community record submitted successfully!";
                     ViewBag.ShowNewEntryButton = true;

@@ -47,8 +47,8 @@ namespace OneJaxDashboard.Controllers
             await _metricsService.UpdateManualMetricAsync(metricId, currentValue);
             
             // Log the metric update
-            _activityLog.Log("Admin", "Updated Dashboard Metric", "Metric", metricId, 
-                notes: $"Updated metric value to {currentValue}");
+            _activityLog.Log("Admin", "Updated Dashboard Metric", "Metric",
+                details: $"Id={metricId}; Updated metric value to {currentValue}");
             
             // If called from DashboardMetrics, redirect there with success indicator
             if (!string.IsNullOrEmpty(returnUrl) && returnUrl.Contains("DashboardMetrics"))
@@ -67,7 +67,8 @@ namespace OneJaxDashboard.Controllers
             await _metricsService.SeedDashboardMetricsAsync();
             
             // Log the seeding action
-            _activityLog.Log("Admin", "Initialized Dashboard Metrics", notes: "Seeded all dashboard metrics");
+            _activityLog.Log("Admin", "Initialized Dashboard Metrics", "Metric",
+                details: "Seeded all dashboard metrics");
             
             TempData["Success"] = "Dashboard metrics have been initialized with your complete metrics list!";
             return RedirectToAction("Index");

@@ -50,7 +50,8 @@ namespace OneJaxDashboard.Controllers
                     _context.SaveChanges();
 
                     var actor = User.Identity?.Name ?? "Unknown";
-                    _activityLog.Log(actor, "Created Annual Budget Tracking Record", "BudgetTracking", model.Id);
+                    _activityLog.Log(actor, "Created Annual Budget Tracking Record", "BudgetTracking",
+                        details: $"Id={model.Id}");
                     
                     TempData["Success"] = "Budget tracking record submitted successfully!";
                     return RedirectToAction("Index");

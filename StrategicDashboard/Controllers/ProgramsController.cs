@@ -1,12 +1,15 @@
 using Microsoft.AspNetCore.Mvc;
 using OneJaxDashboard.Data;
 using OneJaxDashboard.Models;
+using OneJaxDashboard.Services;
+using System.Security.Claims;
 
 namespace OneJaxDashboard.Controllers;
 
 public class ProgramsController : Controller
 {
     private readonly ApplicationDbContext _context;
+    private readonly ActivityLogService _activityLog;
 
     private static readonly string[] ProgramTypes =
     {
@@ -18,9 +21,10 @@ public class ProgramsController : Controller
         "Donor"
     };
 
-    public ProgramsController(ApplicationDbContext context)
+    public ProgramsController(ApplicationDbContext context, ActivityLogService activityLog)
     {
         _context = context;
+        _activityLog = activityLog;
     }
 
     [HttpGet]
@@ -53,6 +57,8 @@ public class ProgramsController : Controller
 
         _context.Programs.Add(program);
         _context.SaveChanges();
+        _activityLog.Log(GetActorName(), "Created Program", "Program",
+            details: $"Id={program.Id}; Created '{program.ProgramName}' ({program.ProgramType})");
 
         TempData["ProgramsSuccess"] = "Program added successfully.";
         return RedirectToAction(nameof(Index));
@@ -87,11 +93,29 @@ public class ProgramsController : Controller
             return RedirectToAction(nameof(Edit), new { id });
         }
 
-        program.ProgramName = programName.Trim();
-        program.ProgramType = programType.Trim();
-        program.Description = (description ?? string.Empty).Trim();
+        var previousName = program.ProgramName;
+        var previousType = program.ProgramType;
+        var previousDescription = program.Description;
+        var nextName = programName.Trim();
+        var nextType = programType.Trim();
+        var nextDescription = (description ?? string.Empty).Trim();
+
+        program.ProgramName = nextName;
+        program.ProgramType = nextType;
+        program.Description = nextDescription;
 
         _context.SaveChanges();
+        var changes = new List<string>();
+        AddChange(changes, "Program Name", previousName, nextName);
+        AddChange(changes, "Program Type", previousType, nextType);
+        AddChange(changes, "Description", previousDescription, nextDescription);
+        var changeDetails = changes.Count > 0 ? string.Join("; ", changes) : "No field changes detected";
+
+        _activityLog.Log(
+            GetActorName(),
+            "Updated Program",
+            "Program",
+            details: $"Id={program.Id}; Updated '{program.ProgramName}'. Changes: {changeDetails}");
 
         TempData["ProgramsSuccess"] = "Program updated successfully.";
         return RedirectToAction(nameof(Index));
@@ -204,11 +228,49 @@ public class ProgramsController : Controller
         var program = _context.Programs.FirstOrDefault(p => p.Id == id);
         if (program != null)
         {
+            var deletedName = program.ProgramName;
+            var deletedType = program.ProgramType;
+
             _context.Programs.Remove(program);
             _context.SaveChanges();
+            _activityLog.Log(GetActorName(), "Deleted Program", "Program",
+                details: $"Id={id}; Deleted '{deletedName}' ({deletedType})");
             TempData["ProgramsSuccess"] = "Program deleted.";
         }
 
         return RedirectToAction(nameof(Index));
     }
+
+    private string GetActorName()
+    {
+        var username = User.Identity?.Name;
+        if (!string.IsNullOrWhiteSpace(username))
+        {
+            return username;
+        }
+
+        var claimName = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value;
+        if (!string.IsNullOrWhiteSpace(claimName))
+        {
+            return claimName;
+        }
+
+        return "System";
+    }
+
+    private static void AddChange(List<string> changes, string fieldName, string? before, string? after)
+    {
+        var oldValue = Normalize(before);
+        var newValue = Normalize(after);
+        if (string.Equals(oldValue, newValue, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        changes.Add($"{fieldName}: '{Display(oldValue)}' -> '{Display(newValue)}'");
+    }
+
+    private static string Normalize(string? value) => (value ?? string.Empty).Trim();
+
+    private static string Display(string value) => string.IsNullOrEmpty(value) ? "(empty)" : value;
 }

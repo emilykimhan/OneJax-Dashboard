@@ -1,52 +1,64 @@
+using Microsoft.EntityFrameworkCore;
+using OneJaxDashboard.Data;
 using OneJaxDashboard.Models;
 //Talijah's
 namespace OneJaxDashboard.Services
 {
     public class ActivityLogService
     {
-        private static readonly List<ActivityLogEntry> _entries = new();
+        private readonly ApplicationDbContext _db;
+
+        public ActivityLogService(ApplicationDbContext db)
+        {
+            _db = db;
+        }
 
         public IEnumerable<ActivityLogEntry> GetRecent(string username, int take = 10)
-            => _entries.Where(e => string.Equals(e.Username, username, StringComparison.OrdinalIgnoreCase))
-                       .OrderByDescending(e => e.Timestamp)
-                       .Take(take);
+            => _db.ActivityLogs
+                .AsNoTracking()
+                .Where(e => string.Equals(e.User, username, StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(e => e.Timestamp)
+                .Take(take)
+                .ToList();
 
         public IEnumerable<ActivityLogEntry> GetAllEntries()
-            => _entries.OrderByDescending(e => e.Timestamp);
+            => _db.ActivityLogs
+                .AsNoTracking()
+                .OrderByDescending(e => e.Timestamp)
+                .ToList();
 
         public IEnumerable<ActivityLogEntry> GetRecentForUser(IEnumerable<string> identifiers, int take = 10)
         {
             var matches = BuildIdentifierSet(identifiers);
-            return _entries
-                .Where(e => matches.Contains(e.Username))
+            return _db.ActivityLogs
+                .AsNoTracking()
+                .Where(e => matches.Contains(e.User))
                 .OrderByDescending(e => e.Timestamp)
-                .Take(take);
+                .Take(take)
+                .ToList();
         }
 
         public IEnumerable<ActivityLogEntry> GetAllForUser(IEnumerable<string> identifiers)
         {
             var matches = BuildIdentifierSet(identifiers);
-            return _entries
-                .Where(e => matches.Contains(e.Username))
-                .OrderByDescending(e => e.Timestamp);
+            return _db.ActivityLogs
+                .AsNoTracking()
+                .Where(e => matches.Contains(e.User))
+                .OrderByDescending(e => e.Timestamp)
+                .ToList();
         }
 
-        public IEnumerable<ActivityLogEntry> GetEntriesByEntityId(string entityType, int entityId)
-            => _entries.Where(e => e.EntityType == entityType && e.EntityId == entityId)
-                       .OrderByDescending(e => e.Timestamp);
-
-        public void Log(string username, string action, string? entityType = null, int? entityId = null, string? notes = null)
+        public void Log(string user, string action, string? entity = null, string? details = null)
         {
-            _entries.Add(new ActivityLogEntry
+            _db.ActivityLogs.Add(new ActivityLogEntry
             {
-                Id = _entries.Count > 0 ? _entries.Max(e => e.Id) + 1 : 1,
-                Username = username,
-                Action = action,
-                EntityType = entityType,
-                EntityId = entityId,
                 Timestamp = DateTime.UtcNow,
-                Notes = notes
+                User = user,
+                Action = action,
+                Entity = entity,
+                Details = details
             });
+            _db.SaveChanges();
         }
 
         private static HashSet<string> BuildIdentifierSet(IEnumerable<string> identifiers)

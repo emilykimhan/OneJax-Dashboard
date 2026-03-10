@@ -13,6 +13,7 @@ namespace OneJaxDashboard.Controllers
     [Authorize(Roles = "Admin")]
     public class AdminController : Controller
     {
+        private const int RecentActivityLimit = 10;
         private readonly ApplicationDbContext _db;
         private readonly EventsService _eventsService;
         private readonly StrategyService _strategyService;
@@ -39,13 +40,14 @@ namespace OneJaxDashboard.Controllers
             // Get recent activity log entries (last 10)
             var recentActivities = _activityLog.GetAllEntries()
                 .OrderByDescending(a => a.Timestamp)
-                .Take(10)
+                .Take(RecentActivityLimit)
                 .ToList();
 
             // Pass data to view
             ViewData["StaffCount"] = staffCount;
             ViewData["EventCount"] = eventCount;
             ViewData["RecentActivities"] = recentActivities;
+            ViewData["RecentActivityLimit"] = RecentActivityLimit;
 
             return View();
         }
@@ -95,8 +97,9 @@ namespace OneJaxDashboard.Controllers
 
         private static bool IsEventActivity(ActivityLogEntry entry)
         {
-            var isEventEntity = string.Equals(entry.EntityType, "Event", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(entry.EntityType, "Strategy", StringComparison.OrdinalIgnoreCase);
+            var isEventEntity = string.Equals(entry.Entity, "Event", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(entry.Entity, "Strategy", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(entry.Entity, "Program", StringComparison.OrdinalIgnoreCase);
 
             if (!isEventEntity)
             {
@@ -104,7 +107,8 @@ namespace OneJaxDashboard.Controllers
             }
 
             return entry.Action.Contains("Event", StringComparison.OrdinalIgnoreCase)
-                || entry.Action.Contains("Strategy", StringComparison.OrdinalIgnoreCase);
+                || entry.Action.Contains("Strategy", StringComparison.OrdinalIgnoreCase)
+                || entry.Action.Contains("Program", StringComparison.OrdinalIgnoreCase);
         }
 
         private static bool IsDataEntryActivity(ActivityLogEntry entry)
@@ -115,10 +119,31 @@ namespace OneJaxDashboard.Controllers
                 "CommunicationRate",
                 "FeeForService",
                 "Income",
-                "BudgetTracking"
+                "BudgetTracking",
+                "IdentityAnnualAverage",
+                "EventSatisfaction",
+                "BoardMemberRecruitment",
+                "BoardMeetingAttendance",
+                "SelfAssessment",
+                "VolunteerProgram",
+                "CollabTouch",
+                "InterfaithContacts",
+                "Diversity",
+                "FirstTimeParticipant",
+                "InterfaithEvent",
+                "YouthAttendance",
+                "FaithCommunity",
+                "MilestoneAchievement",
+                "Demographics",
+                "FrameworkPlan2026",
+                "SocialMediaEngagement",
+                "StaffSurvey",
+                "ProfessionalDevelopment",
+                "MediaPlacements",
+                "WebsiteTraffic"
             };
 
-            if (string.IsNullOrWhiteSpace(entry.EntityType) || !dataEntryEntityTypes.Contains(entry.EntityType))
+            if (string.IsNullOrWhiteSpace(entry.Entity) || !dataEntryEntityTypes.Contains(entry.Entity))
             {
                 return false;
             }
@@ -205,8 +230,8 @@ namespace OneJaxDashboard.Controllers
             var addedEvent = _eventsService.Add(eventModel);
             
             // Log the assignment
-            _activityLog.Log("Admin", "Assigned Event", "Event", addedEvent.Id, 
-                notes: $"Assigned '{addedEvent.Title}' to {staffName}");
+            _activityLog.Log("Admin", "Assigned Event", "Event",
+                details: $"Id={addedEvent.Id}; Assigned '{addedEvent.Title}' to {staffName}");
 
             TempData["SuccessMessage"] = $"Event '{eventModel.Title}' has been assigned to {staffName}.";
             return RedirectToAction("ManageEvents");
@@ -240,16 +265,24 @@ namespace OneJaxDashboard.Controllers
                 return View(eventModel);
             }
 
+            var existing = _eventsService.Get(eventModel.Id);
+            if (existing == null) return NotFound();
+
             var staffMember = _db.Staffauth.FirstOrDefault(s => s.Username == selectedStaffUsername);
             var staffName = staffMember?.Name ?? selectedStaffUsername;
+            var previousStaffMember = _db.Staffauth.FirstOrDefault(s => s.Username == existing.OwnerUsername);
+            var previousStaffName = previousStaffMember?.Name ?? existing.OwnerUsername;
+            var previousGoalName = ResolveGoalName(existing.StrategicGoalId);
+            var updatedGoalName = ResolveGoalName(eventModel.StrategicGoalId);
+            var changeDetails = BuildEventChangeDetails(existing, eventModel, previousStaffName, staffName, previousGoalName, updatedGoalName);
 
             // Update the event
             eventModel.OwnerUsername = selectedStaffUsername;
             _eventsService.Update(eventModel);
 
             // Log the update
-            _activityLog.Log("Admin", "Updated Assigned Event", "Event", eventModel.Id, 
-                notes: $"Updated '{eventModel.Title}' for {staffName}");
+            _activityLog.Log("Admin", "Updated Assigned Event", "Event",
+                details: $"Id={eventModel.Id}; Updated '{eventModel.Title}'. Changes: {changeDetails}");
 
             TempData["SuccessMessage"] = $"Event '{eventModel.Title}' has been updated.";
             return RedirectToAction("ManageEvents");
@@ -269,8 +302,8 @@ namespace OneJaxDashboard.Controllers
             _eventsService.Remove(id);
 
             // Log the deletion
-            _activityLog.Log("Admin", "Deleted Assigned Event", "Event", id, 
-                notes: $"Deleted '{eventModel.Title}' assigned to {staffName}");
+            _activityLog.Log("Admin", "Deleted Assigned Event", "Event",
+                details: $"Id={id}; Deleted '{eventModel.Title}' assigned to {staffName}");
 
             TempData["SuccessMessage"] = "Event has been deleted.";
             return RedirectToAction("ManageEvents");
@@ -287,8 +320,8 @@ namespace OneJaxDashboard.Controllers
             _eventsService.Unarchive(id);
 
             // Log the unarchive action
-            _activityLog.Log("Admin", "Reactivated Archived Event", "Event", id, 
-                notes: $"Reactivated '{eventModel.Title}'");
+            _activityLog.Log("Admin", "Reactivated Archived Event", "Event",
+                details: $"Id={id}; Reactivated '{eventModel.Title}'");
 
             TempData["SuccessMessage"] = $"Event '{eventModel.Title}' has been reactivated.";
             return RedirectToAction("ArchivedEvents");
@@ -311,6 +344,96 @@ namespace OneJaxDashboard.Controllers
             
             // Load all strategies for display
             ViewBag.Strategies = new SelectList(allStrategies, "Id", "Name");
+        }
+
+        private static string BuildEventChangeDetails(
+            Event before,
+            Event after,
+            string previousAssignee,
+            string newAssignee,
+            string previousGoalName,
+            string updatedGoalName)
+        {
+            var changes = new List<string>();
+            AddChange(changes, "Assignee", previousAssignee, newAssignee);
+            AddChange(changes, "Strategic Goal", previousGoalName, updatedGoalName);
+            AddChange(changes, "Description", before.Description, after.Description);
+            AddChange(changes, "Type", before.Type, after.Type);
+            AddChange(changes, "Location", before.Location, after.Location);
+            AddChange(changes, "Status", before.Status, after.Status);
+            AddDateChange(changes, "Start Date", before.StartDate, after.StartDate);
+            AddDateChange(changes, "End Date", before.EndDate, after.EndDate);
+            AddDateChange(changes, "Due Date", before.DueDate, after.DueDate);
+            AddNumberChange(changes, "Attendees", before.Attendees, after.Attendees);
+            AddDecimalChange(changes, "Satisfaction Score", before.SatisfactionScore, after.SatisfactionScore);
+            AddChange(changes, "Notes", before.Notes, after.Notes);
+            AddChange(changes, "Admin Notes", before.AdminNotes, after.AdminNotes);
+
+            return changes.Count > 0 ? string.Join("; ", changes) : "No field changes detected";
+        }
+
+        private static void AddChange(List<string> changes, string fieldName, string? before, string? after)
+        {
+            var oldValue = Normalize(before);
+            var newValue = Normalize(after);
+            if (string.Equals(oldValue, newValue, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            changes.Add($"{fieldName}: '{Display(oldValue)}' -> '{Display(newValue)}'");
+        }
+
+        private static void AddDateChange(List<string> changes, string fieldName, DateTime? before, DateTime? after)
+        {
+            var oldValue = before?.Date;
+            var newValue = after?.Date;
+            if (oldValue == newValue)
+            {
+                return;
+            }
+
+            changes.Add($"{fieldName}: '{DisplayDate(oldValue)}' -> '{DisplayDate(newValue)}'");
+        }
+
+        private static void AddNumberChange(List<string> changes, string fieldName, int before, int after)
+        {
+            if (before == after)
+            {
+                return;
+            }
+
+            changes.Add($"{fieldName}: '{before}' -> '{after}'");
+        }
+
+        private static void AddDecimalChange(List<string> changes, string fieldName, decimal? before, decimal? after)
+        {
+            if (before == after)
+            {
+                return;
+            }
+
+            changes.Add($"{fieldName}: '{DisplayDecimal(before)}' -> '{DisplayDecimal(after)}'");
+        }
+
+        private static string Normalize(string? value) => (value ?? string.Empty).Trim();
+        private static string Display(string value) => string.IsNullOrEmpty(value) ? "(empty)" : value;
+        private static string DisplayDate(DateTime? value) => value.HasValue ? value.Value.ToString("yyyy-MM-dd") : "(empty)";
+        private static string DisplayDecimal(decimal? value) => value.HasValue ? value.Value.ToString("0.##") : "(empty)";
+
+        private string ResolveGoalName(int? goalId)
+        {
+            if (!goalId.HasValue)
+            {
+                return "(empty)";
+            }
+
+            var goalName = _db.StrategicGoals
+                .Where(g => g.Id == goalId.Value)
+                .Select(g => g.Name)
+                .FirstOrDefault();
+
+            return string.IsNullOrWhiteSpace(goalName) ? $"Goal {goalId.Value}" : goalName;
         }
     }
 }

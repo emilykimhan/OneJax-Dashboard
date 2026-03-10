@@ -51,7 +51,7 @@ namespace OneJaxDashboard.Controllers
                         actor,
                         "Created Communication Satisfaction Record",
                         "CommunicationRate",
-                        model.Id
+                        details: $"Id={model.Id}"
                     );
                     
                     // Recalculate statistics after adding new entry

@@ -1,16 +1,21 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using OneJaxDashboard.Data;
 using OneJaxDashboard.Models;
+using OneJaxDashboard.Services;
 
 namespace OneJaxDashboard.Controllers
 {
+    [Authorize(Roles = "Admin,Staff")]
     public class identityAchieve_6DController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ActivityLogService _activityLog;
 
-        public identityAchieve_6DController(ApplicationDbContext context)
+        public identityAchieve_6DController(ApplicationDbContext context, ActivityLogService activityLog)
         {
             _context = context;
+            _activityLog = activityLog;
         }
 
         // GET: identityAchieve_6D/Index
@@ -43,6 +48,9 @@ namespace OneJaxDashboard.Controllers
                     model.CreatedDate = DateTime.Now;
                     _context.achieveMile_6D.Add(model);
                     _context.SaveChanges();
+                    var actor = User?.Identity?.Name ?? "Unknown";
+                    _activityLog.Log(actor, "Created Milestone Achievement Record", "MilestoneAchievement",
+                        details: $"Id={model.Id}");
                     
                     // Recalculate statistics after adding new entry
                     var allEntries = _context.achieveMile_6D.ToList();

@@ -1,17 +1,22 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using OneJaxDashboard.Data;
 using OneJaxDashboard.Models;
+using OneJaxDashboard.Services;
 //Karrie's
 namespace OneJaxDashboard.Controllers
 {
+    [Authorize(Roles = "Admin,Staff")]
     public class IdentityAnnual_7DController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ActivityLogService _activityLog;
 
-        public IdentityAnnual_7DController(ApplicationDbContext context)
+        public IdentityAnnual_7DController(ApplicationDbContext context, ActivityLogService activityLog)
         {
             _context = context;
+            _activityLog = activityLog;
         }
         [HttpGet]
         public IActionResult Index()
@@ -40,6 +45,9 @@ namespace OneJaxDashboard.Controllers
                     model.CreatedDate = DateTime.Now;
                     _context.Annual_average_7D.Add(model);
                     _context.SaveChanges();
+                    var actor = User?.Identity?.Name ?? "Unknown";
+                    _activityLog.Log(actor, "Created Identity Annual Average Record", "IdentityAnnualAverage",
+                        details: $"Id={model.Id}");
                     
                     // Recalculate statistics after adding new entry
                     var allEntries = _context.Annual_average_7D.ToList();

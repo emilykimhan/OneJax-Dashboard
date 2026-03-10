@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using OneJaxDashboard.Models;
 using OneJaxDashboard.Data;
 using OneJaxDashboard.Services;
+using System.Security.Claims;
 using System.Collections.Generic;
 using System.Linq;
 //dina
@@ -174,8 +175,8 @@ public class StrategyController : Controller
 
         string goalName = selectedGoal.Name;
         // Log the creation
-        _activityLog.Log("Admin", "Created Core Strategy Event", "Strategy", dbEvent.Id, 
-            notes: $"Created strategy event '{eventName}' under {goalName}");
+        _activityLog.Log(GetActorName(), "Created Core Strategy Event", "Strategy",
+            details: $"Id={dbEvent.Id}; Created strategy event '{eventName}' under {goalName}");
         TempData["SuccessMessage"] = $"Successfully added program under “{goalName}”";
 
         return RedirectToAction("Index");
@@ -243,6 +244,17 @@ public class StrategyController : Controller
             ? (selectedProgram?.ProgramName ?? selectedProgramType ?? "Untitled Event")
             : eventName.Trim();
 
+        var previousName = evt.Name;
+        var previousProgramName = evt.ProgramName;
+        var previousProgramType = evt.ProgramType;
+        var previousCrossCollaboration = evt.CrossCollaboration;
+        var previousPartners = evt.Partners;
+        var previousDescription = evt.Description;
+        var previousDate = evt.Date;
+        var previousTime = evt.Time;
+        var previousGoalId = evt.StrategicGoalId;
+        var previousEventFYear = evt.EventFYear;
+
         // Update the strategy's properties
         evt.Name = resolvedEventName;
         evt.ProgramId = selectedProgram?.Id;
@@ -258,6 +270,24 @@ public class StrategyController : Controller
 
         // Save changes to the database
         _context.SaveChanges();
+        var previousGoalName = ResolveGoalName(previousGoalId);
+        var updatedGoalName = ResolveGoalName(evt.StrategicGoalId);
+
+        var changes = new List<string>();
+        AddChange(changes, "Event Name", previousName, evt.Name);
+        AddChange(changes, "Program Name", previousProgramName, evt.ProgramName);
+        AddChange(changes, "Program Type", previousProgramType, evt.ProgramType);
+        AddChange(changes, "Cross Collaboration", previousCrossCollaboration, evt.CrossCollaboration);
+        AddChange(changes, "Partners", previousPartners, evt.Partners);
+        AddChange(changes, "Description", previousDescription, evt.Description);
+        AddChange(changes, "Date", previousDate, evt.Date);
+        AddChange(changes, "Time", previousTime, evt.Time);
+        AddChange(changes, "Strategic Goal", previousGoalName, updatedGoalName);
+        AddChange(changes, "Fiscal Year", previousEventFYear, evt.EventFYear);
+        var changeDetails = changes.Count > 0 ? string.Join("; ", changes) : "No field changes detected";
+
+        _activityLog.Log(GetActorName(), "Updated Core Strategy Event", "Strategy",
+            details: $"Id={evt.Id}; Updated '{evt.Name}'. Changes: {changeDetails}");
 
         TempData["SuccessMessage"] = "Event updated successfully!";
         return RedirectToAction(nameof(ViewEvents));
@@ -274,8 +304,11 @@ public class StrategyController : Controller
         }
 
         // Remove the strategy from the database
+        var deletedEventName = strategy.Name;
         _context.Strategies.Remove(strategy);
         _context.SaveChanges();
+        _activityLog.Log(GetActorName(), "Deleted Core Strategy Event", "Strategy",
+            details: $"Id={id}; Deleted '{deletedEventName}'");
 
         TempData["SuccessMessage"] = "Event deleted successfully!";
         return RedirectToAction("ViewEvents");
@@ -354,4 +387,56 @@ public class StrategyController : Controller
         return View(events);
     }
 
+    private string GetActorName()
+    {
+        var username = User.Identity?.Name;
+        if (!string.IsNullOrWhiteSpace(username))
+        {
+            return username;
+        }
+
+        var claimName = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value;
+        if (!string.IsNullOrWhiteSpace(claimName))
+        {
+            return claimName;
+        }
+
+        return "System";
+    }
+
+    private static void AddChange(List<string> changes, string fieldName, string? before, string? after)
+    {
+        var oldValue = Normalize(before);
+        var newValue = Normalize(after);
+        if (string.Equals(oldValue, newValue, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        changes.Add($"{fieldName}: '{Display(oldValue)}' -> '{Display(newValue)}'");
+    }
+
+    private static string Normalize(string? value) => (value ?? string.Empty).Trim();
+    private static string Display(string value) => string.IsNullOrEmpty(value) ? "(empty)" : value;
+
+    private string ResolveGoalName(int? goalId)
+    {
+        if (!goalId.HasValue)
+        {
+            return "(empty)";
+        }
+
+        var goalName = _context.StrategicGoals
+            .Where(g => g.Id == goalId.Value)
+            .Select(g => g.Name)
+            .FirstOrDefault();
+
+        if (!string.IsNullOrWhiteSpace(goalName))
+        {
+            return goalName;
+        }
+
+        var fallback = Goals.FirstOrDefault(g => g.Value == goalId.Value.ToString())?.Text;
+        return string.IsNullOrWhiteSpace(fallback) ? $"Goal {goalId.Value}" : fallback;
+    }
 }

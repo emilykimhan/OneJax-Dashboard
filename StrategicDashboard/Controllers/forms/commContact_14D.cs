@@ -1,16 +1,21 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using OneJaxDashboard.Data;
 using OneJaxDashboard.Models;
+using OneJaxDashboard.Services;
 //Karrie's
 namespace OneJaxDashboard.Controllers
 {
+    [Authorize(Roles = "Admin,Staff")]
     public class CommContact14DController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ActivityLogService _activityLog;
 
-        public CommContact14DController(ApplicationDbContext context)
+        public CommContact14DController(ApplicationDbContext context, ActivityLogService activityLog)
         {
             _context = context;
+            _activityLog = activityLog;
         }
 
         // GET: CommContact14D/Index
@@ -33,6 +38,9 @@ namespace OneJaxDashboard.Controllers
                     model.CreatedDate = DateTime.Now;
                     _context.ContactsInterfaith_14D.Add(model);
                     _context.SaveChanges();
+                    var actor = User?.Identity?.Name ?? "Unknown";
+                    _activityLog.Log(actor, "Created Interfaith Contacts Record", "InterfaithContacts",
+                        details: $"Id={model.Id}");
 
                     TempData["Success"] = "Interfaith contacts record submitted successfully!";
                     ViewBag.ShowNewEntryButton = true;
