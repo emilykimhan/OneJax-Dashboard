@@ -49,6 +49,7 @@ namespace OneJaxDashboard.Controllers
             var allYouthAttendance = _context.YouthAttend_15D.Include(y => y.Strategy).ToList();
             var allParticipantDiversity = _context.Diversity_37D.Include(d => d.Strategy).ToList();
             var allFirstTimeParticipants = _context.FirstTime_38D.Include(f => f.Strategy).ToList();
+            var allCollabPartners = _context.CollabTouch_47D.Include(c => c.Strategy).ToList();
 
             // Apply filters
             var filteredStaffSurveys = allStaffSurveys;
@@ -76,6 +77,7 @@ namespace OneJaxDashboard.Controllers
             var filteredYouthAttendance = allYouthAttendance;
             var filteredParticipantDiversity = allParticipantDiversity;
             var filteredFirstTimeParticipants = allFirstTimeParticipants;
+            var filteredCollabPartners = allCollabPartners;
             
             // Filter by date
             DateTime filterStartDate = DateTime.MinValue;
@@ -179,6 +181,9 @@ namespace OneJaxDashboard.Controllers
                         .ToList();
                     filteredFirstTimeParticipants = filteredFirstTimeParticipants
                         .Where(f => f.CreatedDate >= filterStartDate && f.CreatedDate <= filterEndDate)
+                        .ToList();
+                    filteredCollabPartners = filteredCollabPartners
+                        .Where(c => c.CreatedDate >= filterStartDate && c.CreatedDate <= filterEndDate)
                         .ToList();
                 }
             }
@@ -751,9 +756,11 @@ namespace OneJaxDashboard.Controllers
                 filteredParticipantDiversity = new List<Diversity_37D>();
             }
 
-            // If a specific record type is selected that isn't first-time-participants, hide those records
+            // If a specific record type is selected, hide unrelated records
             if (!string.IsNullOrEmpty(recordType) && recordType != "all" && recordType != "first-time-participants")
                 filteredFirstTimeParticipants = new List<FirstTime_38D>();
+            if (!string.IsNullOrEmpty(recordType) && recordType != "all" && recordType != "collab-partners")
+                filteredCollabPartners = new List<CollabTouch_47D>();
 
             // Set ViewBag data
             ViewBag.StaffSurveys = filteredStaffSurveys;
@@ -781,14 +788,76 @@ namespace OneJaxDashboard.Controllers
             ViewBag.YouthAttendance = filteredYouthAttendance;
             ViewBag.ParticipantDiversity = filteredParticipantDiversity;
             ViewBag.FirstTimeParticipants = filteredFirstTimeParticipants;
+            ViewBag.CollabPartners = filteredCollabPartners;
             ViewBag.RecordType = recordType ?? "all";
             ViewBag.DateFilter = dateFilter ?? "all";
             ViewBag.StartDate = startDate?.ToString("yyyy-MM-dd");
             ViewBag.EndDate = endDate?.ToString("yyyy-MM-dd");
-            ViewBag.TotalCount = allStaffSurveys.Count + allProfDev.Count + allMediaPlacements.Count + allWebsiteTraffic.Count + allDonorEvents.Count + allCommRates.Count + allFeeForServices.Count + allIncomeRecords.Count + allBudgetRecords.Count + allSocialMedia.Count + allMilestones.Count + allCommunityPerception.Count + allDemographics.Count + allFrameworkPlans.Count + allBoardMembers.Count + allBoardMeetings.Count + allSelfAssessments.Count + allVolunteerPrograms.Count + allInterfaithEvents.Count + allEventSatisfactions.Count + allFaithCommunity.Count + allNetworkContacts.Count + allYouthAttendance.Count + allParticipantDiversity.Count + allFirstTimeParticipants.Count;
-            ViewBag.VisibleCount = filteredStaffSurveys.Count + filteredProfDev.Count + filteredMediaPlacements.Count + filteredWebsiteTraffic.Count + filteredDonorEvents.Count + filteredCommRates.Count + filteredFeeForServices.Count + filteredIncomeRecords.Count + filteredBudgetRecords.Count + filteredSocialMedia.Count + filteredMilestones.Count + filteredCommunityPerception.Count + filteredDemographics.Count + filteredFrameworkPlans.Count + filteredBoardMembers.Count + filteredBoardMeetings.Count + filteredSelfAssessments.Count + filteredVolunteerPrograms.Count + filteredInterfaithEvents.Count + filteredEventSatisfactions.Count + filteredFaithCommunity.Count + filteredNetworkContacts.Count + filteredYouthAttendance.Count + filteredParticipantDiversity.Count + filteredFirstTimeParticipants.Count;
+            ViewBag.TotalCount = allStaffSurveys.Count + allProfDev.Count + allMediaPlacements.Count + allWebsiteTraffic.Count + allDonorEvents.Count + allCommRates.Count + allFeeForServices.Count + allIncomeRecords.Count + allBudgetRecords.Count + allSocialMedia.Count + allMilestones.Count + allCommunityPerception.Count + allDemographics.Count + allFrameworkPlans.Count + allBoardMembers.Count + allBoardMeetings.Count + allSelfAssessments.Count + allVolunteerPrograms.Count + allInterfaithEvents.Count + allEventSatisfactions.Count + allFaithCommunity.Count + allNetworkContacts.Count + allYouthAttendance.Count + allParticipantDiversity.Count + allFirstTimeParticipants.Count + allCollabPartners.Count;
+            ViewBag.VisibleCount = filteredStaffSurveys.Count + filteredProfDev.Count + filteredMediaPlacements.Count + filteredWebsiteTraffic.Count + filteredDonorEvents.Count + filteredCommRates.Count + filteredFeeForServices.Count + filteredIncomeRecords.Count + filteredBudgetRecords.Count + filteredSocialMedia.Count + filteredMilestones.Count + filteredCommunityPerception.Count + filteredDemographics.Count + filteredFrameworkPlans.Count + filteredBoardMembers.Count + filteredBoardMeetings.Count + filteredSelfAssessments.Count + filteredVolunteerPrograms.Count + filteredInterfaithEvents.Count + filteredEventSatisfactions.Count + filteredFaithCommunity.Count + filteredNetworkContacts.Count + filteredYouthAttendance.Count + filteredParticipantDiversity.Count + filteredFirstTimeParticipants.Count + filteredCollabPartners.Count;
             
             return View();
+        }
+
+        // Delete Collaborative Partner Touchpoints
+        [HttpPost]
+        public IActionResult DeleteCollabPartner(int id)
+        {
+            var record = _context.CollabTouch_47D.Find(id);
+            if (record != null)
+            {
+                _context.CollabTouch_47D.Remove(record);
+                _context.SaveChanges();
+                TempData["Success"] = "Collaborative Partner record deleted successfully!";
+            }
+            else
+            {
+                TempData["Error"] = "Record not found.";
+            }
+            return RedirectToAction("RecordHistory");
+        }
+
+        // Edit Collaborative Partner Touchpoints - GET
+        [HttpGet]
+        public IActionResult EditCollabPartner(int id)
+        {
+            var record = _context.CollabTouch_47D.Include(c => c.Strategy).FirstOrDefault(c => c.Id == id);
+            if (record == null)
+            {
+                TempData["Error"] = "Record not found.";
+                return RedirectToAction("RecordHistory");
+            }
+            ViewBag.Strategies = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(_context.Strategies.OrderBy(s => s.Name), "Id", "Name", record.StrategyId);
+            return View(record);
+        }
+
+        // Edit Collaborative Partner Touchpoints - POST
+        [HttpPost]
+        public IActionResult EditCollabPartner(CollabTouch_47D model)
+        {
+            if (ModelState.IsValid)
+            {
+                var existing = _context.CollabTouch_47D.Find(model.Id);
+                if (existing != null)
+                {
+                    existing.FiscalYear = model.FiscalYear;
+                    existing.PartnerOrganization = model.PartnerOrganization;
+                    existing.Contact = model.Contact;
+                    existing.ContactEmail = model.ContactEmail;
+                    existing.ContactPhone = model.ContactPhone;
+                    existing.StrategyId = model.StrategyId;
+                    existing.Touchpoint = model.Touchpoint;
+                    _context.SaveChanges();
+                    TempData["Success"] = "Collaborative Partner record updated successfully!";
+                    return RedirectToAction("RecordHistory");
+                }
+                else
+                {
+                    TempData["Error"] = "Record not found.";
+                }
+            }
+            ViewBag.Strategies = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(_context.Strategies.OrderBy(s => s.Name), "Id", "Name", model.StrategyId);
+            return View(model);
         }
 
         // Delete First-Time Participants

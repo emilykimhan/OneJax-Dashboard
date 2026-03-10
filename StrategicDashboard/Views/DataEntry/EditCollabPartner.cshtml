@@ -1,0 +1,87 @@
+@model OneJaxDashboard.Models.CollabTouch_47D
+
+@{
+    ViewData["Title"] = "Edit Collaborative Partner Touchpoint";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1 class="headline mb-4" style="color:var(--onejax-navy);">Edit Collaborative Partner Touchpoint</h1>
+
+<div class="container mt-4">
+    <div class="card p-4"
+        style="background-color:var(--onejax-white); 
+               box-shadow:0 4px 24px rgba(0,0,0,0.08); 
+               border-radius:24px; 
+               max-width:800px;">
+
+        <form asp-action="EditCollabPartner" method="post">
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="CreatedDate" />
+
+            <div class="mb-3">
+                <label asp-for="FiscalYear" class="form-label fw-bold">Fiscal Year</label>
+                <input asp-for="FiscalYear" type="text" class="form-control" />
+                <span asp-validation-for="FiscalYear" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="PartnerOrganization" class="form-label fw-bold">Partner / Allied Organization</label>
+                <input asp-for="PartnerOrganization" type="text" class="form-control" />
+                <span asp-validation-for="PartnerOrganization" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Contact" class="form-label fw-bold">Contact</label>
+                <input asp-for="Contact" type="text" class="form-control" />
+                <span asp-validation-for="Contact" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="ContactEmail" class="form-label fw-bold">Contact Email</label>
+                <input asp-for="ContactEmail" type="email" class="form-control" />
+                <span asp-validation-for="ContactEmail" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="ContactPhone" class="form-label fw-bold">Contact Phone</label>
+                <input asp-for="ContactPhone" type="tel" class="form-control" />
+                <span asp-validation-for="ContactPhone" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="StrategyId" class="form-label fw-bold">Event</label>
+                <select asp-for="StrategyId" asp-items="ViewBag.Strategies" class="form-select">
+                    <option value="">-- Select an Event --</option>
+                </select>
+                <span asp-validation-for="StrategyId" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Touchpoint" class="form-label fw-bold">Touchpoint</label>
+                <textarea asp-for="Touchpoint" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="Touchpoint" class="text-danger"></span>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <a asp-action="RecordHistory" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+
+<style>
+    .form-label {
+        color: var(--onejax-navy);
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: var(--onejax-navy);
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 191, 0.25);
+    }
+</style>
