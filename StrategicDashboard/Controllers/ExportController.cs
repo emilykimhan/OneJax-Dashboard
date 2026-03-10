@@ -1,7 +1,5 @@
-
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Text;
 using ClosedXML.Excel;
 using System.IO;
 using OneJaxDashboard.Data;
@@ -15,23 +13,7 @@ public class ExportController : Controller
         _context = context;
     }
 
-    // ─── Existing single-type exports ───────────────────────────────────────
-
-    public IActionResult ExportStaffSurveyToCsv()
-    {
-        var surveys = _context.StaffSurveys_22D.ToList();
-
-        var csv = new StringBuilder();
-        csv.AppendLine("Year,SatisfactionRate,CreatedDate");
-
-        foreach (var s in surveys)
-        {
-            csv.AppendLine($"{s.Year},{s.SatisfactionRate},{s.CreatedDate:MM/dd/yyyy}");
-        }
-
-        var bytes = Encoding.UTF8.GetBytes(csv.ToString());
-        return File(bytes, "text/csv", "StaffSurveyData.csv");
-    }
+    // ─── Existing single-type export ─────────────────────────────────────────
 
     public IActionResult ExportStaffSurveyToExcel()
     {
@@ -90,173 +72,8 @@ public class ExportController : Controller
             }
         }
 
-        return format == "excel" ? BuildExcel(byType) : BuildCsv(byType);
+        return BuildExcel(byType);
     }
-
-    // ─── CSV builder ─────────────────────────────────────────────────────────
-
-    private IActionResult BuildCsv(Dictionary<string, List<int>> byType)
-    {
-        var csv = new StringBuilder();
-
-        void Section(string title, string header, IEnumerable<string> rows)
-        {
-            csv.AppendLine($"--- {title} ---");
-            csv.AppendLine(header);
-            foreach (var r in rows) csv.AppendLine(r);
-            csv.AppendLine();
-        }
-
-        if (byType.TryGetValue("staff-survey", out var ssIds))
-        {
-            var records = _context.StaffSurveys_22D.Where(x => ssIds.Contains(x.Id)).ToList();
-            Section("Staff Survey", "Year,SatisfactionRate,CreatedDate",
-                records.Select(x => $"{x.Year},{x.SatisfactionRate},{x.CreatedDate:MM/dd/yyyy}"));
-        }
-        if (byType.TryGetValue("professional-development", out var pdIds))
-        {
-            var records = _context.ProfessionalDevelopments.Where(x => pdIds.Contains(x.Id)).ToList();
-            Section("Professional Development", "Year,StaffName,Activities,CreatedDate",
-                records.Select(x => $"{x.Year},{CsvEscape(x.Name)},{CsvEscape(x.Activities)},{x.CreatedDate:MM/dd/yyyy}"));
-        }
-        if (byType.TryGetValue("media-placements", out var mpIds))
-        {
-            var records = _context.MediaPlacements_3D.Where(x => mpIds.Contains(x.Id)).ToList();
-            Section("Media Placements", "TotalMentions,Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec,CreatedDate",
-                records.Select(x => $"{x.TotalMentions},{x.January},{x.February},{x.March},{x.April},{x.May},{x.June},{x.July},{x.August},{x.September},{x.October},{x.November},{x.December},{x.CreatedDate:MM/dd/yyyy}"));
-        }
-        if (byType.TryGetValue("website-traffic", out var wtIds))
-        {
-            var records = _context.WebsiteTraffic.Where(x => wtIds.Contains(x.Id)).ToList();
-            Section("Website Traffic", "TotalClicks,Q1_JulSep,Q2_OctDec,Q3_JanMar,Q4_AprJun,CreatedDate",
-                records.Select(x => $"{x.TotalClicks},{x.Q1_JulySeptember},{x.Q2_OctoberDecember},{x.Q3_JanuaryMarch},{x.Q4_AprilJune},{x.CreatedDate:MM/dd/yyyy}"));
-        }
-        if (byType.TryGetValue("donor-events", out var deIds))
-        {
-            var records = _context.DonorEvents_19D.Include(d => d.Strategy).Where(x => deIds.Contains(x.Id)).ToList();
-            Section("Donor/Honoree Engagement", "Event,NumberOfParticipants,EventSatisfactionRating,CreatedDate",
-                records.Select(x => $"{CsvEscape(x.Strategy?.Name ?? "")},{x.NumberOfParticipants},{x.EventSatisfactionRating},{x.CreatedDate:MM/dd/yyyy}"));
-        }
-        if (byType.TryGetValue("comm-rate", out var crIds))
-        {
-            var records = _context.CommunicationRate.Where(x => crIds.Contains(x.Id)).ToList();
-            Section("Communication Satisfaction", "Year,AverageCommunicationSatisfaction,CreatedDate",
-                records.Select(x => $"{x.Year},{x.AverageCommunicationSatisfaction},{x.CreatedDate:MM/dd/yyyy}"));
-        }
-        if (byType.TryGetValue("fee-for-service", out var ffIds))
-        {
-            var records = _context.FeeForServices_21D.Include(f => f.Strategy).Where(x => ffIds.Contains(x.Id)).ToList();
-            Section("Fee-For-Service Revenue", "ClientName,Event,WorkshopFormat,WorkshopLocation,WorkshopDate,NumberOfAttendees,ParticipantSatisfaction,PartnerSatisfaction,RevenueReceived,Expense,Year,CreatedDate",
-                records.Select(x => $"{CsvEscape(x.ClientName)},{CsvEscape(x.Strategy?.Name ?? x.EventName ?? "")},{CsvEscape(x.WorkshopFormat)},{CsvEscape(x.WorkshopLocation ?? "")},{x.WorkshopDate:MM/dd/yyyy},{x.NumberOfAttendees},{x.ParticipantSatisfactionRating},{x.PartnerSatisfactionRating},{x.RevenueReceived},{x.ExpenseReceived},{x.Year},{x.CreatedDate:MM/dd/yyyy}"));
-        }
-        if (byType.TryGetValue("earned-income", out var eiIds))
-        {
-            var records = _context.income_27D.Where(x => eiIds.Contains(x.Id)).ToList();
-            Section("Earned Income Tracking", "IncomeSource,Amount,Month,Notes,CreatedDate",
-                records.Select(x => $"{CsvEscape(x.IncomeSource)},{x.Amount},{CsvEscape(x.Month)},{CsvEscape(x.Notes ?? "")},{x.CreatedDate:MM/dd/yyyy}"));
-        }
-        if (byType.TryGetValue("budget-tracking", out var btIds))
-        {
-            var records = _context.BudgetTracking_28D.Where(x => btIds.Contains(x.Id)).ToList();
-            Section("Annual Budget Tracking", "Quarter,Year,TotalRevenues,TotalExpenses,NetAmount,Notes,CreatedDate",
-                records.Select(x => $"{CsvEscape(x.Quarter)},{x.Year},{x.TotalRevenues},{x.TotalExpenses},{x.NetAmount},{CsvEscape(x.Notes ?? "")},{x.CreatedDate:MM/dd/yyyy}"));
-        }
-        if (byType.TryGetValue("social-media", out var smIds))
-        {
-            var records = _context.socialMedia_5D.Where(x => smIds.Contains(x.Id)).ToList();
-            Section("Social Media Engagement", "Year,AverageEngagementRate,JulSep,OctDec,JanMar,AprJun,GoalMet,CreatedDate",
-                records.Select(x => $"{x.Year},{x.AverageEngagementRate},{x.JulySeptEngagementRate},{x.OctDecEngagementRate},{x.JanMarEngagementRate},{x.AprilJuneEngagementRate},{x.GoalMet},{x.CreatedDate:MM/dd/yyyy}"));
-        }
-        if (byType.TryGetValue("milestone", out var msIds))
-        {
-            var records = _context.achieveMile_6D.Where(x => msIds.Contains(x.Id)).ToList();
-            Section("Milestone Achievement", "MilestonesAchievedPercent,AchievedInReview,GoalMet,CreatedDate",
-                records.Select(x => $"{x.Percentage},{x.achievedReview},{x.GoalMet},{x.CreatedDate:MM/dd/yyyy}"));
-        }
-        if (byType.TryGetValue("community-perception", out var cpIds))
-        {
-            var records = _context.Annual_average_7D.Where(x => cpIds.Contains(x.Id)).ToList();
-            Section("Community Perception Survey", "Year,PercentTrustedLeader,TotalRespondents,RespondentsTrusted,Notes,GoalMet,CreatedDate",
-                records.Select(x => $"{x.Year},{x.Percentage},{x.TotalRespondents},{x.RespondentsIdentifyingAsTrusted},{CsvEscape(x.Notes ?? "")},{x.GoalMet},{x.CreatedDate:MM/dd/yyyy}"));
-        }
-        if (byType.TryGetValue("programs-demographics", out var demoIds))
-        {
-            var records = _context.demographics_8D.Include(d => d.Strategy).Where(x => demoIds.Contains(x.Id)).ToList();
-            Section("Programs Demographics", "Event,Year,ZipCodes,Notes,CreatedDate",
-                records.Select(x => $"{CsvEscape(x.Strategy?.Name ?? "")},{x.Year},{CsvEscape(x.ZipCodes)},{CsvEscape(x.Notes ?? "")},{x.CreatedDate:MM/dd/yyyy}"));
-        }
-        if (byType.TryGetValue("framework-plan", out var fpIds))
-        {
-            var records = _context.Plan2026_24D.Where(x => fpIds.Contains(x.Id)).ToList();
-            Section("Framework Development Plan", "Name,Year,Quarter,FrameworkStatus,GoalMet,IssueName,CrisisDescription,IssueHandled,Notes,CreatedDate",
-                records.Select(x => $"{CsvEscape(x.Name)},{x.Year},{CsvEscape(x.Quarter)},{CsvEscape(x.FrameworkStatus)},{x.GoalMet},{CsvEscape(x.IssueName ?? "")},{CsvEscape(x.CrisisDescription ?? "")},{x.IssueHandled},{CsvEscape(x.Notes ?? "")},{x.CreatedDate:MM/dd/yyyy}"));
-        }
-        if (byType.TryGetValue("board-member", out var bmIds))
-        {
-            var records = _context.BoardMember_29D.Where(x => bmIds.Contains(x.Id)).ToList();
-            Section("Board Member Recruitment", "Year,Quarter,NumberRecruited,MemberNames,TotalProspectOutreach,ProspectNames,CreatedDate",
-                records.Select(x => $"{x.Year},{x.Quarter},{x.NumberRecruited},{CsvEscape(x.MemberNames ?? "")},{x.TotalProspectOutreach},{CsvEscape(x.ProspectNames ?? "")},{x.CreatedDate:MM/dd/yyyy}"));
-        }
-        if (byType.TryGetValue("board-meeting", out var bmaIds))
-        {
-            var records = _context.BoardMeetingAttendance.Where(x => bmaIds.Contains(x.Id)).ToList();
-            Section("Board Meeting Attendance", "MeetingDate,MembersInAttendance,TotalBoardMembers,AttendanceRate,CreatedDate",
-                records.Select(x => $"{x.MeetingDate:MM/dd/yyyy},{x.MembersInAttendance},{x.TotalBoardMembers},{x.AttendanceRate?.ToString("F1")},{x.CreatedDate:MM/dd/yyyy}"));
-        }
-        if (byType.TryGetValue("self-assessment", out var saIds))
-        {
-            var records = _context.selfAssess_31D.Where(x => saIds.Contains(x.Id)).ToList();
-            Section("Board Self-Assessment", "Year,SelfAssessmentScore,CreatedDate",
-                records.Select(x => $"{x.Year},{x.SelfAssessmentScore},{x.CreatedDate:MM/dd/yyyy}"));
-        }
-        if (byType.TryGetValue("volunteer-program", out var vpIds))
-        {
-            var records = _context.volunteerProgram_40D.Where(x => vpIds.Contains(x.Id)).ToList();
-            Section("Volunteer Program", "Quarter,Year,NumberOfVolunteers,VolunteerLedInitiatives,CommunicationsActivities,RecognitionActivities,InitiativeDescriptions,CreatedDate",
-                records.Select(x => $"{x.Quarter},{x.Year},{x.NumberOfVolunteers},{x.VolunteerLedInitiatives},{CsvEscape(x.CommunicationsActivities)},{CsvEscape(x.RecognitionActivities)},{CsvEscape(x.InitiativeDescriptions)},{x.CreatedDate:MM/dd/yyyy}"));
-        }
-        if (byType.TryGetValue("interfaith-event", out var ieIds))
-        {
-            var records = _context.Interfaith_11D.Include(i => i.Strategy).Where(x => ieIds.Contains(x.Id)).ToList();
-            Section("Interfaith Collaboration Event", "EventName,FaithsRepresented,PostEventSatisfaction,TotalAttendance,CreatedDate",
-                records.Select(x => $"{CsvEscape(x.Strategy?.Name ?? "")},{x.NumberOfFaithsRepresented},{x.PostEventSatisfactionSurvey},{x.TotalAttendance},{x.CreatedDate:MM/dd/yyyy}"));
-        }
-        if (byType.TryGetValue("event-satisfaction", out var esIds))
-        {
-            var records = _context.EventSatisfaction_12D.Include(e => e.Strategy).Where(x => esIds.Contains(x.Id)).ToList();
-            Section("Event Satisfaction", "EventName,AttendeeSatisfaction,CreatedDate",
-                records.Select(x => $"{CsvEscape(x.Strategy?.Name ?? "")},{x.EventAttendeeSatisfactionPercentage},{x.CreatedDate:MM/dd/yyyy}"));
-        }
-        if (byType.TryGetValue("faith-community", out var fcIds))
-        {
-            var records = _context.FaithCommunity_13D.Include(f => f.Strategy).Where(x => fcIds.Contains(x.Id)).ToList();
-            Section("Faith Community Representation", "EventName,NumberOfFaithsRepresented,CreatedDate",
-                records.Select(x => $"{CsvEscape(x.Strategy?.Name ?? "")},{x.NumberOfFaithsRepresented},{x.CreatedDate:MM/dd/yyyy}"));
-        }
-        if (byType.TryGetValue("network-contacts", out var ncIds))
-        {
-            var records = _context.ContactsInterfaith_14D.Where(x => ncIds.Contains(x.Id)).ToList();
-            Section("Network Contacts", "Year,TotalInterfaithContacts,CreatedDate",
-                records.Select(x => $"{x.Year},{x.TotalInterfaithContacts},{x.CreatedDate:MM/dd/yyyy}"));
-        }
-        if (byType.TryGetValue("youth-attendance", out var yaIds))
-        {
-            var records = _context.YouthAttend_15D.Include(y => y.Strategy).Where(x => yaIds.Contains(x.Id)).ToList();
-            Section("Youth Attendance", "Event,NumberOfYouthAttendees,PostEventSurveySatisfaction,AveragePreAssessment,AveragePostAssessment,CreatedDate",
-                records.Select(x => $"{CsvEscape(x.Strategy?.Name ?? "")},{x.NumberOfYouthAttendees},{x.PostEventSurveySatisfaction},{x.AveragePreAssessment},{x.AveragePostAssessment},{x.CreatedDate:MM/dd/yyyy}"));
-        }
-        if (byType.TryGetValue("participant-diversity", out var diversityIds))
-        {
-            var records = _context.Diversity_37D.Include(d => d.Strategy).Where(x => diversityIds.Contains(x.Id)).ToList();
-            Section("Participant Diversity", "FiscalYear,Event,DiversityCount,CreatedDate",
-                records.Select(x => $"{x.FiscalYear},{CsvEscape(x.Strategy?.Name ?? "")},{x.DiversityCount},{x.CreatedDate:MM/dd/yyyy}"));
-        }
-
-        var bytes = Encoding.UTF8.GetBytes(csv.ToString());
-        return File(bytes, "text/csv", $"SelectedRecords_{DateTime.Now:yyyyMMdd}.csv");
-    }
-
-    // ─── Excel builder ───────────────────────────────────────────────────────
 
     private IActionResult BuildExcel(Dictionary<string, List<int>> byType)
     {
@@ -436,13 +253,4 @@ public class ExportController : Controller
             $"SelectedRecords_{DateTime.Now:yyyyMMdd}.xlsx");
     }
 
-    // ─── Helpers ─────────────────────────────────────────────────────────────
-
-    private static string CsvEscape(string? value)
-    {
-        if (string.IsNullOrEmpty(value)) return "";
-        if (value.Contains(',') || value.Contains('"') || value.Contains('\n'))
-            return "\"" + value.Replace("\"", "\"\"") + "\"";
-        return value;
-    }
 }

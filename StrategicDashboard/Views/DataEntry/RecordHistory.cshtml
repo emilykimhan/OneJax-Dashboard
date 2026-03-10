@@ -111,31 +111,8 @@
         <!-- Hidden export form (submitted by JS) -->
         <form id="exportForm" method="post" action="/Export/ExportSelected">
             @Html.AntiForgeryToken()
-            <input type="hidden" name="format" id="exportFormatInput" value="csv" />
+            <input type="hidden" name="format" value="excel" />
         </form>
-
-        <!-- Export Format Modal -->
-        <div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-sm modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="exportModalLabel">Choose Export Format</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <p class="text-muted small mb-3">Select a format to download the <strong><span id="modalRecordCount">0</span> selected record(s)</strong>.</p>
-                        <div class="d-grid gap-2">
-                            <button type="button" class="btn btn-outline-success" onclick="doExport('csv')">
-                                &#x1F4BE; Download CSV
-                            </button>
-                            <button type="button" class="btn btn-outline-primary" onclick="doExport('excel')">
-                                &#x1F4CA; Download Excel
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
         <div class="container">
     <h2>Record History</h2>
@@ -1819,13 +1796,11 @@
         const selectAllCb = document.getElementById('selectAllCheckbox');
         const exportBtn = document.getElementById('exportSelectedBtn');
         const countSpan = document.getElementById('selectedCount');
-        const modalCountSpan = document.getElementById('modalRecordCount');
 
         function updateCount() {
             const checked = document.querySelectorAll('.record-checkbox:checked');
             const n = checked.length;
             countSpan.textContent = n;
-            if (modalCountSpan) modalCountSpan.textContent = n;
             exportBtn.disabled = n === 0;
 
             // Highlight selected cards
@@ -1853,16 +1828,7 @@
         });
 
         exportBtn.addEventListener('click', function () {
-            const n = document.querySelectorAll('.record-checkbox:checked').length;
-            if (n === 0) return;
-            if (modalCountSpan) modalCountSpan.textContent = n;
-            var modal = new bootstrap.Modal(document.getElementById('exportModal'));
-            modal.show();
-        });
-
-        window.doExport = function (format) {
             const form = document.getElementById('exportForm');
-            document.getElementById('exportFormatInput').value = format;
 
             // Remove any previously added items
             form.querySelectorAll('input[name="selectedItems"]').forEach(el => el.remove());
@@ -1876,10 +1842,7 @@
                 form.appendChild(input);
             });
 
-            // Close the modal, then submit
-            var modalEl = document.getElementById('exportModal');
-            bootstrap.Modal.getInstance(modalEl).hide();
             form.submit();
-        };
+        });
     })();
 </script>
