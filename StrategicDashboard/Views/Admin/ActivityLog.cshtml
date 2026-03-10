@@ -63,15 +63,15 @@
                                     <small>@ToEastern(activity.Timestamp).ToString("MM/dd/yyyy hh:mm:ss tt")</small>
                                 </td>
                                 <td>
-                                    <span class="badge bg-secondary">@activity.Username</span>
+                                    <span class="badge bg-secondary">@activity.User</span>
                                 </td>
                                 <td>
                                     <strong>@activity.Action</strong>
                                 </td>
                                 <td>
-                                    @if (!string.IsNullOrEmpty(activity.EntityType))
+                                    @if (!string.IsNullOrEmpty(activity.Entity))
                                     {
-                                        <span class="badge bg-info">@activity.EntityType #@activity.EntityId</span>
+                                        <span class="badge bg-info">@activity.Entity</span>
                                     }
                                     else
                                     {
@@ -79,7 +79,7 @@
                                     }
                                 </td>
                                 <td>
-                                    <small class="text-muted">@(activity.Notes ?? "—")</small>
+                                    <small class="text-muted">@(activity.Details ?? "—")</small>
                                 </td>
                             </tr>
                         }

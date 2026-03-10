@@ -1,17 +1,22 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using OneJaxDashboard.Data;
 using OneJaxDashboard.Models;
 using Microsoft.EntityFrameworkCore;
+using OneJaxDashboard.Services;
 
 namespace OneJaxDashboard.Controllers
 {
+    [Authorize(Roles = "Admin,Staff")]
     public class VolunteerProgramController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ActivityLogService _activityLog;
 
-        public VolunteerProgramController(ApplicationDbContext context)
+        public VolunteerProgramController(ApplicationDbContext context, ActivityLogService activityLog)
         {
             _context = context;
+            _activityLog = activityLog;
         }
 
         // GET: VolunteerProgram/Index
@@ -44,6 +49,9 @@ namespace OneJaxDashboard.Controllers
                 {
                     _context.volunteerProgram_40D.Add(model);
                     _context.SaveChanges();
+                    var actor = User?.Identity?.Name ?? "Unknown";
+                    _activityLog.Log(actor, "Created Volunteer Program Record", "VolunteerProgram",
+                        details: $"Id={model.Id}");
                     
                     TempData["Success"] = "Volunteer program record submitted successfully!";
                     return RedirectToAction(nameof(Index));

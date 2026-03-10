@@ -1,18 +1,23 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using OneJaxDashboard.Data;
 using OneJaxDashboard.Models;
+using OneJaxDashboard.Services;
 //Karrie's
 namespace OneJaxDashboard.Controllers
 {
+    [Authorize(Roles = "Admin,Staff")]
     public class CommYouth15DController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ActivityLogService _activityLog;
 
-        public CommYouth15DController(ApplicationDbContext context)
+        public CommYouth15DController(ApplicationDbContext context, ActivityLogService activityLog)
         {
             _context = context;
+            _activityLog = activityLog;
         }
 
         // GET: CommYouth15D/Index
@@ -36,6 +41,9 @@ namespace OneJaxDashboard.Controllers
                     model.CreatedDate = DateTime.Now;
                     _context.YouthAttend_15D.Add(model);
                     _context.SaveChanges();
+                    var actor = User?.Identity?.Name ?? "Unknown";
+                    _activityLog.Log(actor, "Created Youth Attendance Record", "YouthAttendance",
+                        details: $"Id={model.Id}");
 
                     TempData["Success"] = "Youth attendance record submitted successfully!";
                     ViewBag.ShowNewEntryButton = true;

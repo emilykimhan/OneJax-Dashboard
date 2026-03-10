@@ -3,16 +3,19 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using OneJaxDashboard.Models;
 using OneJaxDashboard.Data;
+using OneJaxDashboard.Services;
 //karrie's
 namespace OneJaxDashboard.Controllers
 {
     public class ProfessionalDevelopmentController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ActivityLogService _activityLog;
 
-        public ProfessionalDevelopmentController(ApplicationDbContext context)
+        public ProfessionalDevelopmentController(ApplicationDbContext context, ActivityLogService activityLog)
         {
             _context = context;
+            _activityLog = activityLog;
         }
 
         
@@ -33,6 +36,10 @@ namespace OneJaxDashboard.Controllers
                 {
                     _context.ProfessionalDevelopments.Add(model);
                     _context.SaveChanges();
+
+                    var actor = User.Identity?.Name ?? "Unknown";
+                    _activityLog.Log(actor, "Submitted Professional Development Survey", "ProfessionalDevelopment",
+                        details: $"Id={model.Id}; Staff member: {model.Name}");
                     TempData["Success"] = "Professional development record submitted successfully!";
                     return RedirectToAction(nameof(Index));
                 }

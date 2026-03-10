@@ -49,7 +49,8 @@ namespace OneJaxDashboard.Controllers
                     _context.SaveChanges();
 
                     var actor = User.Identity?.Name ?? "Unknown";
-                    _activityLog.Log(actor, "Created Fee-for-Service Revenue Record", "FeeForService", model.Id);
+                    _activityLog.Log(actor, "Created Fee-for-Service Revenue Record", "FeeForService",
+                        details: $"Id={model.Id}");
                     
                     TempData["Success"] = "Submitted successfully!";
                     ViewBag.ShowNewEntryButton = true;

@@ -49,7 +49,8 @@ namespace OneJaxDashboard.Controllers
                     _context.SaveChanges();
 
                     var actor = User.Identity?.Name ?? "Unknown";
-                    _activityLog.Log(actor, "Created Earned Income Tracking Record", "Income", model.Id);
+                    _activityLog.Log(actor, "Created Earned Income Tracking Record", "Income",
+                        details: $"Id={model.Id}");
                     
                     // Recalculate totals after adding new entry
                     var allEntries = _context.income_27D.ToList();

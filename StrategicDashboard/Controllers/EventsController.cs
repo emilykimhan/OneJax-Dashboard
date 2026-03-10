@@ -299,7 +299,7 @@ namespace OneJaxDashboard.Controllers
 
             var added = _events.Add(eventModel);
 
-            _activityLog.Log(username, "Created Event", "Event", added.Id, notes: $"Created '{added.Title}'");
+            _activityLog.Log(username, "Created Event", "Event", details: $"Id={added.Id}; Created '{added.Title}'");
 
             TempData["SuccessMessage"] = "Event created successfully!";
             return RedirectToAction("Index");
@@ -341,9 +341,8 @@ namespace OneJaxDashboard.Controllers
             eventModel.AssignmentDate = existing.AssignmentDate;
             eventModel.AdminNotes = existing.AdminNotes;
 
-            // Log status changes specifically
-            var statusChanged = existing.Status != eventModel.Status;
-            var statusChangeNote = statusChanged ? $"Status changed from '{existing.Status}' to '{eventModel.Status}'" : null;
+            var changeDetails = BuildEventChangeDetails(existing, eventModel);
+            var statusChanged = !string.Equals(existing.Status ?? string.Empty, eventModel.Status ?? string.Empty, StringComparison.OrdinalIgnoreCase);
 
             // Auto-archive when status is Completed
             if (eventModel.Status == "Completed")
@@ -361,10 +360,9 @@ namespace OneJaxDashboard.Controllers
 
             //Get staff name for logging
             var username = User.Identity?.Name ?? string.Empty;
-            // Log the update with status change detail if applicable
             var logAction = statusChanged ? "Changed Event Status" : "Updated Event";
-            var logNotes = statusChangeNote ?? $"Updated '{eventModel.Title}'";
-            _activityLog.Log(username, logAction, "Event", eventModel.Id, notes: logNotes);
+            var logNotes = $"Updated '{eventModel.Title}'. Changes: {changeDetails}";
+            _activityLog.Log(username, logAction, "Event", details: $"Id={eventModel.Id}; {logNotes}");
 
             TempData["SuccessMessage"] = "Event updated successfully!";
             return RedirectToAction("Index");
@@ -392,7 +390,7 @@ namespace OneJaxDashboard.Controllers
             var eventTitle = eventModel.Title;
 
             _events.Remove(id);
-            _activityLog.Log(username, "Deleted Event", "Event", id, notes: $"Deleted '{eventTitle}'");
+            _activityLog.Log(username, "Deleted Event", "Event", details: $"Id={id}; Deleted '{eventTitle}'");
 
             TempData["SuccessMessage"] = "Event deleted successfully!";
             return RedirectToAction("Index");
@@ -403,6 +401,74 @@ namespace OneJaxDashboard.Controllers
             var username = User.Identity?.Name ?? string.Empty;
             return string.Equals(e.OwnerUsername, username, StringComparison.OrdinalIgnoreCase);
         }
+
+        private static string BuildEventChangeDetails(Event before, Event after)
+        {
+            var changes = new List<string>();
+            AddChange(changes, "Description", before.Description, after.Description);
+            AddChange(changes, "Type", before.Type, after.Type);
+            AddChange(changes, "Location", before.Location, after.Location);
+            AddChange(changes, "Status", before.Status, after.Status);
+            AddDateChange(changes, "Start Date", before.StartDate, after.StartDate);
+            AddDateChange(changes, "End Date", before.EndDate, after.EndDate);
+            AddDateChange(changes, "Due Date", before.DueDate, after.DueDate);
+            AddNumberChange(changes, "Attendees", before.Attendees, after.Attendees);
+            AddDecimalChange(changes, "Satisfaction Score", before.SatisfactionScore, after.SatisfactionScore);
+            AddChange(changes, "Notes", before.Notes, after.Notes);
+            AddChange(changes, "Pre Assessment Data", before.PreAssessmentData, after.PreAssessmentData);
+            AddChange(changes, "Post Assessment Data", before.PostAssessmentData, after.PostAssessmentData);
+
+            return changes.Count > 0 ? string.Join("; ", changes) : "No field changes detected";
+        }
+
+        private static void AddChange(List<string> changes, string fieldName, string? before, string? after)
+        {
+            var oldValue = Normalize(before);
+            var newValue = Normalize(after);
+            if (string.Equals(oldValue, newValue, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            changes.Add($"{fieldName}: '{Display(oldValue)}' -> '{Display(newValue)}'");
+        }
+
+        private static void AddDateChange(List<string> changes, string fieldName, DateTime? before, DateTime? after)
+        {
+            var oldValue = before?.Date;
+            var newValue = after?.Date;
+            if (oldValue == newValue)
+            {
+                return;
+            }
+
+            changes.Add($"{fieldName}: '{DisplayDate(oldValue)}' -> '{DisplayDate(newValue)}'");
+        }
+
+        private static void AddNumberChange(List<string> changes, string fieldName, int before, int after)
+        {
+            if (before == after)
+            {
+                return;
+            }
+
+            changes.Add($"{fieldName}: '{before}' -> '{after}'");
+        }
+
+        private static void AddDecimalChange(List<string> changes, string fieldName, decimal? before, decimal? after)
+        {
+            if (before == after)
+            {
+                return;
+            }
+
+            changes.Add($"{fieldName}: '{DisplayDecimal(before)}' -> '{DisplayDecimal(after)}'");
+        }
+
+        private static string Normalize(string? value) => (value ?? string.Empty).Trim();
+        private static string Display(string value) => string.IsNullOrEmpty(value) ? "(empty)" : value;
+        private static string DisplayDate(DateTime? value) => value.HasValue ? value.Value.ToString("yyyy-MM-dd") : "(empty)";
+        private static string DisplayDecimal(decimal? value) => value.HasValue ? value.Value.ToString("0.##") : "(empty)";
 
         private void PopulateStrategicGoalsAndStrategies(int? selectedStrategyId)
         {

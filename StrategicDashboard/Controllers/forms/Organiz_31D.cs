@@ -1,17 +1,22 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using OneJaxDashboard.Data;
 using OneJaxDashboard.Models;
 using Microsoft.EntityFrameworkCore;
+using OneJaxDashboard.Services;
 
 namespace OneJaxDashboard.Controllers
 {
+    [Authorize(Roles = "Admin,Staff")]
     public class SelfAssessmentController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ActivityLogService _activityLog;
 
-        public SelfAssessmentController(ApplicationDbContext context)
+        public SelfAssessmentController(ApplicationDbContext context, ActivityLogService activityLog)
         {
             _context = context;
+            _activityLog = activityLog;
         }
 
         // GET: SelfAssessment/Index
@@ -44,6 +49,9 @@ namespace OneJaxDashboard.Controllers
                 {
                     _context.selfAssess_31D.Add(model);
                     _context.SaveChanges();
+                    var actor = User?.Identity?.Name ?? "Unknown";
+                    _activityLog.Log(actor, "Created Board Self-Assessment Record", "SelfAssessment",
+                        details: $"Id={model.Id}");
                     
                     TempData["Success"] = "Board self-assessment record submitted successfully!";
                     return RedirectToAction(nameof(Index));

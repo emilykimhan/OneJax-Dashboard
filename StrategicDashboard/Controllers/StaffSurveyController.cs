@@ -2,16 +2,19 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OneJaxDashboard.Models;
 using OneJaxDashboard.Data;
+using OneJaxDashboard.Services;
 //karrie 
 namespace OneJaxDashboard.Controllers
 {
     public class StaffSurveyController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ActivityLogService _activityLog;
 
-        public StaffSurveyController(ApplicationDbContext context)
+        public StaffSurveyController(ApplicationDbContext context, ActivityLogService activityLog)
         {
             _context = context;
+            _activityLog = activityLog;
         }
 
         [HttpGet]
@@ -32,6 +35,10 @@ namespace OneJaxDashboard.Controllers
                     // Add the survey data to the database
                     _context.StaffSurveys_22D.Add(model);
                     await _context.SaveChangesAsync();
+
+                    var actor = User.Identity?.Name ?? "Unknown";
+                    _activityLog.Log(actor, "Submitted Staff Satisfaction Survey", "StaffSurvey",
+                        details: $"Id={model.Id}; Year: {model.Year}, Satisfaction: {model.SatisfactionRate}%");
                     
                     TempData["SuccessMessage"] = "Survey submitted and saved successfully!";
                     return RedirectToAction("Index");

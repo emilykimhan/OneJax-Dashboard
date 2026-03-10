@@ -1,17 +1,22 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using OneJaxDashboard.Data;
 using OneJaxDashboard.Models;
 using Microsoft.EntityFrameworkCore;
+using OneJaxDashboard.Services;
 
 namespace OneJaxDashboard.Controllers
 {
+    [Authorize(Roles = "Admin,Staff")]
     public class BoardMeetingAttendanceController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ActivityLogService _activityLog;
 
-        public BoardMeetingAttendanceController(ApplicationDbContext context)
+        public BoardMeetingAttendanceController(ApplicationDbContext context, ActivityLogService activityLog)
         {
             _context = context;
+            _activityLog = activityLog;
         }
 
         // GET: BoardMeetingAttendance/Index
@@ -51,6 +56,9 @@ namespace OneJaxDashboard.Controllers
                 {
                     _context.BoardMeetingAttendance.Add(model);
                     _context.SaveChanges();
+                    var actor = User?.Identity?.Name ?? "Unknown";
+                    _activityLog.Log(actor, "Created Board Meeting Attendance Record", "BoardMeetingAttendance",
+                        details: $"Id={model.Id}");
 
                     TempData["Success"] = "Board meeting attendance record submitted successfully!";
                     return RedirectToAction(nameof(Index));

@@ -41,7 +41,8 @@ namespace OneJaxDashboard.Controllers
                     _context.SaveChanges();
 
                     var actor = User.Identity?.Name ?? "Unknown";
-                    _activityLog.Log(actor, "Created Donor/Honoree Engagement Record", "DonorEvent", model.Id);
+                    _activityLog.Log(actor, "Created Donor/Honoree Engagement Record", "DonorEvent",
+                        details: $"Id={model.Id}");
                     
                     TempData["Success"] = "Donor event record submitted successfully!";
                     ViewBag.ShowNewEntryButton = true;

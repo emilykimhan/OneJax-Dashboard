@@ -1,17 +1,22 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using OneJaxDashboard.Data;
 using OneJaxDashboard.Models;
 using Microsoft.EntityFrameworkCore;
+using OneJaxDashboard.Services;
 
 namespace OneJaxDashboard.Controllers
 {
+    [Authorize(Roles = "Admin,Staff")]
     public class BoardMemberRecruitmentController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ActivityLogService _activityLog;
 
-        public BoardMemberRecruitmentController(ApplicationDbContext context)
+        public BoardMemberRecruitmentController(ApplicationDbContext context, ActivityLogService activityLog)
         {
             _context = context;
+            _activityLog = activityLog;
         }
 
         // GET: BoardMemberRecruitment/Index
@@ -49,6 +54,9 @@ namespace OneJaxDashboard.Controllers
                 {
                     _context.BoardMember_29D.Add(model);
                     _context.SaveChanges();
+                    var actor = User?.Identity?.Name ?? "Unknown";
+                    _activityLog.Log(actor, "Created Board Member Recruitment Record", "BoardMemberRecruitment",
+                        details: $"Id={model.Id}");
                     
                     TempData["Success"] = "Board member recruitment record submitted successfully!";
                     return RedirectToAction(nameof(Index));
