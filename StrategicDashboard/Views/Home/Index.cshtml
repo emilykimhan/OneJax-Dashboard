@@ -1,5 +1,6 @@
 @model DashboardViewModel
 @using OneJaxDashboard.Models
+@inject OneJaxDashboard.Services.IDashboardNotesStore DashboardNotesStore
 @{
     ViewData["Title"] = "OneJax Strategic Dashboard - Enhanced";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -324,10 +325,34 @@
 	                                    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
 	                                }
 
-	                                .summary-link-card .card-body {
-	                                    min-height: 210px;
-	                                }
-	                            </style>
+		                                .summary-link-card .card-body {
+		                                    min-height: 210px;
+		                                }
+
+		                                .onejax-overall-gauge-wrap {
+		                                    position: relative;
+		                                    width: 140px;
+		                                    height: 140px;
+		                                    margin: 0 auto;
+		                                }
+
+		                                .onejax-overall-gauge-wrap canvas {
+		                                    width: 100% !important;
+		                                    height: 100% !important;
+		                                    display: block;
+		                                }
+
+		                                .onejax-overall-gauge-text {
+		                                    position: absolute;
+		                                    left: 50%;
+		                                    top: 50%;
+		                                    transform: translate(-50%, -50%);
+		                                    font-weight: 800;
+		                                    font-size: 2rem;
+		                                    letter-spacing: -0.02em;
+		                                    color: var(--onejax-navy);
+		                                }
+		                            </style>
 	                            <div class="col-12 mb-3">
 	                                <h5 style="color: var(--onejax-navy); font-weight: 600; margin-bottom: 1rem;">
 	                                    <i class="fas fa-rocket"></i> Quick Access & KPIs
@@ -416,23 +441,26 @@
 	                                </div>
 	                            </div>
                             
-	                            <!-- Performance Gauge Card -->
-	                            <div class="col-md-4 mb-3">
-	                                <div class="card metric-card-creative summary-static-card h-100" style="border-radius: 12px; border: 1px solid var(--onejax-border); transition: all 0.3s ease;">
-	                                    <div class="card-body text-center d-flex flex-column justify-content-center h-100" style="padding: 1.5rem;">
-	                                        <div class="mb-3">
-	                                            <canvas id="performanceGauge" width="100" height="100"></canvas>
-	                                        </div>
-	                                        <h6 class="card-title" style="color: var(--onejax-navy); font-weight: 600; margin-bottom: 0.5rem;">Performance Score</h6>
-                                        <p class="card-text text-muted" style="font-size: 0.9rem; margin-bottom: 1rem;">Overall organizational health</p>
-                                        <div class="d-flex justify-content-center align-items-center">
-                                            <span class="badge bg-success">
-                                                Excellent
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+		                            <!-- Performance Gauge Card -->
+		                            <div class="col-md-4 mb-3">
+		                                <div class="card metric-card-creative summary-static-card h-100" style="border-radius: 12px; border: 1px solid var(--onejax-border); transition: all 0.3s ease;">
+		                                    <div class="card-body text-center d-flex flex-column justify-content-center h-100" style="padding: 1.5rem; gap: 0.65rem;">
+		                                        @{
+		                                            var overallDashboardProgress =
+		                                                (Model.Charts.GoalProgress.OrganizationalProgress +
+		                                                 Model.Charts.GoalProgress.FinancialProgress +
+	                                                 Model.Charts.GoalProgress.IdentityProgress +
+		                                                 Model.Charts.GoalProgress.CommunityProgress) / 4m;
+		                                        }
+		                                        <h6 class="card-title" style="color: var(--onejax-navy); font-weight: 700; margin: 0;">Overall Progress</h6>
+		                                        <div class="onejax-overall-gauge-wrap">
+		                                            <canvas id="performanceGauge"></canvas>
+		                                            <div class="onejax-overall-gauge-text">@Math.Round(overallDashboardProgress, 1)%</div>
+		                                        </div>
+		                                        <p class="card-text text-muted" style="font-size: 0.95rem; margin: 0;">Average progress across all strategic goals</p>
+		                                    </div>
+		                                </div>
+		                            </div>
                             
 	                            <!-- OneJax Website Card -->
 	                            <div class="col-md-4 mb-3">
@@ -515,25 +543,43 @@
                             <!-- Metrics Section -->
                             @if (goal.Metrics != null && goal.Metrics.Any() && !(goal.Name.Contains("Identity") || goal.Name.Contains("Value")))
                             {
-                                var isFinancialGoal = goal.Name.Contains("Financial") || goal.Name.Contains("Sustainability");
-                                IEnumerable<GoalMetric> orderedMetrics = isFinancialGoal
-                                    ? goal.Metrics
-                                        .OrderBy(m =>
-                                            ((m.Name.Contains("Fee-for-Service") || m.Name.Contains("Service Income")) ? 1 :
-                                            ((m.Name.Contains("Donor") && m.Name.Contains("Communication") && m.Name.Contains("Satisfaction")) ? 2 :
-                                            ((m.Name.Contains("Donor") && m.Name.Contains("Engagement")) ? 3 :
-                                            ((m.Name.Contains("General Income") || m.Name.Contains("Income Streams") || m.Name.Contains("Diversified Income")) ? 4 : 99)))))
-                                        .ThenBy(m => m.Name)
-                                    : goal.Metrics.AsEnumerable();
+	                                var isFinancialGoal = goal.Name.Contains("Financial") || goal.Name.Contains("Sustainability");
+	                                IEnumerable<GoalMetric> orderedMetrics = isFinancialGoal
+	                                    ? goal.Metrics
+	                                        .OrderBy(m =>
+	                                            ((m.Name.Contains("Fee-for-Service") || m.Name.Contains("Service Income")) ? 1 :
+	                                            ((m.Name.Contains("Donor") && m.Name.Contains("Communication") && m.Name.Contains("Satisfaction")) ? 2 :
+	                                            ((m.Name.Contains("Donor") && m.Name.Contains("Engagement")) ? 3 :
+	                                            ((m.Name.Contains("General Income") || m.Name.Contains("Income Streams") || m.Name.Contains("Diversified Income")) ? 4 : 99)))))
+	                                        // Prefer showing the metric row that actually has data when duplicates exist.
+	                                        .ThenByDescending(m => m.CurrentValue)
+	                                        .ThenBy(m => m.Name)
+	                                    : goal.Metrics.AsEnumerable();
 
-                                <div class="mb-4">
-                                    <h5 style="color:var(--onejax-white); margin-bottom:15px;">Key Metrics</h5>
-                                    <div class="row g-3">
-                                        @foreach (var metric in orderedMetrics)
-                                        {
-                                            @* Different visual styles based on metric type and goal *@
-                                            @if (goal.Name == "Community Engagement" && metric.Name.Contains("Interfaith") && metric.Name.Contains("Events"))
-                                            {
+	                                <div class="mb-4">
+	                                    <h5 style="color:var(--onejax-navy); font-weight: 700; margin-bottom:15px;">Key Metrics</h5>
+	                                    <div class="row g-3">
+	                                        @{
+	                                            // If the database has duplicate metric rows (same "type" with zeros),
+	                                            // render the enhanced visualization only once per type.
+	                                            var renderedFinancialCards = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+	                                        }
+	                                        @foreach (var metric in orderedMetrics)
+	                                        {
+		                                            // Hide redundant/basic financial cards that shouldn't show on the dashboard.
+		                                            if (isFinancialGoal)
+		                                            {
+		                                                var n = metric.Name ?? string.Empty;
+		                                                if (n.Equals("Communication Satisfaction", StringComparison.OrdinalIgnoreCase) ||
+		                                                    n.Equals("Earned Income Tracking", StringComparison.OrdinalIgnoreCase) ||
+		                                                    n.Equals("Annual Budget Tracking", StringComparison.OrdinalIgnoreCase))
+		                                                {
+		                                                    continue;
+		                                                }
+		                                            }
+		                                            @* Different visual styles based on metric type and goal *@
+		                                            @if (goal.Name == "Community Engagement" && metric.Name.Contains("Interfaith") && metric.Name.Contains("Events"))
+		                                            {
                                                 <!-- Interfaith Collaborative Events Card -->
                                                 <div class="col-md-4 mb-3">
                                                     <div class="card" style="background:var(--onejax-white); border:1px solid #e5e7eb; border-radius:12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
@@ -1537,18 +1583,19 @@
                                                         }
                                                     });
                                                 </script>
-                                            }
-                                            else if (metric.Name == "Budget Revenue Tracking" && (goal.Name.Contains("Financial") || goal.Name.Contains("Sustainability")))
-                                            {
-                                                <!-- Enhanced Revenue vs Expenses Comparison Card -->
-                                                <div class="col-md-12 mb-3">
-                                                    <div class="card" style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); position: relative; overflow: hidden;">
-                                                        <!-- Header with professional styling with blue accent -->
-                                                        <div class="card-header" style="background: linear-gradient(135deg, var(--onejax-blue), #6b7280); color: white; border: none; border-radius: 16px 16px 0 0; padding: 1.25rem;">
-                                                            <div class="d-flex justify-content-between align-items-center">
-                                                                <div>
-                                                                    <h6 class="mb-0" style="font-weight: 600; font-size: 1.1rem;">
-                                                                        <i class="fas fa-chart-bar me-2"></i>Revenue vs Expenses Analysis
+		                                            }
+		                                            else if (metric.Name == "Budget Revenue Tracking" && (goal.Name.Contains("Financial") || goal.Name.Contains("Sustainability")))
+		                                            {
+		                                                if (!renderedFinancialCards.Add("budget-revenue-tracking")) { continue; }
+		                                                <!-- Enhanced Revenue vs Expenses Comparison Card -->
+		                                                <div class="col-md-12 mb-3">
+			                                                    <div class="card" style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); position: relative; overflow: hidden;">
+		                                                        <!-- Header with professional styling with blue accent -->
+		                                                        <div class="card-header" style="background: linear-gradient(135deg, #0f3d57, #334155); color: white; border: none; border-radius: 12px 12px 0 0; padding: 1.25rem;">
+	                                                            <div class="d-flex justify-content-between align-items-center">
+	                                                                <div>
+	                                                                    <h6 class="mb-0" style="font-weight: 600; font-size: 1.1rem;">
+	                                                                        <i class="fas fa-chart-bar me-2"></i>Revenue vs Expenses Analysis
                                                                     </h6>
                                                                     <small style="opacity: 0.9;">Budget Performance & Net Income Tracking</small>
                                                                 </div>
@@ -1599,7 +1646,7 @@
                                                                     <div class="row">
                                                                         <!-- Total Revenue -->
                                                                         <div class="col-12 mb-3">
-                                                                            <div class="text-center p-3" style="background: linear-gradient(135deg, #6b7280, #4b5563); color: white; border-radius: 12px;">
+	                                                                            <div class="text-center p-3" style="background: linear-gradient(135deg, #475569, #334155); color: white; border-radius: 10px;">
                                                                                 <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">
                                                                                     $@(chartTotalRevenue.ToString("N0"))
                                                                                 </div>
@@ -1609,7 +1656,7 @@
                                                                         
                                                                         <!-- Total Expenses -->
                                                                         <div class="col-12 mb-3">
-                                                                            <div class="text-center p-3" style="background: linear-gradient(135deg, #9ca3af, #6b7280); color: white; border-radius: 12px;">
+	                                                                            <div class="text-center p-3" style="background: linear-gradient(135deg, #64748b, #475569); color: white; border-radius: 10px;">
                                                                                 <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">
                                                                                     $@(chartTotalExpenses.ToString("N0"))
                                                                                 </div>
@@ -1617,31 +1664,31 @@
                                                                             </div>
                                                                         </div>
                                                                         
-                                                                        <!-- Net Income -->
-                                                                        <div class="col-12 mb-3">
-                                                                            <div class="text-center p-3" style="background: linear-gradient(135deg, @(chartNetIncome >= 0 ? "#3b82f6, #1d4ed8" : "#f59e0b, #d97706")); color: white; border-radius: 12px;">
-                                                                                <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">
-                                                                                    @(chartNetIncome >= 0 ? "+" : "")$@(Math.Abs(chartNetIncome).ToString("N0"))
-                                                                                </div>
-                                                                                <small style="font-weight: 500; opacity: 0.9;">Net @(chartNetIncome >= 0 ? "Income" : "Loss")</small>
+	                                                                        <!-- Net Income -->
+	                                                                        <div class="col-12 mb-3">
+		                                                                            <div class="text-center p-3" style="background: linear-gradient(135deg, @(chartNetIncome >= 0 ? "#0f3d57, #334155" : "#7c2d12, #9a3412")); color: white; border-radius: 10px;">
+	                                                                                <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">
+	                                                                                    @(chartNetIncome >= 0 ? "+" : "")$@(Math.Abs(chartNetIncome).ToString("N0"))
+	                                                                                </div>
+	                                                                                <small style="font-weight: 500; opacity: 0.9;">Net @(chartNetIncome >= 0 ? "Income" : "Loss")</small>
                                                                             </div>
                                                                         </div>
                                                                     </div>
                                                                 </div>
                                                                 
-                                                                <!-- Revenue vs Expenses Chart -->
-                                                                <div class="col-md-8">
-                                                                    <h6 style="color: #15803d; font-weight: 600; margin-bottom: 1.5rem;">
-                                                                        <i class="fas fa-chart-bar me-2"></i>Quarterly Revenue vs Expenses (Form Entries)
-                                                                    </h6>
+	                                                                <!-- Revenue vs Expenses Chart -->
+	                                                                <div class="col-md-8">
+	                                                                    <h6 style="color: var(--onejax-navy); font-weight: 700; margin-bottom: 1.5rem;">
+	                                                                        <i class="fas fa-chart-bar me-2"></i>Quarterly Revenue vs Expenses (Form Entries)
+	                                                                    </h6>
                                                                     
                                                                     <div style="height: 300px; position: relative;">
                                                                         <canvas id="revenueExpensesChart" width="400" height="300"></canvas>
                                                                     </div>
                                                                     
-                                                                    <!-- Key Insights -->
-                                                                    <div class="mt-3 pt-3" style="border-top: 1px solid rgba(22, 163, 74, 0.2);">
-                                                                        <div class="row">
+	                                                                    <!-- Key Insights -->
+	                                                                    <div class="mt-3 pt-3" style="border-top: 1px solid rgba(15, 61, 87, 0.15);">
+	                                                                        <div class="row">
                                                                             <div class="col-md-3">
                                                                                 <div class="text-center">
                                                                                     <div style="font-size: 1.2rem; font-weight: 600; color: @(chartNetIncome >= 0 ? "#10b981" : "#ef4444");">
@@ -1790,18 +1837,19 @@
                                                         }
                                                     });
                                                 </script>
-                                            }
-                                            else if ((metric.Name.Contains("Fee-for-Service") || metric.Name.Contains("Service Income")) && (goal.Name.Contains("Financial") || goal.Name.Contains("Sustainability")))
-                                            {
-                                                <!-- Enhanced Fee-for-Service Income Card -->
-                                                <div class="col-md-6 mb-3 d-flex">
-                                                    <div class="card w-100" style="background: linear-gradient(135deg, #fffbeb, #f8fafc), repeating-linear-gradient(-45deg, rgba(245, 158, 11, 0.06) 0 8px, rgba(245, 158, 11, 0.02) 8px 16px); border: 1px solid #fcd34d; border-radius: 22px; box-shadow: 0 8px 20px rgba(217, 119, 6, 0.12); position: relative; overflow: hidden; min-height: 350px; height: 100%; display: flex; flex-direction: column;">
-                                                        <!-- Header with professional gray styling -->
-                                                        <div class="card-header" style="background: linear-gradient(135deg, #d97706, #f59e0b); color: white; border: none; border-radius: 22px 22px 0 0; padding: 1rem; flex-shrink: 0;">
-                                                            <div class="d-flex justify-content-between align-items-center">
-                                                                <div>
-                                                                    <h6 class="mb-0" style="font-weight: 600; font-size: 1rem;">
-                                                                        <i class="fas fa-handshake me-2"></i>Fee-for-Service Income
+		                                            }
+		                                            else if ((metric.Name.Contains("Fee-for-Service") || metric.Name.Contains("Service Income")) && (goal.Name.Contains("Financial") || goal.Name.Contains("Sustainability")))
+		                                            {
+		                                                if (!renderedFinancialCards.Add("fee-for-service")) { continue; }
+		                                                <!-- Enhanced Fee-for-Service Income Card -->
+		                                                <div class="col-md-6 mb-3 d-flex">
+			                                                    <div class="card w-100" style="background: linear-gradient(180deg, #ffffff, #f8fafc); border: 1px solid #cbd5e1; border-radius: 12px; box-shadow: 0 8px 20px rgba(15, 23, 42, 0.10); position: relative; overflow: hidden; min-height: 350px; height: 100%; display: flex; flex-direction: column;">
+		                                                        <!-- Header with professional gray styling -->
+		                                                        <div class="card-header" style="background: linear-gradient(135deg, #0f766e, #334155); color: white; border: none; border-radius: 12px 12px 0 0; padding: 1rem; flex-shrink: 0;">
+	                                                            <div class="d-flex justify-content-between align-items-center">
+	                                                                <div>
+	                                                                    <h6 class="mb-0" style="font-weight: 600; font-size: 1rem;">
+	                                                                        <i class="fas fa-handshake me-2"></i>Fee-for-Service Income
                                                                     </h6>
                                                                     <small style="opacity: 0.9;">Workshop & Training Revenue</small>
                                                                 </div>
@@ -1815,66 +1863,66 @@
                                                                     }
                                                                     @if (hasServiceData && metric.CurrentValue >= serviceTarget * 0.8m)
                                                                     {
-                                                                        <span class="badge" style="background: #6b7280; font-size: 0.75rem;">
-                                                                            <i class="fas fa-star"></i> Excellent
-                                                                        </span>
+	                                                                    <span class="badge" style="background: #0f766e; font-size: 0.75rem;">
+	                                                                        <i class="fas fa-star"></i> Excellent
+	                                                                    </span>
                                                                     }
                                                                     else if (hasServiceData)
                                                                     {
-                                                                        <span class="badge" style="background: #9ca3af; font-size: 0.75rem;">
-                                                                            <i class="fas fa-arrow-up"></i> Growing
-                                                                        </span>
+	                                                                    <span class="badge" style="background: #64748b; font-size: 0.75rem;">
+	                                                                        <i class="fas fa-arrow-up"></i> Growing
+	                                                                    </span>
                                                                     }
                                                                     else
                                                                     {
-                                                                        <span class="badge" style="background: #6b7280; font-size: 0.75rem;">
-                                                                            <i class="fas fa-rocket"></i> Ready to Launch
-                                                                        </span>
+	                                                                    <span class="badge" style="background: #475569; font-size: 0.75rem;">
+	                                                                        <i class="fas fa-rocket"></i> Ready to Launch
+	                                                                    </span>
                                                                     }
                                                                 </div>
                                                             </div>
                                                         </div>
                                                         
-                                                        <div class="card-body" style="padding: 1.5rem; flex: 1; overflow: hidden;">
-                                                            <!-- Service income display -->
-                                                            <div class="text-center mb-3">
-                                                                <div style="font-size: 2.5rem; font-weight: 700; color: #f59e0b; line-height: 1;">
-                                                                    $@((metric.CurrentValue).ToString("N0"))
-                                                                </div>
-                                                                <small style="color: var(--onejax-text-muted); font-size: 0.9rem;">Net Revenue Earned</small>
-                                                            </div>
+	                                                        <div class="card-body" style="padding: 1.5rem; flex: 1; overflow: hidden;">
+	                                                            <!-- Service income display -->
+	                                                            <div class="text-center mb-3">
+	                                                                <div style="font-size: 2.5rem; font-weight: 800; color: var(--onejax-navy); line-height: 1;">
+	                                                                    $@((metric.CurrentValue).ToString("N0"))
+	                                                                </div>
+	                                                                <small style="color: var(--onejax-text-muted); font-size: 0.9rem;">Net Revenue Earned</small>
+	                                                            </div>
                                                             
                                                             <!-- Service metrics -->
                                                             <div class="row mb-3">
-                                                                <div class="col-4">
-                                                                    <div class="text-center p-2" style="background: rgba(245, 158, 11, 0.1); border-radius: 8px;">
-                                                                        <div style="font-size: 1.5rem; font-weight: 600; color: #f59e0b;">@serviceCount</div>
-                                                                        <small style="color: var(--onejax-text-muted); font-size: 0.7rem;">Services</small>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-4">
-                                                                    <div class="text-center p-2" style="background: rgba(245, 158, 11, 0.1); border-radius: 8px;">
-                                                                        <div style="font-size: 1.5rem; font-weight: 600; color: #f59e0b;">@totalAttendees</div>
-                                                                        <small style="color: var(--onejax-text-muted); font-size: 0.7rem;">Attendees</small>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-4">
-                                                                    <div class="text-center p-2" style="background: rgba(245, 158, 11, 0.1); border-radius: 8px;">
-                                                                        <div style="font-size: 1.5rem; font-weight: 600; color: #f59e0b;">@(serviceCount > 0 ? "$" + Math.Round(avgPerService, 0).ToString("N0") : "$0")</div>
-                                                                        <small style="color: var(--onejax-text-muted); font-size: 0.7rem;">Avg/Service</small>
-                                                                    </div>
-                                                                </div>
+	                                                                <div class="col-4">
+	                                                                    <div class="text-center p-2" style="background: rgba(15, 23, 42, 0.04); border-radius: 8px;">
+	                                                                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--onejax-navy);">@serviceCount</div>
+	                                                                        <small style="color: var(--onejax-text-muted); font-size: 0.7rem;">Services</small>
+	                                                                    </div>
+	                                                                </div>
+	                                                                <div class="col-4">
+	                                                                    <div class="text-center p-2" style="background: rgba(15, 23, 42, 0.04); border-radius: 8px;">
+	                                                                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--onejax-navy);">@totalAttendees</div>
+	                                                                        <small style="color: var(--onejax-text-muted); font-size: 0.7rem;">Attendees</small>
+	                                                                    </div>
+	                                                                </div>
+	                                                                <div class="col-4">
+	                                                                    <div class="text-center p-2" style="background: rgba(15, 23, 42, 0.04); border-radius: 8px;">
+	                                                                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--onejax-navy);">@(serviceCount > 0 ? "$" + Math.Round(avgPerService, 0).ToString("N0") : "$0")</div>
+	                                                                        <small style="color: var(--onejax-text-muted); font-size: 0.7rem;">Avg/Service</small>
+	                                                                    </div>
+	                                                                </div>
                                                             </div>
                                                             
                                                             <!-- Target progress -->
-                                                            <div class="mb-3">
-                                                                <div class="d-flex justify-content-between mb-1">
-                                                                    <small style="color: var(--onejax-text-muted);">Annual Goal Progress</small>
-                                                                    <small style="color: #f59e0b; font-weight: 600;">@Math.Round((metric.CurrentValue / serviceTarget) * 100, 1)%</small>
-                                                                </div>
-                                                                <div class="progress" style="height: 8px; border-radius: 4px; background: rgba(245, 158, 11, 0.1);">
-                                                                    <div class="progress-bar" style="width: @Math.Min((metric.CurrentValue / serviceTarget) * 100, 100)%; background: linear-gradient(90deg, #f59e0b, #d97706); border-radius: 4px;" role="progressbar"></div>
-                                                                </div>
+	                                                            <div class="mb-3">
+	                                                                <div class="d-flex justify-content-between mb-1">
+	                                                                    <small style="color: var(--onejax-text-muted);">Annual Goal Progress</small>
+	                                                                    <small style="color: var(--onejax-navy); font-weight: 800;">@Math.Round((metric.CurrentValue / serviceTarget) * 100, 1)%</small>
+	                                                                </div>
+	                                                                <div class="progress" style="height: 8px; border-radius: 4px; background: rgba(15, 23, 42, 0.08);">
+	                                                                    <div class="progress-bar" style="width: @Math.Min((metric.CurrentValue / serviceTarget) * 100, 100)%; background: linear-gradient(90deg, #0f766e, #115e59); border-radius: 4px;" role="progressbar"></div>
+	                                                                </div>
                                                                 <div class="d-flex justify-content-between mt-1">
                                                                     <small style="color: var(--onejax-text-muted); font-size: 0.75rem;">$0</small>
                                                                     <small style="color: var(--onejax-text-muted); font-size: 0.75rem;">$75K Target</small>
@@ -1883,15 +1931,16 @@
                                                         </div>
                                                     </div>
                                                 </div>
-                                            }
-                                            else if (metric.Name.Contains("Donor") && metric.Name.Contains("Communication") && metric.Name.Contains("Satisfaction") && (goal.Name.Contains("Financial") || goal.Name.Contains("Sustainability")))
-                                            {
-                                                <!-- Donor Communication Satisfaction Card -->
-                                                <div class="col-md-6 mb-3 d-flex">
-                                                    <div class="card w-100" style="background: linear-gradient(160deg, #eff6ff, #f8fafc); border: 1px solid #93c5fd; border-left: 6px solid #1d4ed8; border-radius: 26px; box-shadow: 0 10px 22px rgba(29, 78, 216, 0.12); position: relative; overflow: visible; min-height: 350px; height: 100%; display: flex; flex-direction: column;">
-                                                        <div class="card-header" style="background: linear-gradient(135deg, #1e3a8a, #2563eb); color: white; border: none; border-radius: 26px 26px 0 0; padding: 1rem;">
-                                                            <div class="d-flex justify-content-between align-items-center">
-                                                                <div>
+		                                            }
+		                                            else if (metric.Name.Contains("Donor") && metric.Name.Contains("Communication") && metric.Name.Contains("Satisfaction") && (goal.Name.Contains("Financial") || goal.Name.Contains("Sustainability")))
+		                                            {
+		                                                if (!renderedFinancialCards.Add("donor-comms-satisfaction")) { continue; }
+		                                                <!-- Donor Communication Satisfaction Card -->
+		                                                <div class="col-md-6 mb-3 d-flex">
+	                                                    <div class="card w-100" style="background: linear-gradient(180deg, #ffffff, #f8fafc); border: 1px solid #cbd5e1; border-left: 6px solid #312e81; border-radius: 12px; box-shadow: 0 10px 22px rgba(15, 23, 42, 0.10); position: relative; overflow: visible; min-height: 350px; height: 100%; display: flex; flex-direction: column;">
+	                                                        <div class="card-header" style="background: linear-gradient(135deg, #312e81, #334155); color: white; border: none; border-radius: 12px 12px 0 0; padding: 1rem;">
+	                                                            <div class="d-flex justify-content-between align-items-center">
+	                                                                <div>
                                                                     <h6 class="mb-0" style="font-weight: 600; font-size: 1rem;">
                                                                         <i class="fas fa-comments me-2"></i>Donor Communication Satisfaction
                                                                     </h6>
@@ -1904,12 +1953,12 @@
                                                                             <i class="fas fa-check-circle"></i> Target Met
                                                                         </span>
                                                                     }
-                                                                    else
-                                                                    {
-                                                                        <span class="badge" style="background: #f59e0b; font-size: 0.75rem;">
-                                                                            <i class="fas fa-clock"></i> In Progress
-                                                                        </span>
-                                                                    }
+	                                                                    else
+	                                                                    {
+	                                                                        <span class="badge" style="background: #64748b; font-size: 0.75rem;">
+	                                                                            <i class="fas fa-clock"></i> In Progress
+	                                                                        </span>
+	                                                                    }
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -1922,29 +1971,29 @@
                                                                 <small style="color: var(--onejax-text-muted); font-weight: 500;">Current Satisfaction</small>
                                                             </div>
 
-                                                            <div class="mb-3 p-3" style="background: rgba(55, 65, 81, 0.06); border-radius: 10px;">
+	                                                            <div class="mb-3 p-3" style="background: rgba(55, 65, 81, 0.06); border-radius: 10px;">
                                                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                                                     <small style="color: var(--onejax-text-muted);">Progress to Target</small>
                                                                     <small style="color: #1f2937; font-weight: 600;">@Math.Round(metric.ProgressPercentage, 1)%</small>
                                                                 </div>
-                                                                <div class="progress" style="height: 10px; border-radius: 6px; background: rgba(107, 114, 128, 0.2);">
-                                                                    <div class="progress-bar" style="width: @Math.Min(metric.ProgressPercentage, 100)%; background: linear-gradient(90deg, #6b7280, #374151); border-radius: 6px;" role="progressbar"></div>
-                                                                </div>
-                                                            </div>
+	                                                                <div class="progress" style="height: 10px; border-radius: 6px; background: rgba(15, 23, 42, 0.10);">
+	                                                                    <div class="progress-bar" style="width: @Math.Min(metric.ProgressPercentage, 100)%; background: linear-gradient(90deg, #312e81, #4338ca); border-radius: 6px;" role="progressbar"></div>
+	                                                                </div>
+	                                                            </div>
 
-                                                            <div class="row g-2">
-                                                                <div class="col-6">
-                                                                    <div class="p-3 text-center" style="background: rgba(14, 165, 233, 0.08); border-radius: 10px;">
-                                                                        <div style="font-size: 1.3rem; font-weight: 700; color: #1f2937;">@metric.Target%</div>
-                                                                        <small style="color: var(--onejax-text-muted);">Target Score</small>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-6">
-                                                                    <div class="p-3 text-center" style="background: rgba(16, 185, 129, 0.08); border-radius: 10px;">
-                                                                        <div style="font-size: 1.1rem; font-weight: 700; color: #1f2937;">@metric.TargetDate.ToString("MMM yyyy")</div>
-                                                                        <small style="color: var(--onejax-text-muted);">Target Date</small>
-                                                                    </div>
-                                                                </div>
+	                                                            <div class="row g-2">
+	                                                                <div class="col-6">
+	                                                                    <div class="p-3 text-center" style="background: rgba(15, 23, 42, 0.04); border-radius: 10px;">
+	                                                                        <div style="font-size: 1.3rem; font-weight: 700; color: #1f2937;">@metric.Target%</div>
+	                                                                        <small style="color: var(--onejax-text-muted);">Target Score</small>
+	                                                                    </div>
+	                                                                </div>
+	                                                                <div class="col-6">
+	                                                                    <div class="p-3 text-center" style="background: rgba(15, 23, 42, 0.04); border-radius: 10px;">
+	                                                                        <div style="font-size: 1.1rem; font-weight: 700; color: #1f2937;">@metric.TargetDate.ToString("MMM yyyy")</div>
+	                                                                        <small style="color: var(--onejax-text-muted);">Target Date</small>
+	                                                                    </div>
+	                                                                </div>
                                                             </div>
 
                                                             <div class="d-flex justify-content-between align-items-center mt-3">
@@ -1954,15 +2003,16 @@
                                                         </div>
                                                     </div>
                                                 </div>
-                                            }
-                                            else if ((metric.Name.Contains("Donor") && metric.Name.Contains("Engagement")) && (goal.Name.Contains("Financial") || goal.Name.Contains("Sustainability")))
-                                            {
-                                                <!-- Enhanced Donor Engagement Events Card -->
-                                                <div class="col-md-12 mb-3">
-                                                    <div class="card" style="background: radial-gradient(circle at 85% 15%, rgba(14, 165, 233, 0.12), transparent 45%), linear-gradient(135deg, #f8fafc, #ecfeff); border: 1px solid #99f6e4; border-radius: 14px 30px 14px 30px; box-shadow: 0 10px 24px rgba(15, 118, 110, 0.10); position: relative; overflow: hidden;">
-                                                        <!-- Header with professional gray styling -->
-                                                        <div class="card-header" style="background: linear-gradient(135deg, #0f766e, #0ea5e9); color: white; border: none; border-radius: 14px 30px 0 0; padding: 1.25rem;">
-                                                            <div class="d-flex justify-content-between align-items-center">
+		                                            }
+		                                            else if ((metric.Name.Contains("Donor") && metric.Name.Contains("Engagement")) && (goal.Name.Contains("Financial") || goal.Name.Contains("Sustainability")))
+		                                            {
+		                                                if (!renderedFinancialCards.Add("donor-engagement")) { continue; }
+		                                                <!-- Enhanced Donor Engagement Events Card -->
+		                                                <div class="col-md-12 mb-3">
+	                                                    <div class="card" style="background: linear-gradient(180deg, #ffffff, #f8fafc); border: 1px solid #cbd5e1; border-radius: 12px; box-shadow: 0 10px 24px rgba(15, 23, 42, 0.10); position: relative; overflow: hidden;">
+	                                                        <!-- Header with professional gray styling -->
+	                                                        <div class="card-header" style="background: linear-gradient(135deg, #14532d, #334155); color: white; border: none; border-radius: 12px 12px 0 0; padding: 1.25rem;">
+	                                                            <div class="d-flex justify-content-between align-items-center">
                                                                 <div>
                                                                     <h6 class="mb-0" style="font-weight: 600; font-size: 1.1rem;">
                                                                         <i class="fas fa-heart me-2"></i>Donor Engagement Events
@@ -1982,12 +2032,12 @@
                                                                             <i class="fas fa-trophy"></i> Outstanding Engagement
                                                                         </span>
                                                                     }
-                                                                    else if (hasDonorData)
-                                                                    {
-                                                                        <span class="badge" style="background: #f59e0b; font-size: 0.75rem;">
-                                                                            <i class="fas fa-users"></i> Active Outreach
-                                                                        </span>
-                                                                    }
+	                                                                    else if (hasDonorData)
+	                                                                    {
+	                                                                        <span class="badge" style="background: #64748b; font-size: 0.75rem;">
+	                                                                            <i class="fas fa-users"></i> Active Outreach
+	                                                                        </span>
+	                                                                    }
                                                                     else
                                                                     {
                                                                         <span class="badge" style="background: #6b7280; font-size: 0.75rem;">
@@ -2044,10 +2094,10 @@
                                                             </div>
                                                             
                                                             <!-- Goal progress -->
-                                                            <div class="mt-3 pt-3" style="border-top: 1px solid rgba(14, 165, 233, 0.2);">
-                                                                <div class="progress" style="height: 12px; border-radius: 6px; background: rgba(14, 165, 233, 0.1);">
-                                                                    <div class="progress-bar" style="width: @Math.Min((metric.CurrentValue / donorTarget) * 100, 100)%; background: linear-gradient(90deg, #0ea5e9, #0284c7); border-radius: 6px;" role="progressbar"></div>
-                                                                </div>
+	                                                            <div class="mt-3 pt-3" style="border-top: 1px solid rgba(20, 83, 45, 0.18);">
+	                                                                <div class="progress" style="height: 12px; border-radius: 6px; background: rgba(20, 83, 45, 0.10);">
+	                                                                    <div class="progress-bar" style="width: @Math.Min((metric.CurrentValue / donorTarget) * 100, 100)%; background: linear-gradient(90deg, #14532d, #166534); border-radius: 6px;" role="progressbar"></div>
+	                                                                </div>
                                                                 <div class="d-flex justify-content-between mt-2">
                                                                     <small style="color: var(--onejax-text-muted);">
                                                                         @Math.Round((metric.CurrentValue / donorTarget) * 100, 1)% of annual participant target
@@ -2165,15 +2215,16 @@
                                                         }
                                                     });
                                                 </script>
-                                            }
-                                            else if ((metric.Name.Contains("General Income") || metric.Name.Contains("Income Streams") || metric.Name.Contains("Diversified Income")) && (goal.Name.Contains("Financial") || goal.Name.Contains("Sustainability")))
-                                            {
-                                                <!-- Enhanced General Income Streams Card -->
-                                                <div class="col-md-12 mb-3">
-                                                    <div class="card" style="background: linear-gradient(150deg, #fefce8, #f8fafc); border: 1px solid #eab308; border-radius: 28px 12px 28px 12px; box-shadow: 0 10px 22px rgba(161, 98, 7, 0.12); position: relative; overflow: hidden;">
-                                                        <!-- Header with blue accent -->
-                                                        <div class="card-header" style="background: linear-gradient(135deg, #a16207, #ca8a04); color: white; border: none; border-radius: 28px 12px 0 0; padding: 1.25rem;">
-                                                            <div class="d-flex justify-content-between align-items-center">
+		                                            }
+		                                            else if ((metric.Name.Contains("General Income") || metric.Name.Contains("Income Streams") || metric.Name.Contains("Diversified Income")) && (goal.Name.Contains("Financial") || goal.Name.Contains("Sustainability")))
+		                                            {
+		                                                if (!renderedFinancialCards.Add("income-streams")) { continue; }
+		                                                <!-- Enhanced General Income Streams Card -->
+		                                                <div class="col-md-12 mb-3">
+			                                                    <div class="card" style="background: linear-gradient(180deg, #ffffff, #f8fafc); border: 1px solid #cbd5e1; border-radius: 12px; box-shadow: 0 10px 22px rgba(15, 23, 42, 0.10); position: relative; overflow: hidden;">
+		                                                        <!-- Header with blue accent -->
+		                                                        <div class="card-header" style="background: linear-gradient(135deg, #7c2d12, #334155); color: white; border: none; border-radius: 12px 12px 0 0; padding: 1.25rem;">
+	                                                            <div class="d-flex justify-content-between align-items-center">
                                                                 <div>
                                                                     <h6 class="mb-0" style="font-weight: 600; font-size: 1.1rem;">
                                                                         <i class="fas fa-coins me-2"></i>General Income Streams
@@ -2194,12 +2245,12 @@
                                                                             <i class="fas fa-chart-line"></i> Excellent Diversification
                                                                         </span>
                                                                     }
-                                                                    else if (hasIncomeData)
-                                                                    {
-                                                                        <span class="badge" style="background: #3b82f6; font-size: 0.75rem;">
-                                                                            <i class="fas fa-trending-up"></i> Growing Portfolio
-                                                                        </span>
-                                                                    }
+	                                                                    else if (hasIncomeData)
+	                                                                    {
+	                                                                        <span class="badge" style="background: #64748b; font-size: 0.75rem;">
+	                                                                            <i class="fas fa-trending-up"></i> Growing Portfolio
+	                                                                        </span>
+	                                                                    }
                                                                     else
                                                                     {
                                                                         <span class="badge" style="background: #6b7280; font-size: 0.75rem;">
@@ -2363,71 +2414,104 @@
 
                                 <div class="mb-4">
 
-                                    <style>
-                                        /* Identity KPI cards: keep them dashboard-sized and prevent "stretched" look. */
-                                        .onejax-kpi-card {
-                                            border-radius: 12px;
-                                            border: 1px solid var(--onejax-border);
-                                            box-shadow: none;
-                                            position: relative;
-                                            overflow: hidden;
-                                        }
+	                                    <style>
+	                                        /* Identity KPI cards: keep them dashboard-sized and prevent "stretched" look. */
+	                                        .onejax-kpi-card {
+	                                            border-radius: 12px;
+	                                            border: 1px solid var(--onejax-border);
+	                                            box-shadow: none;
+	                                            position: relative;
+	                                            overflow: hidden;
+	                                        }
 
-                                        .onejax-kpi-card::before {
-                                            content: "";
-                                            position: absolute;
-                                            inset: 0 0 auto 0;
-                                            height: 4px;
-                                            background: rgba(15, 23, 42, 0.12);
-                                        }
+	                                        .onejax-kpi-card::before {
+	                                            content: "";
+	                                            position: absolute;
+	                                            inset: 0 0 auto 0;
+	                                            height: 66px; /* bold header bar (2-line title support) */
+	                                            background: var(--gradient-primary);
+	                                            border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+	                                            pointer-events: none;
+	                                            z-index: 0;
+	                                        }
 
-                                        /* Muted color accents per card (more color without getting loud). */
-                                        .onejax-kpi-card.kpi-media {
-                                            background: linear-gradient(180deg, rgba(15, 61, 87, 0.08), rgba(255, 255, 255, 0.00) 58%);
-                                        }
-                                        .onejax-kpi-card.kpi-media::before { background: linear-gradient(90deg, rgba(15, 61, 87, 0.90), rgba(15, 61, 87, 0.20)); }
+	                                        /* Subtle color accents per card (pops, but stays professional). */
+	                                        .onejax-kpi-card.kpi-media {
+	                                            background: linear-gradient(180deg, rgba(15, 61, 87, 0.08), rgba(255, 255, 255, 0.00) 58%);
+	                                        }
+	                                        .onejax-kpi-card.kpi-media::before { background: linear-gradient(135deg, var(--onejax-navy), var(--onejax-dark-blue)); }
 
-                                        .onejax-kpi-card.kpi-traffic {
-                                            background: linear-gradient(180deg, rgba(31, 111, 84, 0.08), rgba(255, 255, 255, 0.00) 58%);
-                                        }
-                                        .onejax-kpi-card.kpi-traffic::before { background: linear-gradient(90deg, rgba(31, 111, 84, 0.90), rgba(31, 111, 84, 0.20)); }
+	                                        .onejax-kpi-card.kpi-traffic {
+	                                            background: linear-gradient(180deg, rgba(31, 111, 84, 0.08), rgba(255, 255, 255, 0.00) 58%);
+	                                        }
+	                                        .onejax-kpi-card.kpi-traffic::before { background: linear-gradient(135deg, var(--onejax-dark-green), var(--onejax-green)); }
 
-                                        .onejax-kpi-card.kpi-trust {
-                                            background: linear-gradient(180deg, rgba(122, 92, 11, 0.09), rgba(255, 255, 255, 0.00) 58%);
-                                        }
-                                        .onejax-kpi-card.kpi-trust::before { background: linear-gradient(90deg, rgba(122, 92, 11, 0.90), rgba(122, 92, 11, 0.20)); }
+	                                        .onejax-kpi-card.kpi-trust {
+	                                            background: linear-gradient(180deg, rgba(122, 92, 11, 0.09), rgba(255, 255, 255, 0.00) 58%);
+	                                        }
+	                                        .onejax-kpi-card.kpi-trust::before { background: var(--gradient-accent); }
 
-                                        .onejax-kpi-card.kpi-framework {
-                                            background: linear-gradient(180deg, rgba(11, 44, 58, 0.08), rgba(255, 255, 255, 0.00) 58%);
-                                        }
-                                        .onejax-kpi-card.kpi-framework::before { background: linear-gradient(90deg, rgba(11, 44, 58, 0.92), rgba(11, 44, 58, 0.20)); }
+	                                        .onejax-kpi-card.kpi-framework {
+	                                            background: linear-gradient(180deg, rgba(11, 44, 58, 0.08), rgba(255, 255, 255, 0.00) 58%);
+	                                        }
+	                                        .onejax-kpi-card.kpi-framework::before { background: linear-gradient(135deg, var(--onejax-dark-blue), var(--onejax-navy)); }
 
-                                        .onejax-kpi-card.kpi-social {
-                                            background: linear-gradient(180deg, rgba(43, 58, 85, 0.08), rgba(255, 255, 255, 0.00) 58%);
-                                        }
-                                        .onejax-kpi-card.kpi-social::before { background: linear-gradient(90deg, rgba(43, 58, 85, 0.92), rgba(43, 58, 85, 0.18)); }
+	                                        .onejax-kpi-card.kpi-social {
+	                                            background: linear-gradient(180deg, rgba(43, 58, 85, 0.08), rgba(255, 255, 255, 0.00) 58%);
+	                                        }
+	                                        .onejax-kpi-card.kpi-social::before { background: var(--gradient-cool); }
 
-                                        .onejax-kpi-body {
-                                            padding: 1rem 1rem 0.9rem;
-                                            min-height: 168px;
-                                        }
+	                                        .onejax-kpi-body {
+	                                            position: relative;
+	                                            z-index: 2;
+	                                            padding: 1rem 1rem 0.9rem;
+	                                            padding-top: 80px; /* clear the header bar */
+	                                            min-height: 168px;
+	                                        }
 
-                                        .onejax-kpi-body--tall { min-height: 232px; }
+	                                        .onejax-kpi-body--tall { min-height: 232px; }
 
-                                        .onejax-kpi-badge {
-                                            position: absolute;
-                                            top: 12px;
-                                            right: 10px;
-                                            font-weight: 800;
-                                            letter-spacing: 0.02em;
-                                            border-radius: 999px;
-                                            padding: 0.35rem 0.6rem;
-                                            font-size: 0.75rem;
-                                            background: rgba(255, 255, 255, 0.70);
-                                            border: 1px solid rgba(15, 23, 42, 0.12);
-                                            color: #334155;
-                                            backdrop-filter: blur(8px);
-                                        }
+	                                        /* Move the metric name into the header bar without changing markup. */
+	                                        .onejax-kpi-body > div:first-child {
+	                                            position: absolute;
+	                                            top: 14px;
+	                                            left: 16px;
+	                                            right: auto;
+	                                            max-width: calc(100% - 190px); /* reserve room for the status pill */
+	                                            margin: 0;
+	                                            color: rgba(255, 255, 255, 0.92) !important;
+	                                            font-weight: 800 !important;
+	                                            letter-spacing: 0.06em !important;
+	                                            text-transform: uppercase !important;
+	                                            font-size: 0.74rem !important;
+	                                            line-height: 1.2;
+	                                            white-space: normal;
+	                                            display: -webkit-box;
+	                                            -webkit-box-orient: vertical;
+	                                            -webkit-line-clamp: 2;
+	                                            overflow: hidden;
+	                                            text-overflow: ellipsis;
+	                                        }
+
+	                                        .onejax-kpi-badge {
+	                                            position: absolute;
+	                                            top: 14px;
+	                                            right: 10px;
+	                                            z-index: 3;
+	                                            font-weight: 800;
+	                                            letter-spacing: 0.02em;
+	                                            border-radius: 999px;
+	                                            padding: 0.35rem 0.6rem;
+	                                            font-size: 0.75rem;
+	                                            max-width: 170px;
+	                                            white-space: nowrap;
+	                                            overflow: hidden;
+	                                            text-overflow: ellipsis;
+	                                            background: rgba(255, 255, 255, 0.70);
+	                                            border: 1px solid rgba(15, 23, 42, 0.12);
+	                                            color: #334155;
+	                                            backdrop-filter: blur(8px);
+	                                        }
 
                                         .onejax-kpi-badge.ok { background: rgba(16, 185, 129, 0.12); border-color: rgba(16, 185, 129, 0.25); color: #065f46; }
                                         .onejax-kpi-badge.warn { background: rgba(245, 158, 11, 0.14); border-color: rgba(245, 158, 11, 0.28); color: #92400e; }
@@ -2482,8 +2566,8 @@
                                     </style>
 
 	                                    <div class="row g-3">
-		                                        <div class="col-md-6 col-lg-4">
-		                                            <div class="card onejax-kpi-card kpi-media" style="border-left: 5px solid #0f3d57;">
+			                                        <div class="col-md-6 col-lg-6">
+			                                            <div class="card onejax-kpi-card kpi-media" style="border-left: 5px solid var(--onejax-navy);">
 		                                                <span class="onejax-kpi-badge">Tracking</span>
 		                                                <div class="card-body onejax-kpi-body d-flex flex-column">
 		                                                    <div style="font-size: 0.8rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--onejax-text-muted); font-weight: 700;">Media Placements</div>
@@ -2511,37 +2595,8 @@
 	                                                </div>
 	                                            </div>
 	                                        </div>
-		                                        <div class="col-md-6 col-lg-4">
-		                                            <div class="card onejax-kpi-card kpi-traffic" style="border-left: 5px solid #1f6f54;">
-		                                                <span class="onejax-kpi-badge">Tracking</span>
-		                                                <div class="card-body onejax-kpi-body d-flex flex-column">
-		                                                    <div style="font-size: 0.8rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--onejax-text-muted); font-weight: 700;">Website Traffic</div>
-		                                                    <div style="font-size: 2rem; font-weight: 800; color: var(--onejax-navy); line-height: 1.1; margin-top: 0.5rem;">@id.WebsiteClicksTotal.ToString("N0")</div>
-		                                                    <div style="color: var(--onejax-text-muted); font-size: 0.9rem;">Annual target: @id.WebsiteClicksTarget.ToString("N0")</div>
-		                                                    <div class="onejax-kpi-spark">
-		                                                        <canvas id="identityTrafficSpark"></canvas>
-		                                                    </div>
-		                                                    <div class="mt-auto">
-		                                                        <div class="progress mt-2" style="height: 10px; border-radius: 999px; background: rgba(2,6,23,0.08);">
-		                                                            <div class="progress-bar" style="width: @Math.Min(id.WebsiteClicksTarget > 0 ? (id.WebsiteClicksTotal * 100.0m / id.WebsiteClicksTarget) : 0, 100)%; background: #1f6f54; border-radius: 999px;"></div>
-		                                                        </div>
-	                                                        @if (canManageData)
-	                                                        {
-	                                                            <div class="d-flex justify-content-between align-items-center mt-2">
-	                                                                <a asp-controller="WebsiteTraffic" asp-action="Index" class="btn btn-sm btn-outline-secondary" style="border-radius: 999px;">Enter data</a>
-	                                                                <a asp-controller="DataEntry" asp-action="RecordHistory" asp-route-recordType="website-traffic" class="onejax-kpi-link">History</a>
-	                                                            </div>
-	                                                        }
-	                                                        else
-	                                                        {
-	                                                            <div class="mt-2" style="color: var(--onejax-text-muted); font-weight: 700; font-size: 0.85rem;">Staff login required</div>
-	                                                        }
-	                                                    </div>
-	                                                </div>
-	                                            </div>
-	                                        </div>
-		                                        <div class="col-md-6 col-lg-4">
-		                                            <div class="card onejax-kpi-card kpi-trust" style="border-left: 5px solid #7a5c0b;">
+			                                        <div class="col-md-6 col-lg-6">
+			                                            <div class="card onejax-kpi-card kpi-trust" style="border-left: 5px solid var(--onejax-gold);">
 		                                                <span class="onejax-kpi-badge @((id.TrustPercent >= id.TrustTargetPercent) ? "ok" : "warn")">@((id.TrustPercent >= id.TrustTargetPercent) ? "Target achieved" : "In progress")</span>
 		                                                <div class="card-body onejax-kpi-body d-flex flex-column">
 		                                                    <div style="font-size: 0.8rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--onejax-text-muted); font-weight: 700;">Community Perception Survey</div>
@@ -2580,7 +2635,7 @@
 		                                    <div class="row g-3 mt-3">
 		                                        @* Milestone Achievement removed from Identity dashboard per request *@
 		                                        <div class="col-md-12 col-lg-8">
-		                                            <div class="card onejax-kpi-card kpi-framework" style="border-left: 5px solid #0b2c3a;">
+		                                            <div class="card onejax-kpi-card kpi-framework" style="border-left: 5px solid var(--onejax-dark-blue);">
 		                                                <span class="onejax-kpi-badge @((!string.IsNullOrWhiteSpace(id.FrameworkStatus) && id.FrameworkStatus.Contains("track", StringComparison.OrdinalIgnoreCase)) ? "ok" : "")">@((string.IsNullOrWhiteSpace(id.FrameworkStatus) ? "Planning" : id.FrameworkStatus))</span>
 		                                                <div class="card-body onejax-kpi-body onejax-kpi-body--tall d-flex flex-column">
 		                                                    <div style="font-size: 0.8rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--onejax-text-muted); font-weight: 700;">Framework Development Plan</div>
@@ -2626,7 +2681,7 @@
 		                                            </div>
 		                                        </div>
 		                                        <div class="col-md-6 col-lg-4">
-		                                            <div class="card onejax-kpi-card kpi-social" style="border-left: 5px solid #2b3a55;">
+		                                            <div class="card onejax-kpi-card kpi-social" style="border-left: 5px solid var(--onejax-dark-blue);">
 		                                                <span class="onejax-kpi-badge">Tracking</span>
 		                                                <div class="card-body onejax-kpi-body onejax-kpi-body--tall d-flex flex-column">
 		                                                    <div style="font-size: 0.8rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--onejax-text-muted); font-weight: 700;">Social Media Engagement</div>
@@ -2822,48 +2877,9 @@
                                                             <div style="font-size: 0.85rem; color: #334155; font-weight: 700; margin-bottom: 0.5rem;">Service Area</div>
                                                             <div style="color: #475569; font-size: 0.9rem; margin-bottom: 1rem;">Duval + Clay + St. Johns + Nassau</div>
 
-                                                            <div class="card mb-3" style="border-radius: 10px; border: 1px solid rgba(15,23,42,0.12); box-shadow: none;">
-                                                                <div class="card-body" style="padding: 1rem;">
-                                                                    <div style="font-size: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase; color: #64748b; font-weight: 800;">Framework Plan</div>
-                                                                    <div style="font-size: 1.1rem; font-weight: 800; color: #0f172a; margin-top: 0.35rem;">
-                                                                        @(string.IsNullOrWhiteSpace(id.FrameworkStatus) ? "Planning" : id.FrameworkStatus)
-                                                                    </div>
-                                                                    <div style="color: #64748b; font-size: 0.9rem;">
-                                                                        @((id.FrameworkYear.HasValue ? id.FrameworkYear.Value.ToString() : ""))
-                                                                        @((!string.IsNullOrWhiteSpace(id.FrameworkQuarter) ? $" {id.FrameworkQuarter}" : ""))
-                                                                        @if (id.FrameworkGoalMet)
-                                                                        {
-                                                                            <span class="badge bg-success ms-1">Goal met</span>
-                                                                        }
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            <div class="card mb-3" style="border-radius: 10px; border: 1px solid rgba(15,23,42,0.12); box-shadow: none;">
-                                                                <div class="card-body" style="padding: 1rem;">
-                                                                    <div style="font-size: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase; color: #64748b; font-weight: 800;">Social Media</div>
-                                                                    <div style="font-size: 1.8rem; font-weight: 900; color: #0f172a; line-height: 1.0; margin-top: 0.25rem;">
-                                                                        @id.SocialAvgEngagementRate.ToString("N1")%
-                                                                    </div>
-                                                                    <div style="color: #64748b; font-size: 0.9rem;">
-                                                                        Avg engagement @(id.SocialYear.HasValue ? $"({id.SocialYear})" : "")
-                                                                        @if (id.SocialGoalMet)
-                                                                        {
-                                                                            <span class="badge bg-success ms-1">Goal met</span>
-                                                                        }
-                                                                    </div>
-                                                                    <div class="mt-2" style="display:grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; font-size: 0.85rem; color:#475569;">
-                                                                        <div>Jul-Sep: <strong>@(id.SocialQ1?.ToString("N1") ?? "-")</strong></div>
-                                                                        <div>Oct-Dec: <strong>@(id.SocialQ2?.ToString("N1") ?? "-")</strong></div>
-                                                                        <div>Jan-Mar: <strong>@(id.SocialQ3?.ToString("N1") ?? "-")</strong></div>
-                                                                        <div>Apr-Jun: <strong>@(id.SocialQ4?.ToString("N1") ?? "-")</strong></div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            <div class="card" style="border-radius: 10px; border: 1px solid rgba(15,23,42,0.12); box-shadow: none;">
-                                                                <div class="card-body" style="padding: 1rem;">
-                                                                    <div style="font-size: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase; color: #64748b; font-weight: 800;">Geographic Reach</div>
+	                                                            <div class="card" style="border-radius: 10px; border: 1px solid rgba(15,23,42,0.12); box-shadow: none;">
+	                                                                <div class="card-body" style="padding: 1rem;">
+	                                                                    <div style="font-size: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase; color: #64748b; font-weight: 800;">Geographic Reach</div>
                                                                     <div style="font-size: 2rem; font-weight: 800; color: #0f172a; line-height: 1.1; margin-top: 0.25rem;">@zipServed</div>
                                                                     <div style="color: #64748b; font-size: 0.9rem;">ZIP Codes Served</div>
                                                                     <div class="mt-3">
@@ -2889,14 +2905,79 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-lg-3">
-                                            <div class="card h-100" style="border-radius: 12px; border: 1px solid var(--onejax-border);">
-                                                <div class="card-header" style="background: #111827; color: white; font-weight: 700;">Notes</div>
-                                                <div class="card-body" style="color: var(--onejax-text-muted); font-size: 0.95rem;">
-                                                    Coverage is based on ZIP codes submitted in Programs Demographics (Data Entry).
-                                                </div>
-                                            </div>
-                                        </div>
+	                                        <div class="col-lg-3">
+	                                            @{
+	                                                var defaultProgramsNote = "Coverage is based on ZIP codes submitted in Programs Demographics (Data Entry).";
+	                                                var programsNote = DashboardNotesStore.Get("programs-demographics") ?? defaultProgramsNote;
+	                                            }
+	                                            <div class="card h-100" style="border-radius: 12px; border: 1px solid var(--onejax-border);">
+	                                                <div class="card-header" style="background: #111827; color: white; font-weight: 700;">Notes</div>
+	                                                <div class="card-body" style="color: var(--onejax-text-muted); font-size: 0.95rem;">
+	                                                    <div id="programsDemographicsNoteText" style="white-space: pre-wrap;">@programsNote</div>
+	                                                    @if (canManageData)
+	                                                    {
+	                                                        <div class="mt-3">
+	                                                            <button type="button" class="btn btn-sm btn-outline-secondary" style="border-radius: 10px;" onclick="toggleProgramsNoteEdit(true)">
+	                                                                Edit note
+	                                                            </button>
+	                                                        </div>
+	                                                        <form id="programsDemographicsNoteForm" class="mt-3" method="post" action="/DashboardNotes/SaveJson" style="display:none;">
+	                                                            @Html.AntiForgeryToken()
+	                                                            <input type="hidden" name="key" value="programs-demographics" />
+	                                                            <div class="mb-2">
+	                                                                <textarea name="value" class="form-control" rows="6" style="border-radius: 10px; font-size: 0.95rem;">@programsNote</textarea>
+	                                                            </div>
+	                                                            <div class="d-flex gap-2">
+	                                                                <button type="submit" class="btn btn-sm btn-primary" style="border-radius: 10px;">Save</button>
+	                                                                <button type="button" class="btn btn-sm btn-outline-secondary" style="border-radius: 10px;" onclick="toggleProgramsNoteEdit(false)">Cancel</button>
+	                                                            </div>
+	                                                        </form>
+	                                                        <script>
+	                                                            function toggleProgramsNoteEdit(on) {
+	                                                                const form = document.getElementById('programsDemographicsNoteForm');
+	                                                                if (!form) return;
+	                                                                form.style.display = on ? 'block' : 'none';
+	                                                            }
+
+	                                                            (function bindProgramsDemographicsNoteAjax() {
+	                                                                const form = document.getElementById('programsDemographicsNoteForm');
+	                                                                const noteText = document.getElementById('programsDemographicsNoteText');
+	                                                                if (!form || !noteText) return;
+	                                                                if (form.dataset.bound === '1') return;
+	                                                                form.dataset.bound = '1';
+
+	                                                                form.addEventListener('submit', async function (e) {
+	                                                                    e.preventDefault();
+	                                                                    const fd = new FormData(form);
+
+	                                                                    // ASP.NET Core antiforgery uses this field name by default.
+	                                                                    const token = fd.get('__RequestVerificationToken');
+	                                                                    try {
+	                                                                        const resp = await fetch(form.action, {
+	                                                                            method: 'POST',
+	                                                                            headers: {
+	                                                                                'RequestVerificationToken': String(token || ''),
+	                                                                                'X-Requested-With': 'XMLHttpRequest'
+	                                                                            },
+	                                                                            body: fd
+	                                                                        });
+	                                                                        if (!resp.ok) throw new Error('Save failed');
+	                                                                        const data = await resp.json();
+	                                                                        if (!data || !data.ok) throw new Error('Save failed');
+
+	                                                                        noteText.textContent = data.value || '';
+	                                                                        toggleProgramsNoteEdit(false);
+	                                                                    } catch (err) {
+	                                                                        // Keep it simple: show a non-blocking alert on failure.
+	                                                                        alert('Could not save note. Please try again.');
+	                                                                    }
+	                                                                });
+	                                                            })();
+	                                                        </script>
+	                                                    }
+	                                                </div>
+	                                            </div>
+	                                        </div>
                                     </div>
 
                                     <script>
@@ -3341,11 +3422,11 @@
                                 </div>
                             }
                             
-                            @if ((goal.Events == null || !goal.Events.Any()) && (goal.Metrics == null || !goal.Metrics.Any()))
-                            {
-                                <p style="color:var(--onejax-white);">No data in this category yet.</p>
-                                <p style="color:var(--onejax-white); font-size:0.9em;">Data will be managed through the Core Strategies tab above.</p>
-                            }
+	                            @if ((goal.Events == null || !goal.Events.Any()) && (goal.Metrics == null || !goal.Metrics.Any()))
+	                            {
+	                                <p style="color:var(--onejax-text-muted);">No data in this category yet.</p>
+	                                <p style="color:var(--onejax-text-muted); font-size:0.9em;">Data will be managed through the Core Strategies tab above.</p>
+	                            }
                         </div>
                     </div>
                 </div>
@@ -4487,15 +4568,21 @@ function initializeDashboardCharts() {
         });
     }
     
-    // Performance Gauge Chart
-    const performanceGaugeCtx = document.getElementById('performanceGauge');
-    if (performanceGaugeCtx) {
-        @{
-            var performanceScore = Math.Min(((Model.Summary.TotalEvents + Model.Summary.TotalActivities) / 20.0) * 100, 100);
-        }
-        
-        const performanceGauge = new Chart(performanceGaugeCtx, {
-            type: 'doughnut',
+	    // Performance Gauge Chart
+	    const performanceGaugeCtx = document.getElementById('performanceGauge');
+	    if (performanceGaugeCtx) {
+	        @{
+	            var performanceScore = Math.Min(
+	                (Model.Charts.GoalProgress.OrganizationalProgress +
+	                 Model.Charts.GoalProgress.FinancialProgress +
+	                 Model.Charts.GoalProgress.IdentityProgress +
+	                 Model.Charts.GoalProgress.CommunityProgress) / 4m,
+	                100m
+	            );
+	        }
+	        
+	        const performanceGauge = new Chart(performanceGaugeCtx, {
+	            type: 'doughnut',
             data: {
                 datasets: [{
                     data: [@Math.Round(performanceScore, 1), @(100 - Math.Round(performanceScore, 1))],
@@ -4506,23 +4593,23 @@ function initializeDashboardCharts() {
                     borderWidth: 0
                 }]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return 'Performance Score: ' + context.parsed + '%';
-                            }
-                        }
-                    }
-                },
-                cutout: '60%'
-            }
-        });
-    }
+	            options: {
+	                responsive: true,
+	                maintainAspectRatio: false,
+	                plugins: {
+	                    legend: { display: false },
+	                    tooltip: {
+	                        callbacks: {
+	                            label: function(context) {
+	                                return 'Overall Progress: ' + context.parsed + '%';
+	                            }
+	                        }
+	                    }
+	                },
+	                cutout: '72%'
+	            }
+	        });
+	    }
 }
 
 // Export Dashboard Function

@@ -38,6 +38,7 @@ builder.Services.AddScoped<OneJaxDashboard.Services.EventsService>();
 builder.Services.AddScoped<OneJaxDashboard.Services.StrategyService>();
 builder.Services.AddSingleton<OneJaxDashboard.Services.ActivityLogService>();
 builder.Services.AddScoped<OneJaxDashboard.Services.MetricsService>();
+builder.Services.AddSingleton<OneJaxDashboard.Services.IDashboardNotesStore, OneJaxDashboard.Services.DashboardNotesStore>();
 
 // Keep ProjectsService for backward compatibility during transition
 builder.Services.AddSingleton<OneJaxDashboard.Services.ProjectsService>();
