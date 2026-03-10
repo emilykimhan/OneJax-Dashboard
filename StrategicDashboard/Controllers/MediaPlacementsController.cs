@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using OneJaxDashboard.Data;
 using OneJaxDashboard.Models;
 using OneJaxDashboard.Services;
 //karrie's
 namespace OneJaxDashboard.Controllers
 {
+    [Authorize(Roles = "Admin,Staff")]
     public class MediaPlacementsController : Controller
     {
         private readonly ApplicationDbContext _context;

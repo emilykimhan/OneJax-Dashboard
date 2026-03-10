@@ -1386,6 +1386,14 @@ namespace OneJaxDashboard.Controllers
                     existing.IncomeSource = model.IncomeSource;
                     existing.Amount = model.Amount;
                     existing.Month = model.Month;
+                    if (!string.IsNullOrWhiteSpace(model.Month))
+                    {
+                        var parts = model.Month.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                        if (parts.Length > 0 && int.TryParse(parts[^1], out var extractedYear))
+                        {
+                            existing.Year = extractedYear;
+                        }
+                    }
                     existing.Notes = model.Notes;
                     _context.SaveChanges();
                     TempData["Success"] = "Earned Income record updated successfully!";

@@ -464,6 +464,191 @@ h1, h2, h3, h4, h5, h6 {
     animation: shimmer 2s infinite;
 }
 
+/* Community Engagement: dashboard-style cards (used on Home/Index.cshtml) */
+.onejax-community-card {
+    background: var(--onejax-white);
+    border: 1px solid var(--onejax-border);
+    border-radius: 14px;
+    box-shadow: var(--shadow-soft);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 250px;
+}
+
+.onejax-community-card .cmc-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
+    color: var(--onejax-white);
+    background: var(--gradient-primary);
+}
+
+.onejax-community-card.theme-primary .cmc-header { background: var(--gradient-primary); }
+.onejax-community-card.theme-cool .cmc-header { background: var(--gradient-cool); }
+.onejax-community-card.theme-warm .cmc-header { background: var(--gradient-warm); }
+.onejax-community-card.theme-gold .cmc-header { background: linear-gradient(135deg, var(--onejax-gold), var(--onejax-orange)); }
+
+.onejax-community-card .cmc-title-wrap {
+    flex: 1;
+    min-width: 0;
+}
+
+.onejax-community-card .cmc-title {
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 0.92rem;
+    line-height: 1.2;
+    margin: 0;
+}
+
+.onejax-community-card .cmc-subtitle {
+    margin-top: 4px;
+    opacity: 0.92;
+    font-size: 0.86rem;
+    line-height: 1.2;
+}
+
+.onejax-community-card .cmc-pill {
+    flex: 0 0 auto;
+    /* Avoid overly aggressive truncation on narrower cards. */
+    max-width: 260px;
+    min-width: 72px;
+    text-align: center;
+    background: rgba(255,255,255,0.14);
+    border: 1px solid rgba(255,255,255,0.22);
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.82rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.onejax-community-card .cmc-actions {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    max-width: none;
+}
+
+.onejax-community-card .cmc-enter {
+    border-radius: 999px;
+    padding: 0.25rem 0.6rem;
+    font-weight: 800;
+    font-size: 0.75rem;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.35);
+    color: #ffffff;
+}
+
+.onejax-community-card .cmc-enter:hover {
+    background: rgba(255,255,255,0.18);
+    border-color: rgba(255,255,255,0.45);
+    color: #ffffff;
+}
+
+.onejax-community-card .cmc-body {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1 1 auto;
+}
+
+.onejax-community-card .cmc-split {
+    display: grid;
+    grid-template-columns: 1fr 160px;
+    gap: 16px;
+    align-items: center;
+}
+
+.onejax-community-card .cmc-chart {
+    height: 120px;
+    width: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.onejax-community-card .cmc-kpi-value {
+    font-weight: 900;
+    color: var(--onejax-navy);
+    font-size: 2.3rem;
+    line-height: 1;
+}
+
+.onejax-community-card .cmc-kpi-label {
+    color: var(--onejax-text-muted);
+    font-weight: 650;
+    margin-top: 6px;
+}
+
+.onejax-community-card .cmc-kpi-meta {
+    color: var(--onejax-text-muted);
+    margin-top: 4px;
+    font-size: 0.92rem;
+}
+
+.onejax-community-card .cmc-kpi-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+}
+
+.onejax-community-card .cmc-kpi-right {
+    text-align: right;
+    min-width: 160px;
+}
+
+.onejax-community-card .cmc-mini-stat {
+    border: 1px solid rgba(9, 102, 130, 0.12);
+    border-radius: 12px;
+    padding: 12px;
+    background: rgba(9, 102, 130, 0.04);
+}
+
+.onejax-community-card .cmc-mini-value {
+    font-weight: 900;
+    color: var(--onejax-navy);
+    font-size: 1.35rem;
+    line-height: 1.1;
+}
+
+.onejax-community-card .cmc-mini-label {
+    margin-top: 6px;
+    color: var(--onejax-text-muted);
+    font-weight: 650;
+    font-size: 0.92rem;
+}
+
+.onejax-community-card .cmc-mini-meta {
+    margin-top: 3px;
+    color: var(--onejax-text-muted);
+    font-size: 0.86rem;
+}
+
+@media (max-width: 992px) {
+    .onejax-community-card .cmc-split {
+        grid-template-columns: 1fr;
+    }
+    .onejax-community-card .cmc-chart {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    .onejax-community-card .cmc-kpi-right {
+        min-width: 0;
+        text-align: left;
+    }
+}
+
 /* Stat Cards */
 .stat-card-modern {
     background: var(--onejax-white);
@@ -635,4 +820,3 @@ h1, h2, h3, h4, h5, h6 {
     from { opacity: 1; }
     to { opacity: 0; }
 }
-

@@ -94,7 +94,7 @@ namespace OneJaxDashboard.Services
             var strategicGoals = await _context.StrategicGoals.ToListAsync();
             var metrics = new List<GoalMetric>();
 
-            // Identity/Value Proposition Metrics
+            // Identity/Value Proposition Metrics - Website Traffic (graph), Media Placements (card), Community Perception Survey, Program Demographics (geographic heatmap), Framework Development Plan, Framework Compliance
             var identityGoal = strategicGoals.FirstOrDefault(g => g.Name.Contains("Identity"));
             if (identityGoal != null)
             {
@@ -102,63 +102,117 @@ namespace OneJaxDashboard.Services
                 {
                     new GoalMetric
                     {
-                        Name = "Earned Media Placements",
-                        Description = "Media mentions achieved since July 2026",
-                        StrategicGoalId = identityGoal.Id,
-                        Target = "12",
-                        CurrentValue = 0,
-                        Unit = "placements",
-                        DataSource = "Form",
-                        MetricType = "Count",
-                        IsPublic = true,
-                        FiscalYear = "2025-2026",
-                        Status = "Active",
-                        TargetDate = DateTime.Parse("2026-12-01")
-                    },
-                    new GoalMetric
-                    {
                         Name = "Website Traffic (Annual)",
-                        Description = "Total website clicks across all quarters",
+                        Description = "Total website clicks with quarterly breakdown showing growth trends",
                         StrategicGoalId = identityGoal.Id,
-                        Target = "4000",
-                        CurrentValue = 0,
+                        Target = "50000",
+                        CurrentValue = 37500,
                         Unit = "clicks",
                         DataSource = "Form",
                         MetricType = "Annual",
                         IsPublic = true,
                         FiscalYear = "2025-2026",
                         Status = "Active",
-                        TargetDate = DateTime.Parse("2026-06-30")
+                        TargetDate = DateTime.Parse("2026-06-30"),
+                        Q1Value = 8000,
+                        Q2Value = 9500,
+                        Q3Value = 12000,
+                        Q4Value = 8000
+                    },
+                    new GoalMetric
+                    {
+                        Name = "Media Placements",
+                        Description = "Number of positive media placements and coverage per year",
+                        StrategicGoalId = identityGoal.Id,
+                        Target = "120",
+                        CurrentValue = 85,
+                        Unit = "placements",
+                        DataSource = "Form",
+                        MetricType = "Count",
+                        IsPublic = true,
+                        FiscalYear = "2025-2026",
+                        Status = "Active",
+                        TargetDate = DateTime.Parse("2026-06-30"),
+                        Q1Value = 20,
+                        Q2Value = 22,
+                        Q3Value = 25,
+                        Q4Value = 18
                     },
                     new GoalMetric
                     {
                         Name = "Community Perception Survey",
-                        Description = "Percentage identifying OneJax as trusted leader",
+                        Description = "Percentage identifying OneJax as trusted community leader",
                         StrategicGoalId = identityGoal.Id,
-                        Target = "70",
-                        CurrentValue = 0,
+                        Target = "75",
+                        CurrentValue = 68.5m,
                         Unit = "%",
-                        DataSource = "Manual",
+                        DataSource = "Form",
                         MetricType = "Percentage",
                         IsPublic = true,
                         FiscalYear = "2025-2026",
                         Status = "Active",
-                        TargetDate = DateTime.Parse("2025-12-31")
+                        TargetDate = DateTime.Parse("2026-06-30"),
+                        Q1Value = 65,
+                        Q2Value = 67,
+                        Q3Value = 70,
+                        Q4Value = 72
                     },
                     new GoalMetric
                     {
-                        Name = "Key Plan Milestones",
-                        Description = "Content calendar, press releases, brand messaging completion",
+                        Name = "Program Demographics",
+                        Description = "Geographic distribution and demographic data of program participants",
                         StrategicGoalId = identityGoal.Id,
-                        Target = "75",
-                        CurrentValue = 0,
+                        Target = "100",
+                        CurrentValue = 92,
                         Unit = "%",
-                        DataSource = "Manual",
+                        DataSource = "Form",
                         MetricType = "Percentage",
                         IsPublic = true,
                         FiscalYear = "2025-2026",
                         Status = "Active",
-                        TargetDate = DateTime.Parse("2026-01-01")
+                        TargetDate = DateTime.Parse("2026-06-30"),
+                        Q1Value = 88,
+                        Q2Value = 90,
+                        Q3Value = 94,
+                        Q4Value = 96
+                    },
+                    new GoalMetric
+                    {
+                        Name = "Framework Development Plan",
+                        Description = "Progress on developing organizational framework and strategic plans",
+                        StrategicGoalId = identityGoal.Id,
+                        Target = "100",
+                        CurrentValue = 75,
+                        Unit = "%",
+                        DataSource = "Form",
+                        MetricType = "Percentage",
+                        IsPublic = true,
+                        FiscalYear = "2025-2026",
+                        Status = "Active",
+                        TargetDate = DateTime.Parse("2026-06-30"),
+                        Q1Value = 25,
+                        Q2Value = 50,
+                        Q3Value = 75,
+                        Q4Value = 90
+                    },
+                    new GoalMetric
+                    {
+                        Name = "Framework Compliance",
+                        Description = "Adherence to organizational framework and compliance standards",
+                        StrategicGoalId = identityGoal.Id,
+                        Target = "95",
+                        CurrentValue = 88,
+                        Unit = "%",
+                        DataSource = "Form",
+                        MetricType = "Percentage",
+                        IsPublic = true,
+                        FiscalYear = "2025-2026",
+                        Status = "Active",
+                        TargetDate = DateTime.Parse("2026-06-30"),
+                        Q1Value = 85,
+                        Q2Value = 87,
+                        Q3Value = 90,
+                        Q4Value = 92
                     }
                 });
             }
@@ -184,9 +238,36 @@ namespace OneJaxDashboard.Services
                         Status = "Active",
                         TargetDate = DateTime.Parse("2027-06-30")
                     },
-                    // NOTE: Cross-Sector Collaborations metric removed to prevent duplicates
-                    // Real metric is now dynamically calculated in HomeController from form data
-                    // Removed duplicate "Interfaith Events Hosted" - now handled by AddCommunityMetricsAsync with real data
+                    new GoalMetric
+                    {
+                        Name = "Cross-Sector Collaborations",
+                        Description = "Number of unique cross-sector collaborations",
+                        StrategicGoalId = communityGoal.Id,
+                        Target = "10",
+                        CurrentValue = 3,
+                        Unit = "collaborations",
+                        DataSource = "Manual",
+                        MetricType = "Count",
+                        IsPublic = true,
+                        FiscalYear = "2026-2027",
+                        Status = "Active",
+                        TargetDate = DateTime.Parse("2027-06-30")
+                    },
+                    new GoalMetric
+                    {
+                        Name = "Interfaith Events Hosted",
+                        Description = "Number of interfaith collaborative events",
+                        StrategicGoalId = communityGoal.Id,
+                        Target = "4",
+                        CurrentValue = 0,
+                        Unit = "events",
+                        DataSource = "Form",
+                        MetricType = "Count",
+                        IsPublic = true,
+                        FiscalYear = "2025-2026",
+                        Status = "Active",
+                        TargetDate = DateTime.Parse("2026-06-30")
+                    },
                     new GoalMetric
                     {
                         Name = "Youth Program Satisfaction",
@@ -205,7 +286,7 @@ namespace OneJaxDashboard.Services
                 });
             }
 
-            // Financial Stability Metrics
+            // Financial Stability Metrics - Based on specific forms: Donor/Honoree Engagement, Communication Satisfaction, Fee-for-Service Revenue, Earned Income Tracking, Annual Budget Tracking
             var financialGoal = strategicGoals.FirstOrDefault(g => g.Name.Contains("Financial"));
             if (financialGoal != null)
             {
@@ -213,14 +294,74 @@ namespace OneJaxDashboard.Services
                 {
                     new GoalMetric
                     {
+                        Name = "Donor/Honoree Engagement Rate",
+                        Description = "Percentage of active donor engagement and honoree participation",
+                        StrategicGoalId = financialGoal.Id,
+                        Target = "80",
+                        CurrentValue = 0,
+                        Unit = "%",
+                        DataSource = "Form",
+                        MetricType = "Percentage",
+                        IsPublic = true,
+                        FiscalYear = "2026-2027",
+                        Status = "Active",
+                        TargetDate = DateTime.Parse("2027-06-30")
+                    },
+                    new GoalMetric
+                    {
+                        Name = "Communication Satisfaction",
+                        Description = "Donor and stakeholder satisfaction with communications",
+                        StrategicGoalId = financialGoal.Id,
+                        Target = "85",
+                        CurrentValue = 0,
+                        Unit = "%",
+                        DataSource = "Form",
+                        MetricType = "Percentage",
+                        IsPublic = true,
+                        FiscalYear = "2026-2027",
+                        Status = "Active",
+                        TargetDate = DateTime.Parse("2027-06-30")
+                    },
+                    new GoalMetric
+                    {
                         Name = "Fee-for-Service Revenue",
-                        Description = "Cumulative earned income from workshops",
+                        Description = "Cumulative earned income from workshops and services",
                         StrategicGoalId = financialGoal.Id,
                         Target = "50000",
                         CurrentValue = 0,
                         Unit = "$",
                         DataSource = "Form",
                         MetricType = "Currency",
+                        IsPublic = true,
+                        FiscalYear = "2026-2027",
+                        Status = "Active",
+                        TargetDate = DateTime.Parse("2027-06-30")
+                    },
+                    new GoalMetric
+                    {
+                        Name = "Earned Income Tracking",
+                        Description = "Total earned income from all revenue-generating activities",
+                        StrategicGoalId = financialGoal.Id,
+                        Target = "75000",
+                        CurrentValue = 0,
+                        Unit = "$",
+                        DataSource = "Form",
+                        MetricType = "Currency",
+                        IsPublic = true,
+                        FiscalYear = "2026-2027",
+                        Status = "Active",
+                        TargetDate = DateTime.Parse("2027-06-30")
+                    },
+                    new GoalMetric
+                    {
+                        Name = "Annual Budget Tracking",
+                        Description = "Budget variance and adherence to annual financial plan",
+                        StrategicGoalId = financialGoal.Id,
+                        Target = "95",
+                        CurrentValue = 0,
+                        Unit = "%",
+                        DataSource = "Form",
+                        MetricType = "Percentage",
                         IsPublic = true,
                         FiscalYear = "2026-2027",
                         Status = "Active",
@@ -237,8 +378,8 @@ namespace OneJaxDashboard.Services
                 {
                     new GoalMetric
                     {
-                        Name = "Staff Satisfaction (Public)",
-                        Description = "Overall staff satisfaction percentage",
+                        Name = "Staff Satisfaction Rate",
+                        Description = "Overall staff satisfaction percentage based on quarterly surveys",
                         StrategicGoalId = orgGoal.Id,
                         Target = "85",
                         CurrentValue = 0,
@@ -252,60 +393,15 @@ namespace OneJaxDashboard.Services
                     },
                     new GoalMetric
                     {
-                        Name = "Professional Development Participation",
-                        Description = "Number of staff participating in development",
+                        Name = "Professional Development Activities",
+                        Description = "Track employee professional development activities. Employees must participate in at least 1 opportunity for professional development annually across 2026 and 2027",
                         StrategicGoalId = orgGoal.Id,
                         Target = "100",
                         CurrentValue = 0,
-                        Unit = "%",
+                        Unit = "% participation",
                         DataSource = "Calculated",
                         MetricType = "Percentage",
                         IsPublic = true,
-                        FiscalYear = "2026-2027",
-                        Status = "Active",
-                        TargetDate = DateTime.Parse("2027-06-30")
-                    },
-                    new GoalMetric
-                    {
-                        Name = "Board Member Count",
-                        Description = "Total number of board members",
-                        StrategicGoalId = orgGoal.Id,
-                        Target = "12",
-                        CurrentValue = 0,
-                        Unit = "members",
-                        DataSource = "Manual",
-                        MetricType = "Count",
-                        IsPublic = true,
-                        FiscalYear = "2026-2027",
-                        Status = "Active",
-                        TargetDate = DateTime.Parse("2026-07-01")
-                    },
-                    new GoalMetric
-                    {
-                        Name = "Board Self-Assessment",
-                        Description = "Average board engagement and impact scores",
-                        StrategicGoalId = orgGoal.Id,
-                        Target = "85",
-                        CurrentValue = 0,
-                        Unit = "%",
-                        DataSource = "Manual",
-                        MetricType = "Percentage",
-                        IsPublic = true,
-                        FiscalYear = "2026-2027",
-                        Status = "Active",
-                        TargetDate = DateTime.Parse("2027-06-30")
-                    },
-                    new GoalMetric
-                    {
-                        Name = "Board Meeting Attendance",
-                        Description = "Percentage attendance at board meetings",
-                        StrategicGoalId = orgGoal.Id,
-                        Target = "90",
-                        CurrentValue = 0,
-                        Unit = "%",
-                        DataSource = "Form",
-                        MetricType = "Percentage",
-                        IsPublic = false, // Internal only
                         FiscalYear = "2026-2027",
                         Status = "Active",
                         TargetDate = DateTime.Parse("2027-06-30")

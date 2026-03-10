@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using OneJax.StrategicDashboard.Models;
 using OneJaxDashboard.Data;
@@ -50,6 +51,33 @@ namespace OneJaxDashboard.Controllers
                 // Fallback to sample data
                 return View(GetSampleGoals());
             }
+        }
+
+        // Read-only public events listing (does not allow creating/editing events).
+        [AllowAnonymous]
+        public IActionResult Events(int? goalId)
+        {
+            var query = _context.Strategies
+                .Where(s => !s.IsArchived);
+
+            if (goalId.HasValue)
+            {
+                query = query.Where(s => s.StrategicGoalId == goalId.Value);
+            }
+
+            var items = query
+                .OrderBy(s => s.StrategicGoalId)
+                .ThenBy(s => s.Date)
+                .ThenBy(s => s.Time)
+                .ToList();
+
+            ViewBag.GoalId = goalId;
+            ViewBag.Goals = _context.StrategicGoals
+                .Where(g => g.Id >= 1 && g.Id <= 4)
+                .OrderBy(g => g.Id)
+                .ToList();
+
+            return View(items);
         }
 
         // User Story 2: Status of a specific project
