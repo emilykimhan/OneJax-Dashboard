@@ -17,6 +17,9 @@ public class DashboardViewModel
     
     // Chart Data
     public ChartData Charts { get; set; } = new ChartData();
+
+    // Identity map data
+    public Dictionary<string, int> ZipCoverage { get; set; } = new Dictionary<string, int>();
     
     // Data source information
     public string DataSource { get; set; } = "Database";

@@ -8,6 +8,7 @@
     var selectedTime = Context.Request.Query["time"].ToString();
     var selectedFiscalYear = Context.Request.Query["fiscalYear"].ToString();
     var selectedQuarter = Context.Request.Query["quarter"].ToString();
+    var activeFiscalYear = string.IsNullOrWhiteSpace(selectedFiscalYear) ? "2025-2026" : selectedFiscalYear;
     
     // Check if we have enhanced metrics
     var hasEnhancedMetrics = Model.StrategicGoals?.Any(g => g.Metrics?.Any(m => !string.IsNullOrEmpty(m.DataSource)) == true) == true;
@@ -19,7 +20,7 @@
         <div class="row align-items-center">
             <div class="col-md-8 slide-in-left">
                 <div style="margin-bottom: 1rem;">
-                    <span class="badge-modern" style="background: rgba(255,255,255,0.2); color: white;">FISCAL YEAR 2025</span>
+                    <span class="badge-modern" style="background: rgba(255,255,255,0.2); color: white;">FISCAL YEAR @activeFiscalYear</span>
                 </div>
                 <h1 class="display-3 mb-4" style="font-weight: 700; color: white; text-shadow: 0 4px 20px rgba(0,0,0,0.3);">
                     Your Investment at Work
@@ -121,9 +122,9 @@
                 <div class="row align-items-center mb-4">
                     <div class="col-md-8">
                         <h5 style="color: var(--onejax-navy); margin-bottom: 0.5rem; font-weight: 700;">
-                            Dashboard Controls & Advanced Filters
+                            Dashboard Controls
                         </h5>
-                        <p style="color: var(--onejax-text-muted); margin-bottom: 0;">Customize your view and export comprehensive reports</p>
+                        <p style="color: var(--onejax-text-muted); margin-bottom: 0;">Customize your view by fiscal year</p>
                     </div>
                     <div class="col-md-4 text-end">
                         <span class="badge-modern" style="background: var(--gradient-secondary); color: white;">
@@ -134,69 +135,26 @@
                 
                 <form onsubmit="applyFilters(); return false;">
                     <div class="row g-4 align-items-end">
-                        <div class="col-md-2">
-                            <label class="form-label" style="color: var(--onejax-navy); font-weight: 600;">
-                                Project Status
-                            </label>
-                            <select class="form-select" id="statusFilter" name="status" style="border-radius: 12px; border: 2px solid var(--onejax-border); padding: 12px;">
-                                <option value="" selected="@(string.IsNullOrEmpty(selectedStatus))">All Statuses</option>
-                                <option value="Planned" selected="@(selectedStatus == "Planned")">Planned</option>
-                                <option value="Active" selected="@(selectedStatus == "Active")">In Progress</option>
-                                <option value="Completed" selected="@(selectedStatus == "Completed")">Completed</option>
-                                <option value="On Hold" selected="@(selectedStatus == "On Hold")">On Hold</option>
-                            </select>
-                        </div>
-                        
-                        <div class="col-md-2">
+                        <div class="col-md-6 col-lg-4">
                             <label class="form-label" style="color: var(--onejax-navy); font-weight: 600;">
                                 Fiscal Year
                             </label>
                             <select class="form-select" id="fiscalYearFilter" name="fiscalYear" style="border-radius: 12px; border: 2px solid var(--onejax-border); padding: 12px;">
                                 <option value="" selected="@(string.IsNullOrEmpty(selectedFiscalYear))">All Years</option>
-                                <option value="2024" selected="@(selectedFiscalYear == "2024")">FY 2024</option>
-                                <option value="2025" selected="@(selectedFiscalYear == "2025")">FY 2025</option>
-                                <option value="2026" selected="@(selectedFiscalYear == "2026")">FY 2026</option>
-                                <option value="2027" selected="@(selectedFiscalYear == "2027")">FY 2027</option>
+                                <option value="2024-2025" selected="@(selectedFiscalYear == "2024-2025")">FY 2024-2025</option>
+                                <option value="2025-2026" selected="@(selectedFiscalYear == "2025-2026")">FY 2025-2026</option>
+                                <option value="2026-2027" selected="@(selectedFiscalYear == "2026-2027")">FY 2026-2027</option>
+                                <option value="2027-2028" selected="@(selectedFiscalYear == "2027-2028")">FY 2027-2028</option>
                             </select>
                         </div>
 
-                        <div class="col-md-2">
-                            <label class="form-label" style="color: var(--onejax-navy); font-weight: 600;">
-                                Quarter
-                            </label>
-                            <select class="form-select" id="quarterFilter" name="quarter" style="border-radius: 12px; border: 2px solid var(--onejax-border); padding: 12px;">
-                                <option value="" selected="@(string.IsNullOrEmpty(selectedQuarter))">All Quarters</option>
-                                <option value="Q1" selected="@(selectedQuarter == "Q1")">Q1 (Jul-Sep)</option>
-                                <option value="Q2" selected="@(selectedQuarter == "Q2")">Q2 (Oct-Dec)</option>
-                                <option value="Q3" selected="@(selectedQuarter == "Q3")">Q3 (Jan-Mar)</option>
-                                <option value="Q4" selected="@(selectedQuarter == "Q4")">Q4 (Apr-Jun)</option>
-                            </select>
-                        </div>
-
-                        <div class="col-md-2">
-                            <label class="form-label" style="color: var(--onejax-navy); font-weight: 600;">
-                                Legacy Time Period
-                            </label>
-                            <select class="form-select" id="timeFilter" name="time" style="border-radius: 12px; border: 2px solid var(--onejax-border); padding: 12px;">
-                                <option value="" selected="@(string.IsNullOrEmpty(selectedTime))">None</option>
-                                <option value="Current Quarter" selected="@(selectedTime == "Current Quarter")">Current Quarter</option>
-                                <option value="This Year" selected="@(selectedTime == "This Year")">This Calendar Year</option>
-                                <option value="Q1 2025" selected="@(selectedTime == "Q1 2025")">Q1 2025</option>
-                                <option value="Q2 2025" selected="@(selectedTime == "Q2 2025")">Q2 2025</option>
-                                <option value="Q3 2025" selected="@(selectedTime == "Q3 2025")">Q3 2025</option>
-                                <option value="Q4 2025" selected="@(selectedTime == "Q4 2025")">Q4 2025</option>
-                                <option value="FY 2025" selected="@(selectedTime == "FY 2025")">FY 2025</option>
-                                <option value="FY 2026" selected="@(selectedTime == "FY 2026")">FY 2026</option>
-                            </select>
-                        </div>
-
-                        <div class="col-md-2">
+                        <div class="col-md-3 col-lg-2">
                             <button type="submit" class="btn btn-primary-modern w-100" style="font-weight: 600;">
                                 Apply Filters
                             </button>
                         </div>
                         
-                        <div class="col-md-2">
+                        <div class="col-md-3 col-lg-2">
                             <button type="button" class="btn btn-outline-secondary w-100" onclick="resetFilters()" style="border-radius: 12px;">
                                 Reset
                             </button>
@@ -397,7 +355,8 @@
                                         </div>
                                         <h6 class="card-title" style="font-weight: 600; margin-bottom: 0.5rem;">Growth Metrics</h6>
                                         @{
-                                            var avgProgress = Model.StrategicGoals?.SelectMany(g => g.Metrics ?? new List<GoalMetric>()).Average(m => m.ProgressPercentage) ?? 0;
+                                            var allMetrics = Model.StrategicGoals?.SelectMany(g => g.Metrics ?? new List<GoalMetric>());
+                                            var avgProgress = allMetrics?.Any() == true ? allMetrics.Average(m => m.ProgressPercentage) : 0;
                                         }
                                         <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">@Math.Round(avgProgress, 0)%</div>
                                         <small style="opacity: 0.8;">Avg Progress Rate</small>
@@ -538,114 +497,213 @@
                                         @foreach (var metric in orderedMetrics)
                                         {
                                             @* Different visual styles based on metric type and goal *@
-                                            @if (goal.Name == "Community Engagement" && metric.Name.Contains("Satisfaction"))
+                                            @if (goal.Name == "Community Engagement" && metric.Name.Contains("Interfaith") && metric.Name.Contains("Events"))
                                             {
-                                                <!-- Professional Satisfaction Card -->
+                                                <!-- Interfaith Collaborative Events Card -->
                                                 <div class="col-md-4 mb-3">
-                                                    <div class="card" style="background:var(--onejax-white); border:1px solid #e5e7eb; border-radius:8px;">
-                                                        <div class="card-body">
-                                                            <h6 class="card-title" style="color:var(--onejax-navy); font-weight:600;">@metric.Name</h6>
-                                                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                                                <div>
-                                                                    <div class="h3 mb-0" style="color:var(--onejax-navy);">@metric.CurrentValue%</div>
-                                                                    <small class="text-muted">Target: @metric.Target%</small>
-                                                                </div>
-                                                                @if (metric.CurrentValue >= Convert.ToDecimal(metric.Target))
-                                                                {
-                                                                    <span class="badge bg-success">Target Met</span>
-                                                                }
-                                                                else
-                                                                {
-                                                                    <span class="badge" style="background-color:var(--onejax-orange); color:white;">In Progress</span>
-                                                                }
-                                                            </div>
-                                                            <div class="progress" style="height:6px;">
-                                                                <div class="progress-bar" style="width:@(Math.Min(metric.ProgressPercentage, 100))%; background-color:var(--onejax-blue);" role="progressbar"></div>
-                                                            </div>
-                                                            <small class="text-muted mt-1">@Math.Round(metric.ProgressPercentage, 1)% of target</small>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            }
-                                            else if (goal.Name == "Community Engagement" && (metric.Name.Contains("Growth") || metric.Name.Contains("Expansion")))
-                                            {
-                                                <!-- Professional Growth Card -->
-                                                <div class="col-md-6 mb-3">
-                                                    <div class="card" style="background:var(--onejax-white); border:1px solid #e5e7eb; border-radius:8px;">
-                                                        <div class="card-body">
-                                                            <h6 class="card-title" style="color:var(--onejax-navy); font-weight:600;">@metric.Name</h6>
-                                                            <div class="row align-items-center mb-3">
-                                                                <div class="col-6">
-                                                                    <div class="h3 mb-0" style="color:var(--onejax-navy);">@metric.CurrentValue</div>
-                                                                    <small class="text-muted">Current @metric.Unit</small>
-                                                                </div>
-                                                                <div class="col-6 text-end">
-                                                                    <div style="color:var(--onejax-navy);">Target: @metric.Target</div>
-                                                                    <span class="badge" style="background-color:var(--onejax-blue); color:white;">@Math.Round(metric.ProgressPercentage, 1)%</span>
-                                                                </div>
-                                                            </div>
-                                                            @if (metric.Q1Value > 0)
-                                                            {
-                                                                <div class="mb-2" style="font-size:0.9em; color:#6b7280;">
-                                                                    <strong>Q1 Progress:</strong> @metric.Q1Value.ToString("N0")
-                                                                </div>
-                                                            }
-                                                            <div class="progress" style="height:6px;">
-                                                                <div class="progress-bar" style="width:@(Math.Min(metric.ProgressPercentage, 100))%; background-color:var(--onejax-blue);" role="progressbar"></div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            }
-                                            else if (goal.Name == "Community Engagement" && metric.Name.Contains("Events"))
-                                            {
-                                                <!-- Professional Event Counter -->
-                                                <div class="col-md-4 mb-3">
-                                                    <div class="card" style="background:var(--onejax-white); border:1px solid #e5e7eb; border-radius:8px;">
+                                                    <div class="card" style="background:var(--onejax-white); border:1px solid #e5e7eb; border-radius:12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
                                                         <div class="card-body text-center">
-                                                            <h6 class="card-title" style="color:var(--onejax-navy); font-weight:600;">@metric.Name</h6>
-                                                            <div class="h2 mb-0" style="color:var(--onejax-navy);">@metric.CurrentValue</div>
-                                                            <small class="text-muted">Events Hosted</small>
-                                                            <div class="mt-3">
-                                                                <small class="text-muted">Target: @metric.Target</small>
+                                                            <div style="background: linear-gradient(135deg, #8b5cf6, #a78bfa); color: white; padding: 0.75rem; border-radius: 8px; margin-bottom: 1rem;">
+                                                                <i class="fas fa-hands-helping" style="font-size: 1.5rem;"></i>
                                                             </div>
+                                                            <h6 class="card-title" style="color:var(--onejax-navy); font-weight:600; margin-bottom: 1rem;">Interfaith Collaborative Events</h6>
+                                                            <div class="h2 mb-2" style="color:var(--onejax-navy);">@metric.CurrentValue</div>
+                                                            <small class="text-muted">Events Hosted / Target: @metric.Target</small>
+                                                            <div class="progress mt-3" style="height:8px; border-radius: 4px;">
+                                                                <div class="progress-bar" style="width:@(Math.Min(metric.ProgressPercentage, 100))%; background: linear-gradient(90deg, #8b5cf6, #a78bfa); border-radius: 4px;" role="progressbar"></div>
+                                                            </div>
+                                                            <small class="text-muted mt-2 d-block">@Math.Round(metric.ProgressPercentage, 1)% Complete</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
+                                            else if (goal.Name == "Community Engagement" && metric.Name.Contains("Youth") && metric.Name.Contains("Attendance"))
+                                            {
+                                                <!-- Youth Attendance Card -->
+                                                <div class="col-md-4 mb-3">
+                                                    <div class="card" style="background:var(--onejax-white); border:1px solid #e5e7eb; border-radius:12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                                                        <div class="card-body text-center">
+                                                            <div style="background: linear-gradient(135deg, #10b981, #34d399); color: white; padding: 0.75rem; border-radius: 8px; margin-bottom: 1rem;">
+                                                                <i class="fas fa-users" style="font-size: 1.5rem;"></i>
+                                                            </div>
+                                                            <h6 class="card-title" style="color:var(--onejax-navy); font-weight:600; margin-bottom: 1rem;">Youth Attendance Growth</h6>
+                                                            <div class="h2 mb-2" style="color:var(--onejax-navy);">+@metric.CurrentValue%</div>
+                                                            <small class="text-muted">Increase / Target: +@metric.Target%</small>
                                                             @if (metric.CurrentValue >= Convert.ToDecimal(metric.Target))
                                                             {
-                                                                <div class="mt-2">
-                                                                    <span class="badge bg-success">Target Exceeded</span>
+                                                                <div class="mt-3">
+                                                                    <span class="badge bg-success">Target Achieved!</span>
                                                                 </div>
                                                             }
                                                             else
                                                             {
-                                                                <div class="progress mt-2" style="height:4px;">
-                                                                    <div class="progress-bar" style="width:@(Math.Min(metric.ProgressPercentage, 100))%; background-color:var(--onejax-blue);" role="progressbar"></div>
+                                                                <div class="progress mt-3" style="height:8px; border-radius: 4px;">
+                                                                    <div class="progress-bar" style="width:@(Math.Min(metric.ProgressPercentage, 100))%; background: linear-gradient(90deg, #10b981, #34d399); border-radius: 4px;" role="progressbar"></div>
                                                                 </div>
+                                                                <small class="text-muted mt-2 d-block">@Math.Round(metric.ProgressPercentage, 1)% to target</small>
                                                             }
                                                         </div>
                                                     </div>
                                                 </div>
                                             }
-                                            else if (goal.Name == "Community Engagement" && metric.Name.Contains("Skills"))
+                                            else if (goal.Name == "Community Engagement" && metric.Name.Contains("Satisfaction") && metric.Name.Contains("Event"))
                                             {
-                                                <!-- Professional Skills Achievement -->
+                                                <!-- Event Attendee Satisfaction Card -->
+                                                <div class="col-md-4 mb-3">
+                                                    <div class="card" style="background:var(--onejax-white); border:1px solid #e5e7eb; border-radius:12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                                                        <div class="card-body text-center">
+                                                            <div style="background: linear-gradient(135deg, #f59e0b, #fbbf24); color: white; padding: 0.75rem; border-radius: 8px; margin-bottom: 1rem;">
+                                                                <i class="fas fa-smile" style="font-size: 1.5rem;"></i>
+                                                            </div>
+                                                            <h6 class="card-title" style="color:var(--onejax-navy); font-weight:600; margin-bottom: 1rem;">Event Attendee Satisfaction</h6>
+                                                            <div class="h2 mb-2" style="color:var(--onejax-navy);">@metric.CurrentValue%</div>
+                                                            <small class="text-muted">Satisfaction Rate / Target: @metric.Target%</small>
+                                                            <div class="progress mt-3" style="height:8px; border-radius: 4px;">
+                                                                <div class="progress-bar" style="width:@(Math.Min(metric.ProgressPercentage, 100))%; background: linear-gradient(90deg, #f59e0b, #fbbf24); border-radius: 4px;" role="progressbar"></div>
+                                                            </div>
+                                                            <small class="text-muted mt-2 d-block">@Math.Round(metric.ProgressPercentage, 1)% of target</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
+                                            else if (goal.Name == "Community Engagement" && metric.Name.Contains("Partner") && metric.Name.Contains("Touchpoints"))
+                                            {
+                                                <!-- Collaborative Partner Touchpoints Card -->
                                                 <div class="col-md-6 mb-3">
-                                                    <div class="card" style="background:var(--onejax-white); border:1px solid #e5e7eb; border-radius:8px;">
+                                                    <div class="card" style="background:var(--onejax-white); border:1px solid #e5e7eb; border-radius:12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
                                                         <div class="card-body">
-                                                            <h6 class="card-title" style="color:var(--onejax-navy); font-weight:600;">Skills Assessment Improvement</h6>
+                                                            <div class="row align-items-center">
+                                                                <div class="col-3">
+                                                                    <div style="background: linear-gradient(135deg, #3b82f6, #60a5fa); color: white; padding: 1rem; border-radius: 12px; text-align: center;">
+                                                                        <i class="fas fa-handshake" style="font-size: 1.8rem;"></i>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-9">
+                                                                    <h6 class="card-title" style="color:var(--onejax-navy); font-weight:600; margin-bottom: 0.5rem;">Collaborative Partners</h6>
+                                                                    <div class="h3 mb-1" style="color:var(--onejax-navy);">@metric.CurrentValue</div>
+                                                                    <small class="text-muted">New Partners / Target: @metric.Target annually</small>
+                                                                </div>
+                                                            </div>
+                                                            <div class="progress mt-3" style="height:8px; border-radius: 4px;">
+                                                                <div class="progress-bar" style="width:@(Math.Min(metric.ProgressPercentage, 100))%; background: linear-gradient(90deg, #3b82f6, #60a5fa); border-radius: 4px;" role="progressbar"></div>
+                                                            </div>
+                                                            <div class="d-flex justify-content-between mt-2">
+                                                                <small class="text-muted">Progress: @Math.Round(metric.ProgressPercentage, 1)%</small>
+                                                                <span class="badge @(metric.CurrentValue >= Convert.ToDecimal(metric.Target) ? "bg-success" : "bg-primary")">
+                                                                    @(metric.CurrentValue >= Convert.ToDecimal(metric.Target) ? "Target Met" : "In Progress")
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
+                                            else if (goal.Name == "Community Engagement" && metric.Name.Contains("Faith") && metric.Name.Contains("Representation"))
+                                            {
+                                                <!-- Faith Representation Card -->
+                                                <div class="col-md-6 mb-3">
+                                                    <div class="card" style="background:var(--onejax-white); border:1px solid #e5e7eb; border-radius:12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                                                        <div class="card-body">
+                                                            <div class="row align-items-center">
+                                                                <div class="col-3">
+                                                                    <div style="background: linear-gradient(135deg, #8b5cf6, #a78bfa); color: white; padding: 1rem; border-radius: 12px; text-align: center;">
+                                                                        <i class="fas fa-dove" style="font-size: 1.8rem;"></i>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-9">
+                                                                    <h6 class="card-title" style="color:var(--onejax-navy); font-weight:600; margin-bottom: 0.5rem;">Faith Representation</h6>
+                                                                    <div class="h3 mb-1" style="color:var(--onejax-navy);">@metric.CurrentValue%</div>
+                                                                    <small class="text-muted">Events with 3+ Faiths / Target: @metric.Target%</small>
+                                                                </div>
+                                                            </div>
+                                                            <div class="progress mt-3" style="height:8px; border-radius: 4px;">
+                                                                <div class="progress-bar" style="width:@(Math.Min(metric.ProgressPercentage, 100))%; background: linear-gradient(90deg, #8b5cf6, #a78bfa); border-radius: 4px;" role="progressbar"></div>
+                                                            </div>
+                                                            <div class="d-flex justify-content-between mt-2">
+                                                                <small class="text-muted">3 faiths at 80% of events</small>
+                                                                <small class="text-muted">@Math.Round(metric.ProgressPercentage, 1)% achieved</small>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
+                                            else if (goal.Name == "Community Engagement" && metric.Name.Contains("Clergy") && metric.Name.Contains("Network"))
+                                            {
+                                                <!-- Clergy & Interfaith Network Contacts Card -->
+                                                <div class="col-md-4 mb-3">
+                                                    <div class="card" style="background:var(--onejax-white); border:1px solid #e5e7eb; border-radius:12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                                                        <div class="card-body text-center">
+                                                            <div style="background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; padding: 0.75rem; border-radius: 8px; margin-bottom: 1rem;">
+                                                                <i class="fas fa-address-book" style="font-size: 1.5rem;"></i>
+                                                            </div>
+                                                            <h6 class="card-title" style="color:var(--onejax-navy); font-weight:600; margin-bottom: 1rem;">Network Expansion</h6>
+                                                            <div class="h2 mb-2" style="color:var(--onejax-navy);">+@metric.CurrentValue%</div>
+                                                            <small class="text-muted">Clergy Contacts Growth / Target: +@metric.Target%</small>
+                                                            <div class="progress mt-3" style="height:8px; border-radius: 4px;">
+                                                                <div class="progress-bar" style="width:@(Math.Min(metric.ProgressPercentage, 100))%; background: linear-gradient(90deg, #6366f1, #8b5cf6); border-radius: 4px;" role="progressbar"></div>
+                                                            </div>
+                                                            <small class="text-muted mt-2 d-block">25% expansion by FY end</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
+                                            else if (goal.Name == "Community Engagement" && metric.Name.Contains("Diversity") && metric.Name.Contains("Participant"))
+                                            {
+                                                <!-- Participant Diversity Card -->
+                                                <div class="col-md-6 mb-3">
+                                                    <div class="card" style="background:var(--onejax-white); border:1px solid #e5e7eb; border-radius:12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                                                        <div class="card-body">
+                                                            <h6 class="card-title" style="color:var(--onejax-navy); font-weight:600; margin-bottom: 1.5rem;">Participant Diversity</h6>
                                                             <div class="row align-items-center mb-3">
                                                                 <div class="col-6">
-                                                                    <div class="h2 mb-0" style="color:var(--onejax-navy);">@metric.CurrentValue%</div>
-                                                                    <small class="text-muted">Current Achievement</small>
+                                                                    <div class="d-flex align-items-center mb-2">
+                                                                        <div style="background: linear-gradient(135deg, #10b981, #34d399); color: white; padding: 0.5rem; border-radius: 6px; margin-right: 0.75rem;">
+                                                                            <i class="fas fa-users-cog" style="font-size: 1rem;"></i>
+                                                                        </div>
+                                                                        <div>
+                                                                            <div style="color:var(--onejax-navy); font-weight: 600;">+@metric.CurrentValue%</div>
+                                                                            <small class="text-muted">Diversity Increase</small>
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
-                                                                <div class="col-6 text-end">
-                                                                    <div style="color:var(--onejax-navy);">Target: @metric.Target%</div>
-                                                                    <span class="badge bg-success">Outstanding Performance</span>
+                                                                <div class="col-6">
+                                                                    <div class="d-flex align-items-center mb-2">
+                                                                        <div style="background: linear-gradient(135deg, #f59e0b, #fbbf24); color: white; padding: 0.5rem; border-radius: 6px; margin-right: 0.75rem;">
+                                                                            <i class="fas fa-thumbs-up" style="font-size: 1rem;"></i>
+                                                                        </div>
+                                                                        <div>
+                                                                            <div style="color:var(--onejax-navy); font-weight: 600;">@(metric.Q1Value > 0 ? metric.Q1Value : 87)%</div>
+                                                                            <small class="text-muted">Satisfaction Rate</small>
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
                                                             </div>
-                                                            <div class="progress" style="height:8px;">
-                                                                <div class="progress-bar bg-success" style="width:100%;" role="progressbar"></div>
+                                                            <div class="progress mb-2" style="height:8px; border-radius: 4px;">
+                                                                <div class="progress-bar" style="width:@(Math.Min(metric.ProgressPercentage, 100))%; background: linear-gradient(90deg, #10b981, #34d399); border-radius: 4px;" role="progressbar"></div>
                                                             </div>
-                                                            <small class="text-muted mt-2 d-block">Resilience & Communication Skills</small>
+                                                            <div class="d-flex justify-content-between">
+                                                                <small class="text-muted">Target: +@metric.Target% diversity</small>
+                                                                <small class="text-muted">85%+ satisfaction</small>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
+                                            else if (goal.Name == "Community Engagement" && metric.Name.Contains("First-Time") && metric.Name.Contains("Participants"))
+                                            {
+                                                <!-- First-Time Participants Card -->
+                                                <div class="col-md-4 mb-3">
+                                                    <div class="card" style="background:var(--onejax-white); border:1px solid #e5e7eb; border-radius:12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                                                        <div class="card-body text-center">
+                                                            <div style="background: linear-gradient(135deg, #ef4444, #f87171); color: white; padding: 0.75rem; border-radius: 8px; margin-bottom: 1rem;">
+                                                                <i class="fas fa-user-plus" style="font-size: 1.5rem;"></i>
+                                                            </div>
+                                                            <h6 class="card-title" style="color:var(--onejax-navy); font-weight:600; margin-bottom: 1rem;">First-Time Participants</h6>
+                                                            <div class="h2 mb-2" style="color:var(--onejax-navy);">@metric.CurrentValue%</div>
+                                                            <small class="text-muted">New Attendees / Target: @metric.Target%</small>
+                                                            <div class="progress mt-3" style="height:8px; border-radius: 4px;">
+                                                                <div class="progress-bar" style="width:@(Math.Min(metric.ProgressPercentage, 100))%; background: linear-gradient(90deg, #ef4444, #f87171); border-radius: 4px;" role="progressbar"></div>
+                                                            </div>
+                                                            <small class="text-muted mt-2 d-block">25% across all programs</small>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -705,7 +763,7 @@
                                             {
                                                 <!-- Enhanced Staff Satisfaction Card -->
                                                 <div class="col-md-6 mb-3 order-1 d-flex">
-                                                    <div class="card w-100" style="background: linear-gradient(135deg, #f8fafc, #f1f5f9); border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); position: relative; overflow: visible; min-height: 320px; height: 100%; display: flex; flex-direction: column;">
+                                                    <div class="card w-100" style="background: linear-gradient(135deg, #f8fafc, #f1f5f9); border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); position: relative; overflow: visible; min-height: 340px; height: 100%; display: flex; flex-direction: column;">
                                                         <!-- Header with gradient -->
                                                         <div class="card-header" style="background: linear-gradient(135deg, var(--onejax-blue), var(--onejax-navy)); color: white; border: none; border-radius: 16px 16px 0 0; padding: 1rem; flex-shrink: 0;">
                                                             <div class="d-flex justify-content-between align-items-center">
@@ -967,11 +1025,131 @@
                                                     </div>
                                                 </div>
                                             }
+                                            else if (metric.Name.Contains("Board Self-Assessment") && (goal.Name.Contains("Organizational") || goal.Name.Contains("Building")))
+                                            {
+                                                <!-- Board Self-Assessment Card -->
+                                                <div class="col-md-4 mb-3 order-0 d-flex">
+                                                    <div class="card h-100 w-100" style="background: #ffffff; border: 1px solid #d1d5db; border-radius: 8px; box-shadow: 0 2px 8px rgba(15,23,42,0.08); min-height: 300px;">
+                                                        <div class="card-header" style="background: #1f2937; color: white; border: none; border-radius: 8px 8px 0 0; padding: 0.9rem 1rem;">
+                                                            <div class="d-flex justify-content-between align-items-center">
+                                                                <div>
+                                                                    <h6 class="mb-0" style="font-weight: 600; font-size: 1rem;">
+                                                                        <i class="fas fa-clipboard-check me-2"></i>Board Self-Assessment
+                                                                    </h6>
+                                                                    <small style="opacity: 0.9;">Annual board self-evaluation score</small>
+                                                                </div>
+                                                                <span class="badge" style="background: @(metric.CurrentValue >= Convert.ToDecimal(metric.Target) ? "#10b981" : "#f59e0b"); font-size: 0.75rem;">
+                                                                    @(metric.CurrentValue >= Convert.ToDecimal(metric.Target) ? "On Target" : "Improvement Area")
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        <div class="card-body d-flex flex-column justify-content-center" style="padding: 1.5rem;">
+                                                            <div class="text-center mb-3">
+                                                                <div style="font-size: 2.25rem; font-weight: 700; color: #111827; line-height: 1;">
+                                                                    @Math.Round(metric.CurrentValue, 1)%
+                                                                </div>
+                                                                <small style="color: var(--onejax-text-muted);">Average Assessment Score</small>
+                                                            </div>
+                                                            <div class="mb-2">
+                                                                <div class="d-flex justify-content-between mb-1">
+                                                                    <small style="color: var(--onejax-text-muted);">Progress to @metric.Target%</small>
+                                                                    <small style="color: #1f2937; font-weight: 600;">@Math.Round(metric.ProgressPercentage, 1)%</small>
+                                                                </div>
+                                                                <div class="progress" style="height: 10px; border-radius: 4px; background: #e5e7eb;">
+                                                                    <div class="progress-bar" style="width: @Math.Min(metric.ProgressPercentage, 100)%; background: #374151; border-radius: 4px;"></div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
+                                            else if (metric.Name.Contains("Volunteer Program") && (goal.Name.Contains("Organizational") || goal.Name.Contains("Building")))
+                                            {
+                                                <!-- Volunteer Program Card -->
+                                                <div class="col-md-8 mb-3 order-0 d-flex">
+                                                    <div class="card h-100 w-100" style="background: #ffffff; border: 1px solid #d1d5db; border-radius: 8px; box-shadow: 0 2px 8px rgba(15,23,42,0.08); min-height: 300px; display: flex; flex-direction: column;">
+                                                        <div class="card-header" style="background: #334155; color: white; border: none; border-radius: 8px 8px 0 0; padding: 0.9rem 1rem;">
+                                                            <div class="d-flex justify-content-between align-items-center">
+                                                                <div>
+                                                                    <h6 class="mb-0" style="font-weight: 600; font-size: 1rem;">
+                                                                        <i class="fas fa-hands-helping me-2"></i>Volunteer Program
+                                                                    </h6>
+                                                                    <small style="opacity: 0.9;">Volunteer participation and initiatives</small>
+                                                                </div>
+                                                                <span class="badge" style="background: @(metric.CurrentValue > 0 ? "#10b981" : "#6b7280"); font-size: 0.75rem;">
+                                                                    @(metric.CurrentValue > 0 ? "Active" : "Awaiting Data")
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        <div class="card-body" style="padding: 1.5rem;">
+                                                            @{
+                                                                var volunteerRecords = ViewBag.VolunteerProgramRecords as List<OneJaxDashboard.Models.volunteerProgram_40D> ?? new List<OneJaxDashboard.Models.volunteerProgram_40D>();
+                                                                var latestVolunteerRecord = volunteerRecords
+                                                                    .OrderByDescending(v => v.Year)
+                                                                    .ThenByDescending(v => v.Quarter)
+                                                                    .ThenByDescending(v => v.CreatedDate)
+                                                                    .FirstOrDefault();
+                                                            }
+                                                            <div class="row text-center mb-3">
+                                                                <div class="col-6">
+                                                                    <div style="font-size: 2rem; font-weight: 700; color: #111827; line-height: 1;">@Math.Round(metric.CurrentValue, 0)</div>
+                                                                    <small style="color: var(--onejax-text-muted);">Volunteers</small>
+                                                                </div>
+                                                                <div class="col-6">
+                                                                    <div style="font-size: 2rem; font-weight: 700; color: #334155; line-height: 1;">@Math.Round(metric.Q1Value, 0)</div>
+                                                                    <small style="color: var(--onejax-text-muted);">Initiatives</small>
+                                                                </div>
+                                                            </div>
+                                                            <div class="mb-2">
+                                                                <div class="d-flex justify-content-between mb-1">
+                                                                    <small style="color: var(--onejax-text-muted);">Volunteer Goal Progress</small>
+                                                                    <small style="color: #1f2937; font-weight: 600;">@Math.Round(metric.ProgressPercentage, 1)%</small>
+                                                                </div>
+                                                                <div class="progress" style="height: 10px; border-radius: 4px; background: #e5e7eb;">
+                                                                    <div class="progress-bar" style="width: @Math.Min(metric.ProgressPercentage, 100)%; background: #475569; border-radius: 4px;"></div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="mt-3 pt-3" style="border-top: 1px solid #e5e7eb;">
+                                                                <div class="mb-2" style="font-size: 0.8rem; font-weight: 700; color: #374151; text-transform: uppercase; letter-spacing: 0.04em;">
+                                                                    Latest Form Details
+                                                                </div>
+                                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                                    <span class="badge bg-dark">
+                                                                        @(latestVolunteerRecord != null ? $"Q{latestVolunteerRecord.Quarter}" : "Q-")
+                                                                    </span>
+                                                                    <span class="badge bg-secondary">
+                                                                        @(latestVolunteerRecord?.Year.ToString() ?? "No Year")
+                                                                    </span>
+                                                                </div>
+                                                                <div class="mb-2">
+                                                                    <small style="font-weight: 600; color: #374151;">Communications Activities</small>
+                                                                    <div style="font-size: 0.85rem; color: #6b7280; line-height: 1.35;">
+                                                                        @(latestVolunteerRecord == null || string.IsNullOrWhiteSpace(latestVolunteerRecord.CommunicationsActivities) ? "No communications activities entered yet." : latestVolunteerRecord.CommunicationsActivities)
+                                                                    </div>
+                                                                </div>
+                                                                <div class="mb-2">
+                                                                    <small style="font-weight: 600; color: #374151;">Recognition Activities</small>
+                                                                    <div style="font-size: 0.85rem; color: #6b7280; line-height: 1.35;">
+                                                                        @(latestVolunteerRecord == null || string.IsNullOrWhiteSpace(latestVolunteerRecord.RecognitionActivities) ? "No recognition activities entered yet." : latestVolunteerRecord.RecognitionActivities)
+                                                                    </div>
+                                                                </div>
+                                                                <div>
+                                                                    <small style="font-weight: 600; color: #374151;">Initiative Descriptions</small>
+                                                                    <div style="font-size: 0.85rem; color: #6b7280; line-height: 1.35;">
+                                                                        @(latestVolunteerRecord == null || string.IsNullOrWhiteSpace(latestVolunteerRecord.InitiativeDescriptions) ? "No initiative descriptions entered yet." : latestVolunteerRecord.InitiativeDescriptions)
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
                                             else if ((metric.Name.Contains("Professional Development") || metric.Name.Contains("development")) && (goal.Name.Contains("Organizational") || goal.Name.Contains("Building")))
                                             {
                                                 <!-- Enhanced Professional Development Employee Participation Card -->
                                                 <div class="col-md-6 mb-3 order-2 d-flex">
-                                                    <div class="card w-100" style="background: linear-gradient(135deg, #fef7f0, #fef3ec); border: 1px solid #fed7aa; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); position: relative; overflow: hidden; min-height: 320px; height: 100%; display: flex; flex-direction: column;">
+                                                    <div class="card w-100" style="background: linear-gradient(135deg, #fef7f0, #fef3ec); border: 1px solid #fed7aa; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); position: relative; overflow: hidden; min-height: 340px; height: 100%; display: flex; flex-direction: column;">
                                                         <!-- Header with gradient -->
                                                         <div class="card-header" style="background: linear-gradient(135deg, var(--onejax-orange), #ea580c); color: white; border: none; border-radius: 16px 16px 0 0; padding: 1rem; flex-shrink: 0;">
                                                             <div class="d-flex justify-content-between align-items-center">
@@ -1179,10 +1357,6 @@
                                                                 <div class="d-flex justify-content-between align-items-center">
                                                                     <div>
                                                                         <small style="color: var(--onejax-text-muted);">Goal: Recruit 6 new board members by Q2 2026</small>
-                                                                        @if (!hasRecruitmentData)
-                                                                        {
-                                                                            <br><small style="color: #64748b; font-style: italic;">Ready for quarterly tracking - Go to Data Entry → Board Management</small>
-                                                                        }
                                                                     </div>
                                                                     <div>
                                                                         <span class="badge @(hasRecruitmentData && totalRecruitedForYear >= targetRecruitment ? "bg-success" : hasRecruitmentData ? "" : "")" style="@(hasRecruitmentData && totalRecruitedForYear >= targetRecruitment ? "" : hasRecruitmentData ? "background: #64748b; color: white;" : "background: #94a3b8; color: white;")">
@@ -1351,6 +1525,7 @@
                                                                         decimal chartTotalExpenses = budgetData.Sum(b => b.TotalExpenses);
                                                                         decimal chartNetIncome = chartTotalRevenue - chartTotalExpenses;
                                                                         bool hasRealData = budgetData.Any();
+                                                                        bool hasRevenueBase = hasRealData && chartTotalRevenue > 0;
                                                                         bool isOverspending = chartTotalExpenses > chartTotalRevenue;
                                                                         bool isHealthy = hasRealData && chartNetIncome >= chartTotalRevenue * 0.15m; // 15% profit margin is healthy
                                                                     }
@@ -1422,7 +1597,7 @@
                                                                 <!-- Revenue vs Expenses Chart -->
                                                                 <div class="col-md-8">
                                                                     <h6 style="color: #15803d; font-weight: 600; margin-bottom: 1.5rem;">
-                                                                        <i class="fas fa-chart-bar me-2"></i>Monthly Revenue vs Expenses Comparison
+                                                                        <i class="fas fa-chart-bar me-2"></i>Quarterly Revenue vs Expenses (Form Entries)
                                                                     </h6>
                                                                     
                                                                     <div style="height: 300px; position: relative;">
@@ -1435,7 +1610,7 @@
                                                                             <div class="col-md-3">
                                                                                 <div class="text-center">
                                                                                     <div style="font-size: 1.2rem; font-weight: 600; color: @(chartNetIncome >= 0 ? "#10b981" : "#ef4444");">
-                                                                                        @if (hasRealData) { @Math.Round((chartNetIncome / chartTotalRevenue) * 100, 1) } else { @("0.0") }%
+                                                                                        @if (hasRevenueBase) { @Math.Round((chartNetIncome / chartTotalRevenue) * 100, 1) } else { @("0.0") }%
                                                                                     </div>
                                                                                     <small style="color: var(--onejax-text-muted); font-weight: 500;">Profit Margin</small>
                                                                                 </div>
@@ -1443,7 +1618,7 @@
                                                                             <div class="col-md-3">
                                                                                 <div class="text-center">
                                                                                     <div style="font-size: 1.2rem; font-weight: 600; color: #ef4444;">
-                                                                                        @if (hasRealData) { @Math.Round((chartTotalExpenses / chartTotalRevenue) * 100, 1) } else { @("0.0") }%
+                                                                                        @if (hasRevenueBase) { @Math.Round((chartTotalExpenses / chartTotalRevenue) * 100, 1) } else { @("0.0") }%
                                                                                     </div>
                                                                                     <small style="color: var(--onejax-text-muted); font-weight: 500;">Expense Ratio</small>
                                                                                 </div>
@@ -1477,31 +1652,34 @@
                                                     document.addEventListener('DOMContentLoaded', function() {
                                                         const revExpCtx = document.getElementById('revenueExpensesChart');
                                                         if (revExpCtx) {
-                                                            // Get real monthly data from budget tracking or show zeros if no data
-                                                            const hasData = @hasRealData.ToString().ToLower();
-                                                            const totalRev = @chartTotalRevenue;
-                                                            const totalExp = @chartTotalExpenses;
-                                                            
-                                                            // Generate monthly data - if no real data, show zeros
-                                                            const monthlyRevenue = hasData ? 
-                                                                [@(Math.Round((double)chartTotalRevenue / 12, 0)), @(Math.Round((double)chartTotalRevenue / 12 * 0.9, 0)), @(Math.Round((double)chartTotalRevenue / 12 * 1.1, 0)), @(Math.Round((double)chartTotalRevenue / 12 * 1.05, 0)), @(Math.Round((double)chartTotalRevenue / 12 * 1.15, 0)), @(Math.Round((double)chartTotalRevenue / 12 * 0.85, 0)), @(Math.Round((double)chartTotalRevenue / 12, 0)), @(Math.Round((double)chartTotalRevenue / 12 * 1.1, 0)), @(Math.Round((double)chartTotalRevenue / 12 * 1.02, 0)), @(Math.Round((double)chartTotalRevenue / 12 * 1.08, 0)), @(Math.Round((double)chartTotalRevenue / 12 * 1.03, 0)), @(Math.Round((double)chartTotalRevenue / 12 * 1.07, 0))] :
-                                                                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-                                                            
-                                                            const monthlyExpenses = hasData ?
-                                                                [@(Math.Round((double)chartTotalExpenses / 12, 0)), @(Math.Round((double)chartTotalExpenses / 12 * 0.95, 0)), @(Math.Round((double)chartTotalExpenses / 12 * 1.1, 0)), @(Math.Round((double)chartTotalExpenses / 12 * 1.02, 0)), @(Math.Round((double)chartTotalExpenses / 12 * 1.12, 0)), @(Math.Round((double)chartTotalExpenses / 12 * 0.88, 0)), @(Math.Round((double)chartTotalExpenses / 12 * 1.05, 0)), @(Math.Round((double)chartTotalExpenses / 12 * 1.15, 0)), @(Math.Round((double)chartTotalExpenses / 12 * 1.03, 0)), @(Math.Round((double)chartTotalExpenses / 12 * 1.07, 0)), @(Math.Round((double)chartTotalExpenses / 12 * 1.01, 0)), @(Math.Round((double)chartTotalExpenses / 12 * 1.04, 0))] :
-                                                                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-                                                            
-                                                            // Calculate net income for each month
-                                                            const monthlyNet = monthlyRevenue.map((rev, index) => rev - monthlyExpenses[index]);
+                                                            // Use real quarterly entries from Annual Budget Tracking
+                                                            const quarterLabels = [@Html.Raw(string.Join(",", budgetData
+                                                                .OrderBy(b => b.Year)
+                                                                .ThenBy(b => b.Quarter == "Q1" ? 1 : b.Quarter == "Q2" ? 2 : b.Quarter == "Q3" ? 3 : b.Quarter == "Q4" ? 4 : 99)
+                                                                .Select(b => $"'{b.Quarter} {b.Year}'")))];
+                                                            const quarterlyRevenue = [@Html.Raw(string.Join(",", budgetData
+                                                                .OrderBy(b => b.Year)
+                                                                .ThenBy(b => b.Quarter == "Q1" ? 1 : b.Quarter == "Q2" ? 2 : b.Quarter == "Q3" ? 3 : b.Quarter == "Q4" ? 4 : 99)
+                                                                .Select(b => b.TotalRevenues.ToString("0.##"))))];
+                                                            const quarterlyExpenses = [@Html.Raw(string.Join(",", budgetData
+                                                                .OrderBy(b => b.Year)
+                                                                .ThenBy(b => b.Quarter == "Q1" ? 1 : b.Quarter == "Q2" ? 2 : b.Quarter == "Q3" ? 3 : b.Quarter == "Q4" ? 4 : 99)
+                                                                .Select(b => b.TotalExpenses.ToString("0.##"))))];
+                                                            const quarterlyNet = quarterlyRevenue.map((rev, index) => rev - (quarterlyExpenses[index] || 0));
+
+                                                            const labels = quarterLabels.length > 0 ? quarterLabels : ['No entries'];
+                                                            const revenueSeries = quarterlyRevenue.length > 0 ? quarterlyRevenue : [0];
+                                                            const expenseSeries = quarterlyExpenses.length > 0 ? quarterlyExpenses : [0];
+                                                            const netSeries = quarterlyNet.length > 0 ? quarterlyNet : [0];
                                                             
                                                             new Chart(revExpCtx, {
                                                                 type: 'bar',
                                                                 data: {
-                                                                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                                                                    labels: labels,
                                                                     datasets: [
                                                                         {
                                                                             label: 'Revenue',
-                                                                            data: monthlyRevenue,
+                                                                            data: revenueSeries,
                                                                             backgroundColor: 'rgba(75, 180, 200, 0.8)',
                                                                             borderColor: 'var(--onejax-blue)',
                                                                             borderWidth: 2,
@@ -1509,7 +1687,7 @@
                                                                         },
                                                                         {
                                                                             label: 'Expenses',
-                                                                            data: monthlyExpenses,
+                                                                            data: expenseSeries,
                                                                             backgroundColor: 'rgba(156, 163, 175, 0.7)',
                                                                             borderColor: '#9ca3af',
                                                                             borderWidth: 1,
@@ -1517,14 +1695,14 @@
                                                                         },
                                                                         {
                                                                             label: 'Net Income',
-                                                                            data: monthlyNet,
+                                                                            data: netSeries,
                                                                             type: 'line',
                                                                             borderColor: '#374151',
                                                                             backgroundColor: 'rgba(55, 65, 81, 0.1)',
                                                                             borderWidth: 3,
                                                                             fill: true,
                                                                             tension: 0.4,
-                                                                            pointBackgroundColor: monthlyNet.map(val => val >= 0 ? '#6b7280' : '#9ca3af'),
+                                                                            pointBackgroundColor: netSeries.map(val => val >= 0 ? '#6b7280' : '#9ca3af'),
                                                                             pointBorderColor: '#ffffff',
                                                                             pointBorderWidth: 2,
                                                                             pointRadius: 6
@@ -1969,7 +2147,9 @@
                                                                 </div>
                                                                 <div class="text-end">
                                                                     @{
-                                                                        decimal incomeTarget = 500000; // Based on comprehensive income tracking
+                                                                        decimal incomeTarget = decimal.TryParse(metric.Target, out var parsedIncomeTarget) && parsedIncomeTarget > 0
+                                                                            ? parsedIncomeTarget
+                                                                            : 100000m;
                                                                         bool hasIncomeData = metric.CurrentValue > 0;
                                                                         var incomeSourceCount = (int)Math.Max(0, Math.Round(metric.Q1Value));
                                                                     }
@@ -2060,7 +2240,7 @@
                                                                                 </div>
                                                                                 <div class="text-end">
                                                                                     <div style="font-weight: 700; color: #374151; font-size: 1.1rem;">
-                                                                                        @(hasIncomeData ? "Active" : "Planning")
+                                                                                        @metric.Status
                                                                                     </div>
                                                                                     <small style="color: var(--onejax-text-muted);">from forms</small>
                                                                                 </div>
@@ -2559,7 +2739,7 @@
                             <div class="col-12">
                                 <div style="height: 1px; background: rgba(255,255,255,0.2); margin: 1rem 0;"></div>
                                 <p style="color: rgba(255,255,255,0.7); margin-bottom: 0; font-size: 0.9rem;">
-                                    OneJax Strategic Dashboard | Fiscal Year 2025 | 
+                                    OneJax Strategic Dashboard | Fiscal Year @activeFiscalYear | 
                                     Secure & Confidential | 
                                     Real-time Data Analytics
                                 </p>
@@ -2650,17 +2830,11 @@
 <script>
 // Apply Filters Function (No Page Refresh)
 function applyFilters() {
-    const statusFilter = document.getElementById('statusFilter').value;
-    const timeFilter = document.getElementById('timeFilter').value;
     const fiscalYearFilter = document.getElementById('fiscalYearFilter').value;
-    const quarterFilter = document.getElementById('quarterFilter').value;
     
     // Build query parameters for URL
     const params = new URLSearchParams();
-    if (statusFilter) params.set('status', statusFilter);
-    if (timeFilter) params.set('time', timeFilter);
     if (fiscalYearFilter) params.set('fiscalYear', fiscalYearFilter);
-    if (quarterFilter) params.set('quarter', quarterFilter);
     
     // Redirect to apply server-side filtering
     const newUrl = params.toString() ? 
@@ -2668,13 +2842,7 @@ function applyFilters() {
         window.location.pathname;
     
     // Show loading notification
-    let filterText = [];
-    if (statusFilter) filterText.push(`Status: ${statusFilter}`);
-    if (fiscalYearFilter) filterText.push(`Fiscal Year: ${fiscalYearFilter}`);
-    if (quarterFilter) filterText.push(`Quarter: ${quarterFilter}`);
-    if (timeFilter) filterText.push(`Legacy Time: ${timeFilter}`);
-    
-    const filterDescription = filterText.length > 0 ? filterText.join(', ') : 'All items';
+    const filterDescription = fiscalYearFilter ? `Fiscal Year: ${fiscalYearFilter}` : 'All years';
     showNotification('Applying Filters', `Filtering by: ${filterDescription}`, 'info');
     
     // Navigate to the new URL with filters
@@ -2688,26 +2856,14 @@ function showComingSoon(feature) {
 // Reset Filters Function
 function resetFilters() {
     // Reset the select elements to their default values
-    const statusFilter = document.getElementById('statusFilter');
-    const timeFilter = document.getElementById('timeFilter');
     const fiscalYearFilter = document.getElementById('fiscalYearFilter');
-    const quarterFilter = document.getElementById('quarterFilter');
-    
-    if (statusFilter) {
-        statusFilter.value = '';
-    }
-    if (timeFilter) {
-        timeFilter.value = '';
-    }
+
     if (fiscalYearFilter) {
         fiscalYearFilter.value = '';
     }
-    if (quarterFilter) {
-        quarterFilter.value = '';
-    }
     
     // Show notification and redirect to clear URL
-    showNotification('Filters Reset', 'All filters have been cleared. Showing all projects.', 'info');
+    showNotification('Filters Reset', 'Fiscal year filter has been cleared. Showing all years.', 'info');
     
     // Navigate to the base URL without any filters
     window.location.href = window.location.pathname;
