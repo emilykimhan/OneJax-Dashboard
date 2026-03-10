@@ -20,12 +20,59 @@ public class DashboardViewModel
 
     // Identity map data
     public Dictionary<string, int> ZipCoverage { get; set; } = new Dictionary<string, int>();
+
+    // Identity/Value Proposition visual cards (derived from Data Entry tables)
+    public IdentityDashboardData Identity { get; set; } = new IdentityDashboardData();
     
     // Data source information
     public string DataSource { get; set; } = "Database";
     public string Message { get; set; } = "";
     public bool HasError { get; set; } = false;
     public string ErrorMessage { get; set; } = "";
+}
+
+public class IdentityDashboardData
+{
+    public int MediaPlacementsTotal { get; set; }
+    public int MediaPlacementsTarget { get; set; } = 50;
+    public DateTime? MediaPlacementsLastUpdated { get; set; }
+    public int[] MediaPlacementsByMonth { get; set; } = new int[12];
+
+    public int WebsiteClicksTotal { get; set; }
+    public int WebsiteClicksTarget { get; set; } = 4000;
+    public DateTime? WebsiteTrafficLastUpdated { get; set; }
+    public int[] WebsiteClicksByQuarter { get; set; } = new int[4];
+
+    public decimal TrustPercent { get; set; }
+    public decimal TrustTargetPercent { get; set; } = 70m;
+    public int? TrustRespondents { get; set; }
+    public int? TrustYear { get; set; }
+    public DateTime? TrustLastUpdated { get; set; }
+    public List<int> TrustHistoryYears { get; set; } = new List<int>();
+    public List<decimal> TrustHistoryPercents { get; set; } = new List<decimal>();
+
+    public decimal MilestonePercent { get; set; }
+    public decimal MilestoneTargetPercent { get; set; } = 75m;
+    public bool MilestoneReviewActive { get; set; }
+    public DateTime? MilestoneLastUpdated { get; set; }
+
+    public int? SocialYear { get; set; }
+    public decimal SocialAvgEngagementRate { get; set; }
+    public decimal? SocialQ1 { get; set; }
+    public decimal? SocialQ2 { get; set; }
+    public decimal? SocialQ3 { get; set; }
+    public decimal? SocialQ4 { get; set; }
+    public bool SocialGoalMet { get; set; }
+    public DateTime? SocialLastUpdated { get; set; }
+
+    public int? FrameworkYear { get; set; }
+    public string FrameworkQuarter { get; set; } = "";
+    public string FrameworkStatus { get; set; } = "";
+    public bool FrameworkGoalMet { get; set; }
+    public DateTime? FrameworkLastUpdated { get; set; }
+
+    public int ZipCodesServed { get; set; }
+    public int ZipCodeGoal { get; set; } = 25;
 }
 
 public class RecentActivity

@@ -12,6 +12,9 @@
     
     // Check if we have enhanced metrics
     var hasEnhancedMetrics = Model.StrategicGoals?.Any(g => g.Metrics?.Any(m => !string.IsNullOrEmpty(m.DataSource)) == true) == true;
+
+    // Gate all data-entry/admin actions from public viewers.
+    var canManageData = (User?.Identity?.IsAuthenticated ?? false) && (User.IsInRole("Admin") || User.IsInRole("Staff"));
 }
 
 <!-- Enhanced Header Section -->
@@ -45,7 +48,7 @@
 <!-- Comprehensive Metrics are now integrated directly into each goal tab below -->
 
 <!-- Enhanced Introduction Section -->
-<div class="container mb-5 fade-in")>
+<div class="container mb-5 fade-in">
     <div class="row">
         <div class="col-12">
             <div class="floating-card" style="padding: 3rem;">
@@ -72,12 +75,11 @@
                             </div>
                         </div>
                         
-                        <div class="text-center">
-                            <p style="color: var(--onejax-text-muted); margin-bottom: 0; font-style: italic;">
-                                Questions or feedback? <a href="mailto:info@onejax.org" style="color: var(--onejax-blue); text-decoration: none; font-weight: 600;">Email our team</a> | 
-                                <a href="#" style="color: var(--onejax-blue); text-decoration: none;" onclick="return false;">Mobile App</a>
-                            </p>
-                        </div>
+	                        <div class="text-center">
+	                            <p style="color: var(--onejax-text-muted); margin-bottom: 0; font-style: italic;">
+	                                Questions or feedback? <a href="mailto:onejax@onejax.org" style="color: var(--onejax-blue); text-decoration: none; font-weight: 600;">Email our team</a>
+	                            </p>
+	                        </div>
                     </div>
                 </div>
             </div>
@@ -296,12 +298,40 @@
                             </div>
                         </div>
                         
-                        <!-- Quick Access Cards Row -->
-                        <div class="row mb-4">
-                            <div class="col-12 mb-3">
-                                <h5 style="color: var(--onejax-navy); font-weight: 600; margin-bottom: 1rem;">
-                                    <i class="fas fa-rocket"></i> Quick Access & KPIs
-                                </h5>
+	                        <!-- Quick Access Cards Row -->
+	                        <div class="row mb-4">
+	                            <style>
+	                                /* Summary tab bottom cards: uniform size and non-clickable */
+	                                .summary-static-card {
+	                                    cursor: default !important;
+	                                }
+	
+	                                .summary-static-card:hover {
+	                                    transform: none !important;
+	                                    box-shadow: inherit !important;
+	                                }
+	
+	                                .summary-static-card .card-body {
+	                                    min-height: 210px;
+	                                }
+
+	                                .summary-link-card {
+	                                    cursor: pointer;
+	                                }
+
+	                                .summary-link-card:hover {
+	                                    transform: translateY(-2px);
+	                                    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+	                                }
+
+	                                .summary-link-card .card-body {
+	                                    min-height: 210px;
+	                                }
+	                            </style>
+	                            <div class="col-12 mb-3">
+	                                <h5 style="color: var(--onejax-navy); font-weight: 600; margin-bottom: 1rem;">
+	                                    <i class="fas fa-rocket"></i> Quick Access & KPIs
+	                                </h5>
                             </div>
                             
                             <!-- KPI Cards Row 1 -->
@@ -322,7 +352,7 @@
                             </div>
                             
                             <div class="col-md-3 mb-3">
-                                <div class="card hover-card metric-card-creative" style="border-radius: 12px; border: 1px solid var(--onejax-border); cursor: pointer; transition: all 0.3s ease; background: linear-gradient(135deg, var(--onejax-green), #059669);" onclick="window.location.href='/MediaPlacements'">
+                                <div class="card hover-card metric-card-creative" style="border-radius: 12px; border: 1px solid var(--onejax-border); cursor: pointer; transition: all 0.3s ease; background: linear-gradient(135deg, var(--onejax-green), #059669);" onclick="window.location.href='@(canManageData ? "/MediaPlacements" : "/Account/Login")'">
                                     <div class="card-body text-center" style="padding: 1.5rem; color: white;">
                                         <div class="mb-3">
                                             <i class="fas fa-newspaper" style="font-size: 2.5rem;"></i>
@@ -364,32 +394,36 @@
                                 </div>
                             </div>
                             
-                            <!-- Traditional Cards Row 2 -->
-                            <div class="col-md-4 mb-3">
-                                <div class="card hover-card metric-card-creative" style="border-radius: 12px; border: 1px solid var(--onejax-border); cursor: pointer; transition: all 0.3s ease;" onclick="window.location.href='/WebsiteTraffic'">
-                                    <div class="card-body text-center" style="padding: 1.5rem;">
-                                        <div class="mb-3">
-                                            <i class="fas fa-chart-line" style="font-size: 2.5rem; color: var(--onejax-green);"></i>
-                                        </div>
-                                        <h6 class="card-title" style="color: var(--onejax-navy); font-weight: 600; margin-bottom: 0.5rem;">Website Traffic</h6>
-                                        <p class="card-text text-muted" style="font-size: 0.9rem; margin-bottom: 1rem;">Monitor website analytics and engagement</p>
-                                        <div class="d-flex justify-content-center align-items-center">
-                                            <span class="badge" style="background: linear-gradient(135deg, var(--onejax-green), var(--onejax-orange)); color: white; font-size: 0.75rem;">
-                                                @Model.Summary.TotalWebsiteTrafficEntries Entries
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+	                            <!-- Traditional Cards Row 2 -->
+	                            <div class="col-md-4 mb-3">
+	                                <div class="card metric-card-creative summary-link-card h-100" style="border-radius: 12px; border: 1px solid var(--onejax-border); transition: all 0.3s ease;">
+	                                    <div class="card-body text-center d-flex flex-column justify-content-center h-100" style="padding: 1.5rem;">
+	                                        <div class="mb-3">
+	                                            <i class="fas fa-calendar-alt" style="font-size: 2.5rem; color: var(--onejax-blue);"></i>
+	                                        </div>
+	                                        <h6 class="card-title" style="color: var(--onejax-navy); font-weight: 600; margin-bottom: 0.5rem;">Public Events</h6>
+	                                        <p class="card-text text-muted" style="font-size: 0.9rem; margin-bottom: 1rem;">View upcoming initiatives across the four strategic goals</p>
+	                                        <div class="d-flex justify-content-center align-items-center">
+	                                            @{
+	                                                var publicEventsCount = Model.StrategicGoals?.SelectMany(g => g.Events ?? new List<Event>()).Count() ?? 0;
+	                                            }
+	                                            <span class="badge" style="background: linear-gradient(135deg, var(--onejax-blue), var(--onejax-navy)); color: white; font-size: 0.75rem;">
+	                                                @publicEventsCount Events
+	                                            </span>
+	                                        </div>
+	                                        <a href="/Public/Events" class="stretched-link" aria-label="View public events"></a>
+	                                    </div>
+	                                </div>
+	                            </div>
                             
-                            <!-- Performance Gauge Card -->
-                            <div class="col-md-4 mb-3">
-                                <div class="card hover-card metric-card-creative" style="border-radius: 12px; border: 1px solid var(--onejax-border); transition: all 0.3s ease;">
-                                    <div class="card-body text-center" style="padding: 1.5rem;">
-                                        <div class="mb-3">
-                                            <canvas id="performanceGauge" width="100" height="100"></canvas>
-                                        </div>
-                                        <h6 class="card-title" style="color: var(--onejax-navy); font-weight: 600; margin-bottom: 0.5rem;">Performance Score</h6>
+	                            <!-- Performance Gauge Card -->
+	                            <div class="col-md-4 mb-3">
+	                                <div class="card metric-card-creative summary-static-card h-100" style="border-radius: 12px; border: 1px solid var(--onejax-border); transition: all 0.3s ease;">
+	                                    <div class="card-body text-center d-flex flex-column justify-content-center h-100" style="padding: 1.5rem;">
+	                                        <div class="mb-3">
+	                                            <canvas id="performanceGauge" width="100" height="100"></canvas>
+	                                        </div>
+	                                        <h6 class="card-title" style="color: var(--onejax-navy); font-weight: 600; margin-bottom: 0.5rem;">Performance Score</h6>
                                         <p class="card-text text-muted" style="font-size: 0.9rem; margin-bottom: 1rem;">Overall organizational health</p>
                                         <div class="d-flex justify-content-center align-items-center">
                                             <span class="badge bg-success">
@@ -400,24 +434,25 @@
                                 </div>
                             </div>
                             
-                            <!-- OneJax Website Card -->
-                            <div class="col-md-4 mb-3">
-                                <div class="card hover-card metric-card-creative" style="border-radius: 12px; border: 1px solid var(--onejax-border); cursor: pointer; transition: all 0.3s ease;" onclick="window.open('https://onejax.org', '_blank')">
-                                    <div class="card-body text-center" style="padding: 1.5rem;">
-                                        <div class="mb-3">
-                                            <i class="fas fa-globe" style="font-size: 2.5rem; color: var(--onejax-orange);"></i>
-                                        </div>
-                                        <h6 class="card-title" style="color: var(--onejax-navy); font-weight: 600; margin-bottom: 0.5rem;">OneJax Website</h6>
-                                        <p class="card-text text-muted" style="font-size: 0.9rem; margin-bottom: 1rem;">Visit our main organization website</p>
-                                        <div class="d-flex justify-content-center align-items-center">
-                                            <span class="badge" style="background: linear-gradient(135deg, var(--onejax-orange), var(--onejax-navy)); color: white; font-size: 0.75rem;">
-                                                <i class="fas fa-external-link-alt"></i> Visit Site
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+	                            <!-- OneJax Website Card -->
+	                            <div class="col-md-4 mb-3">
+	                                <div class="card metric-card-creative summary-link-card h-100" style="border-radius: 12px; border: 1px solid var(--onejax-border); transition: all 0.3s ease;">
+	                                    <div class="card-body text-center d-flex flex-column justify-content-center h-100" style="padding: 1.5rem;">
+	                                        <div class="mb-3">
+	                                            <i class="fas fa-globe" style="font-size: 2.5rem; color: var(--onejax-orange);"></i>
+	                                        </div>
+	                                        <h6 class="card-title" style="color: var(--onejax-navy); font-weight: 600; margin-bottom: 0.5rem;">OneJax Website</h6>
+	                                        <p class="card-text text-muted" style="font-size: 0.9rem; margin-bottom: 1rem;">Visit our main organization website</p>
+	                                        <div class="d-flex justify-content-center align-items-center">
+	                                            <span class="badge" style="background: linear-gradient(135deg, var(--onejax-orange), var(--onejax-navy)); color: white; font-size: 0.75rem;">
+	                                                <i class="fas fa-external-link-alt"></i> Visit Site
+	                                            </span>
+	                                        </div>
+	                                        <a href="https://onejax.org" target="_blank" rel="noopener noreferrer" class="stretched-link" aria-label="Visit OneJax website"></a>
+	                                    </div>
+	                                </div>
+	                            </div>
+	                        </div>
                         
                         <!-- Export Button Row -->
                         <div class="row mt-3">
@@ -478,7 +513,7 @@
                             </div>
                             
                             <!-- Metrics Section -->
-                            @if (goal.Metrics != null && goal.Metrics.Any())
+                            @if (goal.Metrics != null && goal.Metrics.Any() && !(goal.Name.Contains("Identity") || goal.Name.Contains("Value")))
                             {
                                 var isFinancialGoal = goal.Name.Contains("Financial") || goal.Name.Contains("Sustainability");
                                 IEnumerable<GoalMetric> orderedMetrics = isFinancialGoal
@@ -2319,9 +2354,693 @@
                                 </div>
                             }
                             
-                            <!-- Quarterly Performance Overview Chart -->
                             @if (goal.Name.Contains("Identity") || goal.Name.Contains("Value"))
                             {
+                                var id = Model.Identity ?? new IdentityDashboardData();
+                                var zipServed = id.ZipCodesServed;
+                                var zipTarget = id.ZipCodeGoal;
+                                var zipProgressPct = zipTarget > 0 ? (zipServed * 100.0m / zipTarget) : 0m;
+
+                                <div class="mb-4">
+
+                                    <style>
+                                        /* Identity KPI cards: keep them dashboard-sized and prevent "stretched" look. */
+                                        .onejax-kpi-card {
+                                            border-radius: 12px;
+                                            border: 1px solid var(--onejax-border);
+                                            box-shadow: none;
+                                            position: relative;
+                                            overflow: hidden;
+                                        }
+
+                                        .onejax-kpi-card::before {
+                                            content: "";
+                                            position: absolute;
+                                            inset: 0 0 auto 0;
+                                            height: 4px;
+                                            background: rgba(15, 23, 42, 0.12);
+                                        }
+
+                                        /* Muted color accents per card (more color without getting loud). */
+                                        .onejax-kpi-card.kpi-media {
+                                            background: linear-gradient(180deg, rgba(15, 61, 87, 0.08), rgba(255, 255, 255, 0.00) 58%);
+                                        }
+                                        .onejax-kpi-card.kpi-media::before { background: linear-gradient(90deg, rgba(15, 61, 87, 0.90), rgba(15, 61, 87, 0.20)); }
+
+                                        .onejax-kpi-card.kpi-traffic {
+                                            background: linear-gradient(180deg, rgba(31, 111, 84, 0.08), rgba(255, 255, 255, 0.00) 58%);
+                                        }
+                                        .onejax-kpi-card.kpi-traffic::before { background: linear-gradient(90deg, rgba(31, 111, 84, 0.90), rgba(31, 111, 84, 0.20)); }
+
+                                        .onejax-kpi-card.kpi-trust {
+                                            background: linear-gradient(180deg, rgba(122, 92, 11, 0.09), rgba(255, 255, 255, 0.00) 58%);
+                                        }
+                                        .onejax-kpi-card.kpi-trust::before { background: linear-gradient(90deg, rgba(122, 92, 11, 0.90), rgba(122, 92, 11, 0.20)); }
+
+                                        .onejax-kpi-card.kpi-framework {
+                                            background: linear-gradient(180deg, rgba(11, 44, 58, 0.08), rgba(255, 255, 255, 0.00) 58%);
+                                        }
+                                        .onejax-kpi-card.kpi-framework::before { background: linear-gradient(90deg, rgba(11, 44, 58, 0.92), rgba(11, 44, 58, 0.20)); }
+
+                                        .onejax-kpi-card.kpi-social {
+                                            background: linear-gradient(180deg, rgba(43, 58, 85, 0.08), rgba(255, 255, 255, 0.00) 58%);
+                                        }
+                                        .onejax-kpi-card.kpi-social::before { background: linear-gradient(90deg, rgba(43, 58, 85, 0.92), rgba(43, 58, 85, 0.18)); }
+
+                                        .onejax-kpi-body {
+                                            padding: 1rem 1rem 0.9rem;
+                                            min-height: 168px;
+                                        }
+
+                                        .onejax-kpi-body--tall { min-height: 232px; }
+
+                                        .onejax-kpi-badge {
+                                            position: absolute;
+                                            top: 12px;
+                                            right: 10px;
+                                            font-weight: 800;
+                                            letter-spacing: 0.02em;
+                                            border-radius: 999px;
+                                            padding: 0.35rem 0.6rem;
+                                            font-size: 0.75rem;
+                                            background: rgba(255, 255, 255, 0.70);
+                                            border: 1px solid rgba(15, 23, 42, 0.12);
+                                            color: #334155;
+                                            backdrop-filter: blur(8px);
+                                        }
+
+                                        .onejax-kpi-badge.ok { background: rgba(16, 185, 129, 0.12); border-color: rgba(16, 185, 129, 0.25); color: #065f46; }
+                                        .onejax-kpi-badge.warn { background: rgba(245, 158, 11, 0.14); border-color: rgba(245, 158, 11, 0.28); color: #92400e; }
+
+                                        .onejax-kpi-link {
+                                            color: var(--onejax-text-muted);
+                                            font-weight: 700;
+                                            font-size: 0.85rem;
+                                            text-decoration: none;
+                                        }
+
+                                        .onejax-kpi-link:hover {
+                                            color: var(--onejax-navy);
+                                            text-decoration: underline;
+                                        }
+
+                                        .onejax-kpi-spark {
+                                            height: 72px;
+                                            margin-top: 0.5rem;
+                                        }
+
+                                        .onejax-kpi-spark canvas {
+                                            width: 100% !important;
+                                            height: 100% !important;
+                                            display: block;
+                                        }
+
+                                        .onejax-kpi-pill-row {
+                                            display: flex;
+                                            gap: 6px;
+                                            margin-top: 0.6rem;
+                                        }
+
+                                        .onejax-kpi-pill {
+                                            flex: 1;
+                                            text-align: center;
+                                            padding: 0.25rem 0.35rem;
+                                            border-radius: 999px;
+                                            font-weight: 800;
+                                            font-size: 0.75rem;
+                                            letter-spacing: 0.02em;
+                                            color: #475569;
+                                            background: rgba(15, 23, 42, 0.06);
+                                            border: 1px solid rgba(15, 23, 42, 0.10);
+                                        }
+
+                                        .onejax-kpi-pill.active {
+                                            color: #ffffff;
+                                            background: #0b2c3a;
+                                            border-color: rgba(11, 44, 58, 0.25);
+                                        }
+                                    </style>
+
+	                                    <div class="row g-3">
+		                                        <div class="col-md-6 col-lg-4">
+		                                            <div class="card onejax-kpi-card kpi-media" style="border-left: 5px solid #0f3d57;">
+		                                                <span class="onejax-kpi-badge">Tracking</span>
+		                                                <div class="card-body onejax-kpi-body d-flex flex-column">
+		                                                    <div style="font-size: 0.8rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--onejax-text-muted); font-weight: 700;">Media Placements</div>
+		                                                    <div style="font-size: 2rem; font-weight: 800; color: var(--onejax-navy); line-height: 1.1; margin-top: 0.5rem;">@id.MediaPlacementsTotal.ToString("N0")</div>
+		                                                    <div style="color: var(--onejax-text-muted); font-size: 0.9rem;">Target: @id.MediaPlacementsTarget placements</div>
+		                                                    <div class="onejax-kpi-spark">
+		                                                        <canvas id="identityMediaSpark"></canvas>
+		                                                    </div>
+		                                                    <div class="mt-auto">
+		                                                        <div class="progress mt-2" style="height: 10px; border-radius: 999px; background: rgba(2,6,23,0.08);">
+		                                                            <div class="progress-bar" style="width: @Math.Min(id.MediaPlacementsTarget > 0 ? (id.MediaPlacementsTotal * 100.0m / id.MediaPlacementsTarget) : 0, 100)%; background: #0f3d57; border-radius: 999px;"></div>
+		                                                        </div>
+	                                                        @if (canManageData)
+	                                                        {
+	                                                            <div class="d-flex justify-content-between align-items-center mt-2">
+	                                                                <a asp-controller="MediaPlacements" asp-action="Index" class="btn btn-sm btn-outline-secondary" style="border-radius: 999px;">Enter data</a>
+	                                                                <a asp-controller="DataEntry" asp-action="RecordHistory" asp-route-recordType="media-placements" class="onejax-kpi-link">History</a>
+	                                                            </div>
+	                                                        }
+	                                                        else
+	                                                        {
+	                                                            <div class="mt-2" style="color: var(--onejax-text-muted); font-weight: 700; font-size: 0.85rem;">Staff login required</div>
+	                                                        }
+	                                                    </div>
+	                                                </div>
+	                                            </div>
+	                                        </div>
+		                                        <div class="col-md-6 col-lg-4">
+		                                            <div class="card onejax-kpi-card kpi-traffic" style="border-left: 5px solid #1f6f54;">
+		                                                <span class="onejax-kpi-badge">Tracking</span>
+		                                                <div class="card-body onejax-kpi-body d-flex flex-column">
+		                                                    <div style="font-size: 0.8rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--onejax-text-muted); font-weight: 700;">Website Traffic</div>
+		                                                    <div style="font-size: 2rem; font-weight: 800; color: var(--onejax-navy); line-height: 1.1; margin-top: 0.5rem;">@id.WebsiteClicksTotal.ToString("N0")</div>
+		                                                    <div style="color: var(--onejax-text-muted); font-size: 0.9rem;">Annual target: @id.WebsiteClicksTarget.ToString("N0")</div>
+		                                                    <div class="onejax-kpi-spark">
+		                                                        <canvas id="identityTrafficSpark"></canvas>
+		                                                    </div>
+		                                                    <div class="mt-auto">
+		                                                        <div class="progress mt-2" style="height: 10px; border-radius: 999px; background: rgba(2,6,23,0.08);">
+		                                                            <div class="progress-bar" style="width: @Math.Min(id.WebsiteClicksTarget > 0 ? (id.WebsiteClicksTotal * 100.0m / id.WebsiteClicksTarget) : 0, 100)%; background: #1f6f54; border-radius: 999px;"></div>
+		                                                        </div>
+	                                                        @if (canManageData)
+	                                                        {
+	                                                            <div class="d-flex justify-content-between align-items-center mt-2">
+	                                                                <a asp-controller="WebsiteTraffic" asp-action="Index" class="btn btn-sm btn-outline-secondary" style="border-radius: 999px;">Enter data</a>
+	                                                                <a asp-controller="DataEntry" asp-action="RecordHistory" asp-route-recordType="website-traffic" class="onejax-kpi-link">History</a>
+	                                                            </div>
+	                                                        }
+	                                                        else
+	                                                        {
+	                                                            <div class="mt-2" style="color: var(--onejax-text-muted); font-weight: 700; font-size: 0.85rem;">Staff login required</div>
+	                                                        }
+	                                                    </div>
+	                                                </div>
+	                                            </div>
+	                                        </div>
+		                                        <div class="col-md-6 col-lg-4">
+		                                            <div class="card onejax-kpi-card kpi-trust" style="border-left: 5px solid #7a5c0b;">
+		                                                <span class="onejax-kpi-badge @((id.TrustPercent >= id.TrustTargetPercent) ? "ok" : "warn")">@((id.TrustPercent >= id.TrustTargetPercent) ? "Target achieved" : "In progress")</span>
+		                                                <div class="card-body onejax-kpi-body d-flex flex-column">
+		                                                    <div style="font-size: 0.8rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--onejax-text-muted); font-weight: 700;">Community Perception Survey</div>
+		                                                    <div style="font-size: 2rem; font-weight: 800; color: var(--onejax-navy); line-height: 1.1; margin-top: 0.5rem;">@id.TrustPercent.ToString("N1")%</div>
+		                                                    <div style="color: var(--onejax-text-muted); font-size: 0.9rem;">
+		                                                        Target: @id.TrustTargetPercent.ToString("N0")%
+	                                                        @if (id.TrustRespondents.HasValue)
+	                                                        {
+	                                                            <span> | @id.TrustRespondents respondents</span>
+	                                                        }
+	                                                    </div>
+		                                                    <div class="onejax-kpi-spark">
+		                                                        <canvas id="identityTrustSpark"></canvas>
+		                                                    </div>
+		                                                    <div class="mt-auto">
+		                                                        <div class="progress mt-2" style="height: 10px; border-radius: 999px; background: rgba(2,6,23,0.08);">
+		                                                            <div class="progress-bar" style="width: @Math.Min(id.TrustTargetPercent > 0 ? (id.TrustPercent * 100.0m / id.TrustTargetPercent) : 0, 100)%; background: #7a5c0b; border-radius: 999px;"></div>
+		                                                        </div>
+	                                                        @if (canManageData)
+	                                                        {
+	                                                            <div class="d-flex justify-content-between align-items-center mt-2">
+	                                                                <a asp-controller="IdentityAnnual_7D" asp-action="Index" class="btn btn-sm btn-outline-secondary" style="border-radius: 999px;">Enter data</a>
+	                                                                <a asp-controller="DataEntry" asp-action="RecordHistory" asp-route-recordType="community-perception" class="onejax-kpi-link">History</a>
+	                                                            </div>
+	                                                        }
+	                                                        else
+	                                                        {
+	                                                            <div class="mt-2" style="color: var(--onejax-text-muted); font-weight: 700; font-size: 0.85rem;">Staff login required</div>
+	                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+		                                    </div>
+
+		                                    <div class="row g-3 mt-3">
+		                                        @* Milestone Achievement removed from Identity dashboard per request *@
+		                                        <div class="col-md-12 col-lg-8">
+		                                            <div class="card onejax-kpi-card kpi-framework" style="border-left: 5px solid #0b2c3a;">
+		                                                <span class="onejax-kpi-badge @((!string.IsNullOrWhiteSpace(id.FrameworkStatus) && id.FrameworkStatus.Contains("track", StringComparison.OrdinalIgnoreCase)) ? "ok" : "")">@((string.IsNullOrWhiteSpace(id.FrameworkStatus) ? "Planning" : id.FrameworkStatus))</span>
+		                                                <div class="card-body onejax-kpi-body onejax-kpi-body--tall d-flex flex-column">
+		                                                    <div style="font-size: 0.8rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--onejax-text-muted); font-weight: 700;">Framework Development Plan</div>
+		                                                    <div style="font-size: 1.6rem; font-weight: 900; color: var(--onejax-navy); line-height: 1.15; margin-top: 0.35rem;">
+		                                                        @((id.FrameworkGoalMet) ? "Goal met" : "In progress")
+		                                                    </div>
+		                                                    <div style="color: var(--onejax-text-muted); font-size: 0.95rem; margin-top: 0.15rem;">
+		                                                        @((id.FrameworkYear.HasValue ? id.FrameworkYear.Value.ToString() : ""))
+		                                                        @((!string.IsNullOrWhiteSpace(id.FrameworkQuarter) ? $" {id.FrameworkQuarter}" : ""))
+		                                                    </div>
+		                                                    <div class="onejax-kpi-pill-row" aria-label="Framework quarter">
+		                                                        <span class="onejax-kpi-pill @((id.FrameworkQuarter ?? "").Trim().Equals("Q1", StringComparison.OrdinalIgnoreCase) ? "active" : "")">Q1</span>
+		                                                        <span class="onejax-kpi-pill @((id.FrameworkQuarter ?? "").Trim().Equals("Q2", StringComparison.OrdinalIgnoreCase) ? "active" : "")">Q2</span>
+		                                                        <span class="onejax-kpi-pill @((id.FrameworkQuarter ?? "").Trim().Equals("Q3", StringComparison.OrdinalIgnoreCase) ? "active" : "")">Q3</span>
+		                                                        <span class="onejax-kpi-pill @((id.FrameworkQuarter ?? "").Trim().Equals("Q4", StringComparison.OrdinalIgnoreCase) ? "active" : "")">Q4</span>
+		                                                    </div>
+		                                                    <div class="mt-3" style="display:grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; color:#475569; font-size: 0.92rem;">
+		                                                        <div style="border: 1px solid rgba(15,23,42,0.10); border-radius: 10px; padding: 0.75rem; background: rgba(255,255,255,0.7);">
+		                                                            <div style="font-weight: 900; color:#0f172a; margin-bottom: 0.25rem;">Pipeline</div>
+		                                                            <div>Discovery</div>
+		                                                            <div>Drafting</div>
+		                                                        </div>
+		                                                        <div style="border: 1px solid rgba(15,23,42,0.10); border-radius: 10px; padding: 0.75rem; background: rgba(255,255,255,0.7);">
+		                                                            <div style="font-weight: 900; color:#0f172a; margin-bottom: 0.25rem;">Delivery</div>
+		                                                            <div>Approval</div>
+		                                                            <div>Rollout</div>
+		                                                        </div>
+		                                                    </div>
+		                                                    <div class="mt-auto">
+		                                                        @if (canManageData)
+		                                                        {
+		                                                            <div class="d-flex justify-content-between align-items-center mt-2">
+		                                                                <a asp-controller="identityPlan_24D" asp-action="Index" class="btn btn-sm btn-outline-secondary" style="border-radius: 999px;">Enter data</a>
+		                                                                <a asp-controller="DataEntry" asp-action="RecordHistory" asp-route-recordType="framework-plan" class="onejax-kpi-link">History</a>
+		                                                            </div>
+		                                                        }
+		                                                        else
+		                                                        {
+		                                                            <div class="mt-2" style="color: var(--onejax-text-muted); font-weight: 700; font-size: 0.85rem;">Staff login required</div>
+		                                                        }
+		                                                    </div>
+		                                                </div>
+		                                            </div>
+		                                        </div>
+		                                        <div class="col-md-6 col-lg-4">
+		                                            <div class="card onejax-kpi-card kpi-social" style="border-left: 5px solid #2b3a55;">
+		                                                <span class="onejax-kpi-badge">Tracking</span>
+		                                                <div class="card-body onejax-kpi-body onejax-kpi-body--tall d-flex flex-column">
+		                                                    <div style="font-size: 0.8rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--onejax-text-muted); font-weight: 700;">Social Media Engagement</div>
+		                                                    <div style="font-size: 2rem; font-weight: 800; color: var(--onejax-navy); line-height: 1.1; margin-top: 0.5rem;">@id.SocialAvgEngagementRate.ToString("N1")%</div>
+		                                                    <div style="color: var(--onejax-text-muted); font-size: 0.9rem;">
+		                                                        Avg engagement @((id.SocialYear.HasValue ? $"({id.SocialYear})" : ""))
+		                                                        @if (id.SocialGoalMet)
+		                                                        {
+		                                                            <span> | Goal met</span>
+		                                                        }
+		                                                    </div>
+		                                                    <div class="onejax-kpi-spark">
+		                                                        <canvas id="identitySocialSpark"></canvas>
+		                                                    </div>
+		                                                    <div class="mt-2" style="display:grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; font-size: 0.85rem; color:#475569;">
+		                                                        <div>Q1: <strong>@(id.SocialQ1?.ToString("N1") ?? "-")%</strong></div>
+		                                                        <div>Q2: <strong>@(id.SocialQ2?.ToString("N1") ?? "-")%</strong></div>
+		                                                        <div>Q3: <strong>@(id.SocialQ3?.ToString("N1") ?? "-")%</strong></div>
+		                                                        <div>Q4: <strong>@(id.SocialQ4?.ToString("N1") ?? "-")%</strong></div>
+		                                                    </div>
+		                                                    <div class="mt-auto">
+		                                                        @if (canManageData)
+		                                                        {
+		                                                            <div class="d-flex justify-content-between align-items-center mt-2">
+		                                                                <a asp-controller="identitySocial_5D" asp-action="Index" class="btn btn-sm btn-outline-secondary" style="border-radius: 999px;">Enter data</a>
+		                                                                <a asp-controller="DataEntry" asp-action="RecordHistory" asp-route-recordType="social-media" class="onejax-kpi-link">History</a>
+		                                                            </div>
+		                                                        }
+		                                                        else
+		                                                        {
+		                                                            <div class="mt-2" style="color: var(--onejax-text-muted); font-weight: 700; font-size: 0.85rem;">Staff login required</div>
+		                                                        }
+		                                                    </div>
+		                                                </div>
+		                                            </div>
+		                                        </div>
+		                                    </div>
+                                    </div>
+
+	                                    <script>
+	                                        (function bindIdentitySparks() {
+	                                            if (window.__onejaxIdentitySparksBound) return;
+	                                            window.__onejaxIdentitySparksBound = true;
+
+	                                            function init(attempt) {
+	                                                if (window.__onejaxIdentitySparksInitialized) return;
+	                                                // Chart.js is loaded later in the page. Retry briefly until it's available.
+	                                                if (!window.Chart) {
+	                                                    if ((attempt ?? 0) < 40) {
+	                                                        setTimeout(() => init((attempt ?? 0) + 1), 50);
+	                                                    }
+	                                                    return;
+	                                                }
+	                                                window.__onejaxIdentitySparksInitialized = true;
+
+                                            const mediaMonthly = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(id.MediaPlacementsByMonth ?? new int[12]));
+                                            const trafficQuarterly = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(id.WebsiteClicksByQuarter ?? new int[4]));
+                                            const trustYears = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(id.TrustHistoryYears ?? new List<int>()));
+                                            const trustPercents = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(id.TrustHistoryPercents ?? new List<decimal>()));
+                                            const socialQuarterly = [
+                                                @((id.SocialQ1 ?? 0).ToString(System.Globalization.CultureInfo.InvariantCulture)),
+                                                @((id.SocialQ2 ?? 0).ToString(System.Globalization.CultureInfo.InvariantCulture)),
+                                                @((id.SocialQ3 ?? 0).ToString(System.Globalization.CultureInfo.InvariantCulture)),
+                                                @((id.SocialQ4 ?? 0).ToString(System.Globalization.CultureInfo.InvariantCulture))
+                                            ];
+
+                                            const common = {
+                                                responsive: true,
+                                                maintainAspectRatio: false,
+                                                plugins: { legend: { display: false }, tooltip: { enabled: true } },
+                                                scales: {
+                                                    x: { display: false, grid: { display: false } },
+                                                    y: { display: false, grid: { display: false } }
+                                                },
+                                                elements: { point: { radius: 0 }, line: { borderWidth: 2, tension: 0.35 } }
+                                            };
+
+                                            function make(id, cfg) {
+                                                const canvas = document.getElementById(id);
+                                                if (!canvas) return;
+                                                const ctx = canvas.getContext('2d');
+                                                if (!ctx) return;
+                                                // eslint-disable-next-line no-new
+                                                new Chart(ctx, cfg);
+                                            }
+
+                                            make('identityMediaSpark', {
+                                                type: 'bar',
+                                                data: {
+                                                    labels: ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'],
+                                                    datasets: [{
+                                                        data: mediaMonthly,
+                                                        backgroundColor: 'rgba(15, 61, 87, 0.22)',
+                                                        borderColor: '#0f3d57',
+                                                        borderWidth: 1,
+                                                        borderRadius: 3,
+                                                        maxBarThickness: 10
+                                                    }]
+                                                },
+                                                options: {
+                                                    ...common,
+                                                    plugins: { legend: { display: false }, tooltip: { enabled: true } }
+                                                }
+                                            });
+
+                                            make('identityTrafficSpark', {
+                                                type: 'bar',
+                                                data: {
+                                                    labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+                                                    datasets: [{
+                                                        data: trafficQuarterly,
+                                                        backgroundColor: 'rgba(31, 111, 84, 0.22)',
+                                                        borderColor: '#1f6f54',
+                                                        borderWidth: 1,
+                                                        borderRadius: 4,
+                                                        maxBarThickness: 22
+                                                    }]
+                                                },
+                                                options: {
+                                                    ...common,
+                                                    plugins: { legend: { display: false }, tooltip: { enabled: true } }
+                                                }
+                                            });
+
+                                            const trustLabels = (trustYears && trustYears.length) ? trustYears : [@((id.TrustYear ?? DateTime.Now.Year).ToString(System.Globalization.CultureInfo.InvariantCulture))];
+                                            const trustSeries = (trustPercents && trustPercents.length) ? trustPercents : [@id.TrustPercent.ToString(System.Globalization.CultureInfo.InvariantCulture)];
+
+                                            make('identityTrustSpark', {
+                                                type: 'line',
+                                                data: {
+                                                    labels: trustLabels,
+                                                    datasets: [{
+                                                        data: trustSeries,
+                                                        borderColor: '#7a5c0b',
+                                                        backgroundColor: 'rgba(122, 92, 11, 0.12)',
+                                                        fill: true
+                                                    }]
+                                                },
+                                                options: {
+                                                    ...common,
+                                                    plugins: { legend: { display: false }, tooltip: { enabled: true } },
+                                                    scales: {
+                                                        x: { display: false, grid: { display: false } },
+                                                        y: { display: false, grid: { display: false }, suggestedMin: 0, suggestedMax: 100 }
+                                                    }
+                                                }
+                                            });
+
+                                            make('identitySocialSpark', {
+                                                type: 'line',
+                                                data: {
+                                                    labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+                                                    datasets: [{
+                                                        data: socialQuarterly,
+                                                        borderColor: '#2b3a55',
+                                                        backgroundColor: 'rgba(43, 58, 85, 0.12)',
+                                                        fill: true
+                                                    }]
+                                                },
+                                                options: {
+                                                    ...common,
+                                                    plugins: { legend: { display: false }, tooltip: { enabled: true } },
+                                                    scales: {
+                                                        x: { display: false, grid: { display: false } },
+                                                        y: { display: false, grid: { display: false }, suggestedMin: 0, suggestedMax: 100 }
+                                                    }
+                                                }
+                                            });
+	                                            }
+
+	                                            document.addEventListener('DOMContentLoaded', () => init(0));
+	                                            window.addEventListener('load', () => init(0));
+	                                        })();
+	                                    </script>
+
+                                    <div class="row g-3 mt-1">
+                                        <div class="col-lg-9">
+                                            <div class="card" style="border-radius: 12px; border: 1px solid var(--onejax-border); overflow: hidden;">
+                                                <div class="card-header" style="background: #0b2c3a; color: white;">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <div style="font-weight: 700;">Programs Demographics</div>
+                                                        <div style="font-size: 0.9rem; opacity: 0.9;">Red = reached, Blue = not reached</div>
+                                                    </div>
+                                                </div>
+                                                <div class="card-body" style="background: #f8fafc;">
+                                                    <div class="row g-3">
+                                                        <div class="col-md-9">
+                                                            <div id="zipCoverageMap" style="width: 100%; height: 520px; border: 1px solid rgba(15,23,42,0.10); border-radius: 10px; background: #eef2f7; position: relative;">
+                                                                <div id="zipCoverageLoading" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#475569; font-weight:600;">Loading ZIP coverage map...</div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-3">
+                                                            <div style="font-size: 0.85rem; color: #334155; font-weight: 700; margin-bottom: 0.5rem;">Service Area</div>
+                                                            <div style="color: #475569; font-size: 0.9rem; margin-bottom: 1rem;">Duval + Clay + St. Johns + Nassau</div>
+
+                                                            <div class="card mb-3" style="border-radius: 10px; border: 1px solid rgba(15,23,42,0.12); box-shadow: none;">
+                                                                <div class="card-body" style="padding: 1rem;">
+                                                                    <div style="font-size: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase; color: #64748b; font-weight: 800;">Framework Plan</div>
+                                                                    <div style="font-size: 1.1rem; font-weight: 800; color: #0f172a; margin-top: 0.35rem;">
+                                                                        @(string.IsNullOrWhiteSpace(id.FrameworkStatus) ? "Planning" : id.FrameworkStatus)
+                                                                    </div>
+                                                                    <div style="color: #64748b; font-size: 0.9rem;">
+                                                                        @((id.FrameworkYear.HasValue ? id.FrameworkYear.Value.ToString() : ""))
+                                                                        @((!string.IsNullOrWhiteSpace(id.FrameworkQuarter) ? $" {id.FrameworkQuarter}" : ""))
+                                                                        @if (id.FrameworkGoalMet)
+                                                                        {
+                                                                            <span class="badge bg-success ms-1">Goal met</span>
+                                                                        }
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="card mb-3" style="border-radius: 10px; border: 1px solid rgba(15,23,42,0.12); box-shadow: none;">
+                                                                <div class="card-body" style="padding: 1rem;">
+                                                                    <div style="font-size: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase; color: #64748b; font-weight: 800;">Social Media</div>
+                                                                    <div style="font-size: 1.8rem; font-weight: 900; color: #0f172a; line-height: 1.0; margin-top: 0.25rem;">
+                                                                        @id.SocialAvgEngagementRate.ToString("N1")%
+                                                                    </div>
+                                                                    <div style="color: #64748b; font-size: 0.9rem;">
+                                                                        Avg engagement @(id.SocialYear.HasValue ? $"({id.SocialYear})" : "")
+                                                                        @if (id.SocialGoalMet)
+                                                                        {
+                                                                            <span class="badge bg-success ms-1">Goal met</span>
+                                                                        }
+                                                                    </div>
+                                                                    <div class="mt-2" style="display:grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; font-size: 0.85rem; color:#475569;">
+                                                                        <div>Jul-Sep: <strong>@(id.SocialQ1?.ToString("N1") ?? "-")</strong></div>
+                                                                        <div>Oct-Dec: <strong>@(id.SocialQ2?.ToString("N1") ?? "-")</strong></div>
+                                                                        <div>Jan-Mar: <strong>@(id.SocialQ3?.ToString("N1") ?? "-")</strong></div>
+                                                                        <div>Apr-Jun: <strong>@(id.SocialQ4?.ToString("N1") ?? "-")</strong></div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="card" style="border-radius: 10px; border: 1px solid rgba(15,23,42,0.12); box-shadow: none;">
+                                                                <div class="card-body" style="padding: 1rem;">
+                                                                    <div style="font-size: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase; color: #64748b; font-weight: 800;">Geographic Reach</div>
+                                                                    <div style="font-size: 2rem; font-weight: 800; color: #0f172a; line-height: 1.1; margin-top: 0.25rem;">@zipServed</div>
+                                                                    <div style="color: #64748b; font-size: 0.9rem;">ZIP Codes Served</div>
+                                                                    <div class="mt-3">
+                                                                        <div class="d-flex justify-content-between" style="font-size: 0.85rem; color:#475569;">
+                                                                            <span>Goal</span>
+                                                                            <span>@zipTarget ZIPs</span>
+                                                                        </div>
+                                                                        <div class="progress mt-2" style="height: 10px; border-radius: 999px; background: rgba(2,6,23,0.08);">
+                                                                            <div class="progress-bar" style="width: @Math.Min(zipProgressPct, 100)%; background: #0f3d57; border-radius: 999px;"></div>
+                                                                        </div>
+                                                                        <div class="mt-2" style="font-size: 0.85rem; color:#475569;">@Math.Round(zipProgressPct, 1)% complete</div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="mt-3" id="zipHoverPanel" style="border-radius: 10px; border: 1px dashed rgba(15,23,42,0.25); padding: 0.75rem; background: rgba(255,255,255,0.7);">
+                                                                <div style="font-size: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase; color: #64748b; font-weight: 800;">Hover</div>
+                                                                <div style="font-size: 1.15rem; font-weight: 800; color: #0f172a; margin-top: 0.25rem;" id="zipHoverZip">ZIP: -</div>
+                                                                <div style="color: #475569; font-size: 0.9rem;" id="zipHoverCount">Not reached</div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-3">
+                                            <div class="card h-100" style="border-radius: 12px; border: 1px solid var(--onejax-border);">
+                                                <div class="card-header" style="background: #111827; color: white; font-weight: 700;">Notes</div>
+                                                <div class="card-body" style="color: var(--onejax-text-muted); font-size: 0.95rem;">
+                                                    Coverage is based on ZIP codes submitted in Programs Demographics (Data Entry).
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <script>
+                                        (function initZipCoverageMap() {
+                                            if (window.__onejaxZipMapInitialized) return;
+                                            const el = document.getElementById('zipCoverageMap');
+                                            if (!el) return;
+                                            window.__onejaxZipMapInitialized = true;
+
+                                            const loading = document.getElementById('zipCoverageLoading');
+                                            const hoverZip = document.getElementById('zipHoverZip');
+                                            const hoverCount = document.getElementById('zipHoverCount');
+
+                                            const coverage = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ZipCoverage ?? new Dictionary<string, int>()));
+                                            // Muted palette (professional dashboard look)
+                                            const reachedLo = '#cbbcbc';
+                                            const reachedHi = '#7b4f4f';
+                                            const notReached = '#5a78a6';
+
+                                            function lerp(a, b, t) { return a + (b - a) * t; }
+                                            function hexToRgb(h) {
+                                                const m = /^#?([a-f\\d]{2})([a-f\\d]{2})([a-f\\d]{2})$/i.exec(h);
+                                                return m ? { r: parseInt(m[1], 16), g: parseInt(m[2], 16), b: parseInt(m[3], 16) } : { r: 0, g: 0, b: 0 };
+                                            }
+                                            function rgbToHex(r, g, b) {
+                                                const to = (n) => n.toString(16).padStart(2, '0');
+                                                return `#${to(r)}${to(g)}${to(b)}`;
+                                            }
+
+                                            function fillForCount(count, maxCount) {
+                                                if (!count) return notReached;
+                                                const t = maxCount <= 1 ? 1 : Math.min(1, Math.log(count + 1) / Math.log(maxCount + 1));
+                                                const a = hexToRgb(reachedLo);
+                                                const b = hexToRgb(reachedHi);
+                                                return rgbToHex(
+                                                    Math.round(lerp(a.r, b.r, t)),
+                                                    Math.round(lerp(a.g, b.g, t)),
+                                                    Math.round(lerp(a.b, b.b, t))
+                                                );
+                                            }
+
+                                            function flattenCoords(coords, out) {
+                                                if (!coords) return;
+                                                if (typeof coords[0] === 'number') {
+                                                    out.push(coords);
+                                                    return;
+                                                }
+                                                for (const c of coords) flattenCoords(c, out);
+                                            }
+
+                                            fetch('/data/NorthEastMap.json', { cache: 'no-store' })
+                                                .then(r => r.json())
+                                                .then(geo => {
+                                                    const features = (geo && geo.features) ? geo.features : [];
+                                                    const pts = [];
+                                                    for (const f of features) {
+                                                        flattenCoords(f.geometry && f.geometry.coordinates, pts);
+                                                    }
+                                                    if (!pts.length) throw new Error('No coordinates in GeoJSON');
+
+                                                    let minLon = Infinity, maxLon = -Infinity, minLat = Infinity, maxLat = -Infinity;
+                                                    for (const p of pts) {
+                                                        const lon = p[0], lat = p[1];
+                                                        if (lon < minLon) minLon = lon;
+                                                        if (lon > maxLon) maxLon = lon;
+                                                        if (lat < minLat) minLat = lat;
+                                                        if (lat > maxLat) maxLat = lat;
+                                                    }
+
+                                                    const width = el.clientWidth || 900;
+                                                    const height = el.clientHeight || 520;
+                                                    const pad = 10;
+                                                    const sx = (lon) => pad + ((lon - minLon) / (maxLon - minLon)) * (width - pad * 2);
+                                                    const sy = (lat) => pad + ((maxLat - lat) / (maxLat - minLat)) * (height - pad * 2);
+
+                                                    const maxCount = Object.values(coverage).reduce((m, v) => Math.max(m, v), 0);
+
+                                                    const svgNS = 'http://www.w3.org/2000/svg';
+                                                    const svg = document.createElementNS(svgNS, 'svg');
+                                                    svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+                                                    svg.setAttribute('width', '100%');
+                                                    svg.setAttribute('height', '100%');
+                                                    svg.style.display = 'block';
+
+                                                    function ringToPath(ring) {
+                                                        let d = '';
+                                                        for (let i = 0; i < ring.length; i++) {
+                                                            const p = ring[i];
+                                                            const x = sx(p[0]).toFixed(2);
+                                                            const y = sy(p[1]).toFixed(2);
+                                                            d += (i === 0 ? `M ${x} ${y}` : ` L ${x} ${y}`);
+                                                        }
+                                                        return d + ' Z';
+                                                    }
+
+                                                    function geomToPath(geom) {
+                                                        if (!geom) return '';
+                                                        if (geom.type === 'Polygon') {
+                                                            return geom.coordinates.map(ringToPath).join(' ');
+                                                        }
+                                                        if (geom.type === 'MultiPolygon') {
+                                                            return geom.coordinates.map(poly => poly.map(ringToPath).join(' ')).join(' ');
+                                                        }
+                                                        return '';
+                                                    }
+
+                                                    for (const f of features) {
+                                                        const zip = (f.properties && (f.properties.ZCTA5CE20 || f.properties.GEOID20)) ? String(f.properties.ZCTA5CE20 || f.properties.GEOID20) : '';
+                                                        const count = coverage[zip] || 0;
+                                                        const path = document.createElementNS(svgNS, 'path');
+                                                        path.setAttribute('d', geomToPath(f.geometry));
+                                                        path.setAttribute('fill', fillForCount(count, maxCount));
+                                                        path.setAttribute('stroke', 'rgba(15,23,42,0.18)');
+                                                        path.setAttribute('stroke-width', '0.6');
+                                                        path.style.cursor = 'pointer';
+
+                                                        path.addEventListener('mouseenter', () => {
+                                                            path.setAttribute('stroke', 'rgba(15,23,42,0.55)');
+                                                            path.setAttribute('stroke-width', '1.2');
+                                                            if (hoverZip) hoverZip.textContent = `ZIP: ${zip || '-'}`;
+                                                            if (hoverCount) hoverCount.textContent = count ? `${count} covered record${count === 1 ? '' : 's'}` : 'Not reached';
+                                                        });
+                                                        path.addEventListener('mouseleave', () => {
+                                                            path.setAttribute('stroke', 'rgba(15,23,42,0.18)');
+                                                            path.setAttribute('stroke-width', '0.6');
+                                                        });
+
+                                                        svg.appendChild(path);
+                                                    }
+
+                                                    el.innerHTML = '';
+                                                    el.appendChild(svg);
+                                                })
+                                                .catch(err => {
+                                                    console.error(err);
+                                                    if (loading) loading.textContent = 'Failed to load ZIP coverage map';
+                                                })
+                                                .finally(() => {
+                                                    if (loading) loading.remove();
+                                                });
+                                        })();
+                                    </script>
+
+                                <!-- Quarterly Performance Overview Chart -->
                                 <div class="mb-4">
                                     <div class="card" style="border-radius: 12px; border: 1px solid var(--onejax-border); box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
                                         <div class="card-header" style="background: linear-gradient(135deg, var(--onejax-navy), var(--onejax-blue)); color: white; border-radius: 12px 12px 0 0;">
@@ -2397,9 +3116,9 @@
                                 </div>
                             }
                             
-                            <!-- Events Section - Enhanced Display -->
-                            @if (goal.Events != null && goal.Events.Any())
-                            {
+	                            <!-- Events Section - Enhanced Display -->
+	                            @if (goal.Events != null && goal.Events.Any() && !(goal.Name.Contains("Identity") || goal.Name.Contains("Value")))
+	                            {
                                 <div class="mb-4">
                                     <div class="d-flex justify-content-between align-items-center mb-3">
                                         <h5 style="color:var(--onejax-navy); margin-bottom:0; font-weight: 600;">
@@ -2514,7 +3233,7 @@
                                                         
                                                         <!-- Action Buttons -->
                                                         <div class="d-flex justify-content-between align-items-center">
-                                                            @if (User?.Identity?.IsAuthenticated ?? false)
+                                                            @if (canManageData)
                                                             {
                                                                 <a href="/Strategy/ViewEvents?goalId=@goal.Id" class="btn btn-sm btn-outline-primary" style="border-radius: 8px;">
                                                                     <i class="fas fa-cog"></i> Manage
@@ -2522,7 +3241,9 @@
                                                             }
                                                             else
                                                             {
-                                                                <div></div>
+                                                                <a href="/Public/Events?goalId=@goal.Id" class="btn btn-sm btn-outline-primary" style="border-radius: 8px;">
+                                                                    <i class="fas fa-eye"></i> View
+                                                                </a>
                                                             }
                                                             
                                                             @if (eventItem.DueDate.HasValue)
@@ -2570,20 +3291,29 @@
                                         }
                                     </div>
                                     
-                                    <!-- Quick Action Buttons -->
-                                    <div class="text-center mt-3">
-                                        @if (User?.Identity?.IsAuthenticated ?? false)
-                                        {
-                                            <a href="/Strategy/Index?goalId=@goal.Id" class="btn btn-outline-primary btn-sm me-2">
-                                                <i class="fas fa-plus"></i> Add New Event
-                                            </a>
-                                        }
-                                        <form style="display: inline;" method="get" action="/Strategy/ViewEvents">
-                                            <input type="hidden" name="goalId" value="@goal.Id" />
-                                            <button type="submit" class="btn btn-outline-secondary btn-sm">
-                                                <i class="fas fa-calendar"></i> View All Events
-                                            </button>
-                                        </form>
+	                                    <!-- Quick Action Buttons -->
+	                                    <div class="text-center mt-3">
+	                                        @if (canManageData)
+	                                        {
+	                                            <a href="/Strategy/Index?goalId=@goal.Id" class="btn btn-outline-primary btn-sm me-2">
+	                                                <i class="fas fa-plus"></i> Add New Event
+	                                            </a>
+	                                        }
+	                                        @if (canManageData)
+	                                        {
+	                                            <form style="display: inline;" method="get" action="/Strategy/ViewEvents">
+	                                                <input type="hidden" name="goalId" value="@goal.Id" />
+	                                                <button type="submit" class="btn btn-outline-secondary btn-sm">
+	                                                    <i class="fas fa-calendar"></i> View All Events
+	                                                </button>
+	                                            </form>
+	                                        }
+	                                        else
+	                                        {
+	                                            <a href="/Public/Events?goalId=@goal.Id" class="btn btn-outline-secondary btn-sm">
+	                                                <i class="fas fa-eye"></i> View Public Events
+	                                            </a>
+	                                        }
                                     </div>
                                 </div>
                             }
@@ -2594,22 +3324,19 @@
                                     <div class="text-center py-4" style="background: rgba(59, 130, 246, 0.05); border-radius: 12px; border: 2px dashed var(--onejax-border);">
                                         <i class="fas fa-calendar-plus" style="font-size: 3rem; color: var(--onejax-blue); margin-bottom: 1rem;"></i>
                                         <h6 style="color: var(--onejax-navy); margin-bottom: 0.5rem;">No Events Yet for @goal.Name</h6>
-                                        <p style="color: var(--onejax-text-muted); margin-bottom: 1rem;">Start planning your strategic initiatives and events.</p>
-                                        @if (User?.Identity?.IsAuthenticated ?? false)
-                                        {
-                                            <a href="/Strategy/Index?goalId=@goal.Id" class="btn btn-primary btn-sm">
-                                                <i class="fas fa-plus"></i> Create First Event
-                                            </a>
-                                        }
-                                        else
-                                        {
-                                            <form style="display: inline;" method="get" action="/Strategy/ViewEvents">
-                                                <input type="hidden" name="goalId" value="@goal.Id" />
-                                                <button type="submit" class="btn btn-outline-primary btn-sm">
-                                                    <i class="fas fa-eye"></i> View Public Events
-                                                </button>
-                                            </form>
-                                        }
+	                                        <p style="color: var(--onejax-text-muted); margin-bottom: 1rem;">Start planning your strategic initiatives and events.</p>
+	                                        @if (canManageData)
+	                                        {
+	                                            <a href="/Strategy/Index?goalId=@goal.Id" class="btn btn-primary btn-sm">
+	                                                <i class="fas fa-plus"></i> Create First Event
+	                                            </a>
+	                                        }
+	                                        else
+	                                        {
+	                                            <a href="/Public/Events?goalId=@goal.Id" class="btn btn-outline-primary btn-sm">
+	                                                <i class="fas fa-eye"></i> View Public Events
+	                                            </a>
+	                                        }
                                     </div>
                                 </div>
                             }
@@ -2724,16 +3451,11 @@
                             </div>
                             <div class="col-md-4 text-end">
                                 <div style="background: rgba(255,255,255,0.1); border-radius: 15px; padding: 1.5rem; backdrop-filter: blur(10px);">
-                                    <div style="font-size: 0.9rem; opacity: 0.8; margin-bottom: 0.5rem;">LAST UPDATED</div>
-                                    <div style="font-weight: 600; font-size: 1.1rem;">@DateTime.Now.ToString("MMM dd, yyyy")</div>
-                                    <div style="margin-top: 1rem;">
-                                        <a href="#" style="color: white; text-decoration: none; font-size: 0.9rem;" onclick="showComingSoon('Mobile App')">
-                                            Mobile App
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+	                                    <div style="font-size: 0.9rem; opacity: 0.8; margin-bottom: 0.5rem;">LAST UPDATED</div>
+	                                    <div style="font-weight: 600; font-size: 1.1rem;">@DateTime.Now.ToString("MMM dd, yyyy")</div>
+	                                </div>
+	                            </div>
+	                        </div>
                         
                         <div class="row mt-4">
                             <div class="col-12">
@@ -2754,8 +3476,8 @@
 
 <!-- Event Details Modal -->
 <div class="modal fade" id="eventDetailsModal" tabindex="-1" aria-labelledby="eventDetailsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content" style="border-radius: 16px; border: none; overflow: hidden;">
+	    <div class="modal-dialog modal-lg">
+	        <div class="modal-content" style="border-radius: 16px; border: none; overflow: hidden;">
             <div class="modal-header" style="background: linear-gradient(135deg, var(--onejax-navy), var(--onejax-blue)); color: white; border: none; padding: 2rem;">
                 <h5 class="modal-title" id="eventDetailsModalLabel" style="font-weight: 700; font-size: 1.5rem;">Event Details</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -2768,20 +3490,29 @@
                     <p class="mt-3 text-muted">Loading event details...</p>
                 </div>
             </div>
-            <div class="modal-footer" style="border: none; padding: 1rem 2rem 2rem;">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 8px;">Close</button>
-                @if (User?.Identity?.IsAuthenticated ?? false)
-                {
-                    <form style="display: inline;" method="get" action="/Strategy/ViewEvents">
-                        <button type="submit" class="btn btn-primary" style="border-radius: 8px; background: var(--onejax-blue); border-color: var(--onejax-blue);">
-                            <i class="fas fa-cog"></i> Manage in Core Strategies
-                        </button>
-                    </form>
-                }
-            </div>
-        </div>
-    </div>
-</div>
+	            <div class="modal-footer" style="border: none; padding: 1rem 2rem 2rem;">
+	                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 8px;">Close</button>
+	                @if (canManageData)
+	                {
+	                    <a id="editEventButton"
+	                       href="/Strategy/ViewEvents"
+	                       class="btn btn-primary"
+	                       style="border-radius: 8px; background: var(--onejax-blue); border-color: var(--onejax-blue);">
+	                        <i class="fas fa-cog"></i> Manage in Core Strategies
+	                    </a>
+	                }
+	                else
+	                {
+	                    <a href="/Public/Events"
+	                       class="btn btn-outline-primary"
+	                       style="border-radius: 8px;">
+	                        <i class="fas fa-eye"></i> View Events
+	                    </a>
+	                }
+	            </div>
+	        </div>
+	    </div>
+	</div>
 
 <!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -3839,10 +4570,12 @@ function loadEventDetails(eventId) {
     modalLabel.textContent = 'Loading...';
     modalContent.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary"></div><p class="mt-2">Loading event details...</p></div>';
     
-    // Update edit button to link to Core Strategies View Events page
-    const editButton = document.getElementById('editEventButton');
-    editButton.href = '/Strategy/ViewEvents';
-    console.log('Edit button href set to Core Strategies View Events:', editButton.href);
+	    // Update edit button to link to Core Strategies View Events page
+	    const editButton = document.getElementById('editEventButton');
+	    if (editButton) {
+	        editButton.href = '@(canManageData ? "/Strategy/ViewEvents" : "/Public/Events")';
+	        console.log('Edit button href set to Core Strategies View Events:', editButton.href);
+	    }
     
     // Test the API endpoint with detailed logging
     console.log('Fetching from:', '/Events/Api/Details/' + eventId);
@@ -3979,11 +4712,13 @@ function loadEventDetails(eventId) {
         });
 }
 
-// Force manage buttons to stay in same tab - AGGRESSIVE APPROACH
-document.addEventListener('DOMContentLoaded', function() {
-    // Find ALL links that go to Strategy/ViewEvents 
-    const manageLinks = document.querySelectorAll('a[href*="/Strategy/ViewEvents"], a[href*="Strategy/ViewEvents"]');
-    console.log('Found manage links:', manageLinks.length);
+	// Force manage buttons to stay in same tab - AGGRESSIVE APPROACH
+	document.addEventListener('DOMContentLoaded', function() {
+	    const canManageData = @canManageData.ToString().ToLower();
+	    if (!canManageData) return;
+	    // Find ALL links that go to Strategy/ViewEvents 
+	    const manageLinks = document.querySelectorAll('a[href*="/Strategy/ViewEvents"], a[href*="Strategy/ViewEvents"]');
+	    console.log('Found manage links:', manageLinks.length);
     
     manageLinks.forEach(function(link, index) {
         console.log('Processing link', index, ':', link.href);
@@ -3995,24 +4730,24 @@ document.addEventListener('DOMContentLoaded', function() {
         // Set explicit target to self
         link.target = '_self';
         
-        // Override the click completely
-        link.onclick = function(e) {
+	        // Override the click completely
+	        link.onclick = function(e) {
             e.preventDefault();
             e.stopPropagation();
             e.stopImmediatePropagation();
             
-            console.log('Navigating to Strategy/ViewEvents in same tab');
-            
-            // Use location.href for same-tab navigation
-            window.location.href = '/Strategy/ViewEvents';
-            
-            return false;
-        };
-        
-        // Also set as attribute for double safety
-        link.setAttribute('onclick', 'event.preventDefault(); window.location.href="/Strategy/ViewEvents"; return false;');
-    });
-});
+	            console.log('Navigating to Strategy/ViewEvents in same tab');
+	            
+	            // Use location.href for same-tab navigation
+	            window.location.href = '/Strategy/ViewEvents';
+	            
+	            return false;
+	        };
+	        
+	        // Also set as attribute for double safety
+	        link.setAttribute('onclick', 'event.preventDefault(); window.location.href=\"/Strategy/ViewEvents\"; return false;');
+	    });
+	});
 </script>
 
 @{

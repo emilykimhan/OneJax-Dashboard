@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using OneJaxDashboard.Data;
 using OneJaxDashboard.Models;
 
 namespace OneJaxDashboard.Controllers
 {
+    [Authorize(Roles = "Admin,Staff")]
     public class identityAchieve_6DController : Controller
     {
         private readonly ApplicationDbContext _context;

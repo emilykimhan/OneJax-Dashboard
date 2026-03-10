@@ -238,9 +238,7 @@ public class HomeController : Controller
         
         // Only generate goals if we have real data entries
         var generatedGoals = GenerateGoalsFromRealDataOnly();
-        
-        // Always ensure we have the four strategic goals as tabs, even if empty
-        var allGoals = EnsureFourStrategicGoals(generatedGoals);
+        var allGoals = generatedGoals;
 
         // Build summary statistics from real data
         dashboard.Summary = BuildDashboardSummary();
@@ -251,15 +249,11 @@ public class HomeController : Controller
         // Build chart data from real metrics
         dashboard.Charts = BuildChartData(allGoals);
         
-        // Check if we have any data (database records OR strategy events)
-        var hasStrategyEvents = StrategyController.Strategies.Any();
-        
-        if (allGoals.Any(g => g.Metrics.Any() || g.Events.Any()) || hasStrategyEvents)
+        if (allGoals.Any(g => g.Metrics.Any() || g.Events.Any()))
         {
             dashboard.StrategicGoals = allGoals;
-            dashboard.DataSource = hasStrategyEvents ? "Real Data Entries + Strategy Events" : "Real Data Entries";
-            dashboard.Message = hasStrategyEvents ? 
-                "Dashboard generated from your actual data entries and strategy events from the Core Strategies tab." :
+            dashboard.DataSource = "Real Data Entries";
+            dashboard.Message =
                 "Dashboard generated from your actual data entries including staff surveys, professional development plans, media placements, and website traffic data.";
         }
         else
@@ -273,120 +267,15 @@ public class HomeController : Controller
         return dashboard;
     }
 
-    private List<StrategicGoal> EnsureFourStrategicGoals(List<StrategicGoal> existingGoals)
+    private async Task<List<Event>> GetDashboardEventsForGoalAsync(int strategicGoalId)
     {
-        var allGoals = new List<StrategicGoal>();
-        
-        // Define the four strategic goals structure (matching StrategyController mapping)
-        var goalTemplates = new List<(int Id, string Name, string Description, string Color)>
-        {
-            (1, "Organizational Building", "Strengthening organizational structure and capacity", "var(--onejax-navy)"),
-            (2, "Financial Sustainability", "Ensuring sustainable financial health and growth", "var(--onejax-green)"),
-            (3, "Identity/Value Proposition", "Establishing and communicating OneJax's unique identity and value", "var(--onejax-orange)"),
-            (4, "Community Engagement", "Building partnerships and community connections", "var(--onejax-blue)")
-        };
-
-        foreach (var template in goalTemplates)
-        {
-            // Find existing goal with data or create empty one
-            var existingGoal = existingGoals.FirstOrDefault(g => g.Id == template.Id || g.Name == template.Name);
-            
-            if (existingGoal != null)
-            {
-                // Use the goal with real data
-                existingGoal.Id = template.Id; // Ensure consistent ID
-                existingGoal.Name = template.Name; // Ensure consistent name
-                existingGoal.Color = template.Color; // Ensure consistent color
-                
-                // Add events from Strategy controller's static list
-                existingGoal.Events.AddRange(GetEventsFromStrategyController(template.Id));
-                
-                allGoals.Add(existingGoal);
-            }
-            else
-            {
-                // Create empty goal structure for tab consistency
-                var newGoal = new StrategicGoal
-                {
-                    Id = template.Id,
-                    Name = template.Name,
-                    Description = template.Description,
-                    Color = template.Color,
-                    Events = new List<Event>(),
-                    Metrics = new List<GoalMetric>()
-                };
-                
-                // Add events from Strategy controller's static list
-                newGoal.Events.AddRange(GetEventsFromStrategyController(template.Id));
-                
-                allGoals.Add(newGoal);
-            }
-        }
-
-        return allGoals;
-    }
-
-    private List<Event> GetEventsFromStrategyController(int strategicGoalId)
-    {
-        var events = new List<Event>();
-        
-        // Get events from database first (persistent Events table)
-        var dbEvents = _context.Events.Where(e => e.StrategicGoalId == strategicGoalId).ToList();
-        events.AddRange(dbEvents);
-        
-        // Get events from database Strategies table (Core Strategies events)
-        var dbStrategies = _context.Strategies.Where(s => s.StrategicGoalId == strategicGoalId).ToList();
-        
-        foreach (var strategy in dbStrategies)
-        {
-            // Only add if not already in Events table
-            if (!dbEvents.Any(e => e.Title == strategy.Name && e.Description == strategy.Description))
-            {
-                events.Add(new Event
-                {
-                    Id = strategy.Id + 1000, // Offset to avoid ID conflicts
-                    Title = strategy.Name,
-                    Description = strategy.Description,
-                    Type = !string.IsNullOrWhiteSpace(strategy.ProgramName)
-                        ? strategy.ProgramName
-                        : (!string.IsNullOrWhiteSpace(strategy.ProgramType) ? strategy.ProgramType : "Program"),
-                    Status = "Planned",
-                    StrategicGoalId = strategicGoalId,
-                    DueDate = DateTime.TryParse(strategy.Date, out var date) ? date : DateTime.Now.AddDays(30),
-                    Notes = $"Core Strategy Event. {(!string.IsNullOrEmpty(strategy.Time) ? $"Time: {strategy.Time}" : "")} {(!string.IsNullOrEmpty(strategy.EventFYear) ? $"Fiscal Year: {strategy.EventFYear}" : "")}",
-                    Attendees = 0,
-                    Location = "TBD"
-                });
-            }
-        }
-        
-        // Also check the static list for backward compatibility
-        var staticStrategies = StrategyController.Strategies.Where(s => s.StrategicGoalId == strategicGoalId).ToList();
-        
-        foreach (var strategy in staticStrategies)
-        {
-            // Only add if not already added from database
-            if (!events.Any(e => e.Title == strategy.Name && e.Description == strategy.Description))
-            {
-                events.Add(new Event
-                {
-                    Id = strategy.Id + 2000, // Different offset for static events
-                    Title = strategy.Name,
-                    Description = strategy.Description,
-                    Type = !string.IsNullOrWhiteSpace(strategy.ProgramName)
-                        ? strategy.ProgramName
-                        : (!string.IsNullOrWhiteSpace(strategy.ProgramType) ? strategy.ProgramType : "Program"),
-                    Status = "Planned",
-                    StrategicGoalId = strategicGoalId,
-                    DueDate = DateTime.TryParse(strategy.Date, out var date) ? date : DateTime.Now.AddDays(30),
-                    Notes = $"Legacy Static Event. {(!string.IsNullOrEmpty(strategy.Time) ? $"Time: {strategy.Time}" : "")}",
-                    Attendees = 0,
-                    Location = "TBD"
-                });
-            }
-        }
-        
-        return events.OrderBy(e => e.DueDate).ToList();
+        // Dashboard should only show real Events records (not synthetic conversions from Core Strategies).
+        return await _context.Events
+            .Where(e => e.StrategicGoalId == strategicGoalId && !e.IsArchived)
+            .OrderBy(e => e.DueDate == null) // nulls last
+            .ThenBy(e => e.DueDate)
+            .Take(12)
+            .ToListAsync();
     }
 
     private DashboardSummary BuildDashboardSummary()
@@ -410,26 +299,15 @@ public class HomeController : Controller
             // Website Traffic
             summary.TotalWebsiteTrafficEntries = _context.WebsiteTraffic.Count();
 
-            // Events (from all sources: Events table, Strategies table, and static list)
+            // Events (real Events table only)
             try
             {
-                var totalEvents = 0;
-                
-                // Count from Events table
-                totalEvents += _context.Events.Count();
-                
-                // Count from Strategies table (Core Strategies events)
-                totalEvents += _context.Strategies.Count();
-                
-                // Count from static list (if any unique ones not in database)
-                var staticEvents = StrategyController.Strategies.Count();
-                
-                summary.TotalEvents = totalEvents;
+                summary.TotalEvents = _context.Events.Count(e => !e.IsArchived);
             }
             catch
             {
                 // Fallback if database access fails
-                summary.TotalEvents = StrategyController.Strategies.Count();
+                summary.TotalEvents = 0;
             }
 
             // Calculate total activities
@@ -793,8 +671,184 @@ public class HomeController : Controller
         dashboard.StrategicGoals = allGoals;
         dashboard.DataSource = "Comprehensive Metrics + Real Data Integration";
         dashboard.Message = "Dashboard shows all strategic goals with comprehensive metrics. Metrics update in real-time as you submit data through the Data Entry forms.";
+
+        // Identity: ZIP coverage (drives Programs Demographics map)
+        dashboard.ZipCoverage = await BuildZipCoverageAsync();
+        dashboard.Identity = await BuildIdentityDashboardDataAsync(dashboard.ZipCoverage);
         
         return dashboard;
+    }
+
+    private async Task<IdentityDashboardData> BuildIdentityDashboardDataAsync(Dictionary<string, int> zipCoverage)
+    {
+        var data = new IdentityDashboardData
+        {
+            ZipCodesServed = zipCoverage?.Count ?? 0
+        };
+
+        // Media Placements
+        try
+        {
+            var all = await _context.MediaPlacements_3D.ToListAsync();
+            data.MediaPlacementsTotal = all.Sum(m => m.TotalMentions);
+            data.MediaPlacementsByMonth = new[]
+            {
+                all.Sum(m => m.January ?? 0),
+                all.Sum(m => m.February ?? 0),
+                all.Sum(m => m.March ?? 0),
+                all.Sum(m => m.April ?? 0),
+                all.Sum(m => m.May ?? 0),
+                all.Sum(m => m.June ?? 0),
+                all.Sum(m => m.July ?? 0),
+                all.Sum(m => m.August ?? 0),
+                all.Sum(m => m.September ?? 0),
+                all.Sum(m => m.October ?? 0),
+                all.Sum(m => m.November ?? 0),
+                all.Sum(m => m.December ?? 0)
+            };
+            data.MediaPlacementsLastUpdated = all.Count > 0 ? all.Max(m => m.CreatedDate) : null;
+        }
+        catch { }
+
+        // Website Traffic
+        try
+        {
+            var all = await _context.WebsiteTraffic.ToListAsync();
+            data.WebsiteClicksTotal = all.Sum(w => w.TotalClicks);
+            data.WebsiteTrafficLastUpdated = all.Count > 0 ? all.Max(w => w.CreatedDate) : null;
+
+            var latest = all
+                .OrderByDescending(w => w.CreatedDate)
+                .FirstOrDefault();
+            if (latest != null)
+            {
+                data.WebsiteClicksByQuarter = new[]
+                {
+                    latest.Q1_JulySeptember ?? 0,
+                    latest.Q2_OctoberDecember ?? 0,
+                    latest.Q3_JanuaryMarch ?? 0,
+                    latest.Q4_AprilJune ?? 0
+                };
+            }
+        }
+        catch { }
+
+        // Community Perception Survey (Trust)
+        try
+        {
+            var latest = await _context.Annual_average_7D
+                .OrderByDescending(s => s.Year)
+                .ThenByDescending(s => s.CreatedDate)
+                .FirstOrDefaultAsync();
+            data.TrustPercent = latest?.Percentage ?? 0m;
+            data.TrustRespondents = latest?.TotalRespondents;
+            data.TrustYear = latest?.Year;
+            data.TrustLastUpdated = latest?.CreatedDate;
+
+            var history = await _context.Annual_average_7D
+                .OrderByDescending(s => s.Year)
+                .ThenByDescending(s => s.CreatedDate)
+                .Take(5)
+                .ToListAsync();
+            history = history
+                .GroupBy(h => h.Year)
+                .Select(g => g.OrderByDescending(x => x.CreatedDate).First())
+                .OrderBy(h => h.Year)
+                .ToList();
+
+            data.TrustHistoryYears = history.Select(h => h.Year).ToList();
+            data.TrustHistoryPercents = history.Select(h => h.Percentage).ToList();
+        }
+        catch { }
+
+        // Milestone Achievement
+        try
+        {
+            var latest = await _context.achieveMile_6D
+                .OrderByDescending(m => m.CreatedDate)
+                .FirstOrDefaultAsync();
+            data.MilestonePercent = latest?.Percentage ?? 0m;
+            data.MilestoneReviewActive = latest?.achievedReview ?? false;
+            data.MilestoneLastUpdated = latest?.CreatedDate;
+        }
+        catch { }
+
+        // Social Media Engagement
+        try
+        {
+            var latest = await _context.socialMedia_5D
+                .OrderByDescending(s => s.Year)
+                .ThenByDescending(s => s.CreatedDate)
+                .FirstOrDefaultAsync();
+            if (latest != null)
+            {
+                data.SocialYear = latest.Year;
+                data.SocialAvgEngagementRate = latest.AverageEngagementRate;
+                data.SocialQ1 = latest.JulySeptEngagementRate;
+                data.SocialQ2 = latest.OctDecEngagementRate;
+                data.SocialQ3 = latest.JanMarEngagementRate;
+                data.SocialQ4 = latest.AprilJuneEngagementRate;
+                data.SocialGoalMet = latest.GoalMet;
+                data.SocialLastUpdated = latest.CreatedDate;
+            }
+        }
+        catch { }
+
+        // Framework Development Plan
+        try
+        {
+            var latest = await _context.Plan2026_24D
+                .OrderByDescending(p => p.Year)
+                .ThenByDescending(p => p.Quarter)
+                .ThenByDescending(p => p.CreatedDate)
+                .FirstOrDefaultAsync();
+            if (latest != null)
+            {
+                data.FrameworkYear = latest.Year;
+                data.FrameworkQuarter = latest.Quarter ?? "";
+                data.FrameworkStatus = latest.FrameworkStatus ?? "";
+                data.FrameworkGoalMet = latest.GoalMet;
+                data.FrameworkLastUpdated = latest.CreatedDate;
+            }
+        }
+        catch { }
+
+        return data;
+    }
+
+    private async Task<Dictionary<string, int>> BuildZipCoverageAsync()
+    {
+        var coverage = new Dictionary<string, int>(StringComparer.Ordinal);
+
+        List<demographics_8D> rows;
+        try
+        {
+            rows = await _context.demographics_8D
+                .OrderByDescending(d => d.CreatedDate)
+                .ToListAsync();
+        }
+        catch
+        {
+            return coverage;
+        }
+
+        foreach (var row in rows)
+        {
+            var zipCodes = (row.ZipCodes ?? "")
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+            foreach (var raw in zipCodes)
+            {
+                var digits = new string(raw.Where(char.IsDigit).ToArray());
+                if (digits.Length < 5) continue;
+                var zip = digits.Substring(0, 5);
+
+                if (coverage.TryGetValue(zip, out var c)) coverage[zip] = c + 1;
+                else coverage[zip] = 1;
+            }
+        }
+
+        return coverage;
     }
 
     private async Task<List<StrategicGoal>> CreateAllStrategicGoalsAsync()
@@ -821,9 +875,8 @@ public class HomeController : Controller
                 Events = new List<Event>(),
                 Metrics = new List<GoalMetric>()
             };
-            
-            // Add events from Strategy controller's static list
-            goal.Events.AddRange(GetEventsFromStrategyController(template.Id));
+
+            goal.Events = await GetDashboardEventsForGoalAsync(template.Id);
             
             goals.Add(goal);
         }
@@ -841,8 +894,11 @@ public class HomeController : Controller
             // Get comprehensive metrics for this goal
             List<GoalMetric> comprehensiveMetrics;
             
+            // Identity/Value is rendered with custom visual cards on the dashboard (and derives values from the
+            // Data Entry tables). Avoid injecting the seeded placeholder metrics here, which creates duplicates
+            // and makes the tab look like a list of forms.
             if (goal.Name.Contains("Identity"))
-                comprehensiveMetrics = await _metricsService.GetPublicMetricsAsync("Identity", fiscalYear);
+                comprehensiveMetrics = new List<GoalMetric>();
             else if (goal.Name.Contains("Community"))
                 comprehensiveMetrics = await _metricsService.GetPublicMetricsAsync("Community", fiscalYear);
             else if (goal.Name.Contains("Financial"))

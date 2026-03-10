@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using OneJaxDashboard.Data;
 using OneJaxDashboard.Models;
 //Karrie's
 namespace OneJaxDashboard.Controllers
 {
+    [Authorize(Roles = "Admin,Staff")]
     public class identityPlan_24DController : Controller
     {
         private readonly ApplicationDbContext _context;

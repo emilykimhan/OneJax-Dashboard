@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using OneJaxDashboard.Data;
 using OneJaxDashboard.Models;
 //Karrie's
 namespace OneJaxDashboard.Controllers
 {
+    [Authorize(Roles = "Admin,Staff")]
     public class IdentityAnnual_7DController : Controller
     {
         private readonly ApplicationDbContext _context;

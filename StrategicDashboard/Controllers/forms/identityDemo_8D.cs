@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using OneJaxDashboard.Data;
@@ -6,6 +7,7 @@ using OneJaxDashboard.Models;
 //Karrie's
 namespace OneJaxDashboard.Controllers
 {
+    [Authorize(Roles = "Admin,Staff")]
     public class identityDemo_8DController : Controller
     {
         private readonly ApplicationDbContext _context;

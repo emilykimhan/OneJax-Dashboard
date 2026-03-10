@@ -37,25 +37,34 @@ namespace OneJaxDashboard.Models
         {
             get
             {
-                if (string.IsNullOrEmpty(Target) || CurrentValue <= 0)
+                if (string.IsNullOrEmpty(Target) || Target.Trim() == "0")
                     return 0;
 
-                // Handle percentage units
-                if (Unit == "%")
+                // Helper method to safely parse target values
+                decimal SafeParseTarget(string target)
                 {
-                    if (decimal.TryParse(Target.Replace("%", ""), out decimal targetValue) && targetValue > 0)
-                    {
-                        return Math.Min(Math.Round((CurrentValue / targetValue) * 100, 1), 100);
-                    }
+                    if (string.IsNullOrEmpty(target))
+                        return 0;
+                        
+                    // Remove common currency symbols and formatting characters
+                    var cleanTarget = target
+                        .Replace("$", "")
+                        .Replace(",", "")
+                        .Replace("%", "")
+                        .Replace(" ", "")
+                        .Trim();
+                        
+                    return decimal.TryParse(cleanTarget, out decimal value) ? value : 0;
                 }
+
+                var targetValue = SafeParseTarget(Target);
+                if (targetValue == 0)
+                    return 0;
+
+                var progressPercent = Math.Round((CurrentValue / targetValue) * 100, 1);
                 
-                // Handle all other numeric targets
-                if (decimal.TryParse(Target, out decimal targetDecimal) && targetDecimal > 0)
-                {
-                    return Math.Min(Math.Round((CurrentValue / targetDecimal) * 100, 1), 100);
-                }
-                
-                return 0;
+                // Cap at 150% to prevent extremely high values from skewing averages
+                return Math.Min(progressPercent, 150);
             }
         }
     }

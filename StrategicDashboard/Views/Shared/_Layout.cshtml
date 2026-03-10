@@ -82,42 +82,49 @@
     </style>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm py-3">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="/Home/Index">
-                <img src="/images/Onejax Logo.png" alt="OneJax Logo" style="height:60px; margin-right:16px;">
-                <span class="fs-3 fw-bold" style="color:var(--onejax-navy); font-family:'Montserrat', Arial, sans-serif;">Strategic Dashboard</span>
-            </a>
+	<body>
+	    @{
+	        var canManageData = (User?.Identity?.IsAuthenticated ?? false) && (User.IsInRole("Admin") || User.IsInRole("Staff"));
+	    }
+	    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm py-3">
+	        <div class="container">
+	            <a class="navbar-brand d-flex align-items-center" href="/Home/Index">
+	                <img src="/images/Onejax Logo.png" alt="OneJax Logo" style="height:60px; margin-right:16px;">
+	                <span class="fs-3 fw-bold" style="color:var(--onejax-navy); font-family:'Montserrat', Arial, sans-serif;">Strategic Dashboard</span>
+	            </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                    <li class="nav-item"><a class="nav-link" href="/Home/Index">Home</a></li>
-                    @if (User?.Identity?.IsAuthenticated ?? false)
-                    {
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="coreStrategiesDropdown" role="button" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
-                                Events
-                            </a>
-                            <ul class="dropdown-menu events-dropdown-menu" aria-labelledby="coreStrategiesDropdown">
-                                <li>
-                                    <a class="dropdown-item" href="/Strategy/ViewEvents">View Events</a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="/Strategy/Index">Create Events</a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="/Programs/Index">Create Programs</a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="/Programs/Archive">Archive</a>
-                                </li>
-                            </ul>
-                        </li>
-                        <li class="nav-item"><a class="nav-link" href="/DataEntry">Data Entry</a></li>
-                    }
+	            <div class="collapse navbar-collapse" id="navbarNav">
+	                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+	                    <li class="nav-item"><a class="nav-link" href="/Home/Index">Home</a></li>
+	                    @if (!(User?.Identity?.IsAuthenticated ?? false))
+	                    {
+	                        <li class="nav-item"><a class="nav-link" href="/Public/Events">Public Events</a></li>
+	                    }
+	                    @if (canManageData)
+	                    {
+	                        <li class="nav-item dropdown">
+	                            <a class="nav-link dropdown-toggle" href="#" id="coreStrategiesDropdown" role="button" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
+	                                Events
+	                            </a>
+	                            <ul class="dropdown-menu events-dropdown-menu" aria-labelledby="coreStrategiesDropdown">
+	                                <li>
+	                                    <a class="dropdown-item" href="/Strategy/ViewEvents">View Events</a>
+	                                </li>
+	                                <li>
+	                                    <a class="dropdown-item" href="/Strategy/Index">Create Events</a>
+	                                </li>
+	                                <li>
+	                                    <a class="dropdown-item" href="/Programs/Index">Create Programs</a>
+	                                </li>
+	                                <li>
+	                                    <a class="dropdown-item" href="/Programs/Archive">Archive</a>
+	                                </li>
+	                            </ul>
+	                        </li>
+	                        <li class="nav-item"><a class="nav-link" href="/DataEntry">Data Entry</a></li>
+	                    }
                     @if (User?.Identity?.IsAuthenticated ?? false)
                     {
                         <li class="nav-item user-dropdown">

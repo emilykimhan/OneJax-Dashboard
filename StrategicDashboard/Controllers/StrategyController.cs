@@ -1,11 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Authorization;
 using OneJaxDashboard.Models;
 using OneJaxDashboard.Data;
 using OneJaxDashboard.Services;
 using System.Collections.Generic;
 using System.Linq;
 //dina
+[Authorize(Roles = "Admin,Staff")]
 public class StrategyController : Controller
 {
     private readonly ApplicationDbContext _context;
@@ -20,9 +22,6 @@ public class StrategyController : Controller
         "Community",
         "Donor"
     };
-
-    // Keep the static list for backward compatibility, but also save to database
-    public static List<Strategy> Strategies { get; set; } = new();
 
     public StrategyController(ApplicationDbContext context, ActivityLogService activityLog)
     {
@@ -41,6 +40,7 @@ public class StrategyController : Controller
     private List<SelectListItem> GetGoalOptions()
     {
         var dbGoals = _context.StrategicGoals
+            .Where(g => g.Id >= 1 && g.Id <= 4)
             .OrderBy(g => g.Id)
             .Select(g => new SelectListItem
             {
@@ -321,13 +321,16 @@ public class StrategyController : Controller
             _context.SaveChanges();
         }
 
+        // ViewEvents should only show the four strategic goals as goal filter tabs.
         ViewBag.Goals = _context.StrategicGoals
-        .Select(g => new SelectListItem
-        {
-            Value = g.Id.ToString(),
-            Text = g.Name
-        })
-        .ToList();
+            .Where(g => g.Id >= 1 && g.Id <= 4)
+            .OrderBy(g => g.Id)
+            .Select(g => new SelectListItem
+            {
+                Value = g.Id.ToString(),
+                Text = g.Name
+            })
+            .ToList();
 
         var fiscalYears = events
             .Select(e => e.EventFYear)

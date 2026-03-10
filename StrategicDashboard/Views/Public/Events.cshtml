@@ -1,0 +1,88 @@
+@model List<OneJaxDashboard.Models.Strategy>
+@using OneJaxDashboard.Models
+
+@{
+    ViewData["Title"] = "Public Events";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var goals = ViewBag.Goals as List<StrategicGoal> ?? new List<StrategicGoal>();
+    int? selectedGoalId = ViewBag.GoalId as int?;
+}
+
+<div class="container my-5" style="max-width: 1200px;">
+    <div class="d-flex justify-content-between align-items-end flex-wrap gap-3 mb-3">
+        <div>
+            <h2 style="color: var(--onejax-navy); font-weight: 800; margin: 0;">Public Events</h2>
+            <div style="color: var(--onejax-text-muted);">Read-only schedule of planned activities.</div>
+        </div>
+        <a href="/Home/Index" class="btn btn-outline-secondary" style="border-radius: 999px;">Back to Dashboard</a>
+    </div>
+
+    <div class="card" style="border-radius: 14px; border: 1px solid var(--onejax-border); overflow: hidden;">
+        <div class="card-header" style="background: #0b2c3a; color: white; font-weight: 800;">
+            Filter by goal
+        </div>
+        <div class="card-body">
+            <div class="d-flex flex-wrap gap-2">
+                <a class="btn btn-sm @(selectedGoalId == null ? "btn-primary" : "btn-outline-primary")"
+                   style="border-radius: 999px;"
+                   href="/Public/Events">All</a>
+                @foreach (var g in goals)
+                {
+                    <a class="btn btn-sm @(selectedGoalId == g.Id ? "btn-primary" : "btn-outline-primary")"
+                       style="border-radius: 999px;"
+                       href="/Public/Events?goalId=@g.Id">@g.Name</a>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        @if (Model == null || Model.Count == 0)
+        {
+            <div class="text-center py-5" style="color: var(--onejax-text-muted);">
+                No public events found.
+            </div>
+        }
+        else
+        {
+            <div class="card" style="border-radius: 14px; border: 1px solid var(--onejax-border); overflow: hidden;">
+                <div class="card-header" style="background: rgba(15,23,42,0.04); font-weight: 800; color: var(--onejax-navy);">
+                    @Model.Count event(s)
+                </div>
+                <div class="table-responsive">
+                    <table class="table mb-0" style="font-size: 0.95rem;">
+                        <thead style="background: rgba(15,23,42,0.04);">
+                            <tr>
+                                <th style="white-space: nowrap;">Goal</th>
+                                <th>Event</th>
+                                <th style="white-space: nowrap;">Date</th>
+                                <th style="white-space: nowrap;">Time</th>
+                                <th style="white-space: nowrap;">Program</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var e in Model)
+                        {
+                            var goalName = goals.FirstOrDefault(g => g.Id == e.StrategicGoalId)?.Name ?? $"Goal {e.StrategicGoalId}";
+                            <tr>
+                                <td style="white-space: nowrap; font-weight: 700;">@goalName</td>
+                                <td>
+                                    <div style="font-weight: 800; color: var(--onejax-navy);">@e.Name</div>
+                                    @if (!string.IsNullOrWhiteSpace(e.Description))
+                                    {
+                                        <div style="color: var(--onejax-text-muted);">@e.Description</div>
+                                    }
+                                </td>
+                                <td style="white-space: nowrap;">@(string.IsNullOrWhiteSpace(e.Date) ? "TBD" : e.Date)</td>
+                                <td style="white-space: nowrap;">@(string.IsNullOrWhiteSpace(e.Time) ? "TBD" : e.Time)</td>
+                                <td style="white-space: nowrap;">@(e.ProgramName ?? e.ProgramType ?? "-")</td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
