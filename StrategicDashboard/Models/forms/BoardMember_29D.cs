@@ -26,6 +26,6 @@ namespace OneJaxDashboard.Models
         [Range(0, 500)]
         public int TotalProspectOutreach { get; set; } // Total number of prospects contacted/reached out to
 
-
+        public DateTime CreatedDate { get; set; } = DateTime.Now;
     }
 }
