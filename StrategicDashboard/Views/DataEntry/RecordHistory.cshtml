@@ -94,6 +94,49 @@
             </form>
         </div>
 
+        <!-- Export Toolbar -->
+        <div class="export-toolbar mb-3 p-3">
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+                <div class="form-check mb-0">
+                    <input class="form-check-input" type="checkbox" id="selectAllCheckbox" />
+                    <label class="form-check-label fw-bold" for="selectAllCheckbox">Select All</label>
+                </div>
+                <button type="button" id="exportSelectedBtn" class="btn btn-success" disabled>
+                    Export Selected (<span id="selectedCount">0</span>)
+                </button>
+                <span class="text-muted small" id="exportHint">Check records below, then click Export Selected.</span>
+            </div>
+        </div>
+
+        <!-- Hidden export form (submitted by JS) -->
+        <form id="exportForm" method="post" action="/Export/ExportSelected">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="format" id="exportFormatInput" value="csv" />
+        </form>
+
+        <!-- Export Format Modal -->
+        <div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-sm modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exportModalLabel">Choose Export Format</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="text-muted small mb-3">Select a format to download the <strong><span id="modalRecordCount">0</span> selected record(s)</strong>.</p>
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-outline-success" onclick="doExport('csv')">
+                                &#x1F4BE; Download CSV
+                            </button>
+                            <button type="button" class="btn btn-outline-primary" onclick="doExport('excel')">
+                                &#x1F4CA; Download Excel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="container">
     <h2>Record History</h2>
     
@@ -112,7 +155,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Staff Survey</span>
-                                <span class="record-id">ID: @survey.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="staff-survey" data-id="@survey.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -160,7 +206,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Professional Development</span>
-                                <span class="record-id">ID: @profDev.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="professional-development" data-id="@profDev.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -211,7 +260,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Media Placements</span>
-                                <span class="record-id">ID: @media.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="media-placements" data-id="@media.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -309,7 +361,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Website Traffic</span>
-                                <span class="record-id">ID: @traffic.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="website-traffic" data-id="@traffic.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -375,7 +430,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Donor/Honoree Engagement</span>
-                                <span class="record-id">ID: @donor.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="donor-events" data-id="@donor.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -423,7 +481,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Communication Satisfaction</span>
-                                <span class="record-id">ID: @rate.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="comm-rate" data-id="@rate.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -468,7 +529,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Fee-For-Service Revenue</span>
-                                <span class="record-id">ID: @fee.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="fee-for-service" data-id="@fee.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -543,7 +607,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Earned Income Tracking</span>
-                                <span class="record-id">ID: @income.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="earned-income" data-id="@income.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -597,7 +664,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Annual Budget Tracking</span>
-                                <span class="record-id">ID: @budget.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="budget-tracking" data-id="@budget.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -654,7 +724,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Social Media Engagement</span>
-                                <span class="record-id">ID: @sm.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="social-media" data-id="@sm.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -723,7 +796,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Milestone Achievement</span>
-                                <span class="record-id">ID: @milestone.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="milestone" data-id="@milestone.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -771,7 +847,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Community Perception Survey</span>
-                                <span class="record-id">ID: @cp.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="community-perception" data-id="@cp.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -837,7 +916,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Programs Demographics</span>
-                                <span class="record-id">ID: @demo.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="programs-demographics" data-id="@demo.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -891,7 +973,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Framework Development Plan</span>
-                                <span class="record-id">ID: @plan.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="framework-plan" data-id="@plan.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -966,7 +1051,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Board Member Recruitment</span>
-                                <span class="record-id">ID: @bm.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="board-member" data-id="@bm.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -1029,7 +1117,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Board Meeting Attendance</span>
-                                <span class="record-id">ID: @bma.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="board-meeting" data-id="@bma.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -1083,7 +1174,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Board Self-Assessment</span>
-                                <span class="record-id">ID: @sa.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="self-assessment" data-id="@sa.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -1128,7 +1222,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Volunteer Program</span>
-                                <span class="record-id">ID: @vp.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="volunteer-program" data-id="@vp.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -1188,7 +1285,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Interfaith Collaboration Event</span>
-                                <span class="record-id">ID: @ie.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="interfaith-event" data-id="@ie.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -1239,7 +1339,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Event Satisfaction</span>
-                                <span class="record-id">ID: @es.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="event-satisfaction" data-id="@es.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -1284,7 +1387,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Faith Community</span>
-                                <span class="record-id">ID: @fc.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="faith-community" data-id="@fc.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -1329,7 +1435,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Network Contacts</span>
-                                <span class="record-id">ID: @nc.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="network-contacts" data-id="@nc.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -1374,7 +1483,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Youth Attendance</span>
-                                <span class="record-id">ID: @ya.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="youth-attendance" data-id="@ya.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -1428,7 +1540,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Participant Diversity</span>
-                                <span class="record-id">ID: @pd.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="participant-diversity" data-id="@pd.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -1551,12 +1666,6 @@
         text-transform: uppercase;
     }
 
-    .record-id {
-        color: #6c757d;
-        font-size: 0.9rem;
-        font-weight: 500;
-    }
-
     .record-details {
         display: flex;
         flex-direction: column;
@@ -1656,6 +1765,37 @@
         transform: translateY(-1px);
     }
 
+    /* Export toolbar */
+    .export-toolbar {
+        background: #e8f5e9;
+        border: 1px solid #a5d6a7;
+        border-radius: 10px;
+    }
+
+    /* Checkbox label in record header */
+    .export-checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        cursor: pointer;
+        font-size: 0.85rem;
+        color: #6c757d;
+        user-select: none;
+        margin: 0;
+    }
+
+    .export-checkbox-label input[type="checkbox"] {
+        width: 1.1rem;
+        height: 1.1rem;
+        cursor: pointer;
+        accent-color: var(--onejax-navy);
+    }
+
+    .record-item.selected-for-export {
+        border-color: var(--onejax-navy);
+        box-shadow: 0 0 0 2px rgba(0, 123, 191, 0.3);
+    }
+
     /* Responsive design for record history */
     @@media (max-width: 768px) {
         .record-header {
@@ -1673,3 +1813,73 @@
         }
     }
 </style>
+
+<script>
+    (function () {
+        const selectAllCb = document.getElementById('selectAllCheckbox');
+        const exportBtn = document.getElementById('exportSelectedBtn');
+        const countSpan = document.getElementById('selectedCount');
+        const modalCountSpan = document.getElementById('modalRecordCount');
+
+        function updateCount() {
+            const checked = document.querySelectorAll('.record-checkbox:checked');
+            const n = checked.length;
+            countSpan.textContent = n;
+            if (modalCountSpan) modalCountSpan.textContent = n;
+            exportBtn.disabled = n === 0;
+
+            // Highlight selected cards
+            document.querySelectorAll('.record-checkbox').forEach(cb => {
+                cb.closest('.record-item').classList.toggle('selected-for-export', cb.checked);
+            });
+
+            // Sync the select-all checkbox state
+            const all = document.querySelectorAll('.record-checkbox');
+            selectAllCb.checked = all.length > 0 && checked.length === all.length;
+            selectAllCb.indeterminate = checked.length > 0 && checked.length < all.length;
+        }
+
+        document.addEventListener('change', function (e) {
+            if (e.target.classList.contains('record-checkbox')) {
+                updateCount();
+            }
+        });
+
+        selectAllCb.addEventListener('change', function () {
+            document.querySelectorAll('.record-checkbox').forEach(cb => {
+                cb.checked = selectAllCb.checked;
+            });
+            updateCount();
+        });
+
+        exportBtn.addEventListener('click', function () {
+            const n = document.querySelectorAll('.record-checkbox:checked').length;
+            if (n === 0) return;
+            if (modalCountSpan) modalCountSpan.textContent = n;
+            var modal = new bootstrap.Modal(document.getElementById('exportModal'));
+            modal.show();
+        });
+
+        window.doExport = function (format) {
+            const form = document.getElementById('exportForm');
+            document.getElementById('exportFormatInput').value = format;
+
+            // Remove any previously added items
+            form.querySelectorAll('input[name="selectedItems"]').forEach(el => el.remove());
+
+            // Add one hidden input per checked record
+            document.querySelectorAll('.record-checkbox:checked').forEach(cb => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'selectedItems';
+                input.value = cb.dataset.type + ':' + cb.dataset.id;
+                form.appendChild(input);
+            });
+
+            // Close the modal, then submit
+            var modalEl = document.getElementById('exportModal');
+            bootstrap.Modal.getInstance(modalEl).hide();
+            form.submit();
+        };
+    })();
+</script>
