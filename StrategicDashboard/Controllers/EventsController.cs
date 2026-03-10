@@ -49,47 +49,6 @@ namespace OneJaxDashboard.Controllers
 
                     return View(eventFromDb);
                 }
-
-                
-                var strategy = _strategyService.GetStrategy(id);
-                if (strategy != null)
-                {
-                    // Convert Strategy to Event for display
-                    var eventFromStrategy = new Event
-                    {
-                        Id = strategy.Id,
-                        Title = strategy.Name,
-                        Description = strategy.Description,
-                        Type = !string.IsNullOrWhiteSpace(strategy.ProgramName)
-                            ? strategy.ProgramName
-                            : (!string.IsNullOrWhiteSpace(strategy.ProgramType) ? strategy.ProgramType : "Program"),
-                        Status = "Planned",
-                        StrategicGoalId = strategy.StrategicGoalId,
-                        DueDate = DateTime.TryParse(strategy.Date, out var date) ? date : NowEastern.AddDays(30),
-                        Notes = $"Added through Core Strategies tab. {(!string.IsNullOrEmpty(strategy.Time) ? $"Time: {strategy.Time}" : "")}",
-                        Attendees = 0,
-                        Location = string.IsNullOrEmpty(strategy.Time) ? "TBD" : $"Time: {strategy.Time}"
-                    };
-
-                    _context.Strategies?.Add(strategy);
-                    _context.SaveChanges();
-                    
-
-                    // Get goal name for ViewBag
-                    var goalNames = new Dictionary<int, string>
-                    {
-                        {1, "Organizational Building"},
-                        {2, "Financial Sustainability"},
-                        {3, "Identity/Value Proposition"},
-                        {4, "Community Engagement"}
-                    };
-
-                    ViewBag.GoalName = goalNames.ContainsKey(strategy.StrategicGoalId)
-                        ? goalNames[strategy.StrategicGoalId]
-                        : "Strategic Goal";
-
-                    return View(eventFromStrategy);
-                }
             }
             catch (Exception ex)
             {
@@ -108,22 +67,64 @@ namespace OneJaxDashboard.Controllers
         [HttpGet]
         public IActionResult ApiDetails(int id)
         {
-            // Return immediately for testing
-            return Json(new
+            try
             {
-                Id = id,
-                Title = "Test Event",
-                Description = "This is a test response",
-                Type = "Test",
-                Status = "Active",
-                DueDate = NowEastern.ToString("MMMM dd, yyyy"),
-                Location = "Test Location",
-                Attendees = 10,
-                Notes = "This is a test note",
-                SatisfactionScore = 4.5m,
-                GoalName = "Test Goal",
-                Source = "Database"
-            });
+                var goalNames = new Dictionary<int, string>
+                {
+                    { 1, "Organizational Building" },
+                    { 2, "Financial Sustainability" },
+                    { 3, "Identity/Value Proposition" },
+                    { 4, "Community Engagement" }
+                };
+
+                var eventFromDb = _context.Events
+                    .Where(e => e.Id == id)
+                    .Select(e => new
+                    {
+                        e.Id,
+                        e.Title,
+                        e.Description,
+                        e.Type,
+                        e.Status,
+                        e.DueDate,
+                        e.Location,
+                        e.Attendees,
+                        e.Notes,
+                        e.SatisfactionScore,
+                        e.StrategicGoalId
+                    })
+                    .FirstOrDefault();
+
+                if (eventFromDb == null)
+                {
+                    return Json(new { error = "Event not found" });
+                }
+
+                var goalName = eventFromDb.StrategicGoalId.HasValue
+                               && goalNames.TryGetValue(eventFromDb.StrategicGoalId.Value, out var resolvedName)
+                    ? resolvedName
+                    : "Strategic Goal";
+
+                return Json(new
+                {
+                    Id = eventFromDb.Id,
+                    Title = eventFromDb.Title,
+                    Description = eventFromDb.Description,
+                    Type = eventFromDb.Type,
+                    Status = eventFromDb.Status,
+                    DueDate = eventFromDb.DueDate?.ToString("MMMM dd, yyyy"),
+                    Location = eventFromDb.Location,
+                    Attendees = eventFromDb.Attendees,
+                    Notes = eventFromDb.Notes,
+                    SatisfactionScore = eventFromDb.SatisfactionScore,
+                    GoalName = goalName,
+                    Source = "Database"
+                });
+            }
+            catch (Exception)
+            {
+                return Json(new { error = "Failed to load event details" });
+            }
         }
 
         // Original API method (backup)
@@ -181,33 +182,6 @@ namespace OneJaxDashboard.Controllers
                         SatisfactionScore = eventFromDb.SatisfactionScore,
                         GoalName = goalName,
                         Source = "Database"
-                    });
-                }
-
-                // Check if this is an event from the StrategyController
-                var strategy = StrategyController.Strategies.FirstOrDefault(s => s.Id == id);
-                if (strategy != null)
-                {
-                    var goalName = goalNames.ContainsKey(strategy.StrategicGoalId)
-                        ? goalNames[strategy.StrategicGoalId]
-                        : "Strategic Goal";
-
-                    return Json(new
-                    {
-                        Id = strategy.Id,
-                        Title = strategy.Name,
-                        Description = strategy.Description,
-                        Type = !string.IsNullOrWhiteSpace(strategy.ProgramName)
-                            ? strategy.ProgramName
-                            : (!string.IsNullOrWhiteSpace(strategy.ProgramType) ? strategy.ProgramType : "Program"),
-                        Status = "Planned",
-                        DueDate = DateTime.TryParse(strategy.Date, out var date) ? date.ToString("MMMM dd, yyyy") : NowEastern.AddDays(30).ToString("MMMM dd, yyyy"),
-                        Location = string.IsNullOrEmpty(strategy.Time) ? "TBD" : $"Time: {strategy.Time}",
-                        Attendees = 0,
-                        Notes = $"Added through Core Strategies tab. {(!string.IsNullOrEmpty(strategy.Time) ? $"Time: {strategy.Time}" : "")}",
-                        SatisfactionScore = (decimal?)null,
-                        GoalName = goalName,
-                        Source = "Strategy"
                     });
                 }
 

@@ -45,6 +45,11 @@ namespace OneJaxDashboard.Controllers
             {
                 try
                 {
+                    if (TryExtractYearFromMonthValue(model.Month, out var extractedYear))
+                    {
+                        model.Year = extractedYear;
+                    }
+
                     _context.income_27D.Add(model);
                     _context.SaveChanges();
 
@@ -128,6 +133,23 @@ namespace OneJaxDashboard.Controllers
             }
             
             return months;
+        }
+
+        private bool TryExtractYearFromMonthValue(string monthValue, out int year)
+        {
+            year = 0;
+            if (string.IsNullOrWhiteSpace(monthValue))
+            {
+                return false;
+            }
+
+            var parts = monthValue.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length == 0)
+            {
+                return false;
+            }
+
+            return int.TryParse(parts[^1], out year);
         }
     }
 }
