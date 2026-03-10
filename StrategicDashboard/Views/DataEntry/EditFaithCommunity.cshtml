@@ -1,0 +1,76 @@
+@model OneJaxDashboard.Models.FaithCommunity_13D
+@{
+    ViewData["Title"] = "Edit Faith Community Representation";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1 class="headline mb-4" style="color:var(--onejax-navy);">Edit Faith Community Representation</h1>
+
+<div class="container mt-4">
+    <div class="card p-4"
+        style="background-color:var(--onejax-white); 
+               box-shadow:0 4px 24px rgba(0,0,0,0.08); 
+               border-radius:24px; 
+               max-width:900px;">
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger">@TempData["Error"]</div>
+        }
+
+        <form asp-action="EditFaithCommunity" method="post">
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="CreatedDate" />
+
+            <div class="row">
+                <div class="col-md-12 mb-3">
+                    <label asp-for="StrategyId" class="form-label fw-bold">Event Name</label>
+                    <select asp-for="StrategyId" class="form-select" asp-items="ViewBag.Strategies">
+                        <option value="">-- Select an Event --</option>
+                    </select>
+                    <span asp-validation-for="StrategyId" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="NumberOfFaithsRepresented" class="form-label fw-bold">
+                        Number of Faiths Represented
+                    </label>
+                    <input asp-for="NumberOfFaithsRepresented" type="number" min="1" max="100"
+                           class="form-control" placeholder="Enter number of faiths" />
+                    <span asp-validation-for="NumberOfFaithsRepresented" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <a asp-action="RecordHistory" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+
+<style>
+    .form-label {
+        color: var(--onejax-navy);
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: var(--onejax-navy);
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 191, 0.25);
+    }
+
+    .btn-primary {
+        background-color: var(--onejax-navy);
+        border-color: var(--onejax-navy);
+    }
+
+    .btn-primary:hover {
+        background-color: #1a365d;
+        border-color: #1a365d;
+    }
+</style>

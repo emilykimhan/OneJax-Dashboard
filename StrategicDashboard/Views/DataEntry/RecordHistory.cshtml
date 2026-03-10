@@ -55,6 +55,11 @@
                             <option value="self-assessment" selected="@(ViewBag.RecordType == "self-assessment" ? "selected" : null)">Board Self-Assessment Only</option>
                             <option value="volunteer-program" selected="@(ViewBag.RecordType == "volunteer-program" ? "selected" : null)">Volunteer Program Only</option>
                             <option value="interfaith-event" selected="@(ViewBag.RecordType == "interfaith-event" ? "selected" : null)">Interfaith Collaboration Events Only</option>
+                            <option value="event-satisfaction" selected="@(ViewBag.RecordType == "event-satisfaction" ? "selected" : null)">Event Satisfaction Only</option>
+                            <option value="faith-community" selected="@(ViewBag.RecordType == "faith-community" ? "selected" : null)">Faith Community Representation Only</option>
+                            <option value="network-contacts" selected="@(ViewBag.RecordType == "network-contacts" ? "selected" : null)">Network Contacts Only</option>
+                            <option value="youth-attendance" selected="@(ViewBag.RecordType == "youth-attendance" ? "selected" : null)">Youth Attendance Only</option>
+                            <option value="participant-diversity" selected="@(ViewBag.RecordType == "participant-diversity" ? "selected" : null)">Participant Diversity Only</option>
                         </select>
                     </div>
                     <div class="col-md-6 mb-3">
@@ -89,6 +94,26 @@
             </form>
         </div>
 
+        <!-- Export Toolbar -->
+        <div class="export-toolbar mb-3 p-3">
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+                <div class="form-check mb-0">
+                    <input class="form-check-input" type="checkbox" id="selectAllCheckbox" />
+                    <label class="form-check-label fw-bold" for="selectAllCheckbox">Select All</label>
+                </div>
+                <button type="button" id="exportSelectedBtn" class="btn btn-success" disabled>
+                    Export Selected (<span id="selectedCount">0</span>)
+                </button>
+                <span class="text-muted small" id="exportHint">Check records below, then click Export Selected.</span>
+            </div>
+        </div>
+
+        <!-- Hidden export form (submitted by JS) -->
+        <form id="exportForm" method="post" action="/Export/ExportSelected">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="format" value="excel" />
+        </form>
+
         <div class="container">
     <h2>Record History</h2>
     
@@ -107,7 +132,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Staff Survey</span>
-                                <span class="record-id">ID: @survey.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="staff-survey" data-id="@survey.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -155,7 +183,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Professional Development</span>
-                                <span class="record-id">ID: @profDev.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="professional-development" data-id="@profDev.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -206,7 +237,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Media Placements</span>
-                                <span class="record-id">ID: @media.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="media-placements" data-id="@media.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -304,7 +338,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Website Traffic</span>
-                                <span class="record-id">ID: @traffic.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="website-traffic" data-id="@traffic.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -370,7 +407,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Donor/Honoree Engagement</span>
-                                <span class="record-id">ID: @donor.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="donor-events" data-id="@donor.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -418,7 +458,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Communication Satisfaction</span>
-                                <span class="record-id">ID: @rate.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="comm-rate" data-id="@rate.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -463,7 +506,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Fee-For-Service Revenue</span>
-                                <span class="record-id">ID: @fee.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="fee-for-service" data-id="@fee.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -538,7 +584,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Earned Income Tracking</span>
-                                <span class="record-id">ID: @income.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="earned-income" data-id="@income.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -592,7 +641,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Annual Budget Tracking</span>
-                                <span class="record-id">ID: @budget.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="budget-tracking" data-id="@budget.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -649,7 +701,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Social Media Engagement</span>
-                                <span class="record-id">ID: @sm.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="social-media" data-id="@sm.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -718,7 +773,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Milestone Achievement</span>
-                                <span class="record-id">ID: @milestone.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="milestone" data-id="@milestone.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -766,7 +824,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Community Perception Survey</span>
-                                <span class="record-id">ID: @cp.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="community-perception" data-id="@cp.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -832,7 +893,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Programs Demographics</span>
-                                <span class="record-id">ID: @demo.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="programs-demographics" data-id="@demo.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -886,7 +950,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Framework Development Plan</span>
-                                <span class="record-id">ID: @plan.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="framework-plan" data-id="@plan.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -961,7 +1028,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Board Member Recruitment</span>
-                                <span class="record-id">ID: @bm.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="board-member" data-id="@bm.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -1024,7 +1094,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Board Meeting Attendance</span>
-                                <span class="record-id">ID: @bma.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="board-meeting" data-id="@bma.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -1078,7 +1151,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Board Self-Assessment</span>
-                                <span class="record-id">ID: @sa.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="self-assessment" data-id="@sa.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -1123,7 +1199,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Volunteer Program</span>
-                                <span class="record-id">ID: @vp.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="volunteer-program" data-id="@vp.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -1183,7 +1262,10 @@
                         <div class="record-item">
                             <div class="record-header">
                                 <span class="record-type">Interfaith Collaboration Event</span>
-                                <span class="record-id">ID: @ie.Id</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="interfaith-event" data-id="@ie.Id" />
+                                    <span>Select</span>
+                                </label>
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
@@ -1217,6 +1299,258 @@
             else
             {
                 <p class="no-records">No Interfaith Collaboration Event records found.</p>
+            }
+        </div>
+        }
+
+        @if (ViewBag.RecordType == "all" || ViewBag.RecordType == "event-satisfaction")
+        {
+        <!-- Event Satisfaction Records -->
+        <div class="record-section">
+            <h5 class="section-title">Event Satisfaction Records</h5>
+            @if (ViewBag.EventSatisfactions != null && ((List<OneJaxDashboard.Models.eventSatisfaction>)ViewBag.EventSatisfactions).Any())
+            {
+                <div class="records-list">
+                    @foreach (var es in (List<OneJaxDashboard.Models.eventSatisfaction>)ViewBag.EventSatisfactions)
+                    {
+                        <div class="record-item">
+                            <div class="record-header">
+                                <span class="record-type">Event Satisfaction</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="event-satisfaction" data-id="@es.Id" />
+                                    <span>Select</span>
+                                </label>
+                            </div>
+                            <div class="record-details">
+                                <div class="detail-item">
+                                    <strong>Event Name:</strong> @(es.Strategy?.Name ?? "N/A")
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Attendee Satisfaction:</strong> @es.EventAttendeeSatisfactionPercentage%
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Created Date:</strong> @es.CreatedDate.ToString("MM/dd/yyyy")
+                                </div>
+                            </div>
+                            <div class="record-actions mt-3">
+                                <a asp-controller="DataEntry" asp-action="EditEventSatisfaction" asp-route-id="@es.Id" class="btn btn-primary btn-sm">Edit</a>
+                                <form asp-controller="DataEntry" asp-action="DeleteEventSatisfaction" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                    <input type="hidden" name="id" value="@es.Id" />
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="no-records">No Event Satisfaction records found.</p>
+            }
+        </div>
+        }
+
+        @if (ViewBag.RecordType == "all" || ViewBag.RecordType == "faith-community")
+        {
+        <!-- Faith Community Representation Records -->
+        <div class="record-section">
+            <h5 class="section-title">Faith Community Representation Records</h5>
+            @if (ViewBag.FaithCommunity != null && ((List<OneJaxDashboard.Models.FaithCommunity_13D>)ViewBag.FaithCommunity).Any())
+            {
+                <div class="records-list">
+                    @foreach (var fc in (List<OneJaxDashboard.Models.FaithCommunity_13D>)ViewBag.FaithCommunity)
+                    {
+                        <div class="record-item">
+                            <div class="record-header">
+                                <span class="record-type">Faith Community</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="faith-community" data-id="@fc.Id" />
+                                    <span>Select</span>
+                                </label>
+                            </div>
+                            <div class="record-details">
+                                <div class="detail-item">
+                                    <strong>Event Name:</strong> @(fc.Strategy?.Name ?? "N/A")
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Number of Faiths Represented:</strong> @fc.NumberOfFaithsRepresented
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Created Date:</strong> @fc.CreatedDate.ToString("MM/dd/yyyy")
+                                </div>
+                            </div>
+                            <div class="record-actions mt-3">
+                                <a asp-controller="DataEntry" asp-action="EditFaithCommunity" asp-route-id="@fc.Id" class="btn btn-primary btn-sm">Edit</a>
+                                <form asp-controller="DataEntry" asp-action="DeleteFaithCommunity" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                    <input type="hidden" name="id" value="@fc.Id" />
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="no-records">No Faith Community Representation records found.</p>
+            }
+        </div>
+        }
+
+        @if (ViewBag.RecordType == "all" || ViewBag.RecordType == "network-contacts")
+        {
+        <!-- Network Contacts Records -->
+        <div class="record-section">
+            <h5 class="section-title">Network Contacts Records</h5>
+            @if (ViewBag.NetworkContacts != null && ((List<OneJaxDashboard.Models.ContactsInterfaith_14D>)ViewBag.NetworkContacts).Any())
+            {
+                <div class="records-list">
+                    @foreach (var nc in (List<OneJaxDashboard.Models.ContactsInterfaith_14D>)ViewBag.NetworkContacts)
+                    {
+                        <div class="record-item">
+                            <div class="record-header">
+                                <span class="record-type">Network Contacts</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="network-contacts" data-id="@nc.Id" />
+                                    <span>Select</span>
+                                </label>
+                            </div>
+                            <div class="record-details">
+                                <div class="detail-item">
+                                    <strong>Year:</strong> @nc.Year
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Total Interfaith Contacts:</strong> @nc.TotalInterfaithContacts
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Created Date:</strong> @nc.CreatedDate.ToString("MM/dd/yyyy")
+                                </div>
+                            </div>
+                            <div class="record-actions mt-3">
+                                <a asp-controller="DataEntry" asp-action="EditNetworkContacts" asp-route-id="@nc.Id" class="btn btn-primary btn-sm">Edit</a>
+                                <form asp-controller="DataEntry" asp-action="DeleteNetworkContacts" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                    <input type="hidden" name="id" value="@nc.Id" />
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="no-records">No Network Contacts records found.</p>
+            }
+        </div>
+        }
+
+        @if (ViewBag.RecordType == "all" || ViewBag.RecordType == "youth-attendance")
+        {
+        <!-- Youth Attendance Records -->
+        <div class="record-section">
+            <h5 class="section-title">Youth Attendance Records</h5>
+            @if (ViewBag.YouthAttendance != null && ((List<OneJaxDashboard.Models.YouthAttend_15D>)ViewBag.YouthAttendance).Any())
+            {
+                <div class="records-list">
+                    @foreach (var ya in (List<OneJaxDashboard.Models.YouthAttend_15D>)ViewBag.YouthAttendance)
+                    {
+                        <div class="record-item">
+                            <div class="record-header">
+                                <span class="record-type">Youth Attendance</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="youth-attendance" data-id="@ya.Id" />
+                                    <span>Select</span>
+                                </label>
+                            </div>
+                            <div class="record-details">
+                                <div class="detail-item">
+                                    <strong>Event:</strong> @(ya.Strategy?.Name ?? "N/A")
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Number of Youth Attendees:</strong> @ya.NumberOfYouthAttendees
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Post-Event Survey Satisfaction:</strong> @ya.PostEventSurveySatisfaction%
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Average Pre-Assessment:</strong> @ya.AveragePreAssessment%
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Average Post-Assessment:</strong> @ya.AveragePostAssessment%
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Created Date:</strong> @ya.CreatedDate.ToString("MM/dd/yyyy")
+                                </div>
+                            </div>
+                            <div class="record-actions mt-3">
+                                <a asp-controller="DataEntry" asp-action="EditYouthAttendance" asp-route-id="@ya.Id" class="btn btn-primary btn-sm">Edit</a>
+                                <form asp-controller="DataEntry" asp-action="DeleteYouthAttendance" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                    <input type="hidden" name="id" value="@ya.Id" />
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="no-records">No Youth Attendance records found.</p>
+            }
+        </div>
+        }
+
+        @if (ViewBag.RecordType == "all" || ViewBag.RecordType == "participant-diversity")
+        {
+        <!-- Participant Diversity Records -->
+        <div class="record-section">
+            <h5 class="section-title">Participant Diversity Records</h5>
+            @if (ViewBag.ParticipantDiversity != null && ((List<OneJaxDashboard.Models.Diversity_37D>)ViewBag.ParticipantDiversity).Any())
+            {
+                <div class="records-list">
+                    @foreach (var pd in (List<OneJaxDashboard.Models.Diversity_37D>)ViewBag.ParticipantDiversity)
+                    {
+                        <div class="record-item">
+                            <div class="record-header">
+                                <span class="record-type">Participant Diversity</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="participant-diversity" data-id="@pd.Id" />
+                                    <span>Select</span>
+                                </label>
+                            </div>
+                            <div class="record-details">
+                                <div class="detail-item">
+                                    <strong>Fiscal Year:</strong> @pd.FiscalYear
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Event:</strong> @(pd.Strategy?.Name ?? "N/A")
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Number of Diverse Participants:</strong> @pd.DiversityCount
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Created Date:</strong> @pd.CreatedDate.ToString("MM/dd/yyyy")
+                                </div>
+                            </div>
+                            <div class="record-actions mt-3">
+                                <a asp-controller="DataEntry" asp-action="EditParticipantDiversity" asp-route-id="@pd.Id" class="btn btn-primary btn-sm">Edit</a>
+                                <form asp-controller="DataEntry" asp-action="DeleteParticipantDiversity" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                    <input type="hidden" name="id" value="@pd.Id" />
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="no-records">No Participant Diversity records found.</p>
             }
         </div>
         }
@@ -1307,12 +1641,6 @@
         font-size: 0.8rem;
         font-weight: 600;
         text-transform: uppercase;
-    }
-
-    .record-id {
-        color: #6c757d;
-        font-size: 0.9rem;
-        font-weight: 500;
     }
 
     .record-details {
@@ -1414,6 +1742,37 @@
         transform: translateY(-1px);
     }
 
+    /* Export toolbar */
+    .export-toolbar {
+        background: #e8f5e9;
+        border: 1px solid #a5d6a7;
+        border-radius: 10px;
+    }
+
+    /* Checkbox label in record header */
+    .export-checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        cursor: pointer;
+        font-size: 0.85rem;
+        color: #6c757d;
+        user-select: none;
+        margin: 0;
+    }
+
+    .export-checkbox-label input[type="checkbox"] {
+        width: 1.1rem;
+        height: 1.1rem;
+        cursor: pointer;
+        accent-color: var(--onejax-navy);
+    }
+
+    .record-item.selected-for-export {
+        border-color: var(--onejax-navy);
+        box-shadow: 0 0 0 2px rgba(0, 123, 191, 0.3);
+    }
+
     /* Responsive design for record history */
     @@media (max-width: 768px) {
         .record-header {
@@ -1431,3 +1790,59 @@
         }
     }
 </style>
+
+<script>
+    (function () {
+        const selectAllCb = document.getElementById('selectAllCheckbox');
+        const exportBtn = document.getElementById('exportSelectedBtn');
+        const countSpan = document.getElementById('selectedCount');
+
+        function updateCount() {
+            const checked = document.querySelectorAll('.record-checkbox:checked');
+            const n = checked.length;
+            countSpan.textContent = n;
+            exportBtn.disabled = n === 0;
+
+            // Highlight selected cards
+            document.querySelectorAll('.record-checkbox').forEach(cb => {
+                cb.closest('.record-item').classList.toggle('selected-for-export', cb.checked);
+            });
+
+            // Sync the select-all checkbox state
+            const all = document.querySelectorAll('.record-checkbox');
+            selectAllCb.checked = all.length > 0 && checked.length === all.length;
+            selectAllCb.indeterminate = checked.length > 0 && checked.length < all.length;
+        }
+
+        document.addEventListener('change', function (e) {
+            if (e.target.classList.contains('record-checkbox')) {
+                updateCount();
+            }
+        });
+
+        selectAllCb.addEventListener('change', function () {
+            document.querySelectorAll('.record-checkbox').forEach(cb => {
+                cb.checked = selectAllCb.checked;
+            });
+            updateCount();
+        });
+
+        exportBtn.addEventListener('click', function () {
+            const form = document.getElementById('exportForm');
+
+            // Remove any previously added items
+            form.querySelectorAll('input[name="selectedItems"]').forEach(el => el.remove());
+
+            // Add one hidden input per checked record
+            document.querySelectorAll('.record-checkbox:checked').forEach(cb => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'selectedItems';
+                input.value = cb.dataset.type + ':' + cb.dataset.id;
+                form.appendChild(input);
+            });
+
+            form.submit();
+        });
+    })();
+</script>
