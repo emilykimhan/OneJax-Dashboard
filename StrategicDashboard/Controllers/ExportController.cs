@@ -239,6 +239,18 @@ public class ExportController : Controller
             AddSheet("Participant Diversity", new[] { "FiscalYear","Event","DiversityCount","CreatedDate" },
                 records.Select(x => new object?[] { x.FiscalYear, x.Strategy?.Name ?? "", x.DiversityCount, x.CreatedDate.ToString("MM/dd/yyyy") }));
         }
+        if (byType.TryGetValue("first-time-participants", out var ftpIds))
+        {
+            var records = _context.FirstTime_38D.Include(f => f.Strategy).Where(x => ftpIds.Contains(x.Id)).ToList();
+            AddSheet("First-Time Participants", new[] { "FiscalYear","Event","TotalAttendees","FirstTimeParticipants","FirstTimeRate","GoalMet","CreatedDate" },
+                records.Select(x => new object?[] { x.FiscalYear, x.Strategy?.Name ?? "", x.TotalAttendees, x.NumberOfFirstTimeParticipants, x.FirstTimeParticipantRate, x.GoalMet, x.CreatedDate.ToString("MM/dd/yyyy") }));
+        }
+        if (byType.TryGetValue("collab-partners", out var collabIds))
+        {
+            var records = _context.CollabTouch_47D.Include(c => c.Strategy).Where(x => collabIds.Contains(x.Id)).ToList();
+            AddSheet("Collab Partner Touchpoints", new[] { "FiscalYear","PartnerOrganization","Contact","ContactEmail","ContactPhone","Event","Touchpoint","CreatedDate" },
+                records.Select(x => new object?[] { x.FiscalYear, x.PartnerOrganization, x.Contact, x.ContactEmail ?? "", x.ContactPhone ?? "", x.Strategy?.Name ?? "", x.Touchpoint, x.CreatedDate.ToString("MM/dd/yyyy") }));
+        }
 
         if (!workbook.Worksheets.Any())
         {
