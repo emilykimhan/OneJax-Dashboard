@@ -3368,16 +3368,20 @@
 	                                                                    <div style="font-size: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase; color: #64748b; font-weight: 800;">Geographic Reach</div>
                                                                     <div style="font-size: 2rem; font-weight: 800; color: #0f172a; line-height: 1.1; margin-top: 0.25rem;">@zipServed</div>
                                                                     <div style="color: #64748b; font-size: 0.9rem;">ZIP Codes Served</div>
-                                                                    <div class="mt-3">
-                                                                        <div class="d-flex justify-content-between" style="font-size: 0.85rem; color:#475569;">
-                                                                            <span>Goal</span>
-                                                                            <span>@zipTarget ZIPs</span>
-                                                                        </div>
-                                                                        <div class="progress mt-2" style="height: 10px; border-radius: 999px; background: rgba(2,6,23,0.08);">
-                                                                            <div class="progress-bar" style="width: @Math.Min(zipProgressPct, 100)%; background: #0f3d57; border-radius: 999px;"></div>
-                                                                        </div>
-                                                                        <div class="mt-2" style="font-size: 0.85rem; color:#475569;">@Math.Round(zipProgressPct, 1)% complete</div>
-                                                                    </div>
+	                                                                    <div class="mt-3">
+	                                                                        <div class="d-flex justify-content-between" style="font-size: 0.85rem; color:#475569;">
+	                                                                            <span>Target</span>
+	                                                                            <span>@zipTarget ZIPs</span>
+	                                                                        </div>
+	                                                                        <div class="d-flex justify-content-between mt-1" style="font-size: 0.85rem; color:#475569;">
+	                                                                            <span>Service area ZIPs</span>
+	                                                                            <span id="zipServiceAreaTotal">...</span>
+	                                                                        </div>
+	                                                                        <div class="progress mt-2" style="height: 10px; border-radius: 999px; background: rgba(2,6,23,0.08);">
+	                                                                            <div class="progress-bar" style="width: @Math.Min(zipProgressPct, 100)%; background: #0f3d57; border-radius: 999px;"></div>
+	                                                                        </div>
+	                                                                        <div class="mt-2" style="font-size: 0.85rem; color:#475569;">@Math.Round(zipProgressPct, 1)% complete</div>
+	                                                                    </div>
                                                                 </div>
                                                             </div>
 
@@ -3477,13 +3481,13 @@
                                             const hoverZip = document.getElementById('zipHoverZip');
                                             const hoverCount = document.getElementById('zipHoverCount');
 
-                                            const coverage = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ZipCoverage ?? new Dictionary<string, int>()));
+	                                            const coverage = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ZipCoverage ?? new Dictionary<string, int>()));
 	                                            // Map palette:
 	                                            // Covered ZIPs use a red intensity gradient (more records = deeper red).
-	                                            // Not covered ZIPs stay muted blue for contrast.
-	                                            const reachedLo = '#fee2e2'; // very light red
-	                                            const reachedHi = '#b91c1c'; // deep red
-	                                            const notReached = '#5a78a6';
+	                                            // Not covered ZIPs are explicitly blue (not gray) for clear contrast.
+	                                            const reachedLo = '#fecaca'; // light red
+	                                            const reachedHi = '#dc2626'; // deep red
+	                                            const notReached = '#93c5fd'; // light blue
 
                                             function lerp(a, b, t) { return a + (b - a) * t; }
                                             function hexToRgb(h) {
@@ -3495,17 +3499,19 @@
                                                 return `#${to(r)}${to(g)}${to(b)}`;
                                             }
 
-                                            function fillForCount(count, maxCount) {
-                                                if (!count) return notReached;
-                                                const t = maxCount <= 1 ? 1 : Math.min(1, Math.log(count + 1) / Math.log(maxCount + 1));
-                                                const a = hexToRgb(reachedLo);
-                                                const b = hexToRgb(reachedHi);
-                                                return rgbToHex(
-                                                    Math.round(lerp(a.r, b.r, t)),
-                                                    Math.round(lerp(a.g, b.g, t)),
-                                                    Math.round(lerp(a.b, b.b, t))
-                                                );
-                                            }
+	                                            function fillForCount(count, maxCount) {
+	                                                if (!count) return notReached;
+	                                                const safeMax = Number.isFinite(maxCount) && maxCount > 0 ? maxCount : 1;
+	                                                const t = safeMax <= 1 ? 1 : Math.min(1, Math.log(count + 1) / Math.log(safeMax + 1));
+	                                                const a = hexToRgb(reachedLo);
+	                                                const b = hexToRgb(reachedHi);
+	                                                const c = rgbToHex(
+	                                                    Math.round(lerp(a.r, b.r, t)),
+	                                                    Math.round(lerp(a.g, b.g, t)),
+	                                                    Math.round(lerp(a.b, b.b, t))
+	                                                );
+	                                                return /^#[0-9a-f]{6}$/i.test(c) ? c : reachedHi;
+	                                            }
 
                                             function flattenCoords(coords, out) {
                                                 if (!coords) return;
@@ -3519,7 +3525,17 @@
                                             fetch('/data/NorthEastMap.json', { cache: 'no-store' })
                                                 .then(r => r.json())
                                                 .then(geo => {
-                                                    const features = (geo && geo.features) ? geo.features : [];
+	                                                    const features = (geo && geo.features) ? geo.features : [];
+	                                                    // Update the "service area ZIPs" count (unique ZIPs in the GeoJSON file).
+	                                                    try {
+	                                                        const totals = new Set();
+	                                                        for (const f of features) {
+	                                                            const z = (f && f.properties && (f.properties.ZCTA5CE20 || f.properties.GEOID20)) ? String(f.properties.ZCTA5CE20 || f.properties.GEOID20) : '';
+	                                                            if (z) totals.add(z);
+	                                                        }
+	                                                        const totalEl = document.getElementById('zipServiceAreaTotal');
+	                                                        if (totalEl) totalEl.textContent = String(totals.size);
+	                                                    } catch { /* ignore */ }
                                                     const pts = [];
                                                     for (const f of features) {
                                                         flattenCoords(f.geometry && f.geometry.coordinates, pts);
@@ -3541,7 +3557,10 @@
                                                     const sx = (lon) => pad + ((lon - minLon) / (maxLon - minLon)) * (width - pad * 2);
                                                     const sy = (lat) => pad + ((maxLat - lat) / (maxLat - minLat)) * (height - pad * 2);
 
-                                                    const maxCount = Object.values(coverage).reduce((m, v) => Math.max(m, v), 0);
+	                                                    const maxCount = Object.values(coverage).reduce((m, v) => {
+	                                                        const n = Number(v);
+	                                                        return Number.isFinite(n) ? Math.max(m, n) : m;
+	                                                    }, 0);
 
                                                     const svgNS = 'http://www.w3.org/2000/svg';
                                                     const svg = document.createElementNS(svgNS, 'svg');
@@ -3572,15 +3591,16 @@
                                                         return '';
                                                     }
 
-                                                    for (const f of features) {
-                                                        const zip = (f.properties && (f.properties.ZCTA5CE20 || f.properties.GEOID20)) ? String(f.properties.ZCTA5CE20 || f.properties.GEOID20) : '';
-                                                        const count = coverage[zip] || 0;
-                                                        const path = document.createElementNS(svgNS, 'path');
-                                                        path.setAttribute('d', geomToPath(f.geometry));
-                                                        path.setAttribute('fill', fillForCount(count, maxCount));
-                                                        path.setAttribute('stroke', 'rgba(15,23,42,0.18)');
-                                                        path.setAttribute('stroke-width', '0.6');
-                                                        path.style.cursor = 'pointer';
+	                                                    for (const f of features) {
+	                                                        const zip = (f.properties && (f.properties.ZCTA5CE20 || f.properties.GEOID20)) ? String(f.properties.ZCTA5CE20 || f.properties.GEOID20) : '';
+	                                                        const count = Math.max(0, Number(coverage[zip]) || 0);
+	                                                        const path = document.createElementNS(svgNS, 'path');
+	                                                        path.setAttribute('d', geomToPath(f.geometry));
+	                                                        path.setAttribute('fill', fillForCount(count, maxCount));
+	                                                        path.setAttribute('fill-rule', 'evenodd');
+	                                                        path.setAttribute('stroke', 'rgba(15,23,42,0.18)');
+	                                                        path.setAttribute('stroke-width', '0.6');
+	                                                        path.style.cursor = 'pointer';
 
                                                         path.addEventListener('mouseenter', () => {
                                                             path.setAttribute('stroke', 'rgba(15,23,42,0.55)');
