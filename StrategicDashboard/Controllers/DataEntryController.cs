@@ -40,6 +40,8 @@ namespace OneJaxDashboard.Controllers
             var allFrameworkPlans = _context.Plan2026_24D.ToList();
             var allBoardMembers = _context.BoardMember_29D.ToList();
             var allBoardMeetings = _context.BoardMeetingAttendance.ToList();
+            var allSelfAssessments = _context.selfAssess_31D.ToList();
+            var allVolunteerPrograms = _context.volunteerProgram_40D.ToList();
 
             // Apply filters
             var filteredStaffSurveys = allStaffSurveys;
@@ -58,6 +60,8 @@ namespace OneJaxDashboard.Controllers
             var filteredFrameworkPlans = allFrameworkPlans;
             var filteredBoardMembers = allBoardMembers;
             var filteredBoardMeetings = allBoardMeetings;
+            var filteredSelfAssessments = allSelfAssessments;
+            var filteredVolunteerPrograms = allVolunteerPrograms;
             
             // Filter by date
             DateTime filterStartDate = DateTime.MinValue;
@@ -135,6 +139,12 @@ namespace OneJaxDashboard.Controllers
                     filteredBoardMeetings = filteredBoardMeetings
                         .Where(b => b.CreatedDate >= filterStartDate && b.CreatedDate <= filterEndDate)
                         .ToList();
+                    filteredSelfAssessments = filteredSelfAssessments
+                        .Where(s => s.CreatedDate >= filterStartDate && s.CreatedDate <= filterEndDate)
+                        .ToList();
+                    filteredVolunteerPrograms = filteredVolunteerPrograms
+                        .Where(v => v.CreatedDate >= filterStartDate && v.CreatedDate <= filterEndDate)
+                        .ToList();
                 }
             }
             
@@ -156,6 +166,8 @@ namespace OneJaxDashboard.Controllers
                 filteredFrameworkPlans = new List<Plan2026_24D>();
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
+                filteredSelfAssessments = new List<selfAssess_31D>();
+                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
             }
             else if (recordType == "professional-development")
             {
@@ -174,6 +186,8 @@ namespace OneJaxDashboard.Controllers
                 filteredFrameworkPlans = new List<Plan2026_24D>();
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
+                filteredSelfAssessments = new List<selfAssess_31D>();
+                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
             }
             else if (recordType == "media-placements")
             {
@@ -192,6 +206,8 @@ namespace OneJaxDashboard.Controllers
                 filteredFrameworkPlans = new List<Plan2026_24D>();
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
+                filteredSelfAssessments = new List<selfAssess_31D>();
+                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
             }
             else if (recordType == "website-traffic")
             {
@@ -210,6 +226,8 @@ namespace OneJaxDashboard.Controllers
                 filteredFrameworkPlans = new List<Plan2026_24D>();
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
+                filteredSelfAssessments = new List<selfAssess_31D>();
+                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
             }
             else if (recordType == "donor-events")
             {
@@ -228,6 +246,8 @@ namespace OneJaxDashboard.Controllers
                 filteredFrameworkPlans = new List<Plan2026_24D>();
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
+                filteredSelfAssessments = new List<selfAssess_31D>();
+                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
             }
             else if (recordType == "comm-rate")
             {
@@ -246,6 +266,8 @@ namespace OneJaxDashboard.Controllers
                 filteredFrameworkPlans = new List<Plan2026_24D>();
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
+                filteredSelfAssessments = new List<selfAssess_31D>();
+                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
             }
             else if (recordType == "fee-for-service")
             {
@@ -264,6 +286,8 @@ namespace OneJaxDashboard.Controllers
                 filteredFrameworkPlans = new List<Plan2026_24D>();
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
+                filteredSelfAssessments = new List<selfAssess_31D>();
+                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
             }
             else if (recordType == "earned-income")
             {
@@ -282,6 +306,8 @@ namespace OneJaxDashboard.Controllers
                 filteredFrameworkPlans = new List<Plan2026_24D>();
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
+                filteredSelfAssessments = new List<selfAssess_31D>();
+                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
             }
             else if (recordType == "budget-tracking")
             {
@@ -300,6 +326,8 @@ namespace OneJaxDashboard.Controllers
                 filteredFrameworkPlans = new List<Plan2026_24D>();
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
+                filteredSelfAssessments = new List<selfAssess_31D>();
+                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
             }
             else if (recordType == "social-media")
             {
@@ -318,6 +346,8 @@ namespace OneJaxDashboard.Controllers
                 filteredFrameworkPlans = new List<Plan2026_24D>();
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
+                filteredSelfAssessments = new List<selfAssess_31D>();
+                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
             }
             else if (recordType == "milestone")
             {
@@ -336,6 +366,8 @@ namespace OneJaxDashboard.Controllers
                 filteredFrameworkPlans = new List<Plan2026_24D>();
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
+                filteredSelfAssessments = new List<selfAssess_31D>();
+                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
             }
             else if (recordType == "community-perception")
             {
@@ -354,6 +386,8 @@ namespace OneJaxDashboard.Controllers
                 filteredFrameworkPlans = new List<Plan2026_24D>();
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
+                filteredSelfAssessments = new List<selfAssess_31D>();
+                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
             }
             else if (recordType == "programs-demographics")
             {
@@ -372,6 +406,8 @@ namespace OneJaxDashboard.Controllers
                 filteredFrameworkPlans = new List<Plan2026_24D>();
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
+                filteredSelfAssessments = new List<selfAssess_31D>();
+                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
             }
             else if (recordType == "framework-plan")
             {
@@ -390,6 +426,8 @@ namespace OneJaxDashboard.Controllers
                 filteredDemographics = new List<demographics_8D>();
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
+                filteredSelfAssessments = new List<selfAssess_31D>();
+                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
             }
             else if (recordType == "board-member")
             {
@@ -408,6 +446,8 @@ namespace OneJaxDashboard.Controllers
                 filteredDemographics = new List<demographics_8D>();
                 filteredFrameworkPlans = new List<Plan2026_24D>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
+                filteredSelfAssessments = new List<selfAssess_31D>();
+                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
             }
             else if (recordType == "board-meeting")
             {
@@ -426,6 +466,48 @@ namespace OneJaxDashboard.Controllers
                 filteredDemographics = new List<demographics_8D>();
                 filteredFrameworkPlans = new List<Plan2026_24D>();
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
+                filteredSelfAssessments = new List<selfAssess_31D>();
+                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
+            }
+            else if (recordType == "self-assessment")
+            {
+                filteredStaffSurveys = new List<StaffSurvey_22D>();
+                filteredProfDev = new List<ProfessionalDevelopment>();
+                filteredMediaPlacements = new List<MediaPlacements_3D>();
+                filteredWebsiteTraffic = new List<WebsiteTraffic_4D>();
+                filteredDonorEvents = new List<DonorEvent_19D>();
+                filteredCommRates = new List<Comm_rate20D>();
+                filteredFeeForServices = new List<feeForService_21D>();
+                filteredIncomeRecords = new List<income_27D>();
+                filteredBudgetRecords = new List<BudgetTracking_28D>();
+                filteredSocialMedia = new List<socialMedia_5D>();
+                filteredMilestones = new List<achieveMile_6D>();
+                filteredCommunityPerception = new List<Annual_average_7D>();
+                filteredDemographics = new List<demographics_8D>();
+                filteredFrameworkPlans = new List<Plan2026_24D>();
+                filteredBoardMembers = new List<BoardMemberRecruitment>();
+                filteredBoardMeetings = new List<BoardMeetingAttendance>();
+                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
+            }
+            else if (recordType == "volunteer-program")
+            {
+                filteredStaffSurveys = new List<StaffSurvey_22D>();
+                filteredProfDev = new List<ProfessionalDevelopment>();
+                filteredMediaPlacements = new List<MediaPlacements_3D>();
+                filteredWebsiteTraffic = new List<WebsiteTraffic_4D>();
+                filteredDonorEvents = new List<DonorEvent_19D>();
+                filteredCommRates = new List<Comm_rate20D>();
+                filteredFeeForServices = new List<feeForService_21D>();
+                filteredIncomeRecords = new List<income_27D>();
+                filteredBudgetRecords = new List<BudgetTracking_28D>();
+                filteredSocialMedia = new List<socialMedia_5D>();
+                filteredMilestones = new List<achieveMile_6D>();
+                filteredCommunityPerception = new List<Annual_average_7D>();
+                filteredDemographics = new List<demographics_8D>();
+                filteredFrameworkPlans = new List<Plan2026_24D>();
+                filteredBoardMembers = new List<BoardMemberRecruitment>();
+                filteredBoardMeetings = new List<BoardMeetingAttendance>();
+                filteredSelfAssessments = new List<selfAssess_31D>();
             }
 
             // Set ViewBag data
@@ -445,12 +527,14 @@ namespace OneJaxDashboard.Controllers
             ViewBag.FrameworkPlans = filteredFrameworkPlans;
             ViewBag.BoardMembers = filteredBoardMembers;
             ViewBag.BoardMeetings = filteredBoardMeetings;
+            ViewBag.SelfAssessments = filteredSelfAssessments;
+            ViewBag.VolunteerPrograms = filteredVolunteerPrograms;
             ViewBag.RecordType = recordType ?? "all";
             ViewBag.DateFilter = dateFilter ?? "all";
             ViewBag.StartDate = startDate?.ToString("yyyy-MM-dd");
             ViewBag.EndDate = endDate?.ToString("yyyy-MM-dd");
-            ViewBag.TotalCount = allStaffSurveys.Count + allProfDev.Count + allMediaPlacements.Count + allWebsiteTraffic.Count + allDonorEvents.Count + allCommRates.Count + allFeeForServices.Count + allIncomeRecords.Count + allBudgetRecords.Count + allSocialMedia.Count + allMilestones.Count + allCommunityPerception.Count + allDemographics.Count + allFrameworkPlans.Count + allBoardMembers.Count + allBoardMeetings.Count;
-            ViewBag.VisibleCount = filteredStaffSurveys.Count + filteredProfDev.Count + filteredMediaPlacements.Count + filteredWebsiteTraffic.Count + filteredDonorEvents.Count + filteredCommRates.Count + filteredFeeForServices.Count + filteredIncomeRecords.Count + filteredBudgetRecords.Count + filteredSocialMedia.Count + filteredMilestones.Count + filteredCommunityPerception.Count + filteredDemographics.Count + filteredFrameworkPlans.Count + filteredBoardMembers.Count + filteredBoardMeetings.Count;
+            ViewBag.TotalCount = allStaffSurveys.Count + allProfDev.Count + allMediaPlacements.Count + allWebsiteTraffic.Count + allDonorEvents.Count + allCommRates.Count + allFeeForServices.Count + allIncomeRecords.Count + allBudgetRecords.Count + allSocialMedia.Count + allMilestones.Count + allCommunityPerception.Count + allDemographics.Count + allFrameworkPlans.Count + allBoardMembers.Count + allBoardMeetings.Count + allSelfAssessments.Count + allVolunteerPrograms.Count;
+            ViewBag.VisibleCount = filteredStaffSurveys.Count + filteredProfDev.Count + filteredMediaPlacements.Count + filteredWebsiteTraffic.Count + filteredDonorEvents.Count + filteredCommRates.Count + filteredFeeForServices.Count + filteredIncomeRecords.Count + filteredBudgetRecords.Count + filteredSocialMedia.Count + filteredMilestones.Count + filteredCommunityPerception.Count + filteredDemographics.Count + filteredFrameworkPlans.Count + filteredBoardMembers.Count + filteredBoardMeetings.Count + filteredSelfAssessments.Count + filteredVolunteerPrograms.Count;
             
             return View();
         }
@@ -1401,6 +1485,113 @@ namespace OneJaxDashboard.Controllers
                     existing.TotalBoardMembers = model.TotalBoardMembers;
                     _context.SaveChanges();
                     TempData["Success"] = "Board Meeting Attendance record updated successfully!";
+                    return RedirectToAction("RecordHistory");
+                }
+                else
+                {
+                    TempData["Error"] = "Record not found.";
+                }
+            }
+            return View(model);
+        }
+
+        [HttpPost]
+        public IActionResult DeleteSelfAssessment(int id)
+        {
+            var record = _context.selfAssess_31D.Find(id);
+            if (record != null)
+            {
+                _context.selfAssess_31D.Remove(record);
+                _context.SaveChanges();
+                TempData["Success"] = "Board Self-Assessment record deleted successfully!";
+            }
+            else
+            {
+                TempData["Error"] = "Record not found.";
+            }
+            return RedirectToAction("RecordHistory");
+        }
+
+        [HttpGet]
+        public IActionResult EditSelfAssessment(int id)
+        {
+            var record = _context.selfAssess_31D.Find(id);
+            if (record == null)
+            {
+                TempData["Error"] = "Record not found.";
+                return RedirectToAction("RecordHistory");
+            }
+            return View(record);
+        }
+
+        [HttpPost]
+        public IActionResult EditSelfAssessment(selfAssess_31D model)
+        {
+            if (ModelState.IsValid)
+            {
+                var existing = _context.selfAssess_31D.Find(model.Id);
+                if (existing != null)
+                {
+                    existing.Year = model.Year;
+                    existing.SelfAssessmentScore = model.SelfAssessmentScore;
+                    _context.SaveChanges();
+                    TempData["Success"] = "Board Self-Assessment record updated successfully!";
+                    return RedirectToAction("RecordHistory");
+                }
+                else
+                {
+                    TempData["Error"] = "Record not found.";
+                }
+            }
+            return View(model);
+        }
+
+        [HttpPost]
+        public IActionResult DeleteVolunteerProgram(int id)
+        {
+            var record = _context.volunteerProgram_40D.Find(id);
+            if (record != null)
+            {
+                _context.volunteerProgram_40D.Remove(record);
+                _context.SaveChanges();
+                TempData["Success"] = "Volunteer Program record deleted successfully!";
+            }
+            else
+            {
+                TempData["Error"] = "Record not found.";
+            }
+            return RedirectToAction("RecordHistory");
+        }
+
+        [HttpGet]
+        public IActionResult EditVolunteerProgram(int id)
+        {
+            var record = _context.volunteerProgram_40D.Find(id);
+            if (record == null)
+            {
+                TempData["Error"] = "Record not found.";
+                return RedirectToAction("RecordHistory");
+            }
+            return View(record);
+        }
+
+        [HttpPost]
+        public IActionResult EditVolunteerProgram(volunteerProgram_40D model)
+        {
+            if (ModelState.IsValid)
+            {
+                var existing = _context.volunteerProgram_40D.Find(model.Id);
+                if (existing != null)
+                {
+                    existing.Quarter = model.Quarter;
+                    existing.Year = model.Year;
+                    existing.NumberOfVolunteers = model.NumberOfVolunteers;
+                    existing.CommunicationsActivities = model.CommunicationsActivities;
+                    existing.RecognitionActivities = model.RecognitionActivities;
+                    existing.VolunteerLedInitiatives = model.VolunteerLedInitiatives;
+                    existing.InitiativeDescriptions = model.InitiativeDescriptions;
+                    _context.SaveChanges();
+                    TempData["Success"] = "Volunteer Program record updated successfully!";
                     return RedirectToAction("RecordHistory");
                 }
                 else
