@@ -1,0 +1,85 @@
+@model OneJaxDashboard.Models.YouthAttend_15D
+
+@{
+    ViewData["Title"] = "Edit Youth Attendance";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1 class="headline mb-4" style="color:var(--onejax-navy);">Edit Youth Attendance</h1>
+
+<div class="container mt-4">
+    <div class="card p-4"
+        style="background-color:var(--onejax-white); 
+               box-shadow:0 4px 24px rgba(0,0,0,0.08); 
+               border-radius:24px; 
+               max-width:800px;">
+
+        <form asp-action="EditYouthAttendance" method="post">
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="CreatedDate" />
+
+            <div class="mb-3">
+                <label asp-for="StrategyId" class="form-label fw-bold">Event</label>
+                <select asp-for="StrategyId" asp-items="ViewBag.Strategies" class="form-select">
+                    <option value="">-- Select an Event --</option>
+                </select>
+                <span asp-validation-for="StrategyId" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="NumberOfYouthAttendees" class="form-label fw-bold">Number of Youth Attendees</label>
+                <input asp-for="NumberOfYouthAttendees" class="form-control" type="number" min="0" max="100000" />
+                <span asp-validation-for="NumberOfYouthAttendees" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="PostEventSurveySatisfaction" class="form-label fw-bold">Post-Event Survey Satisfaction (%)</label>
+                <input asp-for="PostEventSurveySatisfaction" class="form-control" type="number" min="0" max="100" step="0.01" />
+                <span asp-validation-for="PostEventSurveySatisfaction" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="AveragePreAssessment" class="form-label fw-bold">Average Pre-Assessment of Resiliency &amp; Communication (%)</label>
+                <input asp-for="AveragePreAssessment" class="form-control" type="number" min="0" max="100" step="0.01" />
+                <span asp-validation-for="AveragePreAssessment" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="AveragePostAssessment" class="form-label fw-bold">Average Post-Assessment of Resiliency &amp; Communication (%)</label>
+                <input asp-for="AveragePostAssessment" class="form-control" type="number" min="0" max="100" step="0.01" />
+                <span asp-validation-for="AveragePostAssessment" class="text-danger"></span>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <a asp-action="RecordHistory" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+
+<style>
+    .form-label {
+        color: var(--onejax-navy);
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: var(--onejax-navy);
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 191, 0.25);
+    }
+
+    .btn-primary {
+        background-color: var(--onejax-navy);
+        border-color: var(--onejax-navy);
+    }
+
+    .btn-primary:hover {
+        background-color: #1a365d;
+        border-color: #1a365d;
+    }
+</style>

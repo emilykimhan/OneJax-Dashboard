@@ -57,6 +57,9 @@
                             <option value="interfaith-event" selected="@(ViewBag.RecordType == "interfaith-event" ? "selected" : null)">Interfaith Collaboration Events Only</option>
                             <option value="event-satisfaction" selected="@(ViewBag.RecordType == "event-satisfaction" ? "selected" : null)">Event Satisfaction Only</option>
                             <option value="faith-community" selected="@(ViewBag.RecordType == "faith-community" ? "selected" : null)">Faith Community Representation Only</option>
+                            <option value="network-contacts" selected="@(ViewBag.RecordType == "network-contacts" ? "selected" : null)">Network Contacts Only</option>
+                            <option value="youth-attendance" selected="@(ViewBag.RecordType == "youth-attendance" ? "selected" : null)">Youth Attendance Only</option>
+                            <option value="participant-diversity" selected="@(ViewBag.RecordType == "participant-diversity" ? "selected" : null)">Participant Diversity Only</option>
                         </select>
                     </div>
                     <div class="col-md-6 mb-3">
@@ -1309,6 +1312,153 @@
             else
             {
                 <p class="no-records">No Faith Community Representation records found.</p>
+            }
+        </div>
+        }
+
+        @if (ViewBag.RecordType == "all" || ViewBag.RecordType == "network-contacts")
+        {
+        <!-- Network Contacts Records -->
+        <div class="record-section">
+            <h5 class="section-title">Network Contacts Records</h5>
+            @if (ViewBag.NetworkContacts != null && ((List<OneJaxDashboard.Models.ContactsInterfaith_14D>)ViewBag.NetworkContacts).Any())
+            {
+                <div class="records-list">
+                    @foreach (var nc in (List<OneJaxDashboard.Models.ContactsInterfaith_14D>)ViewBag.NetworkContacts)
+                    {
+                        <div class="record-item">
+                            <div class="record-header">
+                                <span class="record-type">Network Contacts</span>
+                                <span class="record-id">ID: @nc.Id</span>
+                            </div>
+                            <div class="record-details">
+                                <div class="detail-item">
+                                    <strong>Year:</strong> @nc.Year
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Total Interfaith Contacts:</strong> @nc.TotalInterfaithContacts
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Created Date:</strong> @nc.CreatedDate.ToString("MM/dd/yyyy")
+                                </div>
+                            </div>
+                            <div class="record-actions mt-3">
+                                <a asp-controller="DataEntry" asp-action="EditNetworkContacts" asp-route-id="@nc.Id" class="btn btn-primary btn-sm">Edit</a>
+                                <form asp-controller="DataEntry" asp-action="DeleteNetworkContacts" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                    <input type="hidden" name="id" value="@nc.Id" />
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="no-records">No Network Contacts records found.</p>
+            }
+        </div>
+        }
+
+        @if (ViewBag.RecordType == "all" || ViewBag.RecordType == "youth-attendance")
+        {
+        <!-- Youth Attendance Records -->
+        <div class="record-section">
+            <h5 class="section-title">Youth Attendance Records</h5>
+            @if (ViewBag.YouthAttendance != null && ((List<OneJaxDashboard.Models.YouthAttend_15D>)ViewBag.YouthAttendance).Any())
+            {
+                <div class="records-list">
+                    @foreach (var ya in (List<OneJaxDashboard.Models.YouthAttend_15D>)ViewBag.YouthAttendance)
+                    {
+                        <div class="record-item">
+                            <div class="record-header">
+                                <span class="record-type">Youth Attendance</span>
+                                <span class="record-id">ID: @ya.Id</span>
+                            </div>
+                            <div class="record-details">
+                                <div class="detail-item">
+                                    <strong>Event:</strong> @(ya.Strategy?.Name ?? "N/A")
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Number of Youth Attendees:</strong> @ya.NumberOfYouthAttendees
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Post-Event Survey Satisfaction:</strong> @ya.PostEventSurveySatisfaction%
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Average Pre-Assessment:</strong> @ya.AveragePreAssessment%
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Average Post-Assessment:</strong> @ya.AveragePostAssessment%
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Created Date:</strong> @ya.CreatedDate.ToString("MM/dd/yyyy")
+                                </div>
+                            </div>
+                            <div class="record-actions mt-3">
+                                <a asp-controller="DataEntry" asp-action="EditYouthAttendance" asp-route-id="@ya.Id" class="btn btn-primary btn-sm">Edit</a>
+                                <form asp-controller="DataEntry" asp-action="DeleteYouthAttendance" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                    <input type="hidden" name="id" value="@ya.Id" />
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="no-records">No Youth Attendance records found.</p>
+            }
+        </div>
+        }
+
+        @if (ViewBag.RecordType == "all" || ViewBag.RecordType == "participant-diversity")
+        {
+        <!-- Participant Diversity Records -->
+        <div class="record-section">
+            <h5 class="section-title">Participant Diversity Records</h5>
+            @if (ViewBag.ParticipantDiversity != null && ((List<OneJaxDashboard.Models.Diversity_37D>)ViewBag.ParticipantDiversity).Any())
+            {
+                <div class="records-list">
+                    @foreach (var pd in (List<OneJaxDashboard.Models.Diversity_37D>)ViewBag.ParticipantDiversity)
+                    {
+                        <div class="record-item">
+                            <div class="record-header">
+                                <span class="record-type">Participant Diversity</span>
+                                <span class="record-id">ID: @pd.Id</span>
+                            </div>
+                            <div class="record-details">
+                                <div class="detail-item">
+                                    <strong>Fiscal Year:</strong> @pd.FiscalYear
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Event:</strong> @(pd.Strategy?.Name ?? "N/A")
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Number of Diverse Participants:</strong> @pd.DiversityCount
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Created Date:</strong> @pd.CreatedDate.ToString("MM/dd/yyyy")
+                                </div>
+                            </div>
+                            <div class="record-actions mt-3">
+                                <a asp-controller="DataEntry" asp-action="EditParticipantDiversity" asp-route-id="@pd.Id" class="btn btn-primary btn-sm">Edit</a>
+                                <form asp-controller="DataEntry" asp-action="DeleteParticipantDiversity" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                    <input type="hidden" name="id" value="@pd.Id" />
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="no-records">No Participant Diversity records found.</p>
             }
         </div>
         }

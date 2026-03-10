@@ -45,6 +45,9 @@ namespace OneJaxDashboard.Controllers
             var allInterfaithEvents = _context.Interfaith_11D.Include(i => i.Strategy).ToList();
             var allEventSatisfactions = _context.EventSatisfaction_12D.Include(e => e.Strategy).ToList();
             var allFaithCommunity = _context.FaithCommunity_13D.Include(f => f.Strategy).ToList();
+            var allNetworkContacts = _context.ContactsInterfaith_14D.ToList();
+            var allYouthAttendance = _context.YouthAttend_15D.Include(y => y.Strategy).ToList();
+            var allParticipantDiversity = _context.Diversity_37D.Include(d => d.Strategy).ToList();
 
             // Apply filters
             var filteredStaffSurveys = allStaffSurveys;
@@ -68,6 +71,9 @@ namespace OneJaxDashboard.Controllers
             var filteredInterfaithEvents = allInterfaithEvents;
             var filteredEventSatisfactions = allEventSatisfactions;
             var filteredFaithCommunity = allFaithCommunity;
+            var filteredNetworkContacts = allNetworkContacts;
+            var filteredYouthAttendance = allYouthAttendance;
+            var filteredParticipantDiversity = allParticipantDiversity;
             
             // Filter by date
             DateTime filterStartDate = DateTime.MinValue;
@@ -159,6 +165,15 @@ namespace OneJaxDashboard.Controllers
                         .ToList();
                     filteredFaithCommunity = filteredFaithCommunity
                         .Where(f => f.CreatedDate >= filterStartDate && f.CreatedDate <= filterEndDate)
+                        .ToList();
+                    filteredNetworkContacts = filteredNetworkContacts
+                        .Where(n => n.CreatedDate >= filterStartDate && n.CreatedDate <= filterEndDate)
+                        .ToList();
+                    filteredYouthAttendance = filteredYouthAttendance
+                        .Where(y => y.CreatedDate >= filterStartDate && y.CreatedDate <= filterEndDate)
+                        .ToList();
+                    filteredParticipantDiversity = filteredParticipantDiversity
+                        .Where(d => d.CreatedDate >= filterStartDate && d.CreatedDate <= filterEndDate)
                         .ToList();
                 }
             }
@@ -627,6 +642,81 @@ namespace OneJaxDashboard.Controllers
                 filteredInterfaithEvents = new List<interfaith_11D>();
                 filteredEventSatisfactions = new List<eventSatisfaction>();
             }
+            else if (recordType == "network-contacts")
+            {
+                filteredStaffSurveys = new List<StaffSurvey_22D>();
+                filteredProfDev = new List<ProfessionalDevelopment>();
+                filteredMediaPlacements = new List<MediaPlacements_3D>();
+                filteredWebsiteTraffic = new List<WebsiteTraffic_4D>();
+                filteredDonorEvents = new List<DonorEvent_19D>();
+                filteredCommRates = new List<Comm_rate20D>();
+                filteredFeeForServices = new List<feeForService_21D>();
+                filteredIncomeRecords = new List<income_27D>();
+                filteredBudgetRecords = new List<BudgetTracking_28D>();
+                filteredSocialMedia = new List<socialMedia_5D>();
+                filteredMilestones = new List<achieveMile_6D>();
+                filteredCommunityPerception = new List<Annual_average_7D>();
+                filteredDemographics = new List<demographics_8D>();
+                filteredFrameworkPlans = new List<Plan2026_24D>();
+                filteredBoardMembers = new List<BoardMemberRecruitment>();
+                filteredBoardMeetings = new List<BoardMeetingAttendance>();
+                filteredSelfAssessments = new List<selfAssess_31D>();
+                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
+                filteredInterfaithEvents = new List<interfaith_11D>();
+                filteredEventSatisfactions = new List<eventSatisfaction>();
+                filteredFaithCommunity = new List<FaithCommunity_13D>();
+            }
+            else if (recordType == "youth-attendance")
+            {
+                filteredStaffSurveys = new List<StaffSurvey_22D>();
+                filteredProfDev = new List<ProfessionalDevelopment>();
+                filteredMediaPlacements = new List<MediaPlacements_3D>();
+                filteredWebsiteTraffic = new List<WebsiteTraffic_4D>();
+                filteredDonorEvents = new List<DonorEvent_19D>();
+                filteredCommRates = new List<Comm_rate20D>();
+                filteredFeeForServices = new List<feeForService_21D>();
+                filteredIncomeRecords = new List<income_27D>();
+                filteredBudgetRecords = new List<BudgetTracking_28D>();
+                filteredSocialMedia = new List<socialMedia_5D>();
+                filteredMilestones = new List<achieveMile_6D>();
+                filteredCommunityPerception = new List<Annual_average_7D>();
+                filteredDemographics = new List<demographics_8D>();
+                filteredFrameworkPlans = new List<Plan2026_24D>();
+                filteredBoardMembers = new List<BoardMemberRecruitment>();
+                filteredBoardMeetings = new List<BoardMeetingAttendance>();
+                filteredSelfAssessments = new List<selfAssess_31D>();
+                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
+                filteredInterfaithEvents = new List<interfaith_11D>();
+                filteredEventSatisfactions = new List<eventSatisfaction>();
+                filteredFaithCommunity = new List<FaithCommunity_13D>();
+                filteredNetworkContacts = new List<ContactsInterfaith_14D>();
+            }
+            else if (recordType == "participant-diversity")
+            {
+                filteredStaffSurveys = new List<StaffSurvey_22D>();
+                filteredProfDev = new List<ProfessionalDevelopment>();
+                filteredMediaPlacements = new List<MediaPlacements_3D>();
+                filteredWebsiteTraffic = new List<WebsiteTraffic_4D>();
+                filteredDonorEvents = new List<DonorEvent_19D>();
+                filteredCommRates = new List<Comm_rate20D>();
+                filteredFeeForServices = new List<feeForService_21D>();
+                filteredIncomeRecords = new List<income_27D>();
+                filteredBudgetRecords = new List<BudgetTracking_28D>();
+                filteredSocialMedia = new List<socialMedia_5D>();
+                filteredMilestones = new List<achieveMile_6D>();
+                filteredCommunityPerception = new List<Annual_average_7D>();
+                filteredDemographics = new List<demographics_8D>();
+                filteredFrameworkPlans = new List<Plan2026_24D>();
+                filteredBoardMembers = new List<BoardMemberRecruitment>();
+                filteredBoardMeetings = new List<BoardMeetingAttendance>();
+                filteredSelfAssessments = new List<selfAssess_31D>();
+                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
+                filteredInterfaithEvents = new List<interfaith_11D>();
+                filteredEventSatisfactions = new List<eventSatisfaction>();
+                filteredFaithCommunity = new List<FaithCommunity_13D>();
+                filteredNetworkContacts = new List<ContactsInterfaith_14D>();
+                filteredYouthAttendance = new List<YouthAttend_15D>();
+            }
 
             // Set ViewBag data
             ViewBag.StaffSurveys = filteredStaffSurveys;
@@ -650,12 +740,15 @@ namespace OneJaxDashboard.Controllers
             ViewBag.InterfaithEvents = filteredInterfaithEvents;
             ViewBag.EventSatisfactions = filteredEventSatisfactions;
             ViewBag.FaithCommunity = filteredFaithCommunity;
+            ViewBag.NetworkContacts = filteredNetworkContacts;
+            ViewBag.YouthAttendance = filteredYouthAttendance;
+            ViewBag.ParticipantDiversity = filteredParticipantDiversity;
             ViewBag.RecordType = recordType ?? "all";
             ViewBag.DateFilter = dateFilter ?? "all";
             ViewBag.StartDate = startDate?.ToString("yyyy-MM-dd");
             ViewBag.EndDate = endDate?.ToString("yyyy-MM-dd");
-            ViewBag.TotalCount = allStaffSurveys.Count + allProfDev.Count + allMediaPlacements.Count + allWebsiteTraffic.Count + allDonorEvents.Count + allCommRates.Count + allFeeForServices.Count + allIncomeRecords.Count + allBudgetRecords.Count + allSocialMedia.Count + allMilestones.Count + allCommunityPerception.Count + allDemographics.Count + allFrameworkPlans.Count + allBoardMembers.Count + allBoardMeetings.Count + allSelfAssessments.Count + allVolunteerPrograms.Count + allInterfaithEvents.Count + allEventSatisfactions.Count + allFaithCommunity.Count;
-            ViewBag.VisibleCount = filteredStaffSurveys.Count + filteredProfDev.Count + filteredMediaPlacements.Count + filteredWebsiteTraffic.Count + filteredDonorEvents.Count + filteredCommRates.Count + filteredFeeForServices.Count + filteredIncomeRecords.Count + filteredBudgetRecords.Count + filteredSocialMedia.Count + filteredMilestones.Count + filteredCommunityPerception.Count + filteredDemographics.Count + filteredFrameworkPlans.Count + filteredBoardMembers.Count + filteredBoardMeetings.Count + filteredSelfAssessments.Count + filteredVolunteerPrograms.Count + filteredInterfaithEvents.Count + filteredEventSatisfactions.Count + filteredFaithCommunity.Count;
+            ViewBag.TotalCount = allStaffSurveys.Count + allProfDev.Count + allMediaPlacements.Count + allWebsiteTraffic.Count + allDonorEvents.Count + allCommRates.Count + allFeeForServices.Count + allIncomeRecords.Count + allBudgetRecords.Count + allSocialMedia.Count + allMilestones.Count + allCommunityPerception.Count + allDemographics.Count + allFrameworkPlans.Count + allBoardMembers.Count + allBoardMeetings.Count + allSelfAssessments.Count + allVolunteerPrograms.Count + allInterfaithEvents.Count + allEventSatisfactions.Count + allFaithCommunity.Count + allNetworkContacts.Count + allYouthAttendance.Count + allParticipantDiversity.Count;
+            ViewBag.VisibleCount = filteredStaffSurveys.Count + filteredProfDev.Count + filteredMediaPlacements.Count + filteredWebsiteTraffic.Count + filteredDonorEvents.Count + filteredCommRates.Count + filteredFeeForServices.Count + filteredIncomeRecords.Count + filteredBudgetRecords.Count + filteredSocialMedia.Count + filteredMilestones.Count + filteredCommunityPerception.Count + filteredDemographics.Count + filteredFrameworkPlans.Count + filteredBoardMembers.Count + filteredBoardMeetings.Count + filteredSelfAssessments.Count + filteredVolunteerPrograms.Count + filteredInterfaithEvents.Count + filteredEventSatisfactions.Count + filteredFaithCommunity.Count + filteredNetworkContacts.Count + filteredYouthAttendance.Count + filteredParticipantDiversity.Count;
             
             return View();
         }
@@ -1879,6 +1972,176 @@ namespace OneJaxDashboard.Controllers
                     existing.NumberOfFaithsRepresented = model.NumberOfFaithsRepresented;
                     _context.SaveChanges();
                     TempData["Success"] = "Faith Community Representation record updated successfully!";
+                    return RedirectToAction("RecordHistory");
+                }
+                else
+                {
+                    TempData["Error"] = "Record not found.";
+                }
+            }
+            ViewBag.Strategies = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(_context.Strategies.OrderBy(s => s.Name), "Id", "Name", model.StrategyId);
+            return View(model);
+        }
+
+        // Delete Network Contacts
+        [HttpPost]
+        public IActionResult DeleteNetworkContacts(int id)
+        {
+            var record = _context.ContactsInterfaith_14D.Find(id);
+            if (record != null)
+            {
+                _context.ContactsInterfaith_14D.Remove(record);
+                _context.SaveChanges();
+                TempData["Success"] = "Network Contacts record deleted successfully!";
+            }
+            else
+            {
+                TempData["Error"] = "Record not found.";
+            }
+            return RedirectToAction("RecordHistory");
+        }
+
+        // Edit Network Contacts - GET
+        [HttpGet]
+        public IActionResult EditNetworkContacts(int id)
+        {
+            var record = _context.ContactsInterfaith_14D.Find(id);
+            if (record == null)
+            {
+                TempData["Error"] = "Record not found.";
+                return RedirectToAction("RecordHistory");
+            }
+            return View(record);
+        }
+
+        // Edit Network Contacts - POST
+        [HttpPost]
+        public IActionResult EditNetworkContacts(ContactsInterfaith_14D model)
+        {
+            if (ModelState.IsValid)
+            {
+                var existing = _context.ContactsInterfaith_14D.Find(model.Id);
+                if (existing != null)
+                {
+                    existing.Year = model.Year;
+                    existing.TotalInterfaithContacts = model.TotalInterfaithContacts;
+                    _context.SaveChanges();
+                    TempData["Success"] = "Network Contacts record updated successfully!";
+                    return RedirectToAction("RecordHistory");
+                }
+                else
+                {
+                    TempData["Error"] = "Record not found.";
+                }
+            }
+            return View(model);
+        }
+
+        // Delete Youth Attendance
+        [HttpPost]
+        public IActionResult DeleteYouthAttendance(int id)
+        {
+            var record = _context.YouthAttend_15D.Find(id);
+            if (record != null)
+            {
+                _context.YouthAttend_15D.Remove(record);
+                _context.SaveChanges();
+                TempData["Success"] = "Youth Attendance record deleted successfully!";
+            }
+            else
+            {
+                TempData["Error"] = "Record not found.";
+            }
+            return RedirectToAction("RecordHistory");
+        }
+
+        // Edit Youth Attendance - GET
+        [HttpGet]
+        public IActionResult EditYouthAttendance(int id)
+        {
+            var record = _context.YouthAttend_15D.Include(y => y.Strategy).FirstOrDefault(y => y.Id == id);
+            if (record == null)
+            {
+                TempData["Error"] = "Record not found.";
+                return RedirectToAction("RecordHistory");
+            }
+            ViewBag.Strategies = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(_context.Strategies.OrderBy(s => s.Name), "Id", "Name", record.StrategyId);
+            return View(record);
+        }
+
+        // Edit Youth Attendance - POST
+        [HttpPost]
+        public IActionResult EditYouthAttendance(YouthAttend_15D model)
+        {
+            if (ModelState.IsValid)
+            {
+                var existing = _context.YouthAttend_15D.Find(model.Id);
+                if (existing != null)
+                {
+                    existing.StrategyId = model.StrategyId;
+                    existing.NumberOfYouthAttendees = model.NumberOfYouthAttendees;
+                    existing.PostEventSurveySatisfaction = model.PostEventSurveySatisfaction;
+                    existing.AveragePreAssessment = model.AveragePreAssessment;
+                    existing.AveragePostAssessment = model.AveragePostAssessment;
+                    _context.SaveChanges();
+                    TempData["Success"] = "Youth Attendance record updated successfully!";
+                    return RedirectToAction("RecordHistory");
+                }
+                else
+                {
+                    TempData["Error"] = "Record not found.";
+                }
+            }
+            ViewBag.Strategies = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(_context.Strategies.OrderBy(s => s.Name), "Id", "Name", model.StrategyId);
+            return View(model);
+        }
+
+        // Delete Participant Diversity
+        [HttpPost]
+        public IActionResult DeleteParticipantDiversity(int id)
+        {
+            var record = _context.Diversity_37D.Find(id);
+            if (record != null)
+            {
+                _context.Diversity_37D.Remove(record);
+                _context.SaveChanges();
+                TempData["Success"] = "Participant Diversity record deleted successfully!";
+            }
+            else
+            {
+                TempData["Error"] = "Record not found.";
+            }
+            return RedirectToAction("RecordHistory");
+        }
+
+        // Edit Participant Diversity - GET
+        [HttpGet]
+        public IActionResult EditParticipantDiversity(int id)
+        {
+            var record = _context.Diversity_37D.Include(d => d.Strategy).FirstOrDefault(d => d.Id == id);
+            if (record == null)
+            {
+                TempData["Error"] = "Record not found.";
+                return RedirectToAction("RecordHistory");
+            }
+            ViewBag.Strategies = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(_context.Strategies.OrderBy(s => s.Name), "Id", "Name", record.StrategyId);
+            return View(record);
+        }
+
+        // Edit Participant Diversity - POST
+        [HttpPost]
+        public IActionResult EditParticipantDiversity(Diversity_37D model)
+        {
+            if (ModelState.IsValid)
+            {
+                var existing = _context.Diversity_37D.Find(model.Id);
+                if (existing != null)
+                {
+                    existing.FiscalYear = model.FiscalYear;
+                    existing.StrategyId = model.StrategyId;
+                    existing.DiversityCount = model.DiversityCount;
+                    _context.SaveChanges();
+                    TempData["Success"] = "Participant Diversity record updated successfully!";
                     return RedirectToAction("RecordHistory");
                 }
                 else
