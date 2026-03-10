@@ -239,6 +239,12 @@ public class ExportController : Controller
             AddSheet("Participant Diversity", new[] { "FiscalYear","Event","DiversityCount","CreatedDate" },
                 records.Select(x => new object?[] { x.FiscalYear, x.Strategy?.Name ?? "", x.DiversityCount, x.CreatedDate.ToString("MM/dd/yyyy") }));
         }
+        if (byType.TryGetValue("first-time-participants", out var ftpIds))
+        {
+            var records = _context.FirstTime_38D.Include(f => f.Strategy).Where(x => ftpIds.Contains(x.Id)).ToList();
+            AddSheet("First-Time Participants", new[] { "FiscalYear","Event","TotalAttendees","FirstTimeParticipants","FirstTimeRate","GoalMet","CreatedDate" },
+                records.Select(x => new object?[] { x.FiscalYear, x.Strategy?.Name ?? "", x.TotalAttendees, x.NumberOfFirstTimeParticipants, x.FirstTimeParticipantRate, x.GoalMet, x.CreatedDate.ToString("MM/dd/yyyy") }));
+        }
 
         if (!workbook.Worksheets.Any())
         {

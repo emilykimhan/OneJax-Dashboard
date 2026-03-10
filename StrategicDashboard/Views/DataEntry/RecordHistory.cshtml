@@ -60,6 +60,7 @@
                             <option value="network-contacts" selected="@(ViewBag.RecordType == "network-contacts" ? "selected" : null)">Network Contacts Only</option>
                             <option value="youth-attendance" selected="@(ViewBag.RecordType == "youth-attendance" ? "selected" : null)">Youth Attendance Only</option>
                             <option value="participant-diversity" selected="@(ViewBag.RecordType == "participant-diversity" ? "selected" : null)">Participant Diversity Only</option>
+                            <option value="first-time-participants" selected="@(ViewBag.RecordType == "first-time-participants" ? "selected" : null)">First-Time Participants Only</option>
                         </select>
                     </div>
                     <div class="col-md-6 mb-3">
@@ -1551,6 +1552,66 @@
             else
             {
                 <p class="no-records">No Participant Diversity records found.</p>
+            }
+        </div>
+        }
+
+        @if (ViewBag.RecordType == "all" || ViewBag.RecordType == "first-time-participants")
+        {
+        <!-- First-Time Participants Records -->
+        <div class="record-section">
+            <h5 class="section-title">First-Time Participant Records</h5>
+            @if (ViewBag.FirstTimeParticipants != null && ((List<OneJaxDashboard.Models.FirstTime_38D>)ViewBag.FirstTimeParticipants).Any())
+            {
+                <div class="records-list">
+                    @foreach (var ftp in (List<OneJaxDashboard.Models.FirstTime_38D>)ViewBag.FirstTimeParticipants)
+                    {
+                        <div class="record-item">
+                            <div class="record-header">
+                                <span class="record-type">First-Time Participants</span>
+                                <label class="export-checkbox-label">
+                                    <input type="checkbox" class="record-checkbox" data-type="first-time-participants" data-id="@ftp.Id" />
+                                    <span>Select</span>
+                                </label>
+                            </div>
+                            <div class="record-details">
+                                <div class="detail-item">
+                                    <strong>Fiscal Year:</strong> @ftp.FiscalYear
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Event:</strong> @(ftp.Strategy?.Name ?? "N/A")
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Total Attendees:</strong> @ftp.TotalAttendees
+                                </div>
+                                <div class="detail-item">
+                                    <strong>First-Time Participants:</strong> @ftp.NumberOfFirstTimeParticipants
+                                </div>
+                                <div class="detail-item">
+                                    <strong>First-Time Rate:</strong> @ftp.FirstTimeParticipantRate%
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Goal Met (25%):</strong> @(ftp.GoalMet ? "Yes" : "No")
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Created Date:</strong> @ftp.CreatedDate.ToString("MM/dd/yyyy")
+                                </div>
+                            </div>
+                            <div class="record-actions mt-3">
+                                <a asp-controller="DataEntry" asp-action="EditFirstTimeParticipant" asp-route-id="@ftp.Id" class="btn btn-primary btn-sm">Edit</a>
+                                <form asp-controller="DataEntry" asp-action="DeleteFirstTimeParticipant" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                    <input type="hidden" name="id" value="@ftp.Id" />
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="no-records">No First-Time Participant records found.</p>
             }
         </div>
         }
