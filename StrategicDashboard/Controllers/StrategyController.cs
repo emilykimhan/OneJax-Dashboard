@@ -229,9 +229,9 @@ public class StrategyController : Controller
         // Log the creation
         _activityLog.Log(GetActorName(), "Created Core Strategy Event", "Strategy",
             details: $"Id={dbEvent.Id}; Created strategy event '{eventName}' under {goalName}");
-        TempData["SuccessMessage"] = $"Successfully added program under “{goalName}”";
+        TempData["SuccessMessage"] = $"Successfully added event under “{goalName}”";
 
-        return RedirectToAction("Index");
+        return RedirectToAction(nameof(ViewEvents), new { fy = dbEvent.EventFYear });
     }
     // POST: /Strategy/Edit
 
