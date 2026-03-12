@@ -157,8 +157,8 @@
                 </div>
 
                 <div class="col-md-6">
-                    <label class="form-label fw-semibold">Event Name</label>
-                    <input type="text" name="eventName" class="form-control" value="@Model?.Name" />
+                    <label class="form-label fw-semibold">Event Name <span class="text-danger">*</span></label>
+                    <input type="text" name="eventName" class="form-control" value="@Model?.Name" required />
                 </div>
 
                 <div class="col-md-6">
@@ -195,7 +195,7 @@
                 }
 
                 <div class="col-md-6">
-                    <label class="form-label fw-semibold">Assign to Goal</label>
+                    <label class="form-label fw-semibold">Assign to Goal <span class="text-danger">*</span></label>
                     <select name="goalId" class="form-select" required>
                         <option value="">Select a Goal</option>
                         @foreach (var goal in goals)
@@ -213,9 +213,9 @@
                 </div>
 
                 <div class="col-md-6">
-                    <label class="form-label fw-semibold">Event Date</label>
+                    <label class="form-label fw-semibold">Event Date <span class="text-danger">*</span></label>
                     <input type="date" name="eventDate" class="form-control" value="@Model?.Date" min="2020-01-01"
-                        max="2030-12-31" />
+                        max="2030-12-31" required />
                 </div>
 
                 <div class="col-md-6">
@@ -225,8 +225,7 @@
 
                 <div class="col-12">
                     <label class="form-label fw-semibold">Event Description</label>
-                    <textarea name="eventDescription" class="form-control" rows="3"
-                        required>@Model?.Description</textarea>
+                    <textarea name="eventDescription" class="form-control" rows="3">@Model?.Description</textarea>
                 </div>
 
                 <div class="col-12">

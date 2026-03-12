@@ -94,8 +94,7 @@ public class StrategyController : Controller
         return DateTime.TryParse(eventDate, out var parsedDate) && parsedDate.Date > MaxEventDate;
     }
 
-
-    public IActionResult Index(int? goalId)
+    private IActionResult RenderIndex(int? goalId, Dictionary<string, string>? formValues = null, Dictionary<string, string>? formErrors = null)
     {
         var programOptions = _context.Programs
             .OrderBy(p => p.ProgramName)
@@ -120,24 +119,79 @@ public class StrategyController : Controller
 
         ViewBag.GoalId = goalId;
         ViewBag.SuccessMessage = TempData["SuccessMessage"];
+        ViewBag.FormValues = formValues ?? new Dictionary<string, string>();
+        ViewBag.FormErrors = formErrors ?? new Dictionary<string, string>();
 
-        return View(goalStrategies);
+        return View("Index", goalStrategies);
+    }
+
+    private static Dictionary<string, string> BuildStrategyFormValues(
+        int goalId,
+        string? eventName,
+        string? eventDescription,
+        string? eventDate,
+        string? eventTime,
+        bool isCrossCollaboration,
+        string? partners,
+        int? programId,
+        string? programType)
+    {
+        return new Dictionary<string, string>
+        {
+            ["goalId"] = goalId > 0 ? goalId.ToString() : string.Empty,
+            ["eventName"] = eventName?.Trim() ?? string.Empty,
+            ["eventDescription"] = eventDescription?.Trim() ?? string.Empty,
+            ["eventDate"] = eventDate?.Trim() ?? string.Empty,
+            ["eventTime"] = eventTime?.Trim() ?? string.Empty,
+            ["isCrossCollaboration"] = isCrossCollaboration ? "true" : string.Empty,
+            ["partners"] = partners?.Trim() ?? string.Empty,
+            ["programId"] = programId?.ToString() ?? string.Empty,
+            ["programType"] = programType?.Trim() ?? string.Empty
+        };
+    }
+
+    public IActionResult Index(int? goalId)
+    {
+        return RenderIndex(goalId);
     }
 
     [HttpPost]
     public IActionResult Add(int goalId, string? eventName, string eventDescription, string? eventDate, string? eventTime, bool isCrossCollaboration = false, string? partners = null, int? programId = null, string? programType = null)
     {
+        var normalizedDescription = eventDescription?.Trim() ?? string.Empty;
+        var formValues = BuildStrategyFormValues(goalId, eventName, eventDescription, eventDate, eventTime, isCrossCollaboration, partners, programId, programType);
+        var formErrors = new Dictionary<string, string>();
+
+        if (string.IsNullOrWhiteSpace(eventName))
+        {
+            formErrors["eventName"] = "Event name is required.";
+        }
+
+        if (goalId <= 0)
+        {
+            formErrors["goalId"] = "Assign to a goal is required.";
+        }
+
+        if (string.IsNullOrWhiteSpace(eventDate))
+        {
+            formErrors["eventDate"] = "Date is required.";
+        }
+
         if (IsPastMaxEventDate(eventDate))
         {
-            TempData["ErrorMessage"] = "Event date cannot be later than 12/31/2030.";
-            return RedirectToAction("Index");
+            formErrors["eventDate"] = "Event date cannot be later than 12/31/2030.";
+        }
+
+        if (formErrors.Count > 0)
+        {
+            return RenderIndex(null, formValues, formErrors);
         }
 
         var selectedGoal = EnsureGoalExists(goalId);
         if (selectedGoal == null)
         {
-            TempData["ErrorMessage"] = "Please select a valid goal before creating an event.";
-            return RedirectToAction("Index");
+            formErrors["goalId"] = "Please select a valid goal.";
+            return RenderIndex(null, formValues, formErrors);
         }
 
         var selectedProgram = programId.HasValue
@@ -150,9 +204,7 @@ public class StrategyController : Controller
             selectedProgramType = programType.Trim();
         }
 
-        var resolvedEventName = string.IsNullOrWhiteSpace(eventName)
-            ? (selectedProgram?.ProgramName ?? selectedProgramType ?? "Untitled Event")
-            : eventName.Trim();
+        var resolvedEventName = eventName!.Trim();
 
         // Save to database for persistence - only set properties that don't have foreign key constraints
         var dbEvent = new Strategy
@@ -161,7 +213,7 @@ public class StrategyController : Controller
             ProgramId = selectedProgram?.Id,
             ProgramName = selectedProgram?.ProgramName,
             ProgramType = selectedProgramType,
-            Description = eventDescription,
+            Description = normalizedDescription,
             StrategicGoalId = goalId,
             Date = eventDate,
             Time = eventTime,
@@ -177,9 +229,9 @@ public class StrategyController : Controller
         // Log the creation
         _activityLog.Log(GetActorName(), "Created Core Strategy Event", "Strategy",
             details: $"Id={dbEvent.Id}; Created strategy event '{eventName}' under {goalName}");
-        TempData["SuccessMessage"] = $"Successfully added program under “{goalName}”";
+        TempData["SuccessMessage"] = $"Successfully added event under “{goalName}”";
 
-        return RedirectToAction("Index");
+        return RedirectToAction(nameof(ViewEvents), new { fy = dbEvent.EventFYear });
     }
     // POST: /Strategy/Edit
 
@@ -211,6 +263,25 @@ public class StrategyController : Controller
     [HttpPost]
     public IActionResult Edit(int id, string? eventName, string eventDescription, string? eventDate, string? eventTime, int goalId, bool isCrossCollaboration = false, string? partners = null, int? programId = null, string? programType = null)
     {
+        var normalizedDescription = eventDescription?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(eventName))
+        {
+            TempData["ErrorMessage"] = "Event name is required.";
+            return RedirectToAction(nameof(Edit), new { id });
+        }
+
+        if (goalId <= 0)
+        {
+            TempData["ErrorMessage"] = "Assign to Goal is required.";
+            return RedirectToAction(nameof(Edit), new { id });
+        }
+
+        if (string.IsNullOrWhiteSpace(eventDate))
+        {
+            TempData["ErrorMessage"] = "Event date is required.";
+            return RedirectToAction(nameof(Edit), new { id });
+        }
+
         if (IsPastMaxEventDate(eventDate))
         {
             TempData["ErrorMessage"] = "Event date cannot be later than 12/31/2030.";
@@ -240,9 +311,7 @@ public class StrategyController : Controller
             selectedProgramType = programType.Trim();
         }
 
-        var resolvedEventName = string.IsNullOrWhiteSpace(eventName)
-            ? (selectedProgram?.ProgramName ?? selectedProgramType ?? "Untitled Event")
-            : eventName.Trim();
+        var resolvedEventName = eventName.Trim();
 
         var previousName = evt.Name;
         var previousProgramName = evt.ProgramName;
@@ -262,7 +331,7 @@ public class StrategyController : Controller
         evt.ProgramType = selectedProgramType;
         evt.CrossCollaboration = isCrossCollaboration ? "Yes" : "No";
         evt.Partners = isCrossCollaboration ? (partners ?? string.Empty).Trim() : string.Empty;
-        evt.Description = eventDescription;
+        evt.Description = normalizedDescription;
         evt.Date = eventDate;
         evt.Time = eventTime;
         evt.StrategicGoalId = goalId;

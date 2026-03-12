@@ -6,8 +6,9 @@
     var errorMessage = TempData["ErrorMessage"] as string;
     var programOptions = ViewBag.Programs as List<OneJaxDashboard.Models.Programs> ?? new List<OneJaxDashboard.Models.Programs>();
     var programTypeOptions = ViewBag.ProgramTypes as List<string> ?? new List<string>();
-
     var goals = ViewBag.Goals as List<SelectListItem> ?? new List<SelectListItem>();
+    var formValues = ViewBag.FormValues as Dictionary<string, string> ?? new Dictionary<string, string>();
+    var formErrors = ViewBag.FormErrors as Dictionary<string, string> ?? new Dictionary<string, string>();
 }
 
 <!-- OneJax Color Theme -->
@@ -182,6 +183,14 @@
         font-size: 1rem;
         letter-spacing: 0.5px;
         animation: fadeInOut 4s ease-in-out forwards;
+    }
+
+    .field-error {
+        color: #b42318;
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin-top: 0.35rem;
     }
 
     .create-event-btn {
@@ -488,10 +497,17 @@
 <div class="col-12">
     <label class="form-label fw-semibold">Program Name</label>
     <select name="programId" id="programId" class="form-select">
-        <option value="" selected>Select Program Name</option>
+        <option value="" selected="@(formValues.TryGetValue("programId", out var selectedProgramIdValue) && !string.IsNullOrWhiteSpace(selectedProgramIdValue) ? null : "selected")">Select Program Name</option>
         @foreach (var p in programOptions)
         {
-            <option value="@p.Id" data-program-type="@p.ProgramType">@p.ProgramName</option>
+            if (formValues.TryGetValue("programId", out var selectedProgramId) && selectedProgramId == p.Id.ToString())
+            {
+                <option value="@p.Id" data-program-type="@p.ProgramType" selected>@p.ProgramName</option>
+            }
+            else
+            {
+                <option value="@p.Id" data-program-type="@p.ProgramType">@p.ProgramName</option>
+            }
         }
     </select>
 </div>
@@ -499,23 +515,34 @@
 <div class="col-12">
     <label class="form-label fw-semibold">Program Type</label>
     <select name="programType" id="programType" class="form-select">
-        <option value="" selected>Select Program Type</option>
+        <option value="" selected="@(formValues.TryGetValue("programType", out var selectedProgramTypeValue) && !string.IsNullOrWhiteSpace(selectedProgramTypeValue) ? null : "selected")">Select Program Type</option>
         @foreach (var type in programTypeOptions)
         {
-            <option value="@type">@type</option>
+            if (formValues.TryGetValue("programType", out var selectedProgramType) && selectedProgramType == type)
+            {
+                <option value="@type" selected>@type</option>
+            }
+            else
+            {
+                <option value="@type">@type</option>
+            }
         }
     </select>
 </div>
 
 <div class="col-md-6">
-    <label class="form-label fw-semibold">Event Name </label>
-    <input type="text" name="eventName" class="form-control" placeholder="Enter event name" />
+    <label class="form-label fw-semibold">Event Name <span class="text-danger">*</span></label>
+    <input type="text" name="eventName" class="form-control" placeholder="Enter event name" value="@(formValues.TryGetValue("eventName", out var eventNameValue) ? eventNameValue : string.Empty)" required />
+    @if (formErrors.TryGetValue("eventName", out var eventNameError))
+    {
+        <span class="field-error">@eventNameError</span>
+    }
 </div>
 
 <div class="col-md-6">
     <label class="form-label fw-semibold">Cross Collaboration</label>
     <div class="form-check mt-2">
-        <input class="form-check-input" type="checkbox" id="isCrossCollaboration" name="isCrossCollaboration" value="true" />
+        <input class="form-check-input" type="checkbox" id="isCrossCollaboration" name="isCrossCollaboration" value="true" @(formValues.TryGetValue("isCrossCollaboration", out var isCrossCollaborationValue) && isCrossCollaborationValue == "true" ? "checked" : null) />
         <label class="form-check-label fw-semibold" for="isCrossCollaboration">
             Yes, this is a cross collaboration
         </label>
@@ -525,28 +552,43 @@
 
 <div class="col-md-6 d-none" id="partnersField">
     <label class="form-label fw-semibold">Partners</label>
-    <input type="text" name="partners" id="partnersInput" class="form-control" placeholder="Enter partner organizations" />
+    <input type="text" name="partners" id="partnersInput" class="form-control" placeholder="Enter partner organizations" value="@(formValues.TryGetValue("partners", out var partnersValue) ? partnersValue : string.Empty)" />
 </div>
 
 <div class="col-md-6">
-    <label class="form-label fw-semibold">Assign to a Goal</label>
+    <label class="form-label fw-semibold">Assign to a Goal <span class="text-danger">*</span></label>
     <select name="goalId" class="form-select" required>
-        <option value="" selected disabled>Select a Goal</option>
+        <option value="" selected="@(formValues.TryGetValue("goalId", out var selectedGoalIdValue) && !string.IsNullOrWhiteSpace(selectedGoalIdValue) ? null : "selected")" disabled>Select a Goal</option>
         @foreach (var goal in goals)
         {
-            <option value="@goal.Value">@goal.Text</option>
+            if (formValues.TryGetValue("goalId", out var selectedGoalId) && selectedGoalId == goal.Value)
+            {
+                <option value="@goal.Value" selected>@goal.Text</option>
+            }
+            else
+            {
+                <option value="@goal.Value">@goal.Text</option>
+            }
         }
     </select>
+    @if (formErrors.TryGetValue("goalId", out var goalError))
+    {
+        <span class="field-error">@goalError</span>
+    }
 </div>
 
 <div class="col-md-6">
-    <label class="form-label fw-semibold">Event Date</label>
-    <input type="date" name="eventDate" class="form-control" min="2020-01-01" max="2030-12-31"/>
+    <label class="form-label fw-semibold">Event Date <span class="text-danger">*</span></label>
+    <input type="date" name="eventDate" class="form-control" min="2020-01-01" max="2030-12-31" value="@(formValues.TryGetValue("eventDate", out var eventDateValue) ? eventDateValue : string.Empty)" required />
+    @if (formErrors.TryGetValue("eventDate", out var eventDateError))
+    {
+        <span class="field-error">@eventDateError</span>
+    }
 </div>
 
 <div class="col-md-6">
     <label class="form-label fw-semibold">Event Time</label>
-    <input type="time" name="eventTime" class="form-control" />
+    <input type="time" name="eventTime" class="form-control" value="@(formValues.TryGetValue("eventTime", out var eventTimeValue) ? eventTimeValue : string.Empty)" />
 </div>
 
 <div class="col-12">
@@ -554,8 +596,7 @@
     <textarea name="eventDescription"
               class="form-control"
               rows="3"
-              placeholder="Enter description"
-              required></textarea>
+              placeholder="Enter description">@(formValues.TryGetValue("eventDescription", out var eventDescriptionValue) ? eventDescriptionValue : string.Empty)</textarea>
 </div>
 
 <div class="col-12">
@@ -576,7 +617,6 @@
             var togglePartners = function () {
                 var isChecked = crossCollabCheckbox.checked;
                 partnersField.classList.toggle('d-none', !isChecked);
-                partnersInput.required = isChecked;
                 if (!isChecked) {
                     partnersInput.value = '';
                 }

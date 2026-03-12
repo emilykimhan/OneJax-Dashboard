@@ -268,10 +268,19 @@
         z-index: 9999;
     }
 
+    .events-table-scroll {
+        max-height: 540px;
+        overflow-y: auto;
+        border-radius: 14px;
+    }
+
+    .events-table-scroll thead th {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+    }
+
     .events-table-wrap .action-dropdown-menu {
-        left: 50% !important;
-        right: auto !important;
-        transform: translateX(-50%);
         margin-top: 0.25rem;
     }
 
@@ -542,6 +551,8 @@
             else
             {
                 <div class="events-table-wrap">
+                    <div class="events-table-scroll">
+                    <div class="table-responsive">
                     <table class="events-table">
                         <thead>
                             <tr>
@@ -662,7 +673,7 @@
                                             <button class="btn btn-light btn-sm border-0" type="button" data-bs-toggle="dropdown">
                                                 <i class="bi bi-three-dots fs-5 text-dark"></i>
                                             </button>
-                                            <ul class="dropdown-menu action-dropdown-menu">
+                                            <ul class="dropdown-menu dropdown-menu-end action-dropdown-menu">
                                                 <li>
                                                     <a class="dropdown-item text-primary" asp-controller="Strategy"
                                                        asp-action="Edit" asp-route-id="@e.Id">
@@ -691,6 +702,8 @@
                             }
                         </tbody>
                     </table>
+                    </div>
+                    </div>
                 </div>
             }
         </div>
@@ -714,6 +727,8 @@
                     else
                     {
                         <div class="events-table-wrap">
+                            <div class="events-table-scroll">
+                            <div class="table-responsive">
                             <table class="events-table">
                                 <thead>
                                     <tr>
@@ -834,7 +849,7 @@
                                                     <button class="btn btn-light btn-sm border-0" type="button" data-bs-toggle="dropdown">
                                                         <i class="bi bi-three-dots fs-5 text-dark"></i>
                                                     </button>
-                                                    <ul class="dropdown-menu action-dropdown-menu">
+                                                    <ul class="dropdown-menu dropdown-menu-end action-dropdown-menu">
                                                         <li>
                                                             <a class="dropdown-item text-primary" asp-controller="Strategy"
                                                                asp-action="Edit" asp-route-id="@e.Id">
@@ -863,6 +878,8 @@
                                     }
                                 </tbody>
                             </table>
+                            </div>
+                            </div>
                         </div>
                     }
                 </div>
