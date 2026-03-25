@@ -10,6 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 var databaseSettings = DatabaseConfiguration.Resolve(builder.Configuration, builder.Environment.EnvironmentName);
 var runSqliteMigration = args.Contains("--migrate-sqlite-to-sqlserver", StringComparer.OrdinalIgnoreCase);
 var runAdminCountCheck = args.Contains("--check-admin-count", StringComparer.OrdinalIgnoreCase);
+var runAppDataReset = args.Contains("--reset-app-data", StringComparer.OrdinalIgnoreCase);
 
 if (runSqliteMigration)
 {
@@ -40,6 +41,19 @@ if (runAdminCountCheck)
 
     await using var db = new ApplicationDbContext(optionsBuilder.Options);
     Console.WriteLine(await db.Staffauth.CountAsync(staff => staff.IsAdmin));
+    return;
+}
+
+if (runAppDataReset)
+{
+    var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+    DatabaseConfiguration.Configure(optionsBuilder, databaseSettings);
+
+    await using var db = new ApplicationDbContext(optionsBuilder.Options);
+    var resetter = new AppDataResetter(db, message => Console.WriteLine($"[app-data-reset] {message}"));
+    await resetter.RunAsync();
+    EnsureCanonicalStrategicGoals(db);
+    Console.WriteLine("[app-data-reset] Completed. Staff accounts were preserved.");
     return;
 }
 
