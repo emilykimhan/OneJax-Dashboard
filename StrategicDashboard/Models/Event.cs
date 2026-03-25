@@ -8,10 +8,6 @@ namespace OneJaxDashboard.Models
     {
         public int Id { get; set; }
 
-        // Reference to the Strategy (Core Strategy event) this is based on
-        [Display(Name = "Event")]
-        public int? StrategyTemplateId { get; set; } // Nullable for events not based on strategy templates
-
         // The title comes from the Strategy, stored here for convenience
         public string Title { get; set; } = string.Empty;
 
@@ -41,11 +37,8 @@ namespace OneJaxDashboard.Models
         [DataType(DataType.Date)]
         public DateTime? EndDate { get; set; }
 
-        // Link to Strategic Goal and Strategy
-        [Display(Name = "Strategic Goal")]
-        public int? StrategicGoalId { get; set; }
-
-        [Display(Name = "Strategy")]
+        // Link to Strategy
+        [Display(Name = "Event")]
         public int? StrategyId { get; set; }
 
         // Ownership by username to align with current auth model
@@ -76,10 +69,6 @@ namespace OneJaxDashboard.Models
         public DateTime? CompletionDate { get; set; }
 
         // Navigation properties (optional for display purposes)
-        public virtual StrategicGoal? StrategicGoal { get; set; }  
-
-        public virtual Strategy? Strategy { get; set; }  
-
-        public virtual Strategy? StrategyTemplate { get; set; }
+        public virtual Strategy? Strategy { get; set; }
     }
 }

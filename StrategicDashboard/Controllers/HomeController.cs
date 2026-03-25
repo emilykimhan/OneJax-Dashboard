@@ -342,10 +342,17 @@ public class HomeController : Controller
 
     private async Task<List<Event>> GetDashboardEventsForGoalAsync(int strategicGoalId)
     {
-        // Dashboard should only show real Events records (not synthetic conversions from Core Strategies).
         return await _context.Events
-            .Where(e => e.StrategicGoalId == strategicGoalId && !e.IsArchived)
-            .OrderBy(e => e.DueDate == null) // nulls last
+            .Where(e => !e.IsArchived && e.StrategyId.HasValue)
+            .Join(
+                _context.Strategies,
+                e => e.StrategyId,
+                s => (int?)s.Id,
+                (e, s) => new { Event = e, Strategy = s }
+            )
+            .Where(joined => joined.Strategy.StrategicGoalId == strategicGoalId)
+            .Select(joined => joined.Event)
+            .OrderBy(e => e.DueDate == null)
             .ThenBy(e => e.DueDate)
             .Take(12)
             .ToListAsync();
@@ -503,6 +510,7 @@ public class HomeController : Controller
 
                 foreach (var evt in recentEvents)
                 {
+                    var goalId = ResolveGoalIdForEvent(evt) ?? 1;
                     activities.Add(new RecentActivity
                     {
                         Type = "Event",
@@ -510,8 +518,8 @@ public class HomeController : Controller
                         Description = $"{evt.Type} | Status: {evt.Status} | {(evt.StartDate?.ToString("MMM dd") ?? evt.DueDate?.ToString("MMM dd") ?? "Date TBD")}",
                         Date = evt.StartDate ?? evt.DueDate ?? DateTime.Now,
                         Icon = "fas fa-calendar-check",
-                        Color = GetColorByGoalId(evt.StrategicGoalId ?? 1),
-                        GoalName = GetGoalNameById(evt.StrategicGoalId ?? 1)
+                        Color = GetColorByGoalId(goalId),
+                        GoalName = GetGoalNameById(goalId)
                     });
                 }
             }
@@ -1644,6 +1652,19 @@ public class HomeController : Controller
             .Replace(" ", "");
 
         return decimal.TryParse(cleaned, out decimal result) ? result : 0m;
+    }
+
+    private int? ResolveGoalIdForEvent(Event evt)
+    {
+        if (!evt.StrategyId.HasValue)
+        {
+            return null;
+        }
+
+        return _context.Strategies
+            .Where(s => s.Id == evt.StrategyId.Value)
+            .Select(s => (int?)s.StrategicGoalId)
+            .FirstOrDefault();
     }
 
     private string GetGoalNameById(int goalId)

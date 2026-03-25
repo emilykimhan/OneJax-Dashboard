@@ -67,23 +67,7 @@
                         <div class="col-md-6">
                             <label class="form-label fw-semibold text-muted small">STRATEGIC ASSIGNMENT</label>
                             <div class="bg-light p-3 rounded">
-                                @if (Model.StrategicGoalId.HasValue || Model.StrategyId.HasValue)
-                                {
-                                    <div class="small">
-                                        @if (Model.StrategicGoalId.HasValue)
-                                        {
-                                            <div><i class="bi bi-target me-1"></i> Goal: @Model.StrategicGoalId</div>
-                                        }
-                                        @if (Model.StrategyId.HasValue)
-                                        {
-                                            <div><i class="bi bi-lightning me-1"></i> Strategy: @Model.StrategyId</div>
-                                        }
-                                    </div>
-                                }
-                                else
-                                {
-                                    <span class="text-muted small">Not assigned</span>
-                                }
+                                <span class="text-muted small">Not assigned</span>
                             </div>
                         </div>
                         

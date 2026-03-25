@@ -29,8 +29,8 @@ namespace OneJaxDashboard.Controllers
                     {
                         goals = _context.StrategicGoals
                             .Include(g => g.Metrics)
-                            .Include(g => g.Events)
                             .ToList();
+                        AttachEventsToGoals(goals);
                     }
                 }
                 catch
@@ -93,8 +93,11 @@ namespace OneJaxDashboard.Controllers
                     {
                         goal = _context.StrategicGoals
                             .Include(g => g.Metrics)
-                            .Include(g => g.Events)
                             .FirstOrDefault(g => g.Id == id);
+                        if (goal != null)
+                        {
+                            AttachEventsToGoals(new List<StrategicGoal> { goal });
+                        }
                     }
                 }
                 catch
@@ -140,7 +143,6 @@ namespace OneJaxDashboard.Controllers
                             Title = "Community Partnership Forum",
                             DueDate = DateTime.Now.AddDays(30),
                             Status = "Planned",
-                            StrategicGoalId = 1,
                             Type = "Workshop",
                             Location = "OneJax Center"
                         },
@@ -150,7 +152,6 @@ namespace OneJaxDashboard.Controllers
                             Title = "Youth Development Program",
                             DueDate = DateTime.Now.AddDays(-15),
                             Status = "Active",
-                            StrategicGoalId = 1,
                             Type = "Program",
                             Location = "Various Locations"
                         }
@@ -185,7 +186,6 @@ namespace OneJaxDashboard.Controllers
                             Title = "Brand Identity Launch",
                             DueDate = DateTime.Now.AddDays(-60),
                             Status = "Completed",
-                            StrategicGoalId = 2,
                             Type = "Launch",
                             Location = "Digital Platforms"
                         }
@@ -220,7 +220,6 @@ namespace OneJaxDashboard.Controllers
                             Title = "Fundraising Gala",
                             DueDate = DateTime.Now.AddDays(45),
                             Status = "Planned",
-                            StrategicGoalId = 3,
                             Type = "Fundraising",
                             Location = "Downtown Convention Center"
                         }
@@ -255,7 +254,6 @@ namespace OneJaxDashboard.Controllers
                             Title = "Staff Development Workshop",
                             DueDate = DateTime.Now.AddDays(-5),
                             Status = "Completed",
-                            StrategicGoalId = 4,
                             Type = "Training",
                             Location = "OneJax Office"
                         }
@@ -277,6 +275,63 @@ namespace OneJaxDashboard.Controllers
                     }
                 }
             };
+        }
+
+        private void AttachEventsToGoals(List<StrategicGoal> goals)
+        {
+            if (_context.Events == null || _context.Strategies == null || goals.Count == 0)
+            {
+                return;
+            }
+
+            var strategyLookup = _context.Strategies
+                .Select(s => new { s.Id, s.StrategicGoalId })
+                .ToList();
+
+            var events = _context.Events
+                .Where(e => !e.IsArchived && e.StrategyId.HasValue)
+                .ToList();
+
+            var eventsByGoalId = new Dictionary<int, List<Event>>();
+
+            foreach (var evt in events)
+            {
+                var strategyId = evt.StrategyId;
+                if (!strategyId.HasValue)
+                {
+                    continue;
+                }
+
+                var goalId = strategyLookup
+                    .Where(s => s.Id == strategyId.Value)
+                    .Select(s => (int?)s.StrategicGoalId)
+                    .FirstOrDefault();
+
+                if (!goalId.HasValue)
+                {
+                    continue;
+                }
+
+                if (!eventsByGoalId.TryGetValue(goalId.Value, out var list))
+                {
+                    list = new List<Event>();
+                    eventsByGoalId[goalId.Value] = list;
+                }
+
+                list.Add(evt);
+            }
+
+            foreach (var goal in goals)
+            {
+                if (eventsByGoalId.TryGetValue(goal.Id, out var list))
+                {
+                    goal.Events = list;
+                }
+                else
+                {
+                    goal.Events = new List<Event>();
+                }
+            }
         }
     }
 }

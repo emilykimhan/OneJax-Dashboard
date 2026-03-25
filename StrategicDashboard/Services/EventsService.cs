@@ -46,13 +46,11 @@ namespace OneJaxDashboard.Services
             var existing = _db.Events.Find(eventModel.Id);
             if (existing == null) return;
             
-            existing.StrategyTemplateId = eventModel.StrategyTemplateId;
             existing.Title = eventModel.Title;
             existing.Description = eventModel.Description;
             existing.Status = eventModel.Status;
             existing.StartDate = eventModel.StartDate;
             existing.EndDate = eventModel.EndDate;
-            existing.StrategicGoalId = eventModel.StrategicGoalId;
             existing.StrategyId = eventModel.StrategyId;
             existing.DueDate = eventModel.DueDate;
             existing.AdminNotes = eventModel.AdminNotes;
@@ -109,33 +107,6 @@ namespace OneJaxDashboard.Services
                 .Where(e => e.IsArchived)
                 .ToList();
 
-        public IEnumerable<Event> GetByStrategy(int strategyId)
-            => _db.Events
-                .Include(e => e.AssignedStaff)
-                .Where(e => e.StrategyId == strategyId && !e.IsArchived)
-                .ToList();
-
-        public IEnumerable<Event> GetByStrategicGoal(int goalId)
-            => _db.Events
-                .Include(e => e.AssignedStaff)
-                .Where(e => e.StrategicGoalId == goalId && !e.IsArchived)
-                .ToList();
-
-        public IEnumerable<Event> GetByStrategyTemplate(int strategyTemplateId)
-            => _db.Events
-                .Include(e => e.AssignedStaff)
-                .Where(e => e.StrategyTemplateId == strategyTemplateId && !e.IsArchived)
-                .ToList();
-
-        // Remove events that reference deleted strategies
-        public void RemoveByStrategyTemplate(int strategyTemplateId)
-        {
-            var eventsToRemove = _db.Events
-                .Where(e => e.StrategyTemplateId == strategyTemplateId)
-                .ToList();
-
-            _db.Events.RemoveRange(eventsToRemove);
-            _db.SaveChanges();
-        }
+        
     }
 }

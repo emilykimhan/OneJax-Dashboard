@@ -107,21 +107,12 @@ CREATE TABLE IF NOT EXISTS "Events" (
     "SatisfactionScore" TEXT NULL,
     "StartDate" TEXT NULL,
     "Status" TEXT NOT NULL,
-    "StrategicGoalId" INTEGER NULL,
-    "StrategicGoalId1" INTEGER NULL,
     "StrategyId" INTEGER NULL,
-    "StrategyTemplateId" INTEGER NULL,
     "Title" TEXT NOT NULL,
     "Type" TEXT NOT NULL,
-    CONSTRAINT "FK_Events_StrategicGoals_StrategicGoalId" FOREIGN KEY ("StrategicGoalId") REFERENCES "StrategicGoals" ("Id") ON DELETE SET NULL,
-    CONSTRAINT "FK_Events_StrategicGoals_StrategicGoalId1" FOREIGN KEY ("StrategicGoalId1") REFERENCES "StrategicGoals" ("Id"),
-    CONSTRAINT "FK_Events_Strategies_StrategyId" FOREIGN KEY ("StrategyId") REFERENCES "Strategies" ("Id") ON DELETE SET NULL,
-    CONSTRAINT "FK_Events_Strategies_StrategyTemplateId" FOREIGN KEY ("StrategyTemplateId") REFERENCES "Strategies" ("Id")
+    CONSTRAINT "FK_Events_Strategies_StrategyId" FOREIGN KEY ("StrategyId") REFERENCES "Strategies" ("Id") ON DELETE SET NULL
 );
-CREATE INDEX "IX_Events_StrategicGoalId" ON "Events" ("StrategicGoalId");
-CREATE INDEX "IX_Events_StrategicGoalId1" ON "Events" ("StrategicGoalId1");
 CREATE INDEX "IX_Events_StrategyId" ON "Events" ("StrategyId");
-CREATE INDEX "IX_Events_StrategyTemplateId" ON "Events" ("StrategyTemplateId");
 CREATE TABLE IF NOT EXISTS "CommunicationRate" (
     "Id" INTEGER NOT NULL CONSTRAINT "PK_CommunicationRate" PRIMARY KEY AUTOINCREMENT,
     "Year" INTEGER NOT NULL,
@@ -270,4 +261,3 @@ CREATE TABLE IF NOT EXISTS "EventSatisfaction_12D" (
     CONSTRAINT "FK_EventSatisfaction_12D_Strategies_StrategyId" FOREIGN KEY ("StrategyId") REFERENCES "Strategies" ("Id") ON DELETE CASCADE
 );
 CREATE INDEX "IX_EventSatisfaction_12D_StrategyId" ON "EventSatisfaction_12D" ("StrategyId");
-

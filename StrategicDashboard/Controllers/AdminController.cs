@@ -59,8 +59,6 @@ namespace OneJaxDashboard.Controllers
             var allEvents = _db.Events
                 .Include(e => e.AssignedStaff)
                 .Where(e => !e.IsArchived)
-                .ToList()
-                .Where(e => e.StrategyTemplateId.HasValue && _strategyService.GetStrategy(e.StrategyTemplateId.Value) != null)
                 .ToList();
 
             // Separate into active and completed
@@ -159,8 +157,6 @@ namespace OneJaxDashboard.Controllers
             var archivedEvents = _db.Events
                 .Include(e => e.AssignedStaff)
                 .Where(e => e.IsArchived)
-                .ToList()
-                .Where(e => e.StrategyTemplateId.HasValue && _strategyService.GetStrategy(e.StrategyTemplateId.Value) != null)
                 .ToList();
 
             return View(archivedEvents);
@@ -170,22 +166,18 @@ namespace OneJaxDashboard.Controllers
         public IActionResult AssignEvent(int? strategyId)
         {
             Event eventModel = new Event();
-            
-            // If a strategy template is selected, load its data
             if (strategyId.HasValue)
             {
                 var strategy = _strategyService.GetStrategy(strategyId.Value);
                 if (strategy != null)
                 {
-                    eventModel.StrategyTemplateId = strategy.Id;
+                    eventModel.StrategyId = strategy.Id;
                     eventModel.Title = strategy.Name;
                     eventModel.Description = strategy.Description;
-                    eventModel.StrategicGoalId = strategy.StrategicGoalId;
-                    eventModel.StrategyId = strategy.Id;
                 }
             }
-            
-            PopulateStaffAndStrategiesDropdown(strategyId);
+            PopulateStaffDropdown();
+            PopulateStrategyDropdown(strategyId);
             return View(eventModel);
         }
 
@@ -199,28 +191,35 @@ namespace OneJaxDashboard.Controllers
                 ModelState.AddModelError("", "Please select a staff member to assign this event to.");
             }
 
-            // Load the strategy template to get the title
-            var strategy = eventModel.StrategyTemplateId.HasValue ? _strategyService.GetStrategy(eventModel.StrategyTemplateId.Value) : null;
-            if (strategy == null)
+            if (!eventModel.StrategyId.HasValue)
             {
-                ModelState.AddModelError("", "Please select an event.");
-                PopulateStaffAndStrategiesDropdown(null);
+                ModelState.AddModelError(nameof(eventModel.StrategyId), "Please select an event.");
+                PopulateStaffDropdown();
+                PopulateStrategyDropdown(eventModel.StrategyId);
                 return View(eventModel);
            }
 
             if (!ModelState.IsValid)
             {
-                PopulateStaffAndStrategiesDropdown(null);
+                PopulateStaffDropdown();
+                PopulateStrategyDropdown(eventModel.StrategyId);
+                return View(eventModel);
+            }
+
+            var strategy = _strategyService.GetStrategy(eventModel.StrategyId.Value);
+            if (strategy == null)
+            {
+                ModelState.AddModelError(nameof(eventModel.StrategyId), "Please select a valid event.");
+                PopulateStaffDropdown();
+                PopulateStrategyDropdown(eventModel.StrategyId);
                 return View(eventModel);
             }
 
             var staffMember = _db.Staffauth.FirstOrDefault(s => s.Username == selectedStaffUsername);
             var staffName = staffMember?.Name ?? selectedStaffUsername;
 
-            // Set title and related fields from the strategy template
             eventModel.Title = strategy.Name;
-            eventModel.StrategicGoalId = strategy.StrategicGoalId;
-            eventModel.StrategyId = strategy.Id;
+            eventModel.Description = strategy.Description;
 
             // Set admin assignment properties
             eventModel.OwnerUsername = selectedStaffUsername;
@@ -243,7 +242,8 @@ namespace OneJaxDashboard.Controllers
             var eventModel = _eventsService.Get(id);
             if (eventModel == null) return NotFound();
 
-            PopulateStaffAndStrategiesDropdown(null);
+            PopulateStaffDropdown();
+            PopulateStrategyDropdown(eventModel.StrategyId ?? ResolveStrategyIdByEventTitle(eventModel.Title));
             ViewBag.CurrentStaffUsername = eventModel.OwnerUsername;
             return View(eventModel);
         }
@@ -251,16 +251,22 @@ namespace OneJaxDashboard.Controllers
         // POST: /Admin/EditAssignedEvent
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult EditAssignedEvent(Event eventModel, string selectedStaffUsername)
+        public IActionResult EditAssignedEvent(Event eventModel, string selectedStaffUsername, int? selectedStrategyId)
         {
             if (string.IsNullOrEmpty(selectedStaffUsername))
             {
                 ModelState.AddModelError("", "Please select a staff member.");
             }
 
+            if (!selectedStrategyId.HasValue)
+            {
+                ModelState.AddModelError("selectedStrategyId", "Please select an event.");
+            }
+
             if (!ModelState.IsValid)
             {
-                PopulateStaffAndStrategiesDropdown(null);
+                PopulateStaffDropdown();
+                PopulateStrategyDropdown(selectedStrategyId);
                 ViewBag.CurrentStaffUsername = eventModel.OwnerUsername;
                 return View(eventModel);
             }
@@ -268,13 +274,28 @@ namespace OneJaxDashboard.Controllers
             var existing = _eventsService.Get(eventModel.Id);
             if (existing == null) return NotFound();
 
+            if (selectedStrategyId.HasValue)
+            {
+                var selectedStrategy = _db.Strategies.FirstOrDefault(s => s.Id == selectedStrategyId.Value);
+                if (selectedStrategy == null)
+                {
+                    ModelState.AddModelError("selectedStrategyId", "Please select a valid event.");
+                    PopulateStaffDropdown();
+                    PopulateStrategyDropdown(selectedStrategyId);
+                    ViewBag.CurrentStaffUsername = eventModel.OwnerUsername;
+                    return View(eventModel);
+                }
+
+                eventModel.Title = selectedStrategy.Name;
+                eventModel.Description = selectedStrategy.Description;
+                eventModel.StrategyId = selectedStrategy.Id;
+            }
+
             var staffMember = _db.Staffauth.FirstOrDefault(s => s.Username == selectedStaffUsername);
             var staffName = staffMember?.Name ?? selectedStaffUsername;
             var previousStaffMember = _db.Staffauth.FirstOrDefault(s => s.Username == existing.OwnerUsername);
             var previousStaffName = previousStaffMember?.Name ?? existing.OwnerUsername;
-            var previousGoalName = ResolveGoalName(existing.StrategicGoalId);
-            var updatedGoalName = ResolveGoalName(eventModel.StrategicGoalId);
-            var changeDetails = BuildEventChangeDetails(existing, eventModel, previousStaffName, staffName, previousGoalName, updatedGoalName);
+            var changeDetails = BuildEventChangeDetails(existing, eventModel, previousStaffName, staffName);
 
             // Update the event
             eventModel.OwnerUsername = selectedStaffUsername;
@@ -327,36 +348,43 @@ namespace OneJaxDashboard.Controllers
             return RedirectToAction("ArchivedEvents");
         }
 
-        private void PopulateStaffAndStrategiesDropdown(int? selectedStrategyId)
+        private void PopulateStaffDropdown()
         {
             // Get all staff members
             var staffMembers = _db.Staffauth.ToList();
             ViewBag.StaffMembers = new SelectList(staffMembers, "Username", "Name");
+        }
 
-            // Get strategic goals and strategies
-            var goals = _strategyService.GetAllStrategicGoals();
-            ViewBag.StrategicGoals = new SelectList(goals, "Id", "Name");
-            
-            // Get all strategies from Core Strategies to use as event templates
-            var allStrategies = _strategyService.GetAllStrategies();
-            ViewBag.StrategyTemplates = new SelectList(allStrategies, "Id", "Name", selectedStrategyId);
-            ViewBag.SelectedStrategyId = selectedStrategyId;
-            
-            // Load all strategies for display
-            ViewBag.Strategies = new SelectList(allStrategies, "Id", "Name");
+        private void PopulateStrategyDropdown(int? selectedStrategyId)
+        {
+            var strategies = _db.Strategies
+                .OrderBy(s => s.Name)
+                .ToList();
+
+            ViewBag.StrategyTemplates = new SelectList(strategies, "Id", "Name", selectedStrategyId);
+        }
+
+        private int? ResolveStrategyIdByEventTitle(string? title)
+        {
+            if (string.IsNullOrWhiteSpace(title))
+            {
+                return null;
+            }
+
+            return _db.Strategies
+                .Where(s => s.Name == title)
+                .Select(s => (int?)s.Id)
+                .FirstOrDefault();
         }
 
         private static string BuildEventChangeDetails(
             Event before,
             Event after,
             string previousAssignee,
-            string newAssignee,
-            string previousGoalName,
-            string updatedGoalName)
+            string newAssignee)
         {
             var changes = new List<string>();
             AddChange(changes, "Assignee", previousAssignee, newAssignee);
-            AddChange(changes, "Strategic Goal", previousGoalName, updatedGoalName);
             AddChange(changes, "Description", before.Description, after.Description);
             AddChange(changes, "Type", before.Type, after.Type);
             AddChange(changes, "Location", before.Location, after.Location);
@@ -421,19 +449,5 @@ namespace OneJaxDashboard.Controllers
         private static string DisplayDate(DateTime? value) => value.HasValue ? value.Value.ToString("yyyy-MM-dd") : "(empty)";
         private static string DisplayDecimal(decimal? value) => value.HasValue ? value.Value.ToString("0.##") : "(empty)";
 
-        private string ResolveGoalName(int? goalId)
-        {
-            if (!goalId.HasValue)
-            {
-                return "(empty)";
-            }
-
-            var goalName = _db.StrategicGoals
-                .Where(g => g.Id == goalId.Value)
-                .Select(g => g.Name)
-                .FirstOrDefault();
-
-            return string.IsNullOrWhiteSpace(goalName) ? $"Goal {goalId.Value}" : goalName;
-        }
     }
 }
