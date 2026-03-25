@@ -12,6 +12,13 @@ namespace OneJaxDashboard.Controllers
             return View();
         }
 
+        // GET: /ValueProposition (safe alias for Identity hub)
+        [HttpGet("/ValueProposition")]
+        public IActionResult ValueProposition()
+        {
+            return RedirectToAction(nameof(Index));
+        }
+
         // GET: /Identity/Dashboard (Dashboard shortcut)
         [HttpGet]
         public IActionResult Dashboard()
