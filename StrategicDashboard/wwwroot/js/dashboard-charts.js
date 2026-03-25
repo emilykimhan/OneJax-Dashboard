@@ -29,6 +29,8 @@ function initializeDashboardCharts() {
         console.warn('Chart data not available - charts may not display properly');
         return;
     }
+
+    const summaryCharts = window.chartData.summary || {};
     
     // Goal Progress Chart (Doughnut)
     const progressCtx = document.getElementById('progressChart');
@@ -395,6 +397,124 @@ function initializeDashboardCharts() {
             }
         });
     }
+
+    const eventStatusCtx = document.getElementById('eventStatusChart');
+    if (eventStatusCtx) {
+        const eventStatusValues = summaryCharts.eventStatus || [0, 0, 0, 0];
+        const eventStatusChart = new Chart(eventStatusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Planned', 'Active', 'Completed', 'Cancelled'],
+                datasets: [{
+                    data: eventStatusValues,
+                    backgroundColor: ['#3b82f6', '#10b981', '#22c55e', '#ef4444'],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
+                                return context.label + ': ' + context.parsed + ' events (' + percentage + '%)';
+                            }
+                        }
+                    }
+                },
+                cutout: '60%'
+            }
+        });
+    }
+
+    const overallProgressCtx = document.getElementById('overallProgressCircle');
+    if (overallProgressCtx) {
+        const overallProgressValue = Number(summaryCharts.overallProgress || 0);
+        const overallProgressChart = new Chart(overallProgressCtx, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [overallProgressValue, Math.max(0, 100 - overallProgressValue)],
+                    backgroundColor: [OneJaxColors.navy, '#e5e7eb'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: false }
+                },
+                cutout: '70%'
+            }
+        });
+    }
+
+    const dataCollectionCtx = document.getElementById('dataCollectionCircle');
+    if (dataCollectionCtx) {
+        const dataCollectionValue = Number(summaryCharts.dataCollectionProgress || 0);
+        const dataCollectionChart = new Chart(dataCollectionCtx, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [dataCollectionValue, Math.max(0, 100 - dataCollectionValue)],
+                    backgroundColor: [OneJaxColors.green, '#e5e7eb'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: false }
+                },
+                cutout: '70%'
+            }
+        });
+    }
+
+    const performanceGaugeCtx = document.getElementById('performanceGauge');
+    if (performanceGaugeCtx) {
+        const performanceScore = Number(summaryCharts.performanceScore || 0);
+        const performanceGauge = new Chart(performanceGaugeCtx, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [performanceScore, Math.max(0, 100 - performanceScore)],
+                    backgroundColor: [summaryCharts.performanceGaugeColor || '#ef4444', '#e5e7eb'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return 'Overall Progress: ' + context.parsed + '%';
+                            }
+                        }
+                    }
+                },
+                cutout: '72%'
+            }
+        });
+    }
 }
 
 // Export Dashboard Function
@@ -402,7 +522,7 @@ function exportDashboard() {
     const dashboardData = {
         summary: window.summaryData || {},
         exportDate: new Date().toISOString(),
-        source: 'OneJax Dashboard'
+        source: window.dashboardConfig?.dataSource || 'OneJax Dashboard'
     };
     
     const dataStr = JSON.stringify(dashboardData, null, 2);

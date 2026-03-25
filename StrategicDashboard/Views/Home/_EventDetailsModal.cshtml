@@ -1,0 +1,42 @@
+@{
+    var canManageData = ViewData["CanManageData"] as bool? ?? false;
+}
+
+<div class="modal fade" id="eventDetailsModal" tabindex="-1" aria-labelledby="eventDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="border-radius: 16px; border: none; overflow: hidden;">
+            <div class="modal-header" style="background: linear-gradient(135deg, var(--onejax-navy), var(--onejax-blue)); color: white; border: none; padding: 2rem;">
+                <h5 class="modal-title" id="eventDetailsModalLabel" style="font-weight: 700; font-size: 1.5rem;">Event Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="eventDetailsContent" style="padding: 2rem;">
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3 text-muted">Loading event details...</p>
+                </div>
+            </div>
+            <div class="modal-footer" style="border: none; padding: 1rem 2rem 2rem;">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 8px;">Close</button>
+                @if (canManageData)
+                {
+                    <a id="editEventButton"
+                       href="/Strategy/ViewEvents"
+                       class="btn btn-primary"
+                       style="border-radius: 8px; background: var(--onejax-blue); border-color: var(--onejax-blue);">
+                        <i class="fas fa-cog"></i> Manage in Core Strategies
+                    </a>
+                }
+                else
+                {
+                    <a href="/Public/Events"
+                       class="btn btn-outline-primary"
+                       style="border-radius: 8px;">
+                        <i class="fas fa-eye"></i> View Events
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+</div>

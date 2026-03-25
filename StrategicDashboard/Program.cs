@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using OneJaxDashboard.Data; 
+using OneJaxDashboard.Models;
 using System.Runtime.InteropServices;
 OfficeOpenXml.ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
 var builder = WebApplication.CreateBuilder(args);
@@ -50,7 +51,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    EnsureStrategicGoalsExist(db);
+    EnsureCanonicalStrategicGoals(db);
 }
 
 if (!app.Environment.IsDevelopment())
@@ -76,7 +77,7 @@ app.MapControllerRoute(
 
 app.Run();
 
-static void EnsureStrategicGoalsExist(ApplicationDbContext db)
+static void EnsureCanonicalStrategicGoals(ApplicationDbContext db)
 {
     var defaultGoals = new[]
     {
@@ -86,16 +87,41 @@ static void EnsureStrategicGoalsExist(ApplicationDbContext db)
         new { Id = 4, Name = "Community Engagement" }
     };
 
+    var canonicalGoalIds = defaultGoals
+        .Select(goal => goal.Id)
+        .ToHashSet();
+
     foreach (var goal in defaultGoals)
     {
-        if (!db.StrategicGoals.Any(g => g.Id == goal.Id))
+        var existingGoal = db.StrategicGoals.FirstOrDefault(g => g.Id == goal.Id);
+        if (existingGoal == null)
         {
-            db.StrategicGoals.Add(new OneJaxDashboard.Models.StrategicGoal
+            db.StrategicGoals.Add(new StrategicGoal
             {
                 Id = goal.Id,
                 Name = goal.Name
             });
+
+            continue;
         }
+
+        if (!string.Equals(existingGoal.Name, goal.Name, StringComparison.Ordinal))
+        {
+            existingGoal.Name = goal.Name;
+        }
+    }
+
+    var removableGoals = db.StrategicGoals
+        .Where(goal => !canonicalGoalIds.Contains(goal.Id))
+        .Where(goal =>
+            !db.Events.Any(e => e.StrategicGoalId == goal.Id) &&
+            !db.Strategies.Any(s => s.StrategicGoalId == goal.Id) &&
+            !db.GoalMetrics.Any(m => m.StrategicGoalId == goal.Id))
+        .ToList();
+
+    if (removableGoals.Any())
+    {
+        db.StrategicGoals.RemoveRange(removableGoals);
     }
 
     db.SaveChanges();

@@ -59,6 +59,9 @@ namespace OneJaxDashboard.Controllers
             var allEvents = _db.Events
                 .Include(e => e.AssignedStaff)
                 .Where(e => !e.IsArchived)
+                .Where(e => !string.IsNullOrWhiteSpace(e.OwnerUsername))
+                .ToList()
+                .Where(e => e.StrategyTemplateId.HasValue && _strategyService.GetStrategy(e.StrategyTemplateId.Value) != null)
                 .ToList();
 
             // Separate into active and completed
@@ -157,6 +160,9 @@ namespace OneJaxDashboard.Controllers
             var archivedEvents = _db.Events
                 .Include(e => e.AssignedStaff)
                 .Where(e => e.IsArchived)
+                .Where(e => !string.IsNullOrWhiteSpace(e.OwnerUsername))
+                .ToList()
+                .Where(e => e.StrategyTemplateId.HasValue && _strategyService.GetStrategy(e.StrategyTemplateId.Value) != null)
                 .ToList();
 
             return View(archivedEvents);

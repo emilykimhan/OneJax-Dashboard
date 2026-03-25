@@ -37,6 +37,12 @@ namespace OneJaxDashboard.Models
         [DataType(DataType.Date)]
         public DateTime? EndDate { get; set; }
 
+        [Display(Name = "Strategic Goal")]
+        public int? StrategicGoalId { get; set; }
+
+        [Display(Name = "Strategy Template")]
+        public int? StrategyTemplateId { get; set; }
+
         // Link to Strategy
         [Display(Name = "Event")]
         public int? StrategyId { get; set; }

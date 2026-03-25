@@ -1,0 +1,131 @@
+@model DashboardViewModel
+@using OneJaxDashboard.Models
+@{
+    var canManageData = ViewData["CanManageData"] as bool? ?? false;
+
+    decimal LiveGoalProgress(IEnumerable<GoalMetric>? metrics)
+    {
+        var liveMetrics = (metrics ?? Enumerable.Empty<GoalMetric>())
+            .Where(m => !string.Equals(m.Status, "Planning", StringComparison.OrdinalIgnoreCase))
+            .Where(m => !string.IsNullOrWhiteSpace(m.Target))
+            .Where(m =>
+            {
+                var clean = (m.Target ?? string.Empty).Replace("$", "").Replace(",", "").Replace("%", "").Trim();
+                return decimal.TryParse(clean, out var target) && target > 0;
+            })
+            .Select(m =>
+            {
+                var clean = (m.Target ?? string.Empty).Replace("$", "").Replace(",", "").Replace("%", "").Trim();
+                decimal.TryParse(clean, out var target);
+                return target > 0 ? Math.Min((m.CurrentValue / target) * 100, 100) : 0;
+            })
+            .ToList();
+
+        return liveMetrics.Any() ? Math.Round(liveMetrics.Average(), 1) : 0;
+    }
+
+    var dashboardChartEvents = Model.StrategicGoals?.SelectMany(g => g.Events ?? new List<Event>()) ?? new List<Event>();
+    var dashboardPlannedEventsChart = dashboardChartEvents.Count(e => e.Status == "Planned");
+    var dashboardActiveEventsChart = dashboardChartEvents.Count(e => e.Status == "Active" || e.Status == "In Progress");
+    var dashboardCompletedEventsChart = dashboardChartEvents.Count(e => e.Status == "Completed");
+    var dashboardCancelledEventsChart = dashboardChartEvents.Count(e => e.Status == "Cancelled");
+    var dashboardOverallProgress = Model.StrategicGoals?.Any() == true ? Model.StrategicGoals.Average(g => LiveGoalProgress(g.Metrics)) : 0;
+    var dashboardTotalDataEntries = Model.Summary.TotalWebsiteTrafficEntries +
+        Model.Summary.TotalStaffSurveys +
+        Model.Summary.TotalMediaPlacements +
+        Model.Summary.TotalEvents +
+        Model.Summary.TotalActivities;
+    var dashboardDataCollectionProgress = Math.Min((dashboardTotalDataEntries / 100.0) * 100, 100);
+    var dashboardPerformanceScore = Math.Min(
+        (Model.Charts.GoalProgress.OrganizationalProgress +
+         Model.Charts.GoalProgress.FinancialProgress +
+         Model.Charts.GoalProgress.IdentityProgress +
+         Model.Charts.GoalProgress.CommunityProgress) / 4m,
+        100m
+    );
+    var dashboardPerformanceGaugeColor = dashboardPerformanceScore >= 80 ? "#22c55e" : dashboardPerformanceScore >= 60 ? "#f59e0b" : "#ef4444";
+}
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+<!-- Dashboard Data Setup -->
+<script>
+    window.dashboardConfig = {
+        userAuthenticated: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(User?.Identity?.IsAuthenticated ?? false)),
+        canManageData: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(canManageData)),
+        editEventsUrl: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(canManageData ? "/Strategy/ViewEvents" : "/Public/Events")),
+        dataSource: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DataSource))
+    };
+
+    window.chartData = {
+        goalProgress: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(new[]
+        {
+            Model.Charts.GoalProgress.OrganizationalProgress,
+            Model.Charts.GoalProgress.FinancialProgress,
+            Model.Charts.GoalProgress.IdentityProgress,
+            Model.Charts.GoalProgress.CommunityProgress
+        })),
+        activitySummary: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(new[]
+        {
+            Model.Summary.TotalStaffSurveys,
+            Model.Summary.TotalProfessionalDevelopmentPlans,
+            Model.Summary.TotalMediaPlacements,
+            Model.Summary.TotalWebsiteTrafficEntries,
+            Model.Summary.TotalEvents
+        })),
+        monthlyTrends: {
+            labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Charts.MonthlyTrends.Select(t => t.Month).ToList())),
+            organizational: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Charts.MonthlyTrends.Select(t => t.OrganizationalValue).ToList())),
+            community: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Charts.MonthlyTrends.Select(t => t.CommunityValue).ToList())),
+            financial: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Charts.MonthlyTrends.Select(t => t.FinancialValue).ToList())),
+            identity: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Charts.MonthlyTrends.Select(t => t.IdentityValue).ToList()))
+        },
+        metricTypes: {
+            labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Charts.MetricTypes.Select(mt => mt.Type).ToList())),
+            values: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Charts.MetricTypes.Select(mt => mt.Count).ToList()))
+        },
+        radarCurrent: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(new[]
+        {
+            Model.Charts.GoalProgress.OrganizationalProgress,
+            Model.Charts.GoalProgress.FinancialProgress,
+            Model.Charts.GoalProgress.IdentityProgress,
+            Model.Charts.GoalProgress.CommunityProgress,
+            Model.Summary.AverageStaffSatisfaction > 0 ? Model.Summary.AverageStaffSatisfaction : 0,
+            Model.Summary.TotalWebsiteTrafficEntries > 0 ? Math.Min(Model.Summary.TotalWebsiteTrafficEntries * 10, 100) : 0
+        })),
+        quarterly: {
+            labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Charts.QuarterlyData.Select(q => q.Quarter).ToList())),
+            values: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Charts.QuarterlyData.Select(q => q.Value).ToList()))
+        },
+        summary: {
+            eventStatus: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(new[]
+            {
+                dashboardPlannedEventsChart,
+                dashboardActiveEventsChart,
+                dashboardCompletedEventsChart,
+                dashboardCancelledEventsChart
+            })),
+            overallProgress: @Math.Round(dashboardOverallProgress, 1).ToString(System.Globalization.CultureInfo.InvariantCulture),
+            dataCollectionProgress: @Math.Round((decimal)dashboardDataCollectionProgress, 1).ToString(System.Globalization.CultureInfo.InvariantCulture),
+            performanceScore: @Math.Round(dashboardPerformanceScore, 1).ToString(System.Globalization.CultureInfo.InvariantCulture),
+            performanceGaugeColor: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(dashboardPerformanceGaugeColor))
+        }
+    };
+
+    window.summaryData = {
+        totalStaffSurveys: @Model.Summary.TotalStaffSurveys,
+        totalProfessionalDevelopmentPlans: @Model.Summary.TotalProfessionalDevelopmentPlans,
+        totalMediaPlacements: @Model.Summary.TotalMediaPlacements,
+        totalWebsiteTrafficEntries: @Model.Summary.TotalWebsiteTrafficEntries,
+        totalEvents: @Model.Summary.TotalEvents,
+        totalActivities: @Model.Summary.TotalActivities
+    };
+
+    window.userAuthenticated = window.dashboardConfig.userAuthenticated;
+</script>
+
+<!-- OneJax Dashboard Scripts -->
+<script src="~/js/dashboard-charts.js" asp-append-version="true"></script>
+<script src="~/js/dashboard-interactions.js" asp-append-version="true"></script>
