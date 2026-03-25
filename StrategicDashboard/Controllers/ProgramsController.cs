@@ -10,6 +10,7 @@ public class ProgramsController : Controller
 {
     private readonly ApplicationDbContext _context;
     private readonly ActivityLogService _activityLog;
+    private readonly EventsService _events;
 
     private static readonly string[] ProgramTypes =
     {
@@ -21,10 +22,11 @@ public class ProgramsController : Controller
         "Donor"
     };
 
-    public ProgramsController(ApplicationDbContext context, ActivityLogService activityLog)
+    public ProgramsController(ApplicationDbContext context, ActivityLogService activityLog, EventsService events)
     {
         _context = context;
         _activityLog = activityLog;
+        _events = events;
     }
 
     [HttpGet]
@@ -214,6 +216,7 @@ public class ProgramsController : Controller
         {
             archivedEvent.IsArchived = false;
             archivedEvent.ArchivedAtUtc = null;
+            _events.UnarchiveByStrategyTemplate(id);
             _context.SaveChanges();
             TempData["ProgramsSuccess"] = "Event restored.";
         }

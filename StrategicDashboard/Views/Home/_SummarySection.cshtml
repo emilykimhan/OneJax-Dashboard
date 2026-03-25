@@ -1,0 +1,481 @@
+@model DashboardViewModel
+@using OneJaxDashboard.Models
+@{
+    var selectedGoal = ViewData["SelectedGoal"]?.ToString() ?? string.Empty;
+    var canManageData = ViewData["CanManageData"] as bool? ?? false;
+    var activeFiscalYear = ViewBag.ActiveFiscalYearLabel?.ToString() ?? string.Empty;
+    // These buckets intentionally mirror the current dashboard metric names generated in
+    // HomeController and the strategic plan spreadsheet you shared. Keeping the mapping
+    // explicit here makes the top Summary logic easier to audit without touching the DB.
+    var milestoneMetrics = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    {
+        // Identity/Value: roll-out style objective from the communications/framework work.
+        "Strategic Plan Completion"
+    };
+
+    var growthMetrics = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    {
+        // Identity/Value: explicit growth target.
+        "Website Traffic",
+
+        // Community: year-over-year growth style metrics from the plan.
+        "Youth Attendance Growth",
+        "Clergy Network Growth",
+        "Participant Diversity"
+    };
+
+    var snapshotMetrics = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    {
+        // Identity/Value: periodic survey/current-state signals.
+        "Community Perception Survey",
+
+        // Organizational: annual/current-state quality measures.
+        "Staff Satisfaction Rating",
+        "Board Meeting Participation",
+        "Board Self-Assessment",
+
+        // Financial: satisfaction/current-state measure.
+        "Donor Communication Satisfaction",
+
+        // Community: percent/rating style measures.
+        "Faith Representation",
+        "Event Satisfaction",
+        "First-Time Participants",
+
+        // Organizational: annual participation target is effectively a current-year snapshot.
+        "Professional Development Plans"
+    };
+
+    var cumulativeMetrics = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    {
+        // Identity/Value: build-up/count metrics.
+        "Earned Media Placements",
+        "Geographic Reach",
+
+        // Organizational: count-style progress over the plan.
+        "Board Recruitment",
+        "Volunteer Program Participation",
+
+        // Financial: event/revenue/count accumulation metrics.
+        "Budget Revenue Tracking",
+        "Fee-for-Service Income",
+        "General Income Streams",
+        "Donor Engagement Events",
+
+        // Community: count-based partnership and event metrics.
+        "Interfaith Events Hosted",
+        "Cross-Sector Collaborations"
+    };
+
+    var ongoingMetrics = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    {
+        // None of the currently generated dashboard metrics are pure ongoing logs yet.
+        // We keep the bucket so the top summary can exclude these if they are added later.
+    };
+
+    IEnumerable<GoalMetric> ReportingMetrics(IEnumerable<GoalMetric>? metrics)
+    {
+        return (metrics ?? Enumerable.Empty<GoalMetric>())
+            .Where(m => !string.Equals(m.Status, "Planning", StringComparison.OrdinalIgnoreCase))
+            .Where(m => !string.IsNullOrWhiteSpace(m.Target))
+            .Where(m =>
+            {
+                var clean = (m.Target ?? string.Empty).Replace("$", "").Replace(",", "").Replace("%", "").Trim();
+                return decimal.TryParse(clean, out var target) && target > 0;
+            });
+    }
+
+    string GetMetricCategory(GoalMetric metric)
+    {
+        var name = metric.Name ?? string.Empty;
+
+        if (milestoneMetrics.Contains(name))
+        {
+            return "Milestone";
+        }
+
+        if (growthMetrics.Contains(name))
+        {
+            return "Growth";
+        }
+
+        if (snapshotMetrics.Contains(name))
+        {
+            return "Snapshot";
+        }
+
+        if (cumulativeMetrics.Contains(name))
+        {
+            return "Cumulative";
+        }
+
+        if (ongoingMetrics.Contains(name))
+        {
+            return "Ongoing";
+        }
+
+        // Keep unknown future metrics visible instead of excluding them from the Summary.
+        // Defaulting to Snapshot is safer than silently treating every new metric as cumulative.
+        // If a new metric appears, this helper should be updated intentionally.
+        return "Snapshot";
+    }
+
+    bool CountsTowardTopSummary(GoalMetric metric)
+    {
+        return !string.Equals(GetMetricCategory(metric), "Ongoing", StringComparison.OrdinalIgnoreCase);
+    }
+
+    decimal LiveGoalProgress(IEnumerable<GoalMetric>? metrics)
+    {
+        var liveMetrics = ReportingMetrics(metrics)
+            .Select(m =>
+            {
+                var clean = (m.Target ?? string.Empty).Replace("$", "").Replace(",", "").Replace("%", "").Trim();
+                decimal.TryParse(clean, out var target);
+                return target > 0 ? Math.Min((m.CurrentValue / target) * 100, 100) : 0;
+            })
+            .ToList();
+
+        return liveMetrics.Any() ? Math.Round(liveMetrics.Average(), 1) : 0;
+    }
+
+    bool MetricMeetsGoal(GoalMetric metric)
+    {
+        var clean = (metric.Target ?? string.Empty).Replace("$", "").Replace(",", "").Replace("%", "").Trim();
+        var category = GetMetricCategory(metric);
+
+        if (string.Equals(category, "Milestone", StringComparison.OrdinalIgnoreCase)
+            && string.Equals(metric.Status, "Completed", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return decimal.TryParse(clean, out var target) && target > 0 && metric.CurrentValue >= target;
+    }
+
+    var goalSummaries = (Model.StrategicGoals ?? new List<StrategicGoal>())
+        .Select(g => new
+        {
+            Goal = g,
+            TotalMetricCount = g.Metrics?.Count() ?? 0,
+            ReportingMetricCount = ReportingMetrics(g.Metrics).Count(),
+            Progress = LiveGoalProgress(g.Metrics)
+        })
+        .ToList();
+
+    var goalsWithReporting = goalSummaries.Where(g => g.ReportingMetricCount > 0).ToList();
+    var totalMetrics = goalSummaries.Sum(g => g.TotalMetricCount);
+    var totalReportingMetrics = goalSummaries.Sum(g => g.ReportingMetricCount);
+    var summaryEligibleMetrics = (Model.StrategicGoals ?? new List<StrategicGoal>())
+        .SelectMany(g => ReportingMetrics(g.Metrics))
+        .Where(CountsTowardTopSummary)
+        .ToList();
+    var totalMetricsMeetingGoal = summaryEligibleMetrics
+        .Count(MetricMeetsGoal);
+    var totalEligibleMetrics = summaryEligibleMetrics.Count;
+    var overallProgress = totalEligibleMetrics > 0
+        ? Math.Round((decimal)totalMetricsMeetingGoal / totalEligibleMetrics * 100, 1)
+        : 0;
+    var totalEvents = Model.StrategicGoals?.SelectMany(g => g.Events ?? new List<Event>()).Count() ?? 0;
+    var avgProgress = Model.StrategicGoals?.Any() == true ? Model.StrategicGoals.Average(g => LiveGoalProgress(g.Metrics)) : 0;
+    var publicEventsCount = totalEvents;
+    var overallDashboardProgress =
+        (Model.Charts.GoalProgress.OrganizationalProgress +
+         Model.Charts.GoalProgress.FinancialProgress +
+         Model.Charts.GoalProgress.IdentityProgress +
+         Model.Charts.GoalProgress.CommunityProgress) / 4m;
+}
+
+<div class="col-12 mb-4 goal-section" data-goal="summary" style="@(string.IsNullOrEmpty(selectedGoal) ? "" : "display: none;")">
+    <div class="card" style="background: var(--onejax-white); border: 1px solid var(--onejax-border); border-radius: 8px; border-left: 4px solid var(--onejax-blue); box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <div class="card-header" style="background: linear-gradient(135deg, var(--onejax-navy), var(--onejax-blue)); border-bottom: 3px solid var(--onejax-orange);">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h3 style="color: white; margin: 0;">
+                        Strategic Overview Summary
+                    </h3>
+                    <p style="color: rgba(255,255,255,0.8); margin: 0; font-size: 0.9em;">All Strategic Goals | Consolidated Progress View</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div style="color: white;">
+                        <div style="font-size: 2rem; font-weight: 700;">@Math.Round(overallProgress, 1)%</div>
+                        <small>Metrics Meeting Goal</small>
+                        <div style="font-size: 0.8rem; opacity: 0.85;">
+                            @totalMetricsMeetingGoal of @totalEligibleMetrics eligible metrics met goal in @(string.IsNullOrWhiteSpace(activeFiscalYear) ? "this view" : activeFiscalYear)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-body" style="padding: 2rem;">
+            <div class="row mb-4">
+                <div class="col-12 text-center">
+                    <h4 style="color: var(--onejax-navy); font-weight: 600; margin-bottom: 0.5rem;">Dashboard Analytics</h4>
+                    <p style="color: var(--onejax-text-muted); margin-bottom: 2rem;">Visual overview of your organizational progress</p>
+                </div>
+            </div>
+
+            <div class="row mb-5">
+                @if (goalSummaries.Any())
+                {
+                    @foreach (var summaryGoal in goalSummaries)
+                    {
+                        var goalProgress = summaryGoal.Progress;
+                        var hasReportingMetrics = summaryGoal.ReportingMetricCount > 0;
+                        <div class="col-md-6 col-lg-3 mb-3">
+                            <div class="card hover-card" style="background: var(--onejax-white); border: 1px solid var(--onejax-border); border-radius: 12px; cursor: pointer; transition: all 0.3s ease;" onclick="switchTab('@summaryGoal.Goal.Name.Replace(" ", "_")', null, event)">
+                                <div class="card-body text-center" style="padding: 1.5rem;">
+                                    <h6 style="color: var(--onejax-navy); margin-bottom: 1rem; font-weight: 600;">@summaryGoal.Goal.Name</h6>
+                                    <div style="font-size: 1.8rem; font-weight: 700; color: var(--onejax-navy); margin-bottom: 1rem;">@(hasReportingMetrics ? $"{Math.Round(goalProgress, 1)}%" : "No data")</div>
+                                    <div class="progress" style="height: 8px; border-radius: 4px; background: rgba(59, 130, 246, 0.1);">
+                                        <div class="progress-bar" style="width: @Math.Min(goalProgress, 100)%; background: var(--gradient-secondary); border-radius: 4px;"></div>
+                                    </div>
+                                    <small style="color: var(--onejax-text-muted); margin-top: 0.5rem; display: block;">
+                                        @(hasReportingMetrics
+                                            ? $"{summaryGoal.ReportingMetricCount} of {summaryGoal.TotalMetricCount} metrics reporting"
+                                            : $"No reporting metrics in {(string.IsNullOrWhiteSpace(activeFiscalYear) ? "this view" : activeFiscalYear)}")
+                                    </small>
+                                    <small style="color: var(--onejax-text-muted); margin-top: 0.15rem; display: block;">
+                                        @(summaryGoal.Goal.Events?.Count() ?? 0) Events
+                                    </small>
+                                    <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--onejax-blue);">
+                                        Click to view details →
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card" style="border-radius: 12px; border: 1px solid var(--onejax-border); box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                        <div class="card-header" style="background: linear-gradient(135deg, var(--onejax-navy), var(--onejax-blue)); color: white; border-radius: 12px 12px 0 0;">
+                            <h6 class="mb-0">Strategic Goal Progress</h6>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="progressChart" width="400" height="250"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-4">
+                    <div class="card" style="border-radius: 12px; border: 1px solid var(--onejax-border); box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                        <div class="card-header" style="background: linear-gradient(135deg, var(--onejax-green), var(--onejax-blue)); color: white; border-radius: 12px 12px 0 0;">
+                            <h6 class="mb-0">Data Activity Summary</h6>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="activityChart" width="400" height="250"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-8 mb-4">
+                    <div class="card" style="border-radius: 12px; border: 1px solid var(--onejax-border); box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                        <div class="card-header" style="background: linear-gradient(135deg, var(--onejax-orange), #ea580c); color: white; border-radius: 12px 12px 0 0;">
+                            <h6 class="mb-0">📈 Monthly Progress Trends</h6>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="trendsChart" width="600" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-4">
+                    <div class="card" style="border-radius: 12px; border: 1px solid var(--onejax-border); box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                        <div class="card-header" style="background: linear-gradient(135deg, #8B5CF6, #7C3AED); color: white; border-radius: 12px 12px 0 0;">
+                            <h6 class="mb-0">📊 Metrics Distribution</h6>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="metricsTypeChart" width="300" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-12 mb-4">
+                    <div class="card" style="border-radius: 12px; border: 1px solid var(--onejax-border); box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                        <div class="card-header" style="background: linear-gradient(135deg, #10B981, #059669); color: white; border-radius: 12px 12px 0 0;">
+                            <h6 class="mb-0">🎯 Goal Performance Radar</h6>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="radarChart" width="400" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <style>
+                    .summary-static-card {
+                        cursor: default !important;
+                    }
+
+                    .summary-static-card:hover {
+                        transform: none !important;
+                        box-shadow: inherit !important;
+                    }
+
+                    .summary-static-card .card-body {
+                        min-height: 210px;
+                    }
+
+                    .summary-link-card {
+                        cursor: pointer;
+                    }
+
+                    .summary-link-card:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+                    }
+
+                    .summary-link-card .card-body {
+                        min-height: 210px;
+                    }
+
+                    .onejax-overall-gauge-wrap {
+                        position: relative;
+                        width: 140px;
+                        height: 140px;
+                        margin: 0 auto;
+                    }
+
+                    .onejax-overall-gauge-wrap canvas {
+                        width: 100% !important;
+                        height: 100% !important;
+                        display: block;
+                    }
+
+                    .onejax-overall-gauge-text {
+                        position: absolute;
+                        left: 50%;
+                        top: 50%;
+                        transform: translate(-50%, -50%);
+                        font-weight: 800;
+                        font-size: 2rem;
+                        letter-spacing: -0.02em;
+                        color: var(--onejax-navy);
+                    }
+                </style>
+                <div class="col-12 mb-3">
+                    <h5 style="color: var(--onejax-navy); font-weight: 600; margin-bottom: 1rem;">
+                        <i class="fas fa-rocket"></i> Quick Access & KPIs
+                    </h5>
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <div class="card hover-card metric-card-creative" style="border-radius: 12px; border: 1px solid var(--onejax-border); cursor: pointer; transition: all 0.3s ease; background: linear-gradient(135deg, var(--onejax-blue), var(--onejax-navy));" onclick="switchTab('Community_Engagement', null, event)">
+                        <div class="card-body text-center" style="padding: 1.5rem; color: white;">
+                            <div class="mb-3">
+                                <i class="fas fa-users" style="font-size: 2.5rem;"></i>
+                            </div>
+                            <h6 class="card-title" style="font-weight: 600; margin-bottom: 0.5rem;">Community Events</h6>
+                            <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">@totalEvents</div>
+                            <small style="opacity: 0.8;">Total Strategic Events</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <div class="card hover-card metric-card-creative" style="border-radius: 12px; border: 1px solid var(--onejax-border); cursor: pointer; transition: all 0.3s ease; background: linear-gradient(135deg, var(--onejax-green), #059669);" onclick="window.location.href='@(canManageData ? "/MediaPlacements" : "/Account/Login")'">
+                        <div class="card-body text-center" style="padding: 1.5rem; color: white;">
+                            <div class="mb-3">
+                                <i class="fas fa-newspaper" style="font-size: 2.5rem;"></i>
+                            </div>
+                            <h6 class="card-title" style="font-weight: 600; margin-bottom: 0.5rem;">Media Coverage</h6>
+                            <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">@Model.Summary.TotalMediaPlacements</div>
+                            <small style="opacity: 0.8;">Media Placements</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <div class="card hover-card metric-card-creative" style="border-radius: 12px; border: 1px solid var(--onejax-border); cursor: pointer; transition: all 0.3s ease; background: linear-gradient(135deg, var(--onejax-orange), #ea580c);" onclick="switchTab('Financial_Sustainability', null, event)">
+                        <div class="card-body text-center" style="padding: 1.5rem; color: white;">
+                            <div class="mb-3">
+                                <i class="fas fa-dollar-sign" style="font-size: 2.5rem;"></i>
+                            </div>
+                            <h6 class="card-title" style="font-weight: 600; margin-bottom: 0.5rem;">Staff Surveys</h6>
+                            <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">@Model.Summary.TotalStaffSurveys</div>
+                            <small style="opacity: 0.8;">Survey Responses</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <div class="card hover-card metric-card-creative" style="border-radius: 12px; border: 1px solid var(--onejax-border); cursor: pointer; transition: all 0.3s ease; background: linear-gradient(135deg, #8B5CF6, #7C3AED);" onclick="switchTab('Organizational_Building', null, event)">
+                        <div class="card-body text-center" style="padding: 1.5rem; color: white;">
+                            <div class="mb-3">
+                                <i class="fas fa-chart-line" style="font-size: 2.5rem;"></i>
+                            </div>
+                            <h6 class="card-title" style="font-weight: 600; margin-bottom: 0.5rem;">Growth Metrics</h6>
+                            <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">@Math.Round(avgProgress, 0)%</div>
+                            <small style="opacity: 0.8;">Avg Progress Rate</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <div class="card metric-card-creative summary-link-card h-100" style="border-radius: 12px; border: 1px solid var(--onejax-border); transition: all 0.3s ease;">
+                        <div class="card-body text-center d-flex flex-column justify-content-center h-100" style="padding: 1.5rem;">
+                            <div class="mb-3">
+                                <i class="fas fa-calendar-alt" style="font-size: 2.5rem; color: var(--onejax-blue);"></i>
+                            </div>
+                            <h6 class="card-title" style="color: var(--onejax-navy); font-weight: 600; margin-bottom: 0.5rem;">Public Events</h6>
+                            <p class="card-text text-muted" style="font-size: 0.9rem; margin-bottom: 1rem;">View upcoming initiatives across the four strategic goals</p>
+                            <div class="d-flex justify-content-center align-items-center">
+                                <span class="badge" style="background: linear-gradient(135deg, var(--onejax-blue), var(--onejax-navy)); color: white; font-size: 0.75rem;">
+                                    @publicEventsCount Events
+                                </span>
+                            </div>
+                            <a href="/Public/Events" class="stretched-link" aria-label="View public events"></a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <div class="card metric-card-creative summary-static-card h-100" style="border-radius: 12px; border: 1px solid var(--onejax-border); transition: all 0.3s ease;">
+                        <div class="card-body text-center d-flex flex-column justify-content-center h-100" style="padding: 1.5rem; gap: 0.65rem;">
+                            <h6 class="card-title" style="color: var(--onejax-navy); font-weight: 700; margin: 0;">Overall Progress</h6>
+                            <div class="onejax-overall-gauge-wrap">
+                                <canvas id="performanceGauge"></canvas>
+                                <div class="onejax-overall-gauge-text">@Math.Round(overallDashboardProgress, 1)%</div>
+                            </div>
+                            <p class="card-text text-muted" style="font-size: 0.95rem; margin: 0;">Average progress across all strategic goals</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <div class="card metric-card-creative summary-link-card h-100" style="border-radius: 12px; border: 1px solid var(--onejax-border); transition: all 0.3s ease;">
+                        <div class="card-body text-center d-flex flex-column justify-content-center h-100" style="padding: 1.5rem;">
+                            <div class="mb-3">
+                                <i class="fas fa-globe" style="font-size: 2.5rem; color: var(--onejax-orange);"></i>
+                            </div>
+                            <h6 class="card-title" style="color: var(--onejax-navy); font-weight: 600; margin-bottom: 0.5rem;">OneJax Website</h6>
+                            <p class="card-text text-muted" style="font-size: 0.9rem; margin-bottom: 1rem;">Visit our main organization website</p>
+                            <div class="d-flex justify-content-center align-items-center">
+                                <span class="badge" style="background: linear-gradient(135deg, var(--onejax-orange), var(--onejax-navy)); color: white; font-size: 0.75rem;">
+                                    <i class="fas fa-external-link-alt"></i> Visit Site
+                                </span>
+                            </div>
+                            <a href="https://onejax.org" target="_blank" rel="noopener noreferrer" class="stretched-link" aria-label="Visit OneJax website"></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-12 text-center">
+                    <button onclick="exportDashboard()" class="btn btn-outline-primary">
+                        <i class="fas fa-download"></i> Export Dashboard Data
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

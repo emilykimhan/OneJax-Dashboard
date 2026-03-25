@@ -1,0 +1,51 @@
+@model DashboardViewModel
+@{
+    var selectedFiscalYear = ViewData["SelectedFiscalYear"]?.ToString() ?? string.Empty;
+}
+
+<div class="floating-card mb-5 fade-in">
+    <div class="card-body" style="padding: 2.5rem;">
+        <div class="row align-items-center mb-4">
+            <div class="col-md-8">
+                <h5 style="color: var(--onejax-navy); margin-bottom: 0.5rem; font-weight: 700;">
+                    Dashboard Controls
+                </h5>
+                <p style="color: var(--onejax-text-muted); margin-bottom: 0;">Customize your view by fiscal year</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <span class="badge-modern" style="background: var(--gradient-secondary); color: white;">
+                    🔴 Live Data
+                </span>
+            </div>
+        </div>
+
+        <form onsubmit="applyFilters(); return false;">
+            <div class="row g-4 align-items-end">
+                <div class="col-md-6 col-lg-4">
+                    <label for="fiscalYearFilter" class="form-label" style="color: var(--onejax-navy); font-weight: 600;">
+                        Fiscal Year
+                    </label>
+                    <select class="form-select" id="fiscalYearFilter" name="fiscalYear" style="border-radius: 12px; border: 2px solid var(--onejax-border); padding: 12px;">
+                        <option value="" selected="@(string.IsNullOrEmpty(selectedFiscalYear))">All Years</option>
+                        <option value="2024-2025" selected="@(selectedFiscalYear == "2024-2025")">FY 2024-2025</option>
+                        <option value="2025-2026" selected="@(selectedFiscalYear == "2025-2026")">FY 2025-2026</option>
+                        <option value="2026-2027" selected="@(selectedFiscalYear == "2026-2027")">FY 2026-2027</option>
+                        <option value="2027-2028" selected="@(selectedFiscalYear == "2027-2028")">FY 2027-2028</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3 col-lg-2">
+                    <button type="submit" class="btn btn-primary-modern w-100" style="font-weight: 600;">
+                        Apply Filters
+                    </button>
+                </div>
+
+                <div class="col-md-3 col-lg-2">
+                    <button type="button" class="btn btn-outline-secondary w-100" onclick="resetFilters()" style="border-radius: 12px;">
+                        Reset
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

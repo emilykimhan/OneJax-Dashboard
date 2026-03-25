@@ -107,6 +107,74 @@ namespace OneJaxDashboard.Services
                 .Where(e => e.IsArchived)
                 .ToList();
 
-        
+        public IEnumerable<Event> GetByStrategy(int strategyId)
+            => _db.Events
+                .Include(e => e.AssignedStaff)
+                .Where(e => e.StrategyId == strategyId && !e.IsArchived)
+                .ToList();
+
+        public IEnumerable<Event> GetByStrategicGoal(int goalId)
+            => _db.Events
+                .Include(e => e.AssignedStaff)
+                .Where(e => e.StrategicGoalId == goalId && !e.IsArchived)
+                .ToList();
+
+        public IEnumerable<Event> GetByStrategyTemplate(int strategyTemplateId)
+            => _db.Events
+                .Include(e => e.AssignedStaff)
+                .Where(e => e.StrategyTemplateId == strategyTemplateId && !e.IsArchived)
+                .ToList();
+
+        // Remove events that reference deleted strategies
+        public void RemoveByStrategyTemplate(int strategyTemplateId)
+        {
+            var eventsToRemove = _db.Events
+                .Where(e => e.StrategyTemplateId == strategyTemplateId)
+                .ToList();
+
+            _db.Events.RemoveRange(eventsToRemove);
+            _db.SaveChanges();
+        }
+
+        public void ArchiveByStrategyTemplate(int strategyTemplateId)
+        {
+            var eventsToArchive = _db.Events
+                .Where(e => e.StrategyTemplateId == strategyTemplateId && !e.IsArchived)
+                .ToList();
+
+            if (!eventsToArchive.Any())
+            {
+                return;
+            }
+
+            var completionDate = DateTime.Now;
+            foreach (var eventModel in eventsToArchive)
+            {
+                eventModel.IsArchived = true;
+                eventModel.CompletionDate ??= completionDate;
+            }
+
+            _db.SaveChanges();
+        }
+
+        public void UnarchiveByStrategyTemplate(int strategyTemplateId)
+        {
+            var eventsToUnarchive = _db.Events
+                .Where(e => e.StrategyTemplateId == strategyTemplateId && e.IsArchived)
+                .ToList();
+
+            if (!eventsToUnarchive.Any())
+            {
+                return;
+            }
+
+            foreach (var eventModel in eventsToUnarchive)
+            {
+                eventModel.IsArchived = false;
+                eventModel.CompletionDate = null;
+            }
+
+            _db.SaveChanges();
+        }
     }
 }

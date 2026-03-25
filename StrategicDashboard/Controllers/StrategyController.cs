@@ -13,6 +13,7 @@ public class StrategyController : Controller
 {
     private readonly ApplicationDbContext _context;
     private readonly ActivityLogService _activityLog;
+    private readonly EventsService _events;
     private static readonly DateTime MaxEventDate = new(2030, 12, 31);
     private static readonly string[] DefaultProgramTypes =
     {
@@ -24,10 +25,11 @@ public class StrategyController : Controller
         "Donor"
     };
 
-    public StrategyController(ApplicationDbContext context, ActivityLogService activityLog)
+    public StrategyController(ApplicationDbContext context, ActivityLogService activityLog, EventsService events)
     {
         _context = context;
         _activityLog = activityLog;
+        _events = events;
     }
 
     private static readonly List<SelectListItem> Goals = new()
@@ -55,16 +57,16 @@ public class StrategyController : Controller
 
     private StrategicGoal? EnsureGoalExists(int goalId)
     {
-        var existingGoal = _context.StrategicGoals.FirstOrDefault(g => g.Id == goalId);
-        if (existingGoal != null)
-        {
-            return existingGoal;
-        }
-
         var fallbackGoalName = Goals.FirstOrDefault(g => g.Value == goalId.ToString())?.Text;
         if (string.IsNullOrWhiteSpace(fallbackGoalName))
         {
             return null;
+        }
+
+        var existingGoal = _context.StrategicGoals.FirstOrDefault(g => g.Id == goalId);
+        if (existingGoal != null)
+        {
+            return existingGoal;
         }
 
         var newGoal = new StrategicGoal
@@ -224,6 +226,8 @@ public class StrategyController : Controller
 
         _context.Strategies.Add(dbEvent);
         _context.SaveChanges();
+        SyncLinkedDashboardEvent(dbEvent);
+        _context.SaveChanges();
 
         string goalName = selectedGoal.Name;
         // Log the creation
@@ -338,6 +342,7 @@ public class StrategyController : Controller
         evt.EventFYear = ComputeFiscalYear(eventDate);
 
         // Save changes to the database
+        SyncLinkedDashboardEvent(evt);
         _context.SaveChanges();
         var previousGoalName = ResolveGoalName(previousGoalId);
         var updatedGoalName = ResolveGoalName(evt.StrategicGoalId);
@@ -374,6 +379,7 @@ public class StrategyController : Controller
 
         // Remove the strategy from the database
         var deletedEventName = strategy.Name;
+        _events.RemoveByStrategyTemplate(id);
         _context.Strategies.Remove(strategy);
         _context.SaveChanges();
         _activityLog.Log(GetActorName(), "Deleted Core Strategy Event", "Strategy",
@@ -395,6 +401,7 @@ public class StrategyController : Controller
 
         strategy.IsArchived = true;
         strategy.ArchivedAtUtc = DateTime.UtcNow;
+        _events.ArchiveByStrategyTemplate(id);
         _context.SaveChanges();
 
         TempData["ProgramsSuccess"] = "Event archived.";
@@ -490,6 +497,48 @@ public class StrategyController : Controller
 
     private static string Normalize(string? value) => (value ?? string.Empty).Trim();
     private static string Display(string value) => string.IsNullOrEmpty(value) ? "(empty)" : value;
+
+    private void SyncLinkedDashboardEvent(Strategy strategy)
+    {
+        var canonicalEvent = _context.Events
+            .FirstOrDefault(e =>
+                e.StrategyTemplateId == strategy.Id
+                && !e.IsAssignedByAdmin
+                && string.IsNullOrEmpty(e.OwnerUsername));
+
+        if (canonicalEvent == null)
+        {
+            canonicalEvent = new Event
+            {
+                StrategyTemplateId = strategy.Id,
+                StrategyId = strategy.Id,
+                OwnerUsername = string.Empty,
+                Status = "Planned",
+                IsAssignedByAdmin = false
+            };
+
+            _context.Events.Add(canonicalEvent);
+        }
+
+        canonicalEvent.Title = strategy.Name;
+        canonicalEvent.Description = strategy.Description;
+        canonicalEvent.StrategicGoalId = strategy.StrategicGoalId;
+        canonicalEvent.StrategyId = strategy.Id;
+        canonicalEvent.Type = strategy.ProgramType ?? canonicalEvent.Type ?? string.Empty;
+        canonicalEvent.DueDate = ParseStrategyDate(strategy.Date);
+    }
+
+    private static DateTime? ParseStrategyDate(string? eventDate)
+    {
+        if (string.IsNullOrWhiteSpace(eventDate))
+        {
+            return null;
+        }
+
+        return DateTime.TryParse(eventDate, out var parsedDate)
+            ? parsedDate
+            : null;
+    }
 
     private string ResolveGoalName(int? goalId)
     {
