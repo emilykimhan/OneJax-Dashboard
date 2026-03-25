@@ -58,6 +58,11 @@
                         @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger small" })
                     </div>
 
+                    <div class="form-check form-switch mb-4">
+                        @Html.CheckBoxFor(m => m.IsAdmin, new { @class = "form-check-input", role = "switch" })
+                        <label class="form-check-label fw-semibold" for="IsAdmin">Grant administrator access</label>
+                    </div>
+
                     <div class="d-flex gap-2 justify-content-end">
                         <a href="/Staff/Index" class="btn btn-outline-secondary">
                             <i class="bi bi-x-circle me-1"></i>Cancel

@@ -25,6 +25,8 @@
                     <strong>Warning:</strong> This action cannot be undone.
                 </div>
 
+                @Html.ValidationSummary(true, "", new { @class = "alert alert-danger", role = "alert" })
+
                 <div class="card border-0 mb-4" style="background-color: rgba(39, 138, 162, 0.05);">
                     <div class="card-body">
                         <h5 class="card-title mb-3" style="color: var(--onejax-dark-blue);">Staff Details</h5>
@@ -42,6 +44,11 @@
                         <div class="row mb-2">
                             <div class="col-4 fw-semibold text-muted">Full Name:</div>
                             <div class="col-8">@Model.Name</div>
+                        </div>
+
+                        <div class="row mb-2">
+                            <div class="col-4 fw-semibold text-muted">Role:</div>
+                            <div class="col-8">@(Model.IsAdmin ? "Admin" : "Staff")</div>
                         </div>
                         
                         <div class="row">

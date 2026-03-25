@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 
 namespace OneJaxDashboard.Data
@@ -9,21 +8,42 @@ namespace OneJaxDashboard.Data
     {
         public ApplicationDbContext CreateDbContext(string[] args)
         {
+            var basePath = ResolveBasePath();
+            var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
+                ?? Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT")
+                ?? Environments.Development;
+
             var configuration = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
+                .SetBasePath(basePath)
                 .AddJsonFile("appsettings.json", optional: true)
-                .AddJsonFile("appsettings.Development.json", optional: true)
+                .AddJsonFile($"appsettings.{environmentName}.json", optional: true)
+                .AddEnvironmentVariables()
                 .Build();
 
-            var connectionString = configuration.GetConnectionString("DefaultConnection")
-                ?? "Data Source=StrategicDashboardDB.db";
+            var databaseSettings = DatabaseConfiguration.Resolve(configuration, environmentName);
 
             var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-            optionsBuilder
-                .UseSqlite(connectionString)
-                .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
+            DatabaseConfiguration.Configure(optionsBuilder, databaseSettings);
 
             return new ApplicationDbContext(optionsBuilder.Options);
+        }
+
+        private static string ResolveBasePath()
+        {
+            var currentDirectory = Directory.GetCurrentDirectory();
+
+            if (File.Exists(Path.Combine(currentDirectory, "appsettings.json")))
+            {
+                return currentDirectory;
+            }
+
+            var projectDirectory = Path.Combine(currentDirectory, "StrategicDashboard");
+            if (File.Exists(Path.Combine(projectDirectory, "appsettings.json")))
+            {
+                return projectDirectory;
+            }
+
+            return currentDirectory;
         }
     }
 }

@@ -7,7 +7,7 @@ using System.Security.Claims;
 //Talijah might delete
 namespace OneJaxDashboard.Controllers
 {
-    [Authorize(Roles = "Staff")]
+    [Authorize(Roles = "Admin,Staff")]
     public class StaffPortalController : Controller
     {
         private const int RecentActivityLimit = 10;

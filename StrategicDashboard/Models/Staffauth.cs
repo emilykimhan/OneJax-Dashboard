@@ -22,5 +22,8 @@ namespace OneJaxDashboard.Models
         [Display(Name = "Email")]
         public required string Email { get; set; }
 
+        [Display(Name = "Administrator")]
+        public bool IsAdmin { get; set; }
+
     }
 }

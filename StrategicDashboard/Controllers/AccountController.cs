@@ -33,30 +33,6 @@ namespace OneJaxDashboard.Controllers
         {
             if (!ModelState.IsValid) 
                 return View(model);
-            var usernameLower = model.Username.ToLower();
-
-            // Admin hard-coded login
-            if (usernameLower == "admin" && model.Password == "Admin123!")
-            {
-                var claims = new List<Claim>
-                {
-                    new Claim(ClaimTypes.Name, model.Username),
-                    new Claim(ClaimTypes.Role, "Admin")
-                };
-
-                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                var principal = new ClaimsPrincipal(identity);
-
-                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
-
-                // If a local returnUrl is provided (e.g., redirected by [Authorize]), go there
-                if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
-                {
-                    return Redirect(returnUrl);
-                }
-
-                return RedirectToAction("Index", "Admin");
-            }
 
             // Staff login against database
             var staff = _db.Staffauth.FirstOrDefault(s => s.Username == model.Username);
@@ -65,9 +41,14 @@ namespace OneJaxDashboard.Controllers
                 var claims = new List<Claim>
                 {
                     new Claim(ClaimTypes.Name, staff.Username ?? string.Empty),
-                    new Claim(ClaimTypes.Role, "Staff"),
                     new Claim(ClaimTypes.GivenName, staff.Name ?? string.Empty)
                 };
+
+                claims.Add(new Claim(ClaimTypes.Role, "Staff"));
+                if (staff.IsAdmin)
+                {
+                    claims.Add(new Claim(ClaimTypes.Role, "Admin"));
+                }
 
                 var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                 var principal = new ClaimsPrincipal(identity);
@@ -79,7 +60,9 @@ namespace OneJaxDashboard.Controllers
                     return Redirect(returnUrl);
                 }
 
-                return RedirectToAction("Index", "StaffPortal");
+                return staff.IsAdmin
+                    ? RedirectToAction("Index", "Admin")
+                    : RedirectToAction("Index", "StaffPortal");
             }
 
             ModelState.AddModelError(string.Empty, "Invalid login attempt.");

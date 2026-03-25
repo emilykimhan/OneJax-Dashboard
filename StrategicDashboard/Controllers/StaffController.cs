@@ -31,6 +31,7 @@ namespace OneJaxDashboard.Controllers
         public IActionResult Create() => View();
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Create(Staffauth staff)
         {
             if (!ModelState.IsValid) return View(staff);
@@ -66,6 +67,7 @@ namespace OneJaxDashboard.Controllers
         }
 
         [HttpPost] // This one already has it
+        [ValidateAntiForgeryToken]
         public IActionResult Edit(Staffauth staff)
         {
             var existing = _db.Staffauth.FirstOrDefault(s => s.Id == staff.Id);
@@ -80,10 +82,21 @@ namespace OneJaxDashboard.Controllers
 
             if (!ModelState.IsValid) return View(staff);
 
+            var removingLastAdmin = existing.IsAdmin &&
+                !staff.IsAdmin &&
+                !_db.Staffauth.Any(s => s.Id != existing.Id && s.IsAdmin);
+
+            if (removingLastAdmin)
+            {
+                ModelState.AddModelError(nameof(Staffauth.IsAdmin), "At least one administrator account must remain.");
+                return View(staff);
+            }
+
             existing.Name = staff.Name;
             // DO NOT update Username - it's used as a foreign key and cannot be changed
             existing.Password = staff.Password;
             existing.Email = staff.Email;
+            existing.IsAdmin = staff.IsAdmin;
 
             _db.SaveChanges();
 
@@ -102,11 +115,19 @@ namespace OneJaxDashboard.Controllers
         }
 
         [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
             var staff = _db.Staffauth.FirstOrDefault(s => s.Id == id);
             if (staff != null)
             {
+                var deletingLastAdmin = staff.IsAdmin && !_db.Staffauth.Any(s => s.Id != id && s.IsAdmin);
+                if (deletingLastAdmin)
+                {
+                    ModelState.AddModelError(string.Empty, "At least one administrator account must remain.");
+                    return View("Delete", staff);
+                }
+
                 _db.Staffauth.Remove(staff);
                 _db.SaveChanges();
 
