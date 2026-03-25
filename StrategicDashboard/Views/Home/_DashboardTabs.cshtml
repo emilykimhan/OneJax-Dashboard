@@ -1,0 +1,28 @@
+@model DashboardViewModel
+@{
+    var selectedGoal = ViewData["SelectedGoal"]?.ToString() ?? string.Empty;
+}
+
+<ul class="nav nav-tabs-modern" style="display: flex !important; visibility: visible !important; opacity: 1 !important; animation: none !important;">
+    <li class="nav-item" style="display: block !important; visibility: visible !important; opacity: 1 !important;">
+        <a class="nav-link @(string.IsNullOrEmpty(selectedGoal) ? "active" : "")"
+           href="#" onclick="switchTab('summary', this, event); return false;" data-tab="summary"
+           style="display: block !important; visibility: visible !important; opacity: 1 !important;">
+            Summary
+        </a>
+    </li>
+    @if (Model.StrategicGoals != null)
+    {
+        @foreach (var goal in Model.StrategicGoals)
+        {
+            <li class="nav-item" style="display: block !important; visibility: visible !important; opacity: 1 !important;">
+                <a class="nav-link @(selectedGoal == goal.Name ? "active" : "")"
+                   href="#" onclick="switchTab('@goal.Name.Replace(" ", "_")', this, event); return false;"
+                   data-tab="@goal.Name.Replace(" ", "_")"
+                   style="display: block !important; visibility: visible !important; opacity: 1 !important;">
+                    @goal.Name
+                </a>
+            </li>
+        }
+    }
+</ul>

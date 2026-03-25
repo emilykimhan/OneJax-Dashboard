@@ -137,5 +137,46 @@ namespace OneJaxDashboard.Services
             _db.Events.RemoveRange(eventsToRemove);
             _db.SaveChanges();
         }
+
+        public void ArchiveByStrategyTemplate(int strategyTemplateId)
+        {
+            var eventsToArchive = _db.Events
+                .Where(e => e.StrategyTemplateId == strategyTemplateId && !e.IsArchived)
+                .ToList();
+
+            if (!eventsToArchive.Any())
+            {
+                return;
+            }
+
+            var completionDate = DateTime.Now;
+            foreach (var eventModel in eventsToArchive)
+            {
+                eventModel.IsArchived = true;
+                eventModel.CompletionDate ??= completionDate;
+            }
+
+            _db.SaveChanges();
+        }
+
+        public void UnarchiveByStrategyTemplate(int strategyTemplateId)
+        {
+            var eventsToUnarchive = _db.Events
+                .Where(e => e.StrategyTemplateId == strategyTemplateId && e.IsArchived)
+                .ToList();
+
+            if (!eventsToUnarchive.Any())
+            {
+                return;
+            }
+
+            foreach (var eventModel in eventsToUnarchive)
+            {
+                eventModel.IsArchived = false;
+                eventModel.CompletionDate = null;
+            }
+
+            _db.SaveChanges();
+        }
     }
 }
