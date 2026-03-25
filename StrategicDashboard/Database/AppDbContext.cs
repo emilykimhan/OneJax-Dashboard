@@ -68,18 +68,6 @@ namespace OneJaxDashboard.Data
                 .IsUnique();
 
             // Configure Event relationships
-            modelBuilder.Entity<Event>()
-                .HasOne(e => e.StrategicGoal)
-                .WithMany(g => g.Events)
-                .HasForeignKey(e => e.StrategicGoalId)
-                .OnDelete(DeleteBehavior.SetNull);
-
-            modelBuilder.Entity<Event>()
-                .HasOne(e => e.Strategy)
-                .WithMany()
-                .HasForeignKey(e => e.StrategyId)
-                .OnDelete(DeleteBehavior.SetNull);
-
             // Configure Strategy relationships
             modelBuilder.Entity<Strategy>()
                 .HasOne(s => s.StrategicGoal)
@@ -87,16 +75,16 @@ namespace OneJaxDashboard.Data
                 .HasForeignKey(s => s.StrategicGoalId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<Event>()
-                .HasOne(e => e.StrategyTemplate)
-                .WithMany()
-                .HasForeignKey(e => e.StrategyTemplateId)
-                .OnDelete(DeleteBehavior.SetNull);
-
             modelBuilder.Entity<Strategy>()
                 .HasOne(s => s.Program)
                 .WithMany(p => p.Strategies)
                 .HasForeignKey(s => s.ProgramId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Event>()
+                .HasOne(e => e.Strategy)
+                .WithMany()
+                .HasForeignKey(e => e.StrategyId)
                 .OnDelete(DeleteBehavior.SetNull);
 
             modelBuilder.Entity<Event>()

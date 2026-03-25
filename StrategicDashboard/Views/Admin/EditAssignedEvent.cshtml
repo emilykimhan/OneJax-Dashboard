@@ -30,7 +30,6 @@
                 {
                     @Html.AntiForgeryToken()
                     @Html.HiddenFor(m => m.Id)
-                    @Html.HiddenFor(m => m.StrategyTemplateId)
                     @Html.HiddenFor(m => m.IsAssignedByAdmin)
                     @Html.HiddenFor(m => m.AssignmentDate)
                     @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
@@ -45,15 +44,18 @@
                     </div>
 
                     <div class="mb-4">
-                        @Html.LabelFor(m => m.Title, new { @class = "form-label fw-semibold" })
+                        <label for="selectedStrategyId" class="form-label fw-semibold">
+                            <i class="bi bi-card-heading me-1"></i>Events
+                        </label>
                         <span class="text-danger">*</span>
                         <div class="input-group">
                             <span class="input-group-text">
-                                <i class="bi bi-card-heading"></i>
+                                <i class="bi bi-collection"></i>
                             </span>
-                            @Html.TextBoxFor(m => m.Title, new { @class = "form-control", placeholder = "Enter event title" })
+                            @Html.DropDownList("selectedStrategyId", ViewBag.StrategyTemplates as SelectList,
+                                "Select an event...", new { @class = "form-select", @required = "required" })
                         </div>
-                        @Html.ValidationMessageFor(m => m.Title, "", new { @class = "text-danger small" })
+                        @Html.ValidationMessage("selectedStrategyId", "", new { @class = "text-danger small" })
                     </div>
                     
                     <div class="mb-4">
@@ -65,29 +67,6 @@
                             @Html.TextAreaFor(m => m.Description, new { @class = "form-control", @rows = "4", placeholder = "Describe the event objectives and requirements..." })
                         </div>
                         @Html.ValidationMessageFor(m => m.Description, "", new { @class = "text-danger small" })
-                    </div>
-
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            @Html.LabelFor(m => m.StrategicGoalId, new { @class = "form-label fw-semibold" })
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="bi bi-bullseye"></i>
-                                </span>
-                                @Html.DropDownListFor(m => m.StrategicGoalId, ViewBag.StrategicGoals as SelectList, 
-                                    "Select strategic goal...", new { @class = "form-select", @id = "strategicGoalSelect" })
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            @Html.LabelFor(m => m.StrategyId, new { @class = "form-label fw-semibold" })
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="bi bi-flag-fill"></i>
-                                </span>
-                                @Html.DropDownListFor(m => m.StrategyId, ViewBag.Strategies as SelectList, 
-                                    "Select strategy...", new { @class = "form-select", @id = "strategySelect" })
-                            </div>
-                        </div>
                     </div>
 
                     <div class="row mb-4">

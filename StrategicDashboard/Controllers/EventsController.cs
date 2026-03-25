@@ -42,10 +42,8 @@ namespace OneJaxDashboard.Controllers
 
                 if (eventFromDb != null)
                 {
-                    // Get the strategic goal name for ViewBag
-                    var strategicGoal = _context.StrategicGoals?
-                        .FirstOrDefault(g => g.Id == eventFromDb.StrategicGoalId);
-                    ViewBag.GoalName = strategicGoal?.Name ?? "Strategic Goal";
+                    var goalName = ResolveGoalNameForEvent(eventFromDb);
+                    ViewBag.GoalName = string.IsNullOrWhiteSpace(goalName) ? "Strategic Goal" : goalName;
 
                     return View(eventFromDb);
                 }
@@ -82,6 +80,7 @@ namespace OneJaxDashboard.Controllers
                     .Select(e => new
                     {
                         e.Id,
+                        e.StrategyId,
                         e.Title,
                         e.Description,
                         e.Type,
@@ -90,8 +89,7 @@ namespace OneJaxDashboard.Controllers
                         e.Location,
                         e.Attendees,
                         e.Notes,
-                        e.SatisfactionScore,
-                        e.StrategicGoalId
+                        e.SatisfactionScore
                     })
                     .FirstOrDefault();
 
@@ -100,8 +98,12 @@ namespace OneJaxDashboard.Controllers
                     return Json(new { error = "Event not found" });
                 }
 
-                var goalName = eventFromDb.StrategicGoalId.HasValue
-                               && goalNames.TryGetValue(eventFromDb.StrategicGoalId.Value, out var resolvedName)
+                var goalName = eventFromDb.StrategyId.HasValue && goalNames.TryGetValue(
+                    _context.Strategies
+                        .Where(s => s.Id == eventFromDb.StrategyId.Value)
+                        .Select(s => s.StrategicGoalId)
+                        .FirstOrDefault(),
+                    out var resolvedName)
                     ? resolvedName
                     : "Strategic Goal";
 
@@ -149,6 +151,7 @@ namespace OneJaxDashboard.Controllers
                     .Where(e => e.Id == id)
                     .Select(e => new {
                         e.Id,
+                        e.StrategyId,
                         e.Title,
                         e.Description,
                         e.Type,
@@ -157,16 +160,20 @@ namespace OneJaxDashboard.Controllers
                         e.Location,
                         e.Attendees,
                         e.Notes,
-                        e.SatisfactionScore,
-                        e.StrategicGoalId
+                        e.SatisfactionScore
                     })
                     .FirstOrDefault();
 
                 if (eventFromDb != null)
                 {
-                    var goalName = eventFromDb.StrategicGoalId.HasValue && goalNames.ContainsKey(eventFromDb.StrategicGoalId.Value)
-                        ? goalNames[eventFromDb.StrategicGoalId.Value]
+                    var goalName = eventFromDb.StrategyId.HasValue
+                        ? _context.Strategies
+                            .Where(s => s.Id == eventFromDb.StrategyId.Value)
+                            .Select(s => s.StrategicGoal != null ? s.StrategicGoal.Name : null)
+                            .FirstOrDefault()
                         : "Strategic Goal";
+
+                    goalName = string.IsNullOrWhiteSpace(goalName) ? "Strategic Goal" : goalName;
 
                     return Json(new
                     {
@@ -199,8 +206,6 @@ namespace OneJaxDashboard.Controllers
         {
             var username = User.Identity?.Name ?? string.Empty;
             var items = _events.GetByOwner(username)
-                .ToList()
-                .Where(e => e.StrategyTemplateId.HasValue && _strategyService.GetStrategy(e.StrategyTemplateId.Value) != null)
                 .ToList();
 
             PopulateEventDisplayData(items);
@@ -212,7 +217,6 @@ namespace OneJaxDashboard.Controllers
         {
             var username = User.Identity?.Name ?? string.Empty;
             var items = _events.GetArchivedByOwner(username)
-                .Where(e => e.StrategyTemplateId.HasValue && _strategyService.GetStrategy(e.StrategyTemplateId.Value) != null)
                 .ToList();
 
             PopulateEventDisplayData(items);
@@ -223,22 +227,17 @@ namespace OneJaxDashboard.Controllers
         public IActionResult Create(int? strategyId)
         {
             Event eventModel = new Event();
-
-            // If a strategy template is selected, load its data
             if (strategyId.HasValue)
             {
                 var strategy = _strategyService.GetStrategy(strategyId.Value);
                 if (strategy != null)
                 {
-                    eventModel.StrategyTemplateId = strategy.Id;
+                    eventModel.StrategyId = strategy.Id;
                     eventModel.Title = strategy.Name;
                     eventModel.Description = strategy.Description;
-                    eventModel.StrategicGoalId = strategy.StrategicGoalId;
-                    eventModel.StrategyId = strategy.Id;
                 }
             }
-
-            PopulateStrategicGoalsAndStrategies(strategyId);
+            PopulateStrategyDropdown(strategyId);
             return View(eventModel);
         }
 
@@ -247,25 +246,29 @@ namespace OneJaxDashboard.Controllers
         [Authorize(Roles = "Staff")]
         public IActionResult Create(Event eventModel)
         {
-            // Load the strategy template to get the title
-            var strategy = eventModel.StrategyTemplateId.HasValue ? _strategyService.GetStrategy(eventModel.StrategyTemplateId.Value) : null;
-            if (strategy == null)
+            if (!eventModel.StrategyId.HasValue)
             {
-                ModelState.AddModelError("", "Please select an event.");
-                PopulateStrategicGoalsAndStrategies(null);
+                ModelState.AddModelError(nameof(eventModel.StrategyId), "Please select an event.");
+                PopulateStrategyDropdown(eventModel.StrategyId);
                 return View(eventModel);
             }
 
             if (!ModelState.IsValid)
             {
-                PopulateStrategicGoalsAndStrategies(null);
+                PopulateStrategyDropdown(eventModel.StrategyId);
                 return View(eventModel);
             }
 
-            // Set title and related fields from the strategy template
+            var strategy = _strategyService.GetStrategy(eventModel.StrategyId.Value);
+            if (strategy == null)
+            {
+                ModelState.AddModelError(nameof(eventModel.StrategyId), "Please select a valid event.");
+                PopulateStrategyDropdown(eventModel.StrategyId);
+                return View(eventModel);
+            }
+
             eventModel.Title = strategy.Name;
-            eventModel.StrategicGoalId = strategy.StrategicGoalId;
-            eventModel.StrategyId = strategy.Id;
+            eventModel.Description = strategy.Description;
 
             var username = User.Identity?.Name ?? string.Empty;
             eventModel.OwnerUsername = username;
@@ -286,7 +289,6 @@ namespace OneJaxDashboard.Controllers
             if (eventModel == null) return NotFound();
             if (!IsOwner(eventModel)) return Forbid();
 
-            PopulateStrategicGoalsAndStrategies(null);
             return View(eventModel);
         }
 
@@ -301,15 +303,13 @@ namespace OneJaxDashboard.Controllers
 
             if (!ModelState.IsValid)
             {
-                PopulateStrategicGoalsAndStrategies(null);
                 return View(eventModel);
             }
 
             // Keep owner unchanged
             eventModel.OwnerUsername = existing.OwnerUsername;
-            // Preserve assignment/strategy metadata not edited on this form
-            eventModel.StrategyTemplateId = existing.StrategyTemplateId;
-            eventModel.StrategicGoalId = existing.StrategicGoalId;
+            // Keep event title unchanged once assigned
+            eventModel.Title = existing.Title;
             eventModel.StrategyId = existing.StrategyId;
             eventModel.IsAssignedByAdmin = existing.IsAssignedByAdmin;
             eventModel.AssignmentDate = existing.AssignmentDate;
@@ -348,6 +348,7 @@ namespace OneJaxDashboard.Controllers
             var eventModel = _events.Get(id);
             if (eventModel == null) return NotFound();
             if (!IsOwner(eventModel)) return Forbid();
+            PopulateEventDisplayData(new[] { eventModel });
             return View(eventModel);
         }
 
@@ -444,24 +445,10 @@ namespace OneJaxDashboard.Controllers
         private static string DisplayDate(DateTime? value) => value.HasValue ? value.Value.ToString("yyyy-MM-dd") : "(empty)";
         private static string DisplayDecimal(decimal? value) => value.HasValue ? value.Value.ToString("0.##") : "(empty)";
 
-        private void PopulateStrategicGoalsAndStrategies(int? selectedStrategyId)
-        {
-            var goals = _strategyService.GetAllStrategicGoals();
-            ViewBag.StrategicGoals = new SelectList(goals, "Id", "Name");
-
-            // Get all strategies from Core Strategies to use as event templates
-            var allStrategies = _strategyService.GetAllStrategies();
-            ViewBag.StrategyTemplates = new SelectList(allStrategies, "Id", "Name", selectedStrategyId);
-            ViewBag.SelectedStrategyId = selectedStrategyId;
-
-            // Load all strategies for display
-            ViewBag.Strategies = new SelectList(allStrategies, "Id", "Name");
-        }
-
         private void PopulateEventDisplayData(IEnumerable<Event> events)
         {
             var strategyIds = events
-                .Select(e => e.StrategyTemplateId ?? e.StrategyId)
+                .Select(e => e.StrategyId)
                 .Where(id => id.HasValue)
                 .Select(id => id!.Value)
                 .Distinct()
@@ -472,10 +459,8 @@ namespace OneJaxDashboard.Controllers
                 .Select(s => new { s.Id, s.StrategicGoalId, s.ProgramType })
                 .ToList();
 
-            var goalIds = events
-                .Where(e => e.StrategicGoalId.HasValue)
-                .Select(e => e.StrategicGoalId!.Value)
-                .Concat(strategies.Select(s => s.StrategicGoalId))
+            var goalIds = strategies
+                .Select(s => s.StrategicGoalId)
                 .Distinct()
                 .ToList();
 
@@ -493,9 +478,29 @@ namespace OneJaxDashboard.Controllers
                 s => s.Id,
                 s => string.IsNullOrWhiteSpace(s.ProgramType) ? "Community" : s.ProgramType);
 
-            ViewBag.GoalNamesByGoalId = goalNamesByGoalId;
             ViewBag.GoalNamesByStrategyId = goalNamesByStrategyId;
             ViewBag.EventTypesByStrategyId = eventTypesByStrategyId;
+        }
+
+        private string ResolveGoalNameForEvent(Event evt)
+        {
+            if (!evt.StrategyId.HasValue)
+            {
+                return "Strategic Goal";
+            }
+
+            var goalName = _context.Strategies
+                .Where(s => s.Id == evt.StrategyId.Value)
+                .Select(s => s.StrategicGoal != null ? s.StrategicGoal.Name : null)
+                .FirstOrDefault();
+
+            return string.IsNullOrWhiteSpace(goalName) ? "Strategic Goal" : goalName;
+        }
+
+        private void PopulateStrategyDropdown(int? selectedStrategyId)
+        {
+            var allStrategies = _strategyService.GetAllStrategies();
+            ViewBag.StrategyTemplates = new SelectList(allStrategies, "Id", "Name", selectedStrategyId);
         }
     }
 }

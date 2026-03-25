@@ -107,14 +107,7 @@
                                     </div>
                                 </td>
                                 <td class="py-3">
-                                    @if (eventItem.StrategyId.HasValue)
-                                    {
-                                        <span class="badge bg-info bg-opacity-75">Strategy #@eventItem.StrategyId</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">No strategy</span>
-                                    }
+                                    <span class="text-muted">Not assigned</span>
                                 </td>
                                 <td class="py-3">
                                     <span class="badge bg-success">@eventItem.Status</span>

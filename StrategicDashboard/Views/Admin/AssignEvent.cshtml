@@ -8,9 +8,14 @@
 <div class="row justify-content-center">
     <div class="col-md-10 col-lg-8">
         <div class="mb-3">
-            <a href="/Admin/ManageEvents" class="text-decoration-none">
-                <i class="bi bi-arrow-left me-1"></i>Back to Manage Events
-            </a>
+            <div class="d-flex gap-2">
+                <a class="btn btn-outline-secondary" href="/Admin/ManageEvents">
+                    <i class="bi bi-arrow-left me-2"></i>Back to Manage Events
+                </a>
+                <a class="btn btn-outline-secondary" href="/Admin/Index">
+                    <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                </a>
+            </div>
         </div>
         
         <div class="card shadow-sm border-0">
@@ -30,46 +35,21 @@
                 {
                     @Html.AntiForgeryToken()
                     @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
-                    @Html.HiddenFor(m => m.StrategyTemplateId)
 
                     <div class="mb-4">
                         <label class="form-label fw-semibold">
-                            <i class="bi bi-bookmark-fill me-1"></i>Select an Event
+                            <i class="bi bi-card-heading me-1"></i>Event
                         </label>
                         <span class="text-danger">*</span>
                         <div class="input-group">
                             <span class="input-group-text">
                                 <i class="bi bi-collection"></i>
                             </span>
-                            <select class="form-select" onchange="window.location.href='/Admin/AssignEvent?strategyId=' + this.value;" required>
-                                <option value="">-- Select an event from Core Strategies --</option>
-                                @if (ViewBag.StrategyTemplates != null)
-                                {
-                                    foreach (SelectListItem item in (SelectList)ViewBag.StrategyTemplates)
-                                    {
-                                        if (item.Selected)
-                                        {
-                                            <option value="@item.Value" selected>@item.Text</option>
-                                        }
-                                        else
-                                        {
-                                            <option value="@item.Value">@item.Text</option>
-                                        }
-                                    }
-                                }
-                            </select>
+                            @Html.DropDownListFor(m => m.StrategyId, ViewBag.StrategyTemplates as SelectList,
+                                "Select an event...", new { @class = "form-select", @required = "required" })
                         </div>
-                        <small class="text-muted">This will set the event title and link to strategic goals</small>
-                        @Html.ValidationMessageFor(m => m.StrategyTemplateId, "", new { @class = "text-danger small" })
+                        @Html.ValidationMessageFor(m => m.StrategyId, "", new { @class = "text-danger small" })
                     </div>
-
-                    @if (Model.StrategyTemplateId > 0)
-                    {
-                        <div class="alert alert-info mb-4">
-                            <i class="bi bi-info-circle me-2"></i>
-                            <strong>Selected Event:</strong> @Model.Title
-                        </div>
-                    }
 
                     <div class="mb-4">
                         <label for="selectedStaffUsername" class="form-label fw-semibold">
@@ -113,7 +93,7 @@
                     </div>
 
                     <div class="d-flex gap-3">
-                        <button type="submit" class="btn btn-success flex-grow-1" @(Model.StrategyTemplateId <= 0 ? "disabled" : "")>
+                        <button type="submit" class="btn btn-success flex-grow-1">
                             <i class="bi bi-check-lg me-1"></i>Assign Event
                         </button>
                         <a href="/Admin/ManageEvents" class="btn btn-outline-secondary">
