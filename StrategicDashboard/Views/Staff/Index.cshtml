@@ -36,6 +36,7 @@
                                 <tr>
                                     <th>ID</th>
                                     <th>Username</th>
+                                    <th>Role</th>
                                     <th>Full Name</th>
                                     <th>Email</th>
                                     <th class="text-center">Actions</th>
@@ -47,6 +48,16 @@
                                     <tr>
                                         <td>@staff.Id</td>
                                         <td><strong>@staff.Username</strong></td>
+                                        <td>
+                                            @if (staff.IsAdmin)
+                                            {
+                                                <span class="badge bg-warning text-dark">Admin</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">Staff</span>
+                                            }
+                                        </td>
                                         <td>@staff.Name</td>
                                         <td>@staff.Email</td>
                                         <td class="text-center">

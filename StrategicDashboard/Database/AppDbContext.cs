@@ -92,7 +92,7 @@ namespace OneJaxDashboard.Data
                 .WithMany()
                 .HasForeignKey(e => e.OwnerUsername)
                 .HasPrincipalKey(s => s.Username)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.NoAction);
         }
 
     }

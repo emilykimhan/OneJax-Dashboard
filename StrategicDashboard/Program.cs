@@ -1,29 +1,64 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using OneJaxDashboard.Data; 
 using OneJaxDashboard.Models;
+using System.Data;
 using System.Runtime.InteropServices;
 OfficeOpenXml.ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure database based on environment
-if (builder.Environment.IsProduction())
+var databaseSettings = DatabaseConfiguration.Resolve(builder.Configuration, builder.Environment.EnvironmentName);
+var runSqliteMigration = args.Contains("--migrate-sqlite-to-sqlserver", StringComparer.OrdinalIgnoreCase);
+var runAdminCountCheck = args.Contains("--check-admin-count", StringComparer.OrdinalIgnoreCase);
+var runAppDataReset = args.Contains("--reset-app-data", StringComparer.OrdinalIgnoreCase);
+
+if (runSqliteMigration)
 {
-    // Use Azure SQL Database in production
-    builder.Services.AddDbContext<ApplicationDbContext>(options =>
-        options
-            .UseSqlServer(builder.Configuration.GetConnectionString("AzureSqlConnection"))
-            .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning)));
+    if (databaseSettings.Provider != DatabaseProvider.SqlServer)
+    {
+        throw new InvalidOperationException(
+            "The SQLite migration command requires DatabaseProvider=SqlServer for the target database.");
+    }
+
+    var sourceSqliteConnection =
+        builder.Configuration.GetConnectionString("SqliteMigrationSource")
+        ?? builder.Configuration.GetConnectionString("DefaultConnection")
+        ?? "Data Source=StrategicDashboardDB.db";
+
+    var migrator = new SqliteToSqlServerMigrator(
+        sourceSqliteConnection,
+        databaseSettings.ConnectionString,
+        message => Console.WriteLine($"[sqlite-migration] {message}"));
+
+    await migrator.RunAsync();
+    return;
 }
-else
+
+if (runAdminCountCheck)
 {
-    // Use SQLite for development
-    builder.Services.AddDbContext<ApplicationDbContext>(options =>
-        options
-            .UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"))
-            .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning)));
+    var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+    DatabaseConfiguration.Configure(optionsBuilder, databaseSettings);
+
+    await using var db = new ApplicationDbContext(optionsBuilder.Options);
+    Console.WriteLine(await db.Staffauth.CountAsync(staff => staff.IsAdmin));
+    return;
 }
+
+if (runAppDataReset)
+{
+    var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+    DatabaseConfiguration.Configure(optionsBuilder, databaseSettings);
+
+    await using var db = new ApplicationDbContext(optionsBuilder.Options);
+    var resetter = new AppDataResetter(db, message => Console.WriteLine($"[app-data-reset] {message}"));
+    await resetter.RunAsync();
+    EnsureCanonicalStrategicGoals(db);
+    Console.WriteLine("[app-data-reset] Completed. Staff accounts were preserved.");
+    return;
+}
+
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    DatabaseConfiguration.Configure(options, databaseSettings));
 
 builder.Services.AddControllersWithViews();
 
@@ -51,6 +86,14 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+    if (databaseSettings.InitializeSchemaOnStartup)
+    {
+        db.Database.EnsureCreated();
+    }
+
+    EnsureStaffAdminSupport(db);
+
     EnsureCanonicalStrategicGoals(db);
 }
 
@@ -125,4 +168,68 @@ static void EnsureCanonicalStrategicGoals(ApplicationDbContext db)
     }
 
     db.SaveChanges();
+}
+
+static void EnsureStaffAdminSupport(ApplicationDbContext db)
+{
+    if (db.Database.IsSqlServer())
+    {
+        db.Database.ExecuteSqlRaw("""
+            IF COL_LENGTH('Staffauth', 'IsAdmin') IS NULL
+            BEGIN
+                ALTER TABLE [Staffauth]
+                ADD [IsAdmin] bit NOT NULL CONSTRAINT [DF_Staffauth_IsAdmin] DEFAULT(0);
+            END
+            """);
+
+        return;
+    }
+
+    if (!db.Database.IsSqlite())
+    {
+        return;
+    }
+
+    var connection = db.Database.GetDbConnection();
+    var shouldClose = connection.State != ConnectionState.Open;
+    if (shouldClose)
+    {
+        connection.Open();
+    }
+
+    try
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText = "PRAGMA table_info('Staffauth');";
+
+        var hasIsAdminColumn = false;
+        using (var reader = command.ExecuteReader())
+        {
+            while (reader.Read())
+            {
+                if (string.Equals(reader["name"]?.ToString(), "IsAdmin", StringComparison.OrdinalIgnoreCase))
+                {
+                    hasIsAdminColumn = true;
+                    break;
+                }
+            }
+        }
+
+        if (!hasIsAdminColumn)
+        {
+            using var alterCommand = connection.CreateCommand();
+            alterCommand.CommandText = """
+                ALTER TABLE "Staffauth"
+                ADD COLUMN "IsAdmin" INTEGER NOT NULL DEFAULT 0;
+                """;
+            alterCommand.ExecuteNonQuery();
+        }
+    }
+    finally
+    {
+        if (shouldClose)
+        {
+            connection.Close();
+        }
+    }
 }
