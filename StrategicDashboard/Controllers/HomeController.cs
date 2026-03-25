@@ -268,7 +268,11 @@ public class HomeController : Controller
                 .ThenByDescending(v => v.Quarter)
                 .ThenByDescending(v => v.CreatedDate)
                 .ToListAsync();
-            ViewBag.VolunteerProgramRecords = FilterByFiscalYearYears(volunteerProgramRecords, selectedFiscalYear, v => v.Year)
+            ViewBag.VolunteerProgramRecords = FilterByFiscalYearYearsWithCreatedDateFallback(
+                    volunteerProgramRecords,
+                    selectedFiscalYear,
+                    v => v.Year,
+                    v => v.CreatedDate)
                 .OrderByDescending(v => v.Year)
                 .ThenByDescending(v => v.Quarter)
                 .ThenByDescending(v => v.CreatedDate)
@@ -493,6 +497,32 @@ public class HomeController : Controller
             .ToList();
     }
 
+    private List<T> FilterByFiscalYearYearsWithCreatedDateFallback<T>(
+        IEnumerable<T> source,
+        string fiscalYear,
+        Func<T, int> yearSelector,
+        Func<T, DateTime> createdDateSelector)
+    {
+        var yearRange = GetFiscalYearNumbersOrNull(fiscalYear);
+        if (yearRange == null)
+        {
+            return source.ToList();
+        }
+
+        return source
+            .Where(item =>
+            {
+                var year = yearSelector(item);
+                if (year <= 0)
+                {
+                    year = createdDateSelector(item).Year;
+                }
+
+                return year == yearRange.Value.StartYear || year == yearRange.Value.EndYear;
+            })
+            .ToList();
+    }
+
     private bool FiscalYearMatches(string? recordFiscalYear, string selectedFiscalYear)
     {
         if (string.IsNullOrWhiteSpace(selectedFiscalYear))
@@ -661,10 +691,11 @@ public class HomeController : Controller
                 (decimal)staffSurveys.Average(s => s.SatisfactionRate) : 0;
 
             // Professional Development
-            summary.TotalProfessionalDevelopmentPlans = FilterByFiscalYearYears(
+            summary.TotalProfessionalDevelopmentPlans = FilterByFiscalYearYearsWithCreatedDateFallback(
                 _context.ProfessionalDevelopments.ToList(),
                 fiscalYear,
-                p => p.Year).Count;
+                p => p.Year,
+                p => p.CreatedDate).Count;
 
             // Media Placements
             summary.TotalMediaPlacements = FilterByFiscalYearDate(
@@ -747,7 +778,11 @@ public class HomeController : Controller
             }
 
             // Add recent professional development entries
-            var recentProfDev = FilterByFiscalYearYears(_context.ProfessionalDevelopments.ToList(), fiscalYear, p => p.Year)
+            var recentProfDev = FilterByFiscalYearYearsWithCreatedDateFallback(
+                    _context.ProfessionalDevelopments.ToList(),
+                    fiscalYear,
+                    p => p.Year,
+                    p => p.CreatedDate)
                 .OrderByDescending(p => p.CreatedDate)
                 .Take(5)
                 .ToList();
@@ -1374,7 +1409,12 @@ public class HomeController : Controller
             }
         }
 
-        return income.Year;
+        if (income.Year.HasValue && income.Year.Value > 0)
+        {
+            return income.Year.Value;
+        }
+
+        return income.CreatedDate.Year > 0 ? income.CreatedDate.Year : null;
     }
 
     private async Task AddIdentityMetricsAsync(StrategicGoal goal, string fiscalYear)
@@ -1459,7 +1499,11 @@ public class HomeController : Controller
                 : "No staff surveys yet - Go to Data Entry → Staff Surveys", nextId++);
 
         // 2. Professional Development (employee participation + activity totals)
-        var profDevs = FilterByFiscalYearYears(await _context.ProfessionalDevelopments.ToListAsync(), fiscalYear, p => p.Year);
+        var profDevs = FilterByFiscalYearYearsWithCreatedDateFallback(
+            await _context.ProfessionalDevelopments.ToListAsync(),
+            fiscalYear,
+            p => p.Year,
+            p => p.CreatedDate);
         var participatingEmployees = profDevs.Count;
         
         AddOrUpdateMetric(goal, "Professional Development Plans", "Staff growth initiatives", 
@@ -1469,7 +1513,11 @@ public class HomeController : Controller
                 : "No professional development yet - Go to Data Entry → Professional Development", nextId++);
 
         // 3. Board Member Recruitment
-        var boardMembers = FilterByFiscalYearYears(await _context.BoardMember_29D.ToListAsync(), fiscalYear, b => b.Year);
+        var boardMembers = FilterByFiscalYearYearsWithCreatedDateFallback(
+            await _context.BoardMember_29D.ToListAsync(),
+            fiscalYear,
+            b => b.Year,
+            b => b.CreatedDate);
         var totalRecruited = boardMembers.Sum(b => b.NumberRecruited);
         
         AddOrUpdateMetric(goal, "Board Recruitment", "New board member acquisition", 
@@ -1493,7 +1541,11 @@ public class HomeController : Controller
             boardAttendance.Any() ? $"Average attendance rate: {avgAttendanceRate:F1}%" : "No board attendance data yet - Go to Data Entry → Board Management", nextId++);
 
         // 5. Board Self-Assessment
-        var boardSelfAssessments = FilterByFiscalYearYears(await _context.selfAssess_31D.ToListAsync(), fiscalYear, a => a.Year);
+        var boardSelfAssessments = FilterByFiscalYearYearsWithCreatedDateFallback(
+            await _context.selfAssess_31D.ToListAsync(),
+            fiscalYear,
+            a => a.Year,
+            a => a.CreatedDate);
         var avgBoardSelfAssessment = boardSelfAssessments.Any()
             ? boardSelfAssessments.Average(a => a.SelfAssessmentScore)
             : 0;
@@ -1505,7 +1557,11 @@ public class HomeController : Controller
                 : "No board self-assessment data yet - Go to Data Entry → Board Self-Assessment", nextId++);
 
         // 6. Volunteer Program
-        var volunteerPrograms = FilterByFiscalYearYears(await _context.volunteerProgram_40D.ToListAsync(), fiscalYear, v => v.Year);
+        var volunteerPrograms = FilterByFiscalYearYearsWithCreatedDateFallback(
+            await _context.volunteerProgram_40D.ToListAsync(),
+            fiscalYear,
+            v => v.Year,
+            v => v.CreatedDate);
         var totalVolunteers = volunteerPrograms.Sum(v => v.NumberOfVolunteers);
         var totalVolunteerInitiatives = volunteerPrograms.Sum(v => v.VolunteerLedInitiatives);
 

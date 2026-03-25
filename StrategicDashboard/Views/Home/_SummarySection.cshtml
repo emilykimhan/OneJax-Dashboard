@@ -4,6 +4,74 @@
     var selectedGoal = ViewData["SelectedGoal"]?.ToString() ?? string.Empty;
     var canManageData = ViewData["CanManageData"] as bool? ?? false;
     var activeFiscalYear = ViewBag.ActiveFiscalYearLabel?.ToString() ?? string.Empty;
+    // These buckets intentionally mirror the current dashboard metric names generated in
+    // HomeController and the strategic plan spreadsheet you shared. Keeping the mapping
+    // explicit here makes the top Summary logic easier to audit without touching the DB.
+    var milestoneMetrics = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    {
+        // Identity/Value: roll-out style objective from the communications/framework work.
+        "Strategic Plan Completion"
+    };
+
+    var growthMetrics = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    {
+        // Identity/Value: explicit growth target.
+        "Website Traffic",
+
+        // Community: year-over-year growth style metrics from the plan.
+        "Youth Attendance Growth",
+        "Clergy Network Growth",
+        "Participant Diversity"
+    };
+
+    var snapshotMetrics = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    {
+        // Identity/Value: periodic survey/current-state signals.
+        "Community Perception Survey",
+
+        // Organizational: annual/current-state quality measures.
+        "Staff Satisfaction Rating",
+        "Board Meeting Participation",
+        "Board Self-Assessment",
+
+        // Financial: satisfaction/current-state measure.
+        "Donor Communication Satisfaction",
+
+        // Community: percent/rating style measures.
+        "Faith Representation",
+        "Event Satisfaction",
+        "First-Time Participants",
+
+        // Organizational: annual participation target is effectively a current-year snapshot.
+        "Professional Development Plans"
+    };
+
+    var cumulativeMetrics = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    {
+        // Identity/Value: build-up/count metrics.
+        "Earned Media Placements",
+        "Geographic Reach",
+
+        // Organizational: count-style progress over the plan.
+        "Board Recruitment",
+        "Volunteer Program Participation",
+
+        // Financial: event/revenue/count accumulation metrics.
+        "Budget Revenue Tracking",
+        "Fee-for-Service Income",
+        "General Income Streams",
+        "Donor Engagement Events",
+
+        // Community: count-based partnership and event metrics.
+        "Interfaith Events Hosted",
+        "Cross-Sector Collaborations"
+    };
+
+    var ongoingMetrics = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    {
+        // None of the currently generated dashboard metrics are pure ongoing logs yet.
+        // We keep the bucket so the top summary can exclude these if they are added later.
+    };
 
     IEnumerable<GoalMetric> ReportingMetrics(IEnumerable<GoalMetric>? metrics)
     {
@@ -15,6 +83,46 @@
                 var clean = (m.Target ?? string.Empty).Replace("$", "").Replace(",", "").Replace("%", "").Trim();
                 return decimal.TryParse(clean, out var target) && target > 0;
             });
+    }
+
+    string GetMetricCategory(GoalMetric metric)
+    {
+        var name = metric.Name ?? string.Empty;
+
+        if (milestoneMetrics.Contains(name))
+        {
+            return "Milestone";
+        }
+
+        if (growthMetrics.Contains(name))
+        {
+            return "Growth";
+        }
+
+        if (snapshotMetrics.Contains(name))
+        {
+            return "Snapshot";
+        }
+
+        if (cumulativeMetrics.Contains(name))
+        {
+            return "Cumulative";
+        }
+
+        if (ongoingMetrics.Contains(name))
+        {
+            return "Ongoing";
+        }
+
+        // Keep unknown future metrics visible instead of excluding them from the Summary.
+        // Defaulting to Snapshot is safer than silently treating every new metric as cumulative.
+        // If a new metric appears, this helper should be updated intentionally.
+        return "Snapshot";
+    }
+
+    bool CountsTowardTopSummary(GoalMetric metric)
+    {
+        return !string.Equals(GetMetricCategory(metric), "Ongoing", StringComparison.OrdinalIgnoreCase);
     }
 
     decimal LiveGoalProgress(IEnumerable<GoalMetric>? metrics)
@@ -34,6 +142,14 @@
     bool MetricMeetsGoal(GoalMetric metric)
     {
         var clean = (metric.Target ?? string.Empty).Replace("$", "").Replace(",", "").Replace("%", "").Trim();
+        var category = GetMetricCategory(metric);
+
+        if (string.Equals(category, "Milestone", StringComparison.OrdinalIgnoreCase)
+            && string.Equals(metric.Status, "Completed", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
         return decimal.TryParse(clean, out var target) && target > 0 && metric.CurrentValue >= target;
     }
 
@@ -50,11 +166,15 @@
     var goalsWithReporting = goalSummaries.Where(g => g.ReportingMetricCount > 0).ToList();
     var totalMetrics = goalSummaries.Sum(g => g.TotalMetricCount);
     var totalReportingMetrics = goalSummaries.Sum(g => g.ReportingMetricCount);
-    var totalMetricsMeetingGoal = (Model.StrategicGoals ?? new List<StrategicGoal>())
+    var summaryEligibleMetrics = (Model.StrategicGoals ?? new List<StrategicGoal>())
         .SelectMany(g => ReportingMetrics(g.Metrics))
+        .Where(CountsTowardTopSummary)
+        .ToList();
+    var totalMetricsMeetingGoal = summaryEligibleMetrics
         .Count(MetricMeetsGoal);
-    var overallProgress = totalReportingMetrics > 0
-        ? Math.Round((decimal)totalMetricsMeetingGoal / totalReportingMetrics * 100, 1)
+    var totalEligibleMetrics = summaryEligibleMetrics.Count;
+    var overallProgress = totalEligibleMetrics > 0
+        ? Math.Round((decimal)totalMetricsMeetingGoal / totalEligibleMetrics * 100, 1)
         : 0;
     var totalEvents = Model.StrategicGoals?.SelectMany(g => g.Events ?? new List<Event>()).Count() ?? 0;
     var avgProgress = Model.StrategicGoals?.Any() == true ? Model.StrategicGoals.Average(g => LiveGoalProgress(g.Metrics)) : 0;
@@ -81,7 +201,7 @@
                         <div style="font-size: 2rem; font-weight: 700;">@Math.Round(overallProgress, 1)%</div>
                         <small>Metrics Meeting Goal</small>
                         <div style="font-size: 0.8rem; opacity: 0.85;">
-                            @totalMetricsMeetingGoal of @totalReportingMetrics reporting metrics met goal in @(string.IsNullOrWhiteSpace(activeFiscalYear) ? "this view" : activeFiscalYear)
+                            @totalMetricsMeetingGoal of @totalEligibleMetrics eligible metrics met goal in @(string.IsNullOrWhiteSpace(activeFiscalYear) ? "this view" : activeFiscalYear)
                         </div>
                     </div>
                 </div>
