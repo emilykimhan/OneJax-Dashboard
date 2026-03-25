@@ -5,8 +5,8 @@ function applyFilters() {
     const fiscalYearFilter = document.getElementById('fiscalYearFilter');
     const params = new URLSearchParams();
 
-    if (fiscalYearFilter && fiscalYearFilter.value) {
-        params.set('fiscalYear', fiscalYearFilter.value);
+    if (fiscalYearFilter) {
+        params.set('fiscalYear', fiscalYearFilter.value || '');
     }
 
     const newUrl = params.toString()
@@ -28,7 +28,7 @@ function resetFilters() {
     }
 
     showNotification('Filters Reset', 'Fiscal year filter has been cleared. Showing all years.', 'info');
-    window.location.href = window.location.pathname;
+    window.location.href = `${window.location.pathname}?fiscalYear=`;
 }
 
 function showComingSoon(feature) {

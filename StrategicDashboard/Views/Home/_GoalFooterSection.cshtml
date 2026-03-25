@@ -1,0 +1,328 @@
+@model DashboardViewModel
+@using OneJaxDashboard.Models
+@{
+    var goal = ViewData["Goal"] as StrategicGoal;
+    var canManageData = ViewData["CanManageData"] as bool? ?? false;
+    var userAuthenticated = ViewData["UserAuthenticated"] as bool? ?? false;
+    var selectedStatus = ViewData["SelectedStatus"]?.ToString() ?? string.Empty;
+
+    string GetEventHeaderColor(string? status)
+    {
+        return status switch
+        {
+            "Completed" => "#10b981",
+            "Active" => "#3b82f6",
+            "In Progress" => "#f59e0b",
+            "Planned" => "#6b7280",
+            _ => "#374151"
+        };
+    }
+
+    string GetEventHeaderColorSecondary(string? status)
+    {
+        return status switch
+        {
+            "Completed" => "#059669",
+            "Active" => "#2563eb",
+            "In Progress" => "#d97706",
+            "Planned" => "#4b5563",
+            _ => "#1f2937"
+        };
+    }
+}
+
+@if (goal != null)
+{
+                            <!-- Public Summary Section - For Non-Authenticated Users -->
+                            @if (!userAuthenticated)
+                            {
+                                <div class="mb-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h5 style="color:var(--onejax-navy); margin-bottom:0;">🌟 Goal Progress Summary</h5>
+                                        <small class="text-muted">
+                                            <i class="fas fa-chart-bar"></i> Public progress overview
+                                        </small>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 col-lg-6 mb-3">
+                                            <div class="card" style="border-radius: 12px; border: 1px solid var(--onejax-border); transition: all 0.2s ease;">
+                                                <div class="card-body text-center" style="padding: 1.5rem;">
+                                                    <h6 style="color: var(--onejax-navy); margin-bottom: 1rem; font-weight: 600;">Overall Progress</h6>
+                                                    @{
+                                                        var currentGoalProgress = goal.Metrics?.Any() == true ? goal.Metrics.Average(m => m.ProgressPercentage) : 0;
+                                                    }
+                                                    <div style="font-size: 2rem; font-weight: 700; color: var(--onejax-navy); margin-bottom: 1rem;">@Math.Round(currentGoalProgress, 1)%</div>
+                                                    <div class="progress" style="height: 8px; border-radius: 4px; background: rgba(59, 130, 246, 0.1);">
+                                                        <div class="progress-bar" style="width: @Math.Min(currentGoalProgress, 100)%; background: var(--gradient-secondary); border-radius: 4px;"></div>
+                                                    </div>
+                                                    <small class="text-muted mt-2 d-block">Strategic Initiative Progress</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 col-lg-6 mb-3">
+                                            <div class="card" style="border-radius: 12px; border: 1px solid var(--onejax-border); transition: all 0.2s ease;">
+                                                <div class="card-body text-center" style="padding: 1.5rem;">
+                                                    <h6 style="color: var(--onejax-navy); margin-bottom: 1rem; font-weight: 600;">
+                                                        <i class="fas fa-calendar-check"></i> Strategic Events
+                                                    </h6>
+                                                    <div style="font-size: 2rem; font-weight: 700; color: var(--onejax-navy); margin-bottom: 1rem;">@(goal.Events?.Count() ?? 0)</div>
+                                                    @{
+                                                        var upcomingCount = goal.Events?.Count(e => e.Status == "Planned" || e.Status == "In Progress") ?? 0;
+                                                        var completedCount = goal.Events?.Count(e => e.Status == "Completed") ?? 0;
+                                                    }
+                                                    @if (goal.Events != null && goal.Events.Any())
+                                                    {
+                                                        <div style="color: var(--onejax-text-muted); font-size: 0.9rem;">
+                                                            @upcomingCount upcoming • @completedCount completed
+                                                        </div>
+                                                        @if (upcomingCount > 0)
+                                                        {
+                                                            <div style="margin-top: 0.5rem;">
+                                                                <span class="badge" style="background: var(--gradient-secondary); color: white; font-size: 0.75rem;">
+                                                                    Next: @(goal.Events.Where(e => e.DueDate.HasValue && e.DueDate > DateTime.Now).OrderBy(e => e.DueDate).FirstOrDefault()?.DueDate?.ToString("MMM dd") ?? "TBD")
+                                                                </span>
+                                                            </div>
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <div style="color: var(--onejax-text-muted); font-size: 0.9rem;">No events scheduled yet</div>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            
+	                            <!-- Events Section - Enhanced Display -->
+	                            @if (goal.Events != null && goal.Events.Any() && !(goal.Name.Contains("Identity") || goal.Name.Contains("Value")))
+	                            {
+                                <div class="mb-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h5 style="color:var(--onejax-navy); margin-bottom:0; font-weight: 600;">
+                                            <i class="fas fa-calendar-check"></i> Strategic Events & Activities
+                                        </h5>
+                                        <span class="badge" style="background: var(--gradient-secondary); color: white;">
+                                            @goal.Events.Count() Total Events
+                                        </span>
+                                    </div>
+                                    
+                                    <!-- Event Status Summary -->
+                                    @{
+                                        var upcomingEvents = goal.Events.Count(e => e.Status == "Planned" || e.Status == "In Progress");
+                                        var completedEvents = goal.Events.Count(e => e.Status == "Completed");
+                                        var activeEvents = goal.Events.Count(e => e.Status == "Active" || e.Status == "In Progress");
+                                    }
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-md-4">
+                                            <div class="text-center p-2" style="background: rgba(59, 130, 246, 0.1); border-radius: 8px;">
+                                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--onejax-blue);">@upcomingEvents</div>
+                                                <small style="color: var(--onejax-text-muted);">Upcoming</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="text-center p-2" style="background: rgba(16, 185, 129, 0.1); border-radius: 8px;">
+                                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--onejax-green);">@activeEvents</div>
+                                                <small style="color: var(--onejax-text-muted);">Active</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="text-center p-2" style="background: rgba(34, 197, 94, 0.1); border-radius: 8px;">
+                                                <div style="font-size: 1.5rem; font-weight: 700; color: #22c55e;">@completedEvents</div>
+                                                <small style="color: var(--onejax-text-muted);">Completed</small>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Event Cards -->
+                                    <div class="row">
+                                        @foreach (var eventItem in goal.Events
+                                            .Where(e => (string.IsNullOrEmpty(selectedStatus) || e.Status == selectedStatus))
+                                            .OrderBy(e => e.DueDate ?? DateTime.MaxValue))
+                                        {
+                                            <div class="col-md-6 col-lg-4 mb-3">
+                                                <div class="card event-card" 
+                                                     style="background-color:var(--onejax-white); border-radius:12px; border: 1px solid var(--onejax-border); transition: all 0.3s ease; cursor: pointer;"
+                                                     data-status="@eventItem.Status"
+                                                     data-date="@eventItem.DueDate?.ToString("yyyy-MM-dd")"
+                                                     data-quarter="@((eventItem.DueDate?.Month - 1) / 3 + 1)"
+                                                     data-year="@eventItem.DueDate?.Year"
+                                                     onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)';"
+                                                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)';">
+                                                    
+                                                    <!-- Event Header -->
+                                                    <div class="card-header" style="background: linear-gradient(135deg, @(GetEventHeaderColor(eventItem.Status)), @(GetEventHeaderColorSecondary(eventItem.Status))); color: white; border-radius: 12px 12px 0 0; border: none;">
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <div>
+                                                                <h6 style="margin: 0; font-weight: 600;">@eventItem.Title</h6>
+                                                                <small style="opacity: 0.9;">@eventItem.Type Event</small>
+                                                            </div>
+                                                            <span class="badge" style="background: rgba(255,255,255,0.2);">
+                                                                @eventItem.Status
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <!-- Event Body -->
+                                                    <div class="card-body" style="padding: 1rem;">
+                                                        <div class="event-details">
+                                                            <div class="mb-2">
+                                                                <i class="fas fa-calendar" style="color: var(--onejax-blue); width: 16px;"></i>
+                                                                <strong>Date:</strong> 
+                                                                <span style="color: var(--onejax-navy);">
+                                                                    @(eventItem.DueDate?.ToString("MMM dd, yyyy") ?? eventItem.StartDate?.ToString("MMM dd, yyyy") ?? "TBD")
+                                                                </span>
+                                                            </div>
+                                                            
+                                                            <div class="mb-2">
+                                                                <i class="fas fa-map-marker-alt" style="color: var(--onejax-orange); width: 16px;"></i>
+                                                                <strong>Location:</strong> 
+                                                                <span style="color: var(--onejax-navy);">@(eventItem.Location ?? "TBD")</span>
+                                                            </div>
+                                                            
+                                                            @if (eventItem.Attendees > 0)
+                                                            {
+                                                                <div class="mb-2">
+                                                                    <i class="fas fa-users" style="color: var(--onejax-green); width: 16px;"></i>
+                                                                    <strong>Expected:</strong> 
+                                                                    <span style="color: var(--onejax-navy);">@eventItem.Attendees attendees</span>
+                                                                </div>
+                                                            }
+                                                            
+                                                            @if (!string.IsNullOrEmpty(eventItem.Description))
+                                                            {
+                                                                <div class="mb-3">
+                                                                    <small style="color: var(--onejax-text-muted);">
+                                                                        @(eventItem.Description.Length > 80 ? eventItem.Description.Substring(0, 80) + "..." : eventItem.Description)
+                                                                    </small>
+                                                                </div>
+                                                            }
+                                                            
+                                                            @if (!string.IsNullOrEmpty(eventItem.Notes))
+                                                            {
+                                                                <div class="mb-3">
+                                                                    <small style="color: var(--onejax-text-muted); font-style: italic;">
+                                                                        📝 @(eventItem.Notes.Length > 60 ? eventItem.Notes.Substring(0, 60) + "..." : eventItem.Notes)
+                                                                    </small>
+                                                                </div>
+                                                            }
+                                                        </div>
+                                                        
+                                                        <!-- Action Buttons -->
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            @if (canManageData)
+                                                            {
+                                                                <a href="/Strategy/ViewEvents?goalId=@goal.Id" class="btn btn-sm btn-outline-primary" style="border-radius: 8px;">
+                                                                    <i class="fas fa-cog"></i> Manage
+                                                                </a>
+                                                            }
+                                                            else
+                                                            {
+                                                                <a href="/Public/Events?goalId=@goal.Id" class="btn btn-sm btn-outline-primary" style="border-radius: 8px;">
+                                                                    <i class="fas fa-eye"></i> View
+                                                                </a>
+                                                            }
+                                                            
+                                                            @if (eventItem.DueDate.HasValue)
+                                                            {
+                                                                var daysUntil = (eventItem.DueDate.Value - DateTime.Now).Days;
+                                                                @if (daysUntil >= 0)
+                                                                {
+                                                                    <small style="color: var(--onejax-blue); font-weight: 600;">
+                                                                        @if (daysUntil == 0)
+                                                                        {
+                                                                            <span>📅 Today!</span>
+                                                                        }
+                                                                        else if (daysUntil == 1)
+                                                                        {
+                                                                            <span>📅 Tomorrow</span>
+                                                                        }
+                                                                        else if (daysUntil <= 7)
+                                                                        {
+                                                                            <span style="color: var(--onejax-orange);">📅 In @daysUntil days</span>
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <span>📅 In @daysUntil days</span>
+                                                                        }
+                                                                    </small>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <small style="color: #ef4444;">
+                                                                        @if (eventItem.Status != "Completed")
+                                                                        {
+                                                                            <span>⚠️ @(-daysUntil) days overdue</span>
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <span style="color: var(--onejax-green);">✅ Completed</span>
+                                                                        }
+                                                                    </small>
+                                                                }
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                    
+	                                    <!-- Quick Action Buttons -->
+	                                    <div class="text-center mt-3">
+	                                        @if (canManageData)
+	                                        {
+	                                            <a href="/Strategy/Index?goalId=@goal.Id" class="btn btn-outline-primary btn-sm me-2">
+	                                                <i class="fas fa-plus"></i> Add New Event
+	                                            </a>
+	                                        }
+	                                        @if (canManageData)
+	                                        {
+	                                            <form style="display: inline;" method="get" action="/Strategy/ViewEvents">
+	                                                <input type="hidden" name="goalId" value="@goal.Id" />
+	                                                <button type="submit" class="btn btn-outline-secondary btn-sm">
+	                                                    <i class="fas fa-calendar"></i> View All Events
+	                                                </button>
+	                                            </form>
+	                                        }
+	                                        else
+	                                        {
+	                                            <a href="/Public/Events?goalId=@goal.Id" class="btn btn-outline-secondary btn-sm">
+	                                                <i class="fas fa-eye"></i> View Public Events
+	                                            </a>
+	                                        }
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <!-- No Events State -->
+                                <div class="mb-4">
+                                    <div class="text-center py-4" style="background: rgba(59, 130, 246, 0.05); border-radius: 12px; border: 2px dashed var(--onejax-border);">
+                                        <i class="fas fa-calendar-plus" style="font-size: 3rem; color: var(--onejax-blue); margin-bottom: 1rem;"></i>
+                                        <h6 style="color: var(--onejax-navy); margin-bottom: 0.5rem;">No Events Yet for @goal.Name</h6>
+	                                        <p style="color: var(--onejax-text-muted); margin-bottom: 1rem;">Start planning your strategic initiatives and events.</p>
+	                                        @if (canManageData)
+	                                        {
+	                                            <a href="/Strategy/Index?goalId=@goal.Id" class="btn btn-primary btn-sm">
+	                                                <i class="fas fa-plus"></i> Create First Event
+	                                            </a>
+	                                        }
+	                                        else
+	                                        {
+	                                            <a href="/Public/Events?goalId=@goal.Id" class="btn btn-outline-primary btn-sm">
+	                                                <i class="fas fa-eye"></i> View Public Events
+	                                            </a>
+	                                        }
+                                    </div>
+                                </div>
+                            }
+                            
+                            @if ((goal.Events == null || !goal.Events.Any()) && (goal.Metrics == null || !goal.Metrics.Any()))
+	                            {
+	                                <p style="color:var(--onejax-text-muted);">No data in this category yet.</p>
+	                                <p style="color:var(--onejax-text-muted); font-size:0.9em;">Data will be managed through the Core Strategies tab above.</p>
+	                            }
+}

@@ -3,17 +3,23 @@
 @{
     var selectedGoal = ViewData["SelectedGoal"]?.ToString() ?? string.Empty;
     var canManageData = ViewData["CanManageData"] as bool? ?? false;
+    var activeFiscalYear = ViewBag.ActiveFiscalYearLabel?.ToString() ?? string.Empty;
 
-    decimal LiveGoalProgress(IEnumerable<GoalMetric>? metrics)
+    IEnumerable<GoalMetric> ReportingMetrics(IEnumerable<GoalMetric>? metrics)
     {
-        var liveMetrics = (metrics ?? Enumerable.Empty<GoalMetric>())
+        return (metrics ?? Enumerable.Empty<GoalMetric>())
             .Where(m => !string.Equals(m.Status, "Planning", StringComparison.OrdinalIgnoreCase))
             .Where(m => !string.IsNullOrWhiteSpace(m.Target))
             .Where(m =>
             {
                 var clean = (m.Target ?? string.Empty).Replace("$", "").Replace(",", "").Replace("%", "").Trim();
                 return decimal.TryParse(clean, out var target) && target > 0;
-            })
+            });
+    }
+
+    decimal LiveGoalProgress(IEnumerable<GoalMetric>? metrics)
+    {
+        var liveMetrics = ReportingMetrics(metrics)
             .Select(m =>
             {
                 var clean = (m.Target ?? string.Empty).Replace("$", "").Replace(",", "").Replace("%", "").Trim();
@@ -25,8 +31,30 @@
         return liveMetrics.Any() ? Math.Round(liveMetrics.Average(), 1) : 0;
     }
 
-    var overallProgress = Model.StrategicGoals?.SelectMany(g => g.Metrics ?? new List<GoalMetric>()).Any() == true
-        ? Model.StrategicGoals.Average(g => LiveGoalProgress(g.Metrics))
+    bool MetricMeetsGoal(GoalMetric metric)
+    {
+        var clean = (metric.Target ?? string.Empty).Replace("$", "").Replace(",", "").Replace("%", "").Trim();
+        return decimal.TryParse(clean, out var target) && target > 0 && metric.CurrentValue >= target;
+    }
+
+    var goalSummaries = (Model.StrategicGoals ?? new List<StrategicGoal>())
+        .Select(g => new
+        {
+            Goal = g,
+            TotalMetricCount = g.Metrics?.Count() ?? 0,
+            ReportingMetricCount = ReportingMetrics(g.Metrics).Count(),
+            Progress = LiveGoalProgress(g.Metrics)
+        })
+        .ToList();
+
+    var goalsWithReporting = goalSummaries.Where(g => g.ReportingMetricCount > 0).ToList();
+    var totalMetrics = goalSummaries.Sum(g => g.TotalMetricCount);
+    var totalReportingMetrics = goalSummaries.Sum(g => g.ReportingMetricCount);
+    var totalMetricsMeetingGoal = (Model.StrategicGoals ?? new List<StrategicGoal>())
+        .SelectMany(g => ReportingMetrics(g.Metrics))
+        .Count(MetricMeetsGoal);
+    var overallProgress = totalReportingMetrics > 0
+        ? Math.Round((decimal)totalMetricsMeetingGoal / totalReportingMetrics * 100, 1)
         : 0;
     var totalEvents = Model.StrategicGoals?.SelectMany(g => g.Events ?? new List<Event>()).Count() ?? 0;
     var avgProgress = Model.StrategicGoals?.Any() == true ? Model.StrategicGoals.Average(g => LiveGoalProgress(g.Metrics)) : 0;
@@ -51,7 +79,10 @@
                 <div class="col-md-4 text-end">
                     <div style="color: white;">
                         <div style="font-size: 2rem; font-weight: 700;">@Math.Round(overallProgress, 1)%</div>
-                        <small>Total Progress</small>
+                        <small>Metrics Meeting Goal</small>
+                        <div style="font-size: 0.8rem; opacity: 0.85;">
+                            @totalMetricsMeetingGoal of @totalReportingMetrics reporting metrics met goal in @(string.IsNullOrWhiteSpace(activeFiscalYear) ? "this view" : activeFiscalYear)
+                        </div>
                     </div>
                 </div>
             </div>
@@ -65,21 +96,27 @@
             </div>
 
             <div class="row mb-5">
-                @if (Model.StrategicGoals != null)
+                @if (goalSummaries.Any())
                 {
-                    @foreach (var summaryGoal in Model.StrategicGoals)
+                    @foreach (var summaryGoal in goalSummaries)
                     {
-                        var goalProgress = LiveGoalProgress(summaryGoal.Metrics);
+                        var goalProgress = summaryGoal.Progress;
+                        var hasReportingMetrics = summaryGoal.ReportingMetricCount > 0;
                         <div class="col-md-6 col-lg-3 mb-3">
-                            <div class="card hover-card" style="background: var(--onejax-white); border: 1px solid var(--onejax-border); border-radius: 12px; cursor: pointer; transition: all 0.3s ease;" onclick="switchTab('@summaryGoal.Name.Replace(" ", "_")', null, event)">
+                            <div class="card hover-card" style="background: var(--onejax-white); border: 1px solid var(--onejax-border); border-radius: 12px; cursor: pointer; transition: all 0.3s ease;" onclick="switchTab('@summaryGoal.Goal.Name.Replace(" ", "_")', null, event)">
                                 <div class="card-body text-center" style="padding: 1.5rem;">
-                                    <h6 style="color: var(--onejax-navy); margin-bottom: 1rem; font-weight: 600;">@summaryGoal.Name</h6>
-                                    <div style="font-size: 1.8rem; font-weight: 700; color: var(--onejax-navy); margin-bottom: 1rem;">@Math.Round(goalProgress, 1)%</div>
+                                    <h6 style="color: var(--onejax-navy); margin-bottom: 1rem; font-weight: 600;">@summaryGoal.Goal.Name</h6>
+                                    <div style="font-size: 1.8rem; font-weight: 700; color: var(--onejax-navy); margin-bottom: 1rem;">@(hasReportingMetrics ? $"{Math.Round(goalProgress, 1)}%" : "No data")</div>
                                     <div class="progress" style="height: 8px; border-radius: 4px; background: rgba(59, 130, 246, 0.1);">
                                         <div class="progress-bar" style="width: @Math.Min(goalProgress, 100)%; background: var(--gradient-secondary); border-radius: 4px;"></div>
                                     </div>
                                     <small style="color: var(--onejax-text-muted); margin-top: 0.5rem; display: block;">
-                                        @(summaryGoal.Metrics?.Count() ?? 0) Metrics • @(summaryGoal.Events?.Count() ?? 0) Events
+                                        @(hasReportingMetrics
+                                            ? $"{summaryGoal.ReportingMetricCount} of {summaryGoal.TotalMetricCount} metrics reporting"
+                                            : $"No reporting metrics in {(string.IsNullOrWhiteSpace(activeFiscalYear) ? "this view" : activeFiscalYear)}")
+                                    </small>
+                                    <small style="color: var(--onejax-text-muted); margin-top: 0.15rem; display: block;">
+                                        @(summaryGoal.Goal.Events?.Count() ?? 0) Events
                                     </small>
                                     <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--onejax-blue);">
                                         Click to view details →

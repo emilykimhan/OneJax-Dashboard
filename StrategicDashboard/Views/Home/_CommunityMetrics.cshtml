@@ -1,0 +1,981 @@
+@model DashboardViewModel
+@using OneJaxDashboard.Models
+@{
+    var goal = ViewData["Goal"] as StrategicGoal;
+    var canManageData = ViewData["CanManageData"] as bool? ?? false;
+    var goalMetrics = goal?.Metrics ?? new List<GoalMetric>();
+}
+
+	                                        @if (goal?.Name.Contains("Community", StringComparison.OrdinalIgnoreCase) == true)
+	                                        {
+	                                            var mInterfaith = goalMetrics.FirstOrDefault(m => (m.Name ?? "").Contains("Interfaith", StringComparison.OrdinalIgnoreCase) && (m.Name ?? "").Contains("Events", StringComparison.OrdinalIgnoreCase));
+	                                            var mYouth = goalMetrics.FirstOrDefault(m => (m.Name ?? "").Contains("Youth", StringComparison.OrdinalIgnoreCase) && (m.Name ?? "").Contains("Attendance", StringComparison.OrdinalIgnoreCase));
+	                                            var mSatisfaction = goalMetrics.FirstOrDefault(m => (m.Name ?? "").Contains("Satisfaction", StringComparison.OrdinalIgnoreCase) && (m.Name ?? "").Contains("Event", StringComparison.OrdinalIgnoreCase))
+	                                                ?? goalMetrics.FirstOrDefault(m => (m.Name ?? "").Contains("Satisfaction", StringComparison.OrdinalIgnoreCase));
+	                                            var mPartners = goalMetrics.FirstOrDefault(m => (m.Name ?? "").Contains("Partner", StringComparison.OrdinalIgnoreCase) && (m.Name ?? "").Contains("Touchpoints", StringComparison.OrdinalIgnoreCase))
+	                                                ?? goalMetrics.FirstOrDefault(m => (m.Name ?? "").Contains("Collaboration", StringComparison.OrdinalIgnoreCase));
+	                                            var mFaith = goalMetrics.FirstOrDefault(m => (m.Name ?? "").Contains("Faith", StringComparison.OrdinalIgnoreCase) && (m.Name ?? "").Contains("Representation", StringComparison.OrdinalIgnoreCase));
+	                                            var mClergy = goalMetrics.FirstOrDefault(m => (m.Name ?? "").Contains("Clergy", StringComparison.OrdinalIgnoreCase) && (m.Name ?? "").Contains("Network", StringComparison.OrdinalIgnoreCase));
+	                                            var mDiversity = goalMetrics.FirstOrDefault(m => (m.Name ?? "").Contains("Diversity", StringComparison.OrdinalIgnoreCase) && (m.Name ?? "").Contains("Participant", StringComparison.OrdinalIgnoreCase));
+	                                            var mFirstTime = goalMetrics.FirstOrDefault(m => (m.Name ?? "").Contains("First-Time", StringComparison.OrdinalIgnoreCase) && (m.Name ?? "").Contains("Participants", StringComparison.OrdinalIgnoreCase));
+
+	                                            decimal parseTarget(string? raw)
+	                                            {
+	                                                if (string.IsNullOrWhiteSpace(raw)) return 0;
+	                                                var clean = raw.Replace("$", "", StringComparison.OrdinalIgnoreCase)
+	                                                    .Replace(",", "", StringComparison.OrdinalIgnoreCase)
+	                                                    .Replace("%", "", StringComparison.OrdinalIgnoreCase)
+	                                                    .Trim();
+	                                                return decimal.TryParse(clean, out var v) ? v : 0;
+	                                            }
+
+	                                            decimal? targetOrNull(GoalMetric? metric)
+	                                            {
+	                                                var parsed = parseTarget(metric?.Target);
+	                                                return parsed > 0 ? parsed : null;
+	                                            }
+
+	                                            string metricStatus(bool hasValue, decimal current, decimal? target, string? fallbackStatus)
+	                                            {
+	                                                if (!hasValue) return "No entries yet";
+	                                                if (target.HasValue && target.Value > 0 && current >= target.Value) return "Target met";
+	                                                return string.IsNullOrWhiteSpace(fallbackStatus) ? "Tracking" : fallbackStatus!;
+	                                            }
+
+	                                            decimal? bagNullable(string key)
+	                                            {
+	                                                var raw = ViewData[key];
+	                                                if (raw == null) return null;
+	                                                if (raw is decimal dec) return dec;
+	                                                if (raw is double dbl) return Convert.ToDecimal(dbl);
+	                                                if (raw is float flt) return Convert.ToDecimal(flt);
+	                                                if (raw is int i) return i;
+	                                                if (raw is long l) return l;
+	                                                if (raw is short s) return s;
+	                                                if (raw is string text && decimal.TryParse(text, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var parsed)) return parsed;
+	                                                return null;
+	                                            }
+
+	                                            decimal bagNumber(string key)
+	                                            {
+	                                                return bagNullable(key) ?? 0;
+	                                            }
+
+	                                            decimal progressValue(decimal current, decimal? target)
+	                                            {
+	                                                if (!target.HasValue || target.Value <= 0) return 0;
+	                                                return Math.Round(current / target.Value * 100, 1);
+	                                            }
+
+	                                            string valueLabel(decimal? value, string format = "0.#", string suffix = "", bool signed = false)
+	                                            {
+	                                                if (!value.HasValue) return "No data";
+	                                                var rendered = value.Value.ToString(format, System.Globalization.CultureInfo.InvariantCulture);
+	                                                if (signed && value.Value > 0) rendered = $"+{rendered}";
+	                                                return $"{rendered}{suffix}";
+	                                            }
+
+	                                            string targetLabel(decimal? target, string format = "0.#", string prefix = "", string suffix = "")
+	                                            {
+	                                                if (!target.HasValue) return "No target set";
+	                                                return $"{prefix}{target.Value.ToString(format, System.Globalization.CultureInfo.InvariantCulture)}{suffix}";
+	                                            }
+
+	                                            var youthTarget = targetOrNull(mYouth);
+	                                            var partnersTarget = targetOrNull(mPartners);
+	                                            var interfaithTarget = targetOrNull(mInterfaith);
+	                                            var faithTarget = targetOrNull(mFaith);
+	                                            var clergyTarget = targetOrNull(mClergy);
+	                                            var diversityTarget = targetOrNull(mDiversity);
+	                                            var firstTimeTarget = targetOrNull(mFirstTime);
+	                                            var satisfactionTarget = targetOrNull(mSatisfaction);
+	                                            var youthValueRaw = bagNullable("CommunityYouthGrowthPercent");
+	                                            var satisfactionValueRaw = bagNullable("CommunityEventSatisfactionAvg");
+	                                            var firstTimeValueRaw = bagNullable("CommunityFirstTimeRateAvg");
+	                                            var faithValueRaw = bagNullable("CommunityFaithPercentMeetingGoal");
+	                                            var interfaithValueRaw = bagNullable("CommunityInterfaithEventsCount");
+	                                            var partnersValueRaw = bagNullable("CommunityPartnersCurrentCount");
+	                                            var clergyValueRaw = bagNullable("CommunityClergyGrowthPercent");
+	                                            var diversityValueRaw = bagNullable("CommunityDiversityGrowthPercent");
+	                                            var youthValue = youthValueRaw ?? 0;
+	                                            var satisfactionValue = satisfactionValueRaw ?? 0;
+	                                            var firstTimeValue = firstTimeValueRaw ?? 0;
+	                                            var faithValue = faithValueRaw ?? 0;
+	                                            var interfaithValue = interfaithValueRaw ?? 0;
+	                                            var partnersValue = partnersValueRaw ?? 0;
+	                                            var clergyValue = clergyValueRaw ?? 0;
+	                                            var diversityValue = diversityValueRaw ?? 0;
+	                                            var youthHasValue = youthValueRaw.HasValue;
+	                                            var satisfactionHasValue = satisfactionValueRaw.HasValue;
+	                                            var firstTimeHasValue = firstTimeValueRaw.HasValue;
+	                                            var faithHasValue = faithValueRaw.HasValue;
+	                                            var interfaithEntryCount = bagNumber("CommunityInterfaithEntryCount");
+	                                            var partnerEntryCount = bagNumber("CommunityPartnerEntryCount");
+	                                            var interfaithHasValue = interfaithEntryCount > 0;
+	                                            var partnersHasValue = partnerEntryCount > 0;
+	                                            var faithEventsMeetingGoal = bagNumber("CommunityFaithEventsMeetingGoal");
+	                                            var faithTotalEvents = bagNumber("CommunityFaithTotalEvents");
+	                                            var clergyLatestTotal = bagNumber("CommunityClergyLatestTotal");
+	                                            var diversityLatestCount = bagNumber("CommunityDiversityLatestCount");
+	                                            var firstTimeTotalParticipants = bagNumber("CommunityFirstTimeTotalParticipants");
+	                                            var youthProgress = progressValue(youthValue, youthTarget);
+	                                            var partnersProgress = progressValue(partnersValue, partnersTarget);
+	                                            var interfaithProgress = progressValue(interfaithValue, interfaithTarget);
+	                                            var faithProgress = progressValue(faithValue, faithTarget);
+	                                            var satisfactionProgress = progressValue(satisfactionValue, satisfactionTarget);
+	                                            var diversityProgress = progressValue(diversityValue, diversityTarget);
+	                                            var firstTimeProgress = progressValue(firstTimeValue, firstTimeTarget);
+	                                            var youthStatusText = metricStatus(youthHasValue, youthValue, youthTarget, mYouth?.Status);
+	                                            var partnersStatusText = metricStatus(partnersHasValue, partnersValue, partnersTarget, mPartners?.Status);
+	                                            var faithStatusText = metricStatus(faithHasValue, faithValue, faithTarget, mFaith?.Status);
+	                                            var satisfactionStatusText = metricStatus(satisfactionHasValue, satisfactionValue, satisfactionTarget, mSatisfaction?.Status);
+	                                            var diversityStatusText = metricStatus(diversityValueRaw.HasValue, diversityValue, diversityTarget, mDiversity?.Status);
+	                                            var firstTimeStatusText = metricStatus(firstTimeHasValue, firstTimeValue, firstTimeTarget, mFirstTime?.Status);
+
+	                                            var latestPartners = ViewBag.CommunityPartnersLatest as IEnumerable<dynamic>;
+	                                            var anyLatestPartners = latestPartners != null && latestPartners.Any();
+
+	                                            <style>
+	                                                .community-pulse-shell {
+	                                                    --community-ink: #17324d;
+	                                                    --community-teal: #17838c;
+	                                                    --community-sea: #2aa6a4;
+	                                                    --community-coral: #ef7d57;
+	                                                    --community-sand: #f4c98a;
+	                                                    --community-foam: #edf8f6;
+	                                                    --community-mist: #f7fbfd;
+	                                                    --community-stroke: rgba(23, 50, 77, 0.10);
+	                                                    --community-soft-shadow: 0 18px 40px rgba(23, 50, 77, 0.10);
+	                                                }
+
+	                                                .community-pulse-shell .community-panel {
+	                                                    background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(247,251,253,0.98));
+	                                                    border: 1px solid var(--community-stroke);
+	                                                    border-radius: 24px;
+	                                                    box-shadow: var(--community-soft-shadow);
+	                                                    padding: 1.4rem;
+	                                                    display: flex;
+	                                                    flex-direction: column;
+	                                                    gap: 1rem;
+	                                                    min-height: 100%;
+	                                                    overflow: hidden;
+	                                                }
+
+	                                                .community-pulse-shell .community-hero {
+	                                                    background:
+	                                                        radial-gradient(circle at top left, rgba(42, 166, 164, 0.16), transparent 34%),
+	                                                        radial-gradient(circle at right center, rgba(239, 125, 87, 0.10), transparent 30%),
+	                                                        linear-gradient(180deg, #fbfeff, #eef8f6);
+	                                                }
+
+	                                                .community-pulse-shell .community-relationships {
+	                                                    background:
+	                                                        radial-gradient(circle at top right, rgba(23, 131, 140, 0.18), transparent 32%),
+	                                                        linear-gradient(180deg, #17324d, #214d62);
+	                                                    color: white;
+	                                                }
+
+	                                                .community-pulse-shell .community-representation {
+	                                                    background:
+	                                                        radial-gradient(circle at top left, rgba(244, 201, 138, 0.26), transparent 34%),
+	                                                        linear-gradient(180deg, #fffaf3, #fffdf8);
+	                                                }
+
+	                                                .community-pulse-shell .community-network {
+	                                                    background:
+	                                                        radial-gradient(circle at bottom right, rgba(42, 166, 164, 0.14), transparent 36%),
+	                                                        linear-gradient(180deg, #ffffff, #f8fcfb);
+	                                                }
+
+	                                                .community-pulse-shell .community-panel-header {
+	                                                    display: flex;
+	                                                    justify-content: space-between;
+	                                                    gap: 1rem;
+	                                                    align-items: flex-start;
+	                                                    flex-wrap: wrap;
+	                                                }
+
+	                                                .community-pulse-shell .community-kicker {
+	                                                    display: inline-flex;
+	                                                    align-items: center;
+	                                                    gap: 0.4rem;
+	                                                    padding: 0.35rem 0.75rem;
+	                                                    border-radius: 999px;
+	                                                    background: rgba(23, 131, 140, 0.12);
+	                                                    color: var(--community-teal);
+	                                                    font-size: 0.75rem;
+	                                                    font-weight: 800;
+	                                                    letter-spacing: 0.08em;
+	                                                    text-transform: uppercase;
+	                                                }
+
+	                                                .community-pulse-shell .community-panel h4 {
+	                                                    color: var(--community-ink);
+	                                                    font-weight: 800;
+	                                                    margin: 0.55rem 0 0.25rem;
+	                                                }
+
+	                                                .community-pulse-shell .community-relationships h4,
+	                                                .community-pulse-shell .community-relationships p,
+	                                                .community-pulse-shell .community-relationships .community-stat-label,
+	                                                .community-pulse-shell .community-relationships .community-mini-table th,
+	                                                .community-pulse-shell .community-relationships .community-mini-table td,
+	                                                .community-pulse-shell .community-relationships .community-kpi-caption,
+	                                                .community-pulse-shell .community-relationships .community-inline-meta {
+	                                                    color: rgba(255,255,255,0.88);
+	                                                }
+
+	                                                .community-pulse-shell .community-relationships .community-kicker {
+	                                                    background: rgba(255,255,255,0.12);
+	                                                    color: #d3f4ef;
+	                                                }
+
+	                                                .community-pulse-shell .community-panel p {
+	                                                    color: #557085;
+	                                                    margin: 0;
+	                                                    line-height: 1.55;
+	                                                }
+
+	                                                .community-pulse-shell .community-chip-row {
+	                                                    display: grid;
+	                                                    grid-template-columns: repeat(4, minmax(0, 1fr));
+	                                                    gap: 0.75rem;
+	                                                }
+
+	                                                .community-pulse-shell .community-chip {
+	                                                    padding: 0.85rem 0.95rem;
+	                                                    border-radius: 18px;
+	                                                    border: 1px solid rgba(23, 50, 77, 0.08);
+	                                                    background: rgba(255,255,255,0.86);
+	                                                }
+
+	                                                .community-pulse-shell .community-chip-label {
+	                                                    display: block;
+	                                                    color: #6f8798;
+	                                                    font-size: 0.76rem;
+	                                                    font-weight: 700;
+	                                                    text-transform: uppercase;
+	                                                    letter-spacing: 0.05em;
+	                                                    margin-bottom: 0.35rem;
+	                                                }
+
+	                                                .community-pulse-shell .community-chip-value {
+	                                                    display: block;
+	                                                    color: var(--community-ink);
+	                                                    font-size: 1.15rem;
+	                                                    font-weight: 800;
+	                                                    line-height: 1.1;
+	                                                }
+
+	                                                .community-pulse-shell .community-chip-meta {
+	                                                    display: block;
+	                                                    color: #5f7b91;
+	                                                    font-size: 0.78rem;
+	                                                    margin-top: 0.2rem;
+	                                                }
+
+	                                                .community-pulse-shell .community-chart-card,
+	                                                .community-pulse-shell .community-mini-card,
+	                                                .community-pulse-shell .community-rail-card,
+	                                                .community-pulse-shell .community-insight-card {
+	                                                    background: rgba(255,255,255,0.78);
+	                                                    border: 1px solid rgba(23, 50, 77, 0.08);
+	                                                    border-radius: 20px;
+	                                                    padding: 1rem;
+	                                                }
+
+	                                                .community-pulse-shell .community-relationships .community-chart-card,
+	                                                .community-pulse-shell .community-relationships .community-mini-card {
+	                                                    background: rgba(255,255,255,0.08);
+	                                                    border-color: rgba(255,255,255,0.12);
+	                                                }
+
+	                                                .community-pulse-shell .community-chart-label {
+	                                                    color: #5d768b;
+	                                                    font-size: 0.78rem;
+	                                                    font-weight: 700;
+	                                                    text-transform: uppercase;
+	                                                    letter-spacing: 0.06em;
+	                                                    margin-bottom: 0.35rem;
+	                                                }
+
+	                                                .community-pulse-shell .community-chart-title {
+	                                                    color: var(--community-ink);
+	                                                    font-weight: 800;
+	                                                    margin-bottom: 0.2rem;
+	                                                }
+
+	                                                .community-pulse-shell .community-chart-subtitle {
+	                                                    color: #668399;
+	                                                    font-size: 0.88rem;
+	                                                    margin-bottom: 0.85rem;
+	                                                }
+
+	                                                .community-pulse-shell .community-relationships .community-chart-label,
+	                                                .community-pulse-shell .community-relationships .community-chart-title,
+	                                                .community-pulse-shell .community-relationships .community-chart-subtitle {
+	                                                    color: rgba(255,255,255,0.92);
+	                                                }
+
+	                                                .community-pulse-shell .community-chart-stage {
+	                                                    position: relative;
+	                                                    height: 250px;
+	                                                }
+
+	                                                .community-pulse-shell .community-chart-stage.compact {
+	                                                    height: 165px;
+	                                                }
+
+	                                                .community-pulse-shell .community-chart-stage.short-wide {
+	                                                    height: 190px;
+	                                                }
+
+	                                                .community-pulse-shell .community-chart-stage.radar {
+	                                                    height: 330px;
+	                                                }
+
+	                                                .community-pulse-shell .community-chart-stage canvas {
+	                                                    width: 100% !important;
+	                                                    height: 100% !important;
+	                                                }
+
+	                                                .community-pulse-shell .community-side-stack {
+	                                                    display: flex;
+	                                                    flex-direction: column;
+	                                                    gap: 0.85rem;
+	                                                    height: 100%;
+	                                                }
+
+	                                                .community-pulse-shell .community-insight-card {
+	                                                    background: linear-gradient(135deg, rgba(239, 125, 87, 0.12), rgba(244, 201, 138, 0.16));
+	                                                }
+
+	                                                .community-pulse-shell .community-insight-card.full-height {
+	                                                    height: 100%;
+	                                                    display: flex;
+	                                                    flex-direction: column;
+	                                                    justify-content: space-between;
+	                                                }
+
+	                                                .community-pulse-shell .community-insight-card.signal-band {
+	                                                    display: flex;
+	                                                    flex-direction: row;
+	                                                    align-items: center;
+	                                                    justify-content: space-between;
+	                                                    gap: 1rem;
+	                                                }
+
+	                                                .community-pulse-shell .community-insight-main {
+	                                                    display: flex;
+	                                                    flex-direction: column;
+	                                                    gap: 0.25rem;
+	                                                }
+
+	                                                .community-pulse-shell .community-kpi-big {
+	                                                    font-size: 2.65rem;
+	                                                    font-weight: 800;
+	                                                    color: var(--community-ink);
+	                                                    line-height: 1;
+	                                                }
+
+	                                                .community-pulse-shell .community-relationships .community-kpi-big {
+	                                                    color: white;
+	                                                }
+
+	                                                .community-pulse-shell .community-kpi-caption {
+	                                                    color: #587388;
+	                                                    font-size: 0.9rem;
+	                                                    margin-top: 0.3rem;
+	                                                }
+
+	                                                .community-pulse-shell .community-inline-meta {
+	                                                    display: flex;
+	                                                    justify-content: space-between;
+	                                                    align-items: center;
+	                                                    gap: 0.75rem;
+	                                                    color: #5d788d;
+	                                                    font-size: 0.86rem;
+	                                                    margin-top: 0.65rem;
+	                                                }
+
+	                                                .community-pulse-shell .community-table-wrap {
+	                                                    max-height: 190px;
+	                                                    overflow: auto;
+	                                                    border-radius: 16px;
+	                                                }
+
+	                                                .community-pulse-shell .community-mini-table {
+	                                                    margin: 0;
+	                                                    font-size: 0.88rem;
+	                                                }
+
+	                                                .community-pulse-shell .community-mini-table th {
+	                                                    border: none;
+	                                                    font-size: 0.74rem;
+	                                                    letter-spacing: 0.05em;
+	                                                    text-transform: uppercase;
+	                                                    color: #7790a1;
+	                                                }
+
+	                                                .community-pulse-shell .community-mini-table td {
+	                                                    border-color: rgba(255,255,255,0.10);
+	                                                    color: #355069;
+	                                                }
+
+	                                                .community-pulse-shell .community-relationships .community-mini-table td {
+	                                                    color: rgba(255,255,255,0.82);
+	                                                }
+
+	                                                .community-pulse-shell .community-link-cluster {
+	                                                    display: flex;
+	                                                    gap: 0.55rem;
+	                                                    flex-wrap: wrap;
+	                                                }
+
+	                                                .community-pulse-shell .community-link-cluster .btn {
+	                                                    border-radius: 999px;
+	                                                    font-size: 0.8rem;
+	                                                    font-weight: 700;
+	                                                    padding: 0.4rem 0.85rem;
+	                                                }
+
+	                                                .community-pulse-shell .community-network-grid {
+	                                                    display: grid;
+	                                                    grid-template-columns: repeat(4, minmax(0, 1fr));
+	                                                    gap: 0.85rem;
+	                                                }
+
+	                                                .community-pulse-shell .community-stat-card {
+	                                                    background: linear-gradient(180deg, #ffffff, #f8fcfb);
+	                                                    border: 1px solid rgba(23, 50, 77, 0.08);
+	                                                    border-radius: 20px;
+	                                                    padding: 1rem;
+	                                                    display: flex;
+	                                                    flex-direction: column;
+	                                                    gap: 0.45rem;
+	                                                }
+
+	                                                .community-pulse-shell .community-stat-card.accent-teal { border-top: 4px solid var(--community-teal); }
+	                                                .community-pulse-shell .community-stat-card.accent-coral { border-top: 4px solid var(--community-coral); }
+	                                                .community-pulse-shell .community-stat-card.accent-sand { border-top: 4px solid var(--community-sand); }
+	                                                .community-pulse-shell .community-stat-card.accent-sea { border-top: 4px solid var(--community-sea); }
+
+	                                                .community-pulse-shell .community-stat-label {
+	                                                    color: #68859b;
+	                                                    font-size: 0.8rem;
+	                                                    font-weight: 700;
+	                                                    text-transform: uppercase;
+	                                                    letter-spacing: 0.04em;
+	                                                }
+
+	                                                .community-pulse-shell .community-stat-value {
+	                                                    color: var(--community-ink);
+	                                                    font-size: 1.65rem;
+	                                                    font-weight: 800;
+	                                                    line-height: 1.05;
+	                                                }
+
+	                                                .community-pulse-shell .community-stat-meta {
+	                                                    color: #6c879a;
+	                                                    font-size: 0.82rem;
+	                                                }
+
+	                                                .community-pulse-shell .community-metric-rails {
+	                                                    display: flex;
+	                                                    flex-direction: column;
+	                                                    gap: 0.85rem;
+	                                                }
+
+	                                                .community-pulse-shell .community-rail-card {
+	                                                    display: flex;
+	                                                    flex-direction: column;
+	                                                    gap: 0.55rem;
+	                                                }
+
+	                                                .community-pulse-shell .community-rail-header {
+	                                                    display: flex;
+	                                                    justify-content: space-between;
+	                                                    gap: 1rem;
+	                                                    align-items: baseline;
+	                                                }
+
+	                                                .community-pulse-shell .community-rail-title {
+	                                                    color: var(--community-ink);
+	                                                    font-weight: 700;
+	                                                }
+
+	                                                .community-pulse-shell .community-rail-value {
+	                                                    color: var(--community-teal);
+	                                                    font-weight: 800;
+	                                                }
+
+	                                                .community-pulse-shell .community-rail-track {
+	                                                    height: 10px;
+	                                                    border-radius: 999px;
+	                                                    background: rgba(23, 131, 140, 0.10);
+	                                                    overflow: hidden;
+	                                                }
+
+	                                                .community-pulse-shell .community-rail-fill {
+	                                                    height: 100%;
+	                                                    border-radius: inherit;
+	                                                    background: linear-gradient(90deg, var(--community-teal), var(--community-sea));
+	                                                }
+
+	                                                .community-pulse-shell .community-rail-meta {
+	                                                    color: #6e899c;
+	                                                    font-size: 0.8rem;
+	                                                    display: flex;
+	                                                    justify-content: space-between;
+	                                                }
+
+	                                                @@media (max-width: 991px) {
+	                                                    .community-pulse-shell .community-chip-row,
+	                                                    .community-pulse-shell .community-network-grid {
+	                                                        grid-template-columns: repeat(2, minmax(0, 1fr));
+	                                                    }
+	                                                }
+
+	                                                @@media (max-width: 575px) {
+	                                                    .community-pulse-shell .community-chip-row,
+	                                                    .community-pulse-shell .community-network-grid {
+	                                                        grid-template-columns: 1fr;
+	                                                    }
+
+	                                                    .community-pulse-shell .community-kpi-big {
+	                                                        font-size: 2.2rem;
+	                                                    }
+
+	                                                    .community-pulse-shell .community-insight-card.signal-band,
+	                                                    .community-pulse-shell .community-inline-meta {
+	                                                        flex-direction: column;
+	                                                        align-items: flex-start;
+	                                                    }
+	                                                }
+	                                            </style>
+
+	                                            <div class="col-12 mb-3">
+	                                                <div class="community-pulse-shell">
+	                                                    <div class="row g-3">
+	                                                        <div class="col-xl-8 d-flex">
+	                                                            <section class="community-panel community-hero w-100">
+	                                                                <div class="community-panel-header">
+	                                                                    <div>
+	                                                                        <span class="community-kicker">Community Pulse</span>
+	                                                                        <h4>Participation and community reach</h4>
+	                                                                    </div>
+	                                                                    @if (canManageData)
+	                                                                    {
+	                                                                        <a asp-controller="CommYouth15D" asp-action="Index" class="btn btn-sm btn-outline-dark">Update youth data</a>
+	                                                                    }
+	                                                                </div>
+
+	                                                                <div class="community-chip-row">
+	                                                                    <div class="community-chip">
+	                                                                        <span class="community-chip-label">Youth Growth</span>
+	                                                                        <span class="community-chip-value">@valueLabel(youthValueRaw, "0.#", "%", true)</span>
+	                                                                        <span class="community-chip-meta">Target: @targetLabel(youthTarget, "0.#", "+", "%") | @youthStatusText</span>
+	                                                                    </div>
+	                                                                    <div class="community-chip">
+	                                                                        <span class="community-chip-label">Event Satisfaction</span>
+	                                                                        <span class="community-chip-value">@valueLabel(satisfactionValueRaw, "0.#", "%")</span>
+	                                                                        <span class="community-chip-meta">Target: @targetLabel(satisfactionTarget, "0.#", "", "%") | @satisfactionStatusText</span>
+	                                                                    </div>
+	                                                                    <div class="community-chip">
+	                                                                        <span class="community-chip-label">First-Time Audience</span>
+	                                                                        <span class="community-chip-value">@valueLabel(firstTimeValueRaw, "0.#", "%")</span>
+	                                                                        <span class="community-chip-meta">Target: @targetLabel(firstTimeTarget, "0.#", "", "%") | @firstTimeStatusText</span>
+	                                                                    </div>
+	                                                                    <div class="community-chip">
+	                                                                        <span class="community-chip-label">Faith Representation</span>
+	                                                                        <span class="community-chip-value">@valueLabel(faithValueRaw, "0.#", "%")</span>
+	                                                                        <span class="community-chip-meta">Target: @targetLabel(faithTarget, "0.#", "", "%") | @faithStatusText</span>
+	                                                                    </div>
+	                                                                </div>
+
+	                                                                <div class="row g-3 align-items-stretch">
+	                                                                    <div class="col-12">
+	                                                                        <div class="community-chart-card">
+	                                                                            <div class="community-chart-label">Attendance arc</div>
+	                                                                            <div class="community-chart-title">Youth attendance over time</div>
+	                                                                            <div class="community-chart-subtitle">A softer area chart gives this tab a more social, less scoreboard-driven feel.</div>
+	                                                                            <div class="community-chart-stage">
+	                                                                                <canvas id="commYouthAttendanceLine"></canvas>
+	                                                                            </div>
+	                                                                        </div>
+	                                                                    </div>
+	                                                                    <div class="col-12">
+	                                                                        <div class="community-insight-card signal-band">
+	                                                                            <div class="community-insight-main">
+	                                                                                <div class="community-chart-label">Learning signal</div>
+	                                                                                <div class="community-kpi-big">@(youthHasValue && youthTarget.HasValue ? $"{youthProgress:0.#}%" : "No data")</div>
+	                                                                                <div class="community-kpi-caption">Progress toward youth attendance growth target</div>
+	                                                                            </div>
+	                                                                            <div class="community-inline-meta">
+	                                                                                <span>Target: @targetLabel(youthTarget, "0.#", "+", "%")</span>
+	                                                                                <span>@youthStatusText</span>
+	                                                                            </div>
+	                                                                        </div>
+	                                                                    </div>
+	                                                                    <div class="col-12">
+	                                                                        <div class="community-chart-card">
+	                                                                            <div class="community-chart-label">Pre/Post learning</div>
+	                                                                            <div class="community-chart-title">Session impact snapshot</div>
+	                                                                            <div class="community-chart-subtitle">Average pre- and post-session resiliency scores from the youth attendance form.</div>
+	                                                                            <div class="community-chart-stage short-wide">
+	                                                                                <canvas id="commYouthPrePostBar"></canvas>
+	                                                                            </div>
+	                                                                        </div>
+	                                                                    </div>
+	                                                                </div>
+	                                                            </section>
+	                                                        </div>
+
+	                                                        <div class="col-xl-4 d-flex">
+	                                                            <section class="community-panel community-relationships w-100">
+	                                                                <div class="community-panel-header">
+	                                                                    <div>
+	                                                                        <span class="community-kicker">Relationship Momentum</span>
+	                                                                        <h4>Collaborative partner touchpoints</h4>
+	                                                                    </div>
+	                                                                    @if (canManageData)
+	                                                                    {
+	                                                                        <a asp-controller="CommCollab47D" asp-action="Index" class="btn btn-sm btn-outline-light">Enter data</a>
+	                                                                    }
+	                                                                </div>
+
+	                                                                <div class="community-mini-card">
+	                                                                    <div class="community-chart-label">Current pace</div>
+	                                                                    <div class="community-kpi-big">@partnersValue.ToString("0")</div>
+	                                                                    <div class="community-kpi-caption">New collaborative partners added</div>
+	                                                                    <div class="community-inline-meta">
+	                                                                        <span>Target: @targetLabel(partnersTarget, "0.#") / year</span>
+	                                                                        <span>@(partnersHasValue && partnersTarget.HasValue ? $"{partnersStatusText}, {partnersProgress:0.#}% progress" : partnersStatusText)</span>
+	                                                                    </div>
+	                                                                </div>
+
+	                                                                <div class="community-chart-card">
+	                                                                    <div class="community-chart-label">By fiscal year</div>
+	                                                                    <div class="community-chart-title">Partner growth trend</div>
+	                                                                    <div class="community-chart-stage compact">
+	                                                                        <canvas id="commPartnersFyBar"></canvas>
+	                                                                    </div>
+	                                                                </div>
+
+	                                                                <div class="community-chart-card">
+	                                                                    <div class="community-chart-label">Latest entries</div>
+	                                                                    <div class="community-table-wrap">
+	                                                                        <table class="table table-sm community-mini-table">
+	                                                                            <thead>
+	                                                                                <tr>
+	                                                                                    <th style="white-space: nowrap;">Date</th>
+	                                                                                    <th>Strategy</th>
+	                                                                                </tr>
+	                                                                            </thead>
+	                                                                            <tbody>
+	                                                                                @if (!anyLatestPartners)
+	                                                                                {
+	                                                                                    <tr>
+	                                                                                        <td colspan="2">No entries yet.</td>
+	                                                                                    </tr>
+	                                                                                }
+	                                                                                else
+	                                                                                {
+	                                                                                    foreach (var row in latestPartners!)
+	                                                                                    {
+	                                                                                        <tr>
+	                                                                                            <td style="white-space: nowrap;">@row.date</td>
+	                                                                                            <td>@row.strategy</td>
+	                                                                                        </tr>
+	                                                                                    }
+	                                                                                }
+	                                                                            </tbody>
+	                                                                        </table>
+	                                                                    </div>
+	                                                                </div>
+	                                                            </section>
+	                                                        </div>
+
+	                                                        <div class="col-12 d-flex">
+	                                                            <section class="community-panel community-representation w-100">
+	                                                                <div class="community-panel-header">
+	                                                                    <div>
+	                                                                        <span class="community-kicker">Representation and Belonging</span>
+	                                                                        <h4>Progress mix across inclusion goals</h4>
+	                                                                    </div>
+	                                                                    @if (canManageData)
+	                                                                    {
+	                                                                        <div class="community-link-cluster">
+	                                                                            <a asp-controller="Interfaith11D" asp-action="Index" class="btn btn-sm btn-outline-dark">Interfaith</a>
+	                                                                            <a asp-controller="CommFaith13D" asp-action="Index" class="btn btn-sm btn-outline-dark">Faith mix</a>
+	                                                                            <a asp-controller="EventSatisfaction12D" asp-action="Index" class="btn btn-sm btn-outline-dark">Satisfaction</a>
+	                                                                            <a asp-controller="CommDiversity37D" asp-action="Index" class="btn btn-sm btn-outline-dark">Diversity</a>
+	                                                                            <a asp-controller="CommFirst38D" asp-action="Index" class="btn btn-sm btn-outline-dark">First-time</a>
+	                                                                        </div>
+	                                                                    }
+	                                                                </div>
+
+	                                                                <div class="row g-3 align-items-stretch">
+	                                                                    <div class="col-lg-7">
+	                                                                        <div class="community-chart-card">
+	                                                                            <div class="community-chart-label">Goal balance</div>
+	                                                                            <div class="community-chart-title">Community representation radar</div>
+	                                                                            <div class="community-chart-stage radar">
+	                                                                                <canvas id="commRepresentationRadar"></canvas>
+	                                                                            </div>
+	                                                                        </div>
+	                                                                    </div>
+	                                                                    <div class="col-lg-5">
+	                                                                        <div class="community-metric-rails">
+	                                                                            <div class="community-rail-card">
+	                                                                                <div class="community-rail-header">
+	                                                                                    <span class="community-rail-title">Interfaith events</span>
+	                                                                                    <span class="community-rail-value">@interfaithValue.ToString("0")</span>
+	                                                                                </div>
+	                                                                                <div class="community-rail-track"><div class="community-rail-fill" style="width:@Math.Min((double)interfaithProgress, 100)%"></div></div>
+	                                                                                <div class="community-rail-meta"><span>Target: @targetLabel(interfaithTarget)</span><span>@(interfaithHasValue && interfaithTarget.HasValue ? $"{interfaithProgress:0.#}% complete" : "No entries yet")</span></div>
+	                                                                            </div>
+
+	                                                                            <div class="community-rail-card">
+	                                                                                <div class="community-rail-header">
+	                                                                                    <span class="community-rail-title">Faith representation</span>
+	                                                                                    <span class="community-rail-value">@valueLabel(faithValueRaw, "0.#", "%")</span>
+	                                                                                </div>
+	                                                                                <div class="community-rail-track"><div class="community-rail-fill" style="width:@Math.Min((double)faithProgress, 100)%"></div></div>
+	                                                                                <div class="community-rail-meta">
+	                                                                                    <span>Target: @targetLabel(faithTarget, "0.#", "", "%")</span>
+	                                                                                    <span>@(faithTotalEvents > 0 ? $"{faithEventsMeetingGoal:0} of {faithTotalEvents:0} entries met the 3-faith goal" : faithStatusText)</span>
+	                                                                                </div>
+	                                                                            </div>
+
+	                                                                            <div class="community-rail-card">
+	                                                                                <div class="community-rail-header">
+	                                                                                    <span class="community-rail-title">Event satisfaction</span>
+	                                                                                    <span class="community-rail-value">@valueLabel(satisfactionValueRaw, "0.#", "%")</span>
+	                                                                                </div>
+	                                                                                <div class="community-rail-track"><div class="community-rail-fill" style="width:@Math.Min((double)satisfactionProgress, 100)%"></div></div>
+	                                                                                <div class="community-rail-meta"><span>Target: @targetLabel(satisfactionTarget, "0.#", "", "%")</span><span>@satisfactionStatusText</span></div>
+	                                                                            </div>
+
+	                                                                            <div class="community-rail-card">
+	                                                                                <div class="community-rail-header">
+	                                                                                    <span class="community-rail-title">Participant diversity</span>
+	                                                                                    <span class="community-rail-value">@valueLabel(diversityValueRaw, "0.#", "%", true)</span>
+	                                                                                </div>
+	                                                                                <div class="community-rail-track"><div class="community-rail-fill" style="width:@Math.Min((double)diversityProgress, 100)%"></div></div>
+	                                                                                <div class="community-rail-meta"><span>Target: @targetLabel(diversityTarget, "0.#", "+", "%")</span><span>@diversityStatusText</span></div>
+	                                                                            </div>
+
+	                                                                            <div class="community-rail-card">
+	                                                                                <div class="community-rail-header">
+	                                                                                    <span class="community-rail-title">First-time participation</span>
+	                                                                                    <span class="community-rail-value">@valueLabel(firstTimeValueRaw, "0.#", "%")</span>
+	                                                                                </div>
+	                                                                                <div class="community-rail-track"><div class="community-rail-fill" style="width:@Math.Min((double)firstTimeProgress, 100)%"></div></div>
+	                                                                                <div class="community-rail-meta"><span>Target: @targetLabel(firstTimeTarget, "0.#", "", "%")</span><span>@firstTimeStatusText</span></div>
+	                                                                            </div>
+	                                                                        </div>
+	                                                                    </div>
+	                                                                </div>
+	                                                            </section>
+	                                                        </div>
+
+	                                                        <div class="col-12 d-flex">
+	                                                            <section class="community-panel community-network w-100">
+	                                                                <div class="community-panel-header">
+	                                                                    <div>
+	                                                                        <span class="community-kicker">Field Signals</span>
+	                                                                        <h4>Quick reads for relationship-building work</h4>
+	                                                                    </div>
+	                                                                    @if (canManageData)
+	                                                                    {
+	                                                                        <a asp-controller="CommContact14D" asp-action="Index" class="btn btn-sm btn-outline-dark">Update contacts</a>
+	                                                                    }
+	                                                                </div>
+
+	                                                                <div class="community-network-grid">
+	                                                                    <div class="community-stat-card accent-teal">
+	                                                                        <div class="community-stat-label">Interfaith events</div>
+	                                                                        <div class="community-stat-value">@interfaithValue.ToString("0")</div>
+	                                                                        <div class="community-stat-meta">Target: @targetLabel(interfaithTarget) events hosted</div>
+	                                                                    </div>
+	                                                                    <div class="community-stat-card accent-coral">
+	                                                                        <div class="community-stat-label">Network growth</div>
+	                                                                        <div class="community-stat-value">@valueLabel(clergyValueRaw, "0.#", "%", true)</div>
+	                                                                        <div class="community-stat-meta">Latest logged contacts: @clergyLatestTotal.ToString("0") | Target: @targetLabel(clergyTarget, "0.#", "+", "%")</div>
+	                                                                    </div>
+	                                                                    <div class="community-stat-card accent-sand">
+	                                                                        <div class="community-stat-label">Diversity increase</div>
+	                                                                        <div class="community-stat-value">@valueLabel(diversityValueRaw, "0.#", "%", true)</div>
+	                                                                        <div class="community-stat-meta">Latest logged diversity count: @diversityLatestCount.ToString("0")</div>
+	                                                                    </div>
+	                                                                    <div class="community-stat-card accent-sea">
+	                                                                        <div class="community-stat-label">First-time participants</div>
+	                                                                        <div class="community-stat-value">@valueLabel(firstTimeValueRaw, "0.#", "%")</div>
+	                                                                        <div class="community-stat-meta">Logged first-time participants: @firstTimeTotalParticipants.ToString("0") | Target: @targetLabel(firstTimeTarget, "0.#", "", "%")</div>
+	                                                                    </div>
+	                                                                </div>
+	                                                            </section>
+	                                                        </div>
+	                                                    </div>
+	                                                </div>
+	                                            </div>
+
+	                                            <script>
+	                                                (function initCommunityCharts() {
+	                                                    if (window.__onejaxCommunityChartsInit) return;
+	                                                    window.__onejaxCommunityChartsInit = true;
+
+	                                                    function waitForChartJs(tries) {
+	                                                        if (window.Chart) return setup();
+	                                                        if ((tries || 0) > 50) return;
+	                                                        setTimeout(() => waitForChartJs((tries || 0) + 1), 60);
+	                                                    }
+
+	                                                    function setup() {
+	                                                        const youthSeries = @Html.Raw(Json.Serialize(ViewBag.CommunityYouthAttendanceSeries ?? new List<object>()));
+	                                                        const youthAvg = @Html.Raw(Json.Serialize(ViewBag.CommunityYouthPrePostAvg ?? new { pre = 0.0, post = 0.0 }));
+
+	                                                        const youthLineEl = document.getElementById('commYouthAttendanceLine');
+	                                                        if (youthLineEl) {
+	                                                            const labels = (youthSeries || []).map(p => p.label);
+	                                                            const values = (youthSeries || []).map(p => p.attendees);
+	                                                            const ctx = youthLineEl.getContext('2d');
+	                                                            const gradient = ctx.createLinearGradient(0, 0, 0, 260);
+	                                                            gradient.addColorStop(0, 'rgba(42, 166, 164, 0.34)');
+	                                                            gradient.addColorStop(1, 'rgba(42, 166, 164, 0.02)');
+
+	                                                            new Chart(youthLineEl, {
+	                                                                type: 'line',
+	                                                                data: {
+	                                                                    labels,
+	                                                                    datasets: [{
+	                                                                        label: 'Youth attendees',
+	                                                                        data: values,
+	                                                                        borderColor: '#17838c',
+	                                                                        backgroundColor: gradient,
+	                                                                        fill: true,
+	                                                                        tension: 0.42,
+	                                                                        borderWidth: 3,
+	                                                                        pointRadius: 4,
+	                                                                        pointHoverRadius: 6,
+	                                                                        pointBackgroundColor: '#ffffff',
+	                                                                        pointBorderWidth: 2,
+	                                                                        pointBorderColor: '#17838c'
+	                                                                    }]
+	                                                                },
+	                                                                options: {
+	                                                                    responsive: true,
+	                                                                    maintainAspectRatio: false,
+	                                                                    plugins: { legend: { display: false } },
+	                                                                    scales: {
+	                                                                        x: { ticks: { color: '#6c879a' }, grid: { display: false } },
+	                                                                        y: { ticks: { color: '#6c879a' }, grid: { color: 'rgba(23, 50, 77, 0.10)' }, beginAtZero: true }
+	                                                                    }
+	                                                                }
+	                                                            });
+	                                                        }
+
+	                                                        const youthBarEl = document.getElementById('commYouthPrePostBar');
+	                                                        if (youthBarEl) {
+	                                                            new Chart(youthBarEl, {
+	                                                                type: 'bar',
+	                                                                data: {
+	                                                                    labels: ['Pre-assessment', 'Post-assessment'],
+	                                                                    datasets: [{
+	                                                                        data: [youthAvg?.pre || 0, youthAvg?.post || 0],
+	                                                                        backgroundColor: ['rgba(239, 125, 87, 0.62)', 'rgba(42, 166, 164, 0.68)'],
+	                                                                        borderRadius: 999,
+	                                                                        borderSkipped: false
+	                                                                    }]
+	                                                                },
+	                                                                options: {
+	                                                                    responsive: true,
+	                                                                    maintainAspectRatio: false,
+	                                                                    indexAxis: 'y',
+	                                                                    layout: { padding: { right: 8 } },
+	                                                                    plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => `${ctx.parsed.x}%` } } },
+	                                                                    scales: {
+	                                                                        x: { ticks: { color: '#6c879a' }, grid: { color: 'rgba(23, 50, 77, 0.08)' }, beginAtZero: true, suggestedMax: 100 },
+	                                                                        y: { ticks: { color: '#5d768b' }, grid: { display: false } }
+	                                                                    }
+	                                                                }
+	                                                            });
+	                                                        }
+
+	                                                        const partnersFy = @Html.Raw(Json.Serialize(ViewBag.CommunityPartnersByFiscalYear ?? new List<object>()));
+	                                                        const partnersEl = document.getElementById('commPartnersFyBar');
+	                                                        if (partnersEl) {
+	                                                            const labels = (partnersFy || []).map(p => p.fiscalYear);
+	                                                            const values = (partnersFy || []).map(p => p.count);
+	                                                            new Chart(partnersEl, {
+	                                                                type: 'bar',
+	                                                                data: {
+	                                                                    labels,
+	                                                                    datasets: [{
+	                                                                        label: 'New partners',
+	                                                                        data: values,
+	                                                                        backgroundColor: ['rgba(244, 201, 138, 0.90)', 'rgba(42, 166, 164, 0.82)', 'rgba(239, 125, 87, 0.86)'],
+	                                                                        borderRadius: 14,
+	                                                                        borderSkipped: false
+	                                                                    }]
+	                                                                },
+	                                                                options: {
+	                                                                    responsive: true,
+	                                                                    maintainAspectRatio: false,
+	                                                                    indexAxis: 'y',
+	                                                                    plugins: { legend: { display: false } },
+	                                                                    scales: {
+	                                                                        x: { ticks: { color: 'rgba(255,255,255,0.86)', precision: 0 }, grid: { color: 'rgba(255,255,255,0.10)' }, beginAtZero: true },
+	                                                                        y: { ticks: { color: 'rgba(255,255,255,0.86)' }, grid: { display: false } }
+	                                                                    }
+	                                                                }
+	                                                            });
+	                                                        }
+
+	                                                        const representationRadarEl = document.getElementById('commRepresentationRadar');
+	                                                        if (representationRadarEl) {
+	                                                            new Chart(representationRadarEl, {
+	                                                                type: 'radar',
+	                                                                data: {
+	                                                                    labels: ['Interfaith', 'Faith Mix', 'Satisfaction', 'Diversity', 'First-Time'],
+	                                                                    datasets: [{
+	                                                                        label: 'Progress to goal',
+	                                                                        data: [
+	                                                                            @Math.Min((double)interfaithProgress, 140).ToString(System.Globalization.CultureInfo.InvariantCulture),
+	                                                                            @Math.Min((double)faithProgress, 140).ToString(System.Globalization.CultureInfo.InvariantCulture),
+	                                                                            @Math.Min((double)satisfactionProgress, 140).ToString(System.Globalization.CultureInfo.InvariantCulture),
+	                                                                            @Math.Min((double)diversityProgress, 140).ToString(System.Globalization.CultureInfo.InvariantCulture),
+	                                                                            @Math.Min((double)firstTimeProgress, 140).ToString(System.Globalization.CultureInfo.InvariantCulture)
+	                                                                        ],
+	                                                                        backgroundColor: 'rgba(42, 166, 164, 0.18)',
+	                                                                        borderColor: '#17838c',
+	                                                                        borderWidth: 2.5,
+	                                                                        pointBackgroundColor: ['#17838c', '#2aa6a4', '#ef7d57', '#f4c98a', '#17324d'],
+	                                                                        pointBorderColor: '#ffffff',
+	                                                                        pointRadius: 4
+	                                                                    }]
+	                                                                },
+	                                                                options: {
+	                                                                    responsive: true,
+	                                                                    maintainAspectRatio: false,
+	                                                                    plugins: { legend: { display: false } },
+	                                                                    scales: {
+	                                                                        r: {
+	                                                                            suggestedMin: 0,
+	                                                                            suggestedMax: 140,
+	                                                                            ticks: { color: '#7892a4', backdropColor: 'transparent', stepSize: 20 },
+	                                                                            pointLabels: { color: '#4f6b81', font: { size: 12, weight: '600' } },
+	                                                                            grid: { color: 'rgba(23, 50, 77, 0.10)' },
+	                                                                            angleLines: { color: 'rgba(23, 50, 77, 0.10)' }
+	                                                                        }
+	                                                                    }
+	                                                                }
+	                                                            });
+	                                                        }
+	                                                    }
+
+	                                                    waitForChartJs(0);
+	                                                })();
+	                                            </script>
+	                                        }

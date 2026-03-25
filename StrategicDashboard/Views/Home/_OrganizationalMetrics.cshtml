@@ -1,0 +1,909 @@
+@model DashboardViewModel
+@using OneJaxDashboard.Models
+@{
+    var goal = ViewData["Goal"] as StrategicGoal;
+    var canManageData = ViewData["CanManageData"] as bool? ?? false;
+}
+
+@if (goal?.Metrics != null && goal.Metrics.Any())
+{
+    foreach (var metric in goal.Metrics)
+    {
+        var metricName = metric.Name ?? string.Empty;
+		                                            @if (metricName.Contains("Earned Media", StringComparison.OrdinalIgnoreCase))
+		                                            {
+		                                                <!-- Professional Media Card -->
+		                                                <div class="col-md-4 mb-3">
+		                                                    <div class="card" style="background:var(--onejax-white); border:1px solid #e5e7eb; border-radius:8px;">
+                                                        <div class="card-body text-center">
+                                                            <h6 class="card-title" style="color:var(--onejax-navy); font-weight:600;">@metric.Name</h6>
+                                                            <div class="h2 mb-0" style="color:var(--onejax-navy);">@metric.CurrentValue</div>
+                                                            <small class="text-muted">/ @metric.Target @metric.Unit</small>
+                                                            <div class="mt-3">
+                                                                <div class="progress" style="height:6px;">
+                                                                    <div class="progress-bar" style="width:@(Math.Min(metric.ProgressPercentage, 100))%; background-color:var(--onejax-blue);" role="progressbar"></div>
+                                                                </div>
+                                                                <small class="text-muted mt-1 d-block">@Math.Round(metric.ProgressPercentage, 1)% Complete</small>
+                                                            </div>
+                                                        </div>
+		                                                    </div>
+		                                                </div>
+		                                            }
+		                                            else if (metricName.Contains("Website Traffic", StringComparison.OrdinalIgnoreCase))
+		                                            {
+		                                                // Skip Website Traffic metrics since we have the quarterly chart
+		                                            }
+		                                            else if (metricName.Contains("Community Perception", StringComparison.OrdinalIgnoreCase))
+		                                            {
+		                                                <!-- Professional Trust Rating Card -->
+		                                                <div class="col-md-4 mb-3">
+		                                                    <div class="card" style="background:var(--onejax-white); border:1px solid #e5e7eb; border-radius:8px;">
+                                                        <div class="card-body text-center">
+                                                            <h6 class="card-title" style="color:var(--onejax-navy); font-weight:600;">Community Trust Rating</h6>
+                                                            <div class="h2 mb-2" style="color:var(--onejax-navy);">@metric.CurrentValue%</div>
+                                                            <small class="text-muted">Trust Rating Score</small>
+                                                            @if (metric.CurrentValue >= Convert.ToDecimal(metric.Target))
+                                                            {
+                                                                <div class="mt-3">
+                                                                    <span class="badge bg-success">Target Achieved</span>
+                                                                </div>
+                                                            }
+                                                            else
+                                                            {
+                                                                <div class="mt-3">
+                                                                    <small class="text-muted">Target: @metric.Target%</small>
+                                                                    <div class="progress mt-2" style="height:6px;">
+                                                                        <div class="progress-bar" style="width:@(Math.Min(metric.ProgressPercentage, 100))%; background-color:var(--onejax-blue);" role="progressbar"></div>
+                                                                    </div>
+                                                                </div>
+                                                            }
+                                                        </div>
+		                                                    </div>
+		                                                </div>
+		                                            }
+		                                            else if ((metricName.Contains("Staff Satisfaction", StringComparison.OrdinalIgnoreCase) || metricName.Contains("satisfaction", StringComparison.OrdinalIgnoreCase) || metricName.Contains("Staff Survey", StringComparison.OrdinalIgnoreCase)) && (goal.Name.Contains("Organizational", StringComparison.OrdinalIgnoreCase) || goal.Name.Contains("Building", StringComparison.OrdinalIgnoreCase)))
+		                                            {
+		                                                <!-- Enhanced Staff Satisfaction Card -->
+		                                                <div class="col-md-6 mb-3 order-1 d-flex">
+		                                                    <div class="card w-100" style="background: linear-gradient(135deg, #f8fafc, #f1f5f9); border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); position: relative; overflow: visible; min-height: 340px; height: 100%; display: flex; flex-direction: column;">
+                                                        <!-- Header with gradient -->
+                                                        <div class="card-header" style="background: linear-gradient(135deg, var(--onejax-blue), var(--onejax-navy)); color: white; border: none; border-radius: 16px 16px 0 0; padding: 1rem; flex-shrink: 0;">
+                                                            <div class="d-flex justify-content-between align-items-center">
+                                                                <div>
+                                                                    <h6 class="mb-0" style="font-weight: 600; font-size: 1rem;">
+                                                                        <i class="fas fa-users me-2"></i>Staff Satisfaction Rating
+                                                                    </h6>
+                                                                    <small style="opacity: 0.9;">Annual Team Satisfaction Survey</small>
+                                                                </div>
+	                                                                <div class="text-end d-flex flex-column align-items-end gap-2">
+	                                                                    @if (metric.CurrentValue >= Convert.ToDecimal(metric.Target))
+	                                                                    {
+	                                                                        <span class="badge" style="background: #10b981; font-size: 0.75rem;">
+	                                                                            <i class="fas fa-check-circle"></i> Target Met
+	                                                                        </span>
+                                                                    }
+                                                                    else
+                                                                    {
+	                                                                        <span class="badge" style="background: #f59e0b; font-size: 0.75rem;">
+	                                                                            <i class="fas fa-clock"></i> In Progress
+	                                                                        </span>
+	                                                                    }
+
+	                                                                    @if (canManageData)
+	                                                                    {
+	                                                                        <a asp-controller="StaffSurvey" asp-action="Index"
+	                                                                           class="btn btn-sm btn-outline-light"
+	                                                                           style="border-radius: 999px; white-space: nowrap;">
+	                                                                            Enter data
+	                                                                        </a>
+	                                                                    }
+	                                                                </div>
+	                                                            </div>
+	                                                        </div>
+                                                        
+                                                        <div class="card-body" style="padding: 1.5rem; flex: 1;">
+                                                            <!-- Main satisfaction display with circle chart -->
+                                                            <div class="row align-items-center">
+                                                                <div class="col-md-6">
+                                                                    <!-- Progress Circle -->
+                                                                    <div class="text-center position-relative">
+                                                                        <div style="position: relative; width: 140px; height: 140px; margin: 0 auto;">
+                                                                            <canvas id="satisfaction-circle-@(metric.Id)" width="140" height="140" style="position: absolute; top: 0; left: 0;"></canvas>
+                                                                            <!-- Center text overlay -->
+                                                                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                                                                                <div style="font-size: 2rem; font-weight: 700; color: var(--onejax-navy); line-height: 1;">
+                                                                                    @metric.CurrentValue<span style="font-size: 1.2rem;">%</span>
+                                                                                </div>
+                                                                                <small style="color: var(--onejax-text-muted); font-size: 0.75rem;">Current Rating</small>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                
+                                                                <div class="col-md-6">
+                                                                    <!-- Statistics and info -->
+                                                                    <div class="d-flex flex-column gap-3">
+                                                                        <!-- Target comparison -->
+                                                                        <div class="d-flex justify-content-between align-items-center p-2" style="background: rgba(59, 130, 246, 0.05); border-radius: 8px;">
+                                                                            <span style="font-weight: 500; color: var(--onejax-navy);">Target:</span>
+                                                                            <span style="font-weight: 600; color: var(--onejax-blue);">@metric.Target%</span>
+                                                                        </div>
+                                                                        
+                                                                        <!-- Progress bar -->
+                                                                        <div>
+                                                                            <div class="d-flex justify-content-between mb-1">
+                                                                                <small style="color: var(--onejax-text-muted);">Progress to Target</small>
+                                                                                <small style="color: var(--onejax-navy); font-weight: 600;">@Math.Round(metric.ProgressPercentage, 1)%</small>
+                                                                            </div>
+                                                                            <div class="progress" style="height: 8px; border-radius: 4px; background: #e2e8f0;">
+                                                                                <div class="progress-bar" style="width: @Math.Min(metric.ProgressPercentage, 100)%; background: linear-gradient(90deg, var(--onejax-blue), var(--onejax-green)); border-radius: 4px;" role="progressbar"></div>
+                                                                            </div>
+                                                                        </div>
+                                                                        
+                                                                        <!-- Status and date -->
+                                                                        <div class="d-flex justify-content-between align-items-center">
+                                                                            <span class="badge @(metric.Status == "Active" ? "bg-success" : "bg-secondary")" style="font-size: 0.75rem;">
+                                                                                @metric.Status
+                                                                            </span>
+                                                                            <small style="color: var(--onejax-text-muted);">
+                                                                                Target: @metric.TargetDate.ToString("MMM yyyy")
+                                                                            </small>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+	                                                        </div>
+	                                                    </div>
+	                                                </div>
+                                                
+                                                <script>
+                                                    // Initialize the satisfaction circle chart
+                                                    document.addEventListener('DOMContentLoaded', function() {
+                                                        const satisfactionCtx = document.getElementById('satisfaction-circle-@(metric.Id)');
+                                                        if (satisfactionCtx) {
+                                                            const satisfactionValue = @metric.CurrentValue;
+                                                            const targetValue = @Convert.ToDecimal(metric.Target);
+                                                            const progressPercentage = Math.min((satisfactionValue / targetValue) * 100, 100);
+                                                            
+                                                            new Chart(satisfactionCtx, {
+                                                                type: 'doughnut',
+                                                                data: {
+                                                                    datasets: [{
+                                                                        data: [progressPercentage, 100 - progressPercentage],
+                                                                        backgroundColor: [
+                                                                            satisfactionValue >= targetValue ? '#10b981' : satisfactionValue >= targetValue * 0.8 ? '#3b82f6' : '#f59e0b',
+                                                                            '#e2e8f0'
+                                                                        ],
+                                                                        borderWidth: 0,
+                                                                        cutout: '75%'
+                                                                    }]
+                                                                },
+                                                                options: {
+                                                                    responsive: false,
+                                                                    maintainAspectRatio: false,
+                                                                    plugins: {
+                                                                        legend: { display: false },
+                                                                        tooltip: {
+                                                                            callbacks: {
+                                                                                label: function(context) {
+                                                                                    if (context.dataIndex === 0) {
+                                                                                        return 'Satisfaction: ' + satisfactionValue + '%';
+                                                                                    }
+                                                                                    return null;
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            });
+                                                        }
+                                                    });
+                                                </script>
+                                            }
+	                                            else if ((metricName.Contains("Board", StringComparison.OrdinalIgnoreCase) && (metricName.Contains("Meeting", StringComparison.OrdinalIgnoreCase) || metricName.Contains("Participation", StringComparison.OrdinalIgnoreCase))) && (goal.Name.Contains("Organizational", StringComparison.OrdinalIgnoreCase) || goal.Name.Contains("Building", StringComparison.OrdinalIgnoreCase)))
+	                                            {
+	                                                <!-- Enhanced Board Meeting Attendance Card with Scrollable Table -->
+	                                                <div class="col-md-12 mb-3 order-3">
+                                                    <div class="card" style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); position: relative; overflow: hidden; height: 400px; display: flex; flex-direction: column;">
+                                                        <!-- Fixed Header -->
+                                                        <div class="card-header" style="background: #f8fafc; border-bottom: 1px solid #e5e7eb; border-radius: 12px 12px 0 0; padding: 1.25rem 1.5rem; flex-shrink: 0; position: relative;">
+                                                            <div class="d-flex justify-content-between align-items-center" style="padding-right: 80px;">
+                                                                <div>
+                                                                    <h6 class="mb-1" style="font-weight: 600; font-size: 1rem; color: #1f2937;">
+                                                                        <i class="fas fa-calendar-check me-2" style="color: #6b7280;"></i>Board Meeting Attendance
+                                                                    </h6>
+                                                                    <small style="color: #6b7280;">Goal: Maintain 90% attendance</small>
+                                                                </div>
+                                                                <div class="text-end">
+                                                                    <div style="font-size: 1.75rem; font-weight: 700; color: @(metric.CurrentValue >= 90 ? "#10b981" : metric.CurrentValue >= 75 ? "#3b82f6" : "#6b7280"); line-height: 1;">
+                                                                        @(Math.Round(metric.CurrentValue, 1))%
+                                                                    </div>
+                                                                    <small style="color: #6b7280;">Current Average</small>
+                                                                </div>
+                                                            </div>
+
+                                                            @if (canManageData)
+                                                            {
+                                                                <div style="position: absolute; top: 1.1rem; right: 1.25rem;">
+                                                                    <a asp-controller="BoardMeetingAttendance" asp-action="Index"
+                                                                       class="btn btn-sm btn-outline-secondary"
+                                                                       style="border-radius: 999px; background: white;">
+                                                                        Enter data
+                                                                    </a>
+                                                                </div>
+                                                            }
+                                                        </div>
+                                                        
+                                                        <!-- Scrollable Content Area -->
+                                                        <div style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
+                                                            @if (metric.CurrentValue > 0)
+                                                            {
+                                                                var meetingRecords = ViewBag.BoardMeetingAttendance as List<OneJaxDashboard.Models.BoardMeetingAttendance> ?? new List<OneJaxDashboard.Models.BoardMeetingAttendance>();
+                                                                if (meetingRecords.Any())
+                                                                {
+                                                                    <!-- Scrollable Meeting Log Table -->
+                                                                    <div style="flex: 1; overflow-y: auto; overflow-x: hidden;">
+                                                                        <table class="table table-sm mb-0" style="font-size: 0.9rem;">
+                                                                            <thead style="background: #f9fafb; position: sticky; top: 0; z-index: 1;">
+                                                                                <tr>
+                                                                                    <th style="border: none; padding: 0.75rem 1.25rem; font-weight: 600; color: #374151; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">Date</th>
+                                                                                    <th style="border: none; padding: 0.75rem 0.75rem; font-weight: 600; color: #374151; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; text-align: center;">Attended</th>
+                                                                                    <th style="border: none; padding: 0.75rem 1.25rem; font-weight: 600; color: #374151; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; text-align: right;">Rate</th>
+                                                                                </tr>
+                                                                            </thead>
+                                                                            <tbody>
+                                                                                @foreach (var meeting in meetingRecords)
+                                                                                {
+                                                                                    var totalMembers = meeting.TotalBoardMembers ?? 12;
+                                                                                    var attendanceRate = totalMembers > 0 ? Math.Round(((decimal)meeting.MembersInAttendance / totalMembers) * 100, 1) : 0;
+                                                                                    <tr style="border-bottom: 1px solid #f3f4f6;">
+                                                                                        <td style="padding: 1rem 1.25rem; color: #374151; font-weight: 500; white-space: nowrap;">
+                                                                                            @meeting.MeetingDate.ToString("MMM dd, yyyy")
+                                                                                        </td>
+                                                                                        <td style="padding: 1rem 0.75rem; text-align: center;">
+                                                                                            <span style="background: #f3f4f6; padding: 0.25rem 0.5rem; border-radius: 4px; font-weight: 600; color: #374151; font-size: 0.85rem;">
+                                                                                                @meeting.MembersInAttendance/@totalMembers
+                                                                                            </span>
+                                                                                        </td>
+                                                                                        <td style="padding: 1rem 1.25rem; text-align: right;">
+                                                                                            <span class="badge" style="background: @(attendanceRate >= 90 ? "#10b981" : attendanceRate >= 75 ? "#3b82f6" : "#f59e0b"); font-size: 0.75rem; font-weight: 600; padding: 0.25rem 0.5rem;">
+                                                                                                @attendanceRate%
+                                                                                            </span>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                }
+                                                                            </tbody>
+                                                                        </table>
+                                                                    </div>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <!-- Data exists but no individual meetings found -->
+                                                                    <div class="d-flex align-items-center justify-content-center" style="flex: 1; color: #6b7280;">
+                                                                        <div class="text-center">
+                                                                            <i class="fas fa-calendar-check" style="font-size: 2.5rem; margin-bottom: 1rem; color: #3b82f6; opacity: 0.6;"></i>
+                                                                            <div style="font-weight: 600; margin-bottom: 0.5rem; font-size: 1.1rem; color: #1f2937;">Meeting data found!</div>
+                                                                            <small style="color: #6b7280;">Average attendance: @metric.CurrentValue% rate<br>Individual meeting records loading...</small>
+                                                                        </div>
+                                                                    </div>
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                <!-- Empty State -->
+                                                                <div class="d-flex align-items-center justify-content-center" style="flex: 1; color: #6b7280;">
+                                                                    <div class="text-center">
+                                                                        <i class="fas fa-calendar-times" style="font-size: 2.5rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                                                                        <div style="font-weight: 500; margin-bottom: 0.5rem; font-size: 1.1rem;">No meetings recorded</div>
+                                                                        <small style="color: #9ca3af;">Go to Data Entry → Board Management<br>to start tracking attendance</small>
+                                                                    </div>
+                                                                </div>
+                                                            }
+                                                        </div>
+                                                        
+                                                        <!-- Fixed Footer with Summary -->
+                                                        <div class="card-footer" style="background: #f8fafc; border-top: 1px solid #e5e7eb; padding: 1rem 1.5rem; flex-shrink: 0;">
+                                                            <div class="d-flex justify-content-between align-items-center">
+                                                                <small style="color: #6b7280; font-weight: 500;">
+                                                                    @if (metric.CurrentValue > 0)
+                                                                    {
+                                                                        var meetingRecords = ViewBag.BoardMeetingAttendance as List<OneJaxDashboard.Models.BoardMeetingAttendance> ?? new List<OneJaxDashboard.Models.BoardMeetingAttendance>();
+                                                                        var meetingCount = meetingRecords?.Count ?? 0;
+                                                                        <span><i class="fas fa-calendar-alt me-1"></i>@meetingCount meetings this year</span>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <span><i class="fas fa-info-circle me-1"></i>Ready to track meetings</span>
+                                                                    }
+                                                                </small>
+                                                                <div>
+                                                                    @if (metric.CurrentValue > 0 && metric.CurrentValue >= 90)
+                                                                    {
+                                                                        <span class="badge bg-success" style="font-size: 0.75rem;">
+                                                                            <i class="fas fa-check me-1"></i>Goal Met
+                                                                        </span>
+                                                                    }
+                                                                    else if (metric.CurrentValue > 0 && metric.CurrentValue >= 75)
+                                                                    {
+                                                                        <span class="badge" style="background: #3b82f6; color: white; font-size: 0.75rem;">
+                                                                            <i class="fas fa-trending-up me-1"></i>On Track
+                                                                        </span>
+                                                                    }
+                                                                    else if (metric.CurrentValue > 0)
+                                                                    {
+                                                                        <span class="badge" style="background: #f59e0b; color: white; font-size: 0.75rem;">
+                                                                            <i class="fas fa-exclamation-triangle me-1"></i>Below Goal
+                                                                        </span>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <span class="badge" style="background: #6b7280; color: white; font-size: 0.75rem;">
+                                                                            <i class="fas fa-clock me-1"></i>Pending
+                                                                        </span>
+                                                                    }
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
+	                                            else if (metricName.Contains("Board Self-Assessment", StringComparison.OrdinalIgnoreCase) && (goal.Name.Contains("Organizational", StringComparison.OrdinalIgnoreCase) || goal.Name.Contains("Building", StringComparison.OrdinalIgnoreCase)))
+	                                            {
+	                                                <!-- Board Self-Assessment Card -->
+	                                                <div class="col-md-4 mb-3 order-0 d-flex">
+                                                    <div class="card h-100 w-100" style="background: #ffffff; border: 1px solid #d1d5db; border-radius: 8px; box-shadow: 0 2px 8px rgba(15,23,42,0.08); min-height: 300px;">
+                                                        <div class="card-header" style="background: #1f2937; color: white; border: none; border-radius: 8px 8px 0 0; padding: 0.9rem 1rem;">
+                                                            <div class="d-flex justify-content-between align-items-center">
+                                                                <div>
+                                                                    <h6 class="mb-0" style="font-weight: 600; font-size: 1rem;">
+                                                                        <i class="fas fa-clipboard-check me-2"></i>Board Self-Assessment
+                                                                    </h6>
+                                                                    <small style="opacity: 0.9;">Annual board self-evaluation score</small>
+                                                                </div>
+	                                                                <div class="text-end d-flex flex-column align-items-end gap-2">
+	                                                                    <span class="badge" style="background: @(metric.CurrentValue >= Convert.ToDecimal(metric.Target) ? "#10b981" : "#f59e0b"); font-size: 0.75rem;">
+	                                                                        @(metric.CurrentValue >= Convert.ToDecimal(metric.Target) ? "On Target" : "Improvement Area")
+	                                                                    </span>
+	                                                                    @if (canManageData)
+	                                                                    {
+	                                                                        <a asp-controller="SelfAssessment" asp-action="Index"
+	                                                                           class="btn btn-sm btn-outline-light"
+	                                                                           style="border-radius: 999px; white-space: nowrap;">
+	                                                                            Enter data
+	                                                                        </a>
+	                                                                    }
+	                                                                </div>
+	                                                            </div>
+	                                                        </div>
+                                                        <div class="card-body d-flex flex-column justify-content-center" style="padding: 1.5rem;">
+                                                            <div class="text-center mb-3">
+                                                                <div style="font-size: 2.25rem; font-weight: 700; color: #111827; line-height: 1;">
+                                                                    @Math.Round(metric.CurrentValue, 1)%
+                                                                </div>
+                                                                <small style="color: var(--onejax-text-muted);">Average Assessment Score</small>
+                                                            </div>
+                                                            <div class="mb-2">
+                                                                <div class="d-flex justify-content-between mb-1">
+                                                                    <small style="color: var(--onejax-text-muted);">Progress to @metric.Target%</small>
+                                                                    <small style="color: #1f2937; font-weight: 600;">@Math.Round(metric.ProgressPercentage, 1)%</small>
+                                                                </div>
+                                                                <div class="progress" style="height: 10px; border-radius: 4px; background: #e5e7eb;">
+                                                                    <div class="progress-bar" style="width: @Math.Min(metric.ProgressPercentage, 100)%; background: #374151; border-radius: 4px;"></div>
+                                                                </div>
+                                                            </div>
+
+	                                                        </div>
+	                                                    </div>
+	                                                </div>
+                                            }
+	                                            else if (metricName.Contains("Volunteer Program", StringComparison.OrdinalIgnoreCase) && (goal.Name.Contains("Organizational", StringComparison.OrdinalIgnoreCase) || goal.Name.Contains("Building", StringComparison.OrdinalIgnoreCase)))
+	                                            {
+	                                                <!-- Volunteer Program Card -->
+	                                                <div class="col-md-8 mb-3 order-0 d-flex">
+                                                    <div class="card h-100 w-100" style="background: #ffffff; border: 1px solid #d1d5db; border-radius: 8px; box-shadow: 0 2px 8px rgba(15,23,42,0.08); min-height: 300px; display: flex; flex-direction: column;">
+                                                        <div class="card-header" style="background: #334155; color: white; border: none; border-radius: 8px 8px 0 0; padding: 0.9rem 1rem;">
+                                                            <div class="d-flex justify-content-between align-items-center">
+                                                                <div>
+                                                                    <h6 class="mb-0" style="font-weight: 600; font-size: 1rem;">
+                                                                        <i class="fas fa-hands-helping me-2"></i>Volunteer Program
+                                                                    </h6>
+                                                                    <small style="opacity: 0.9;">Volunteer participation and initiatives</small>
+                                                                </div>
+	                                                                <div class="text-end d-flex flex-column align-items-end gap-2">
+	                                                                    <span class="badge" style="background: @(metric.CurrentValue > 0 ? "#10b981" : "#6b7280"); font-size: 0.75rem;">
+	                                                                        @(metric.CurrentValue > 0 ? "Active" : "Awaiting Data")
+	                                                                    </span>
+	                                                                    @if (canManageData)
+	                                                                    {
+	                                                                        <a asp-controller="VolunteerProgram" asp-action="Index"
+	                                                                           class="btn btn-sm btn-outline-light"
+	                                                                           style="border-radius: 999px; white-space: nowrap;">
+	                                                                            Enter data
+	                                                                        </a>
+	                                                                    }
+	                                                                </div>
+	                                                            </div>
+	                                                        </div>
+                                                        <div class="card-body" style="padding: 1.5rem;">
+                                                            @{
+                                                                var volunteerRecords = ViewBag.VolunteerProgramRecords as List<OneJaxDashboard.Models.volunteerProgram_40D> ?? new List<OneJaxDashboard.Models.volunteerProgram_40D>();
+                                                                var latestVolunteerRecord = volunteerRecords
+                                                                    .OrderByDescending(v => v.Year)
+                                                                    .ThenByDescending(v => v.Quarter)
+                                                                    .ThenByDescending(v => v.CreatedDate)
+                                                                    .FirstOrDefault();
+                                                            }
+                                                            <div class="row text-center mb-3">
+                                                                <div class="col-6">
+                                                                    <div style="font-size: 2rem; font-weight: 700; color: #111827; line-height: 1;">@Math.Round(metric.CurrentValue, 0)</div>
+                                                                    <small style="color: var(--onejax-text-muted);">Volunteers</small>
+                                                                </div>
+                                                                <div class="col-6">
+                                                                    <div style="font-size: 2rem; font-weight: 700; color: #334155; line-height: 1;">@Math.Round(metric.Q1Value, 0)</div>
+                                                                    <small style="color: var(--onejax-text-muted);">Initiatives</small>
+                                                                </div>
+                                                            </div>
+                                                            <div class="mb-2">
+                                                                <div class="d-flex justify-content-between mb-1">
+                                                                    <small style="color: var(--onejax-text-muted);">Volunteer Goal Progress</small>
+                                                                    <small style="color: #1f2937; font-weight: 600;">@Math.Round(metric.ProgressPercentage, 1)%</small>
+                                                                </div>
+                                                                <div class="progress" style="height: 10px; border-radius: 4px; background: #e5e7eb;">
+                                                                    <div class="progress-bar" style="width: @Math.Min(metric.ProgressPercentage, 100)%; background: #475569; border-radius: 4px;"></div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="mt-3 pt-3" style="border-top: 1px solid #e5e7eb;">
+                                                                <div class="mb-2" style="font-size: 0.8rem; font-weight: 700; color: #374151; text-transform: uppercase; letter-spacing: 0.04em;">
+                                                                    Latest Form Details
+                                                                </div>
+                                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                                    <span class="badge bg-dark">
+                                                                        @(latestVolunteerRecord != null ? $"Q{latestVolunteerRecord.Quarter}" : "Q-")
+                                                                    </span>
+                                                                    <span class="badge bg-secondary">
+                                                                        @(latestVolunteerRecord?.Year.ToString() ?? "No Year")
+                                                                    </span>
+                                                                </div>
+                                                                <div class="mb-2">
+                                                                    <small style="font-weight: 600; color: #374151;">Communications Activities</small>
+                                                                    <div style="font-size: 0.85rem; color: #6b7280; line-height: 1.35;">
+                                                                        @(latestVolunteerRecord == null || string.IsNullOrWhiteSpace(latestVolunteerRecord.CommunicationsActivities) ? "No communications activities entered yet." : latestVolunteerRecord.CommunicationsActivities)
+                                                                    </div>
+                                                                </div>
+                                                                <div class="mb-2">
+                                                                    <small style="font-weight: 600; color: #374151;">Recognition Activities</small>
+                                                                    <div style="font-size: 0.85rem; color: #6b7280; line-height: 1.35;">
+                                                                        @(latestVolunteerRecord == null || string.IsNullOrWhiteSpace(latestVolunteerRecord.RecognitionActivities) ? "No recognition activities entered yet." : latestVolunteerRecord.RecognitionActivities)
+                                                                    </div>
+                                                                </div>
+                                                                <div>
+                                                                    <small style="font-weight: 600; color: #374151;">Initiative Descriptions</small>
+                                                                    <div style="font-size: 0.85rem; color: #6b7280; line-height: 1.35;">
+                                                                        @(latestVolunteerRecord == null || string.IsNullOrWhiteSpace(latestVolunteerRecord.InitiativeDescriptions) ? "No initiative descriptions entered yet." : latestVolunteerRecord.InitiativeDescriptions)
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+	                                                        </div>
+	                                                    </div>
+	                                                </div>
+                                            }
+	                                            else if ((metricName.Contains("Professional Development", StringComparison.OrdinalIgnoreCase) || metricName.Contains("development", StringComparison.OrdinalIgnoreCase)) && (goal.Name.Contains("Organizational", StringComparison.OrdinalIgnoreCase) || goal.Name.Contains("Building", StringComparison.OrdinalIgnoreCase)))
+	                                            {
+	                                                <!-- Enhanced Professional Development Employee Participation Card -->
+	                                                <div class="col-md-6 mb-3 order-2 d-flex">
+                                                    <div class="card w-100" style="background: linear-gradient(135deg, #fef7f0, #fef3ec); border: 1px solid #fed7aa; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); position: relative; overflow: hidden; min-height: 340px; height: 100%; display: flex; flex-direction: column;">
+                                                        <!-- Header with gradient -->
+                                                        <div class="card-header" style="background: linear-gradient(135deg, var(--onejax-orange), #ea580c); color: white; border: none; border-radius: 16px 16px 0 0; padding: 1rem; flex-shrink: 0;">
+                                                            <div class="d-flex justify-content-between align-items-center">
+                                                                <div>
+                                                                    <h6 class="mb-0" style="font-weight: 600; font-size: 1rem;">
+                                                                        <i class="fas fa-graduation-cap me-2"></i>Employee Participation
+                                                                    </h6>
+                                                                    <small style="opacity: 0.9;">Professional Development Activities</small>
+                                                                </div>
+                                                                <div class="text-end">
+                                                                    @{
+                                                                        // Calculate participation rate from metric value (employee participants)
+                                                                        decimal totalStaff = 25; // This should be configurable
+                                                                        // Clamp to valid range [0, totalStaff]
+                                                                        decimal participatedEmployees = Math.Max(0, Math.Min(metric.CurrentValue, totalStaff));
+                                                                        decimal participationRate = totalStaff > 0 ? (participatedEmployees / totalStaff) * 100 : 0;
+                                                                        bool hasData = metric.CurrentValue > 0;
+                                                                    }
+                                                                    @if (hasData && participationRate >= 80)
+                                                                    {
+                                                                        <span class="badge" style="background: #10b981; font-size: 0.75rem;">
+                                                                            <i class="fas fa-check-circle"></i> Strong Participation
+                                                                        </span>
+                                                                    }
+                                                                    else if (hasData && participationRate >= 50)
+                                                                    {
+                                                                        <span class="badge" style="background: #3b82f6; font-size: 0.75rem;">
+                                                                            <i class="fas fa-chart-line"></i> Growing
+                                                                        </span>
+                                                                    }
+                                                                    else if (hasData)
+                                                                    {
+                                                                        <span class="badge" style="background: #f59e0b; font-size: 0.75rem;">
+                                                                            <i class="fas fa-arrow-up"></i> Building
+                                                                        </span>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <span class="badge" style="background: #6b7280; font-size: 0.75rem;">
+                                                                            <i class="fas fa-hourglass-start"></i> Awaiting Data
+                                                                        </span>
+                                                                    }
+
+                                                                    @if (canManageData)
+                                                                    {
+                                                                        <div class="mt-2">
+                                                                            <a asp-controller="ProfessionalDevelopment" asp-action="Index"
+                                                                               class="btn btn-sm btn-outline-light"
+                                                                               style="border-radius: 999px;">
+                                                                                Enter data
+                                                                            </a>
+                                                                        </div>
+                                                                    }
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div class="card-body" style="padding: 1.5rem; flex: 1; overflow: hidden;">
+                                                            <!-- Employee participation visual -->
+                                                            <div class="mb-4">
+                                                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                                                    <div>
+                                                                        <div style="font-size: 2rem; font-weight: 700; color: var(--onejax-orange); line-height: 1;">
+                                                                            @participatedEmployees <span style="font-size: 1rem; color: var(--onejax-text-muted);">of @totalStaff</span>
+                                                                        </div>
+                                                                        <small style="color: var(--onejax-text-muted);">Employees Participated</small>
+                                                                    </div>
+                                                                    <div class="text-end">
+                                                                        <div style="font-size: 1.5rem; font-weight: 600; color: var(--onejax-orange);">
+                                                                            @Math.Round(participationRate, 1)%
+                                                                        </div>
+                                                                        <small style="color: var(--onejax-text-muted);">Participation Rate</small>
+                                                                    </div>
+                                                                </div>
+                                                                
+                                                                <!-- Visual progress bar with employee icons -->
+                                                                <div class="mb-3">
+                                                                    <div class="progress" style="height: 12px; border-radius: 6px; background: rgba(234, 88, 12, 0.1); position: relative;">
+                                                                        <div class="progress-bar" style="width: @Math.Min(participationRate, 100)%; background: linear-gradient(90deg, var(--onejax-orange), #ea580c); border-radius: 6px;" role="progressbar"></div>
+                                                                    </div>
+                                                                    <div class="d-flex justify-content-between mt-2" style="font-size: 0.75rem; color: var(--onejax-text-muted);">
+                                                                        <span>0 employees</span>
+                                                                        <span>@totalStaff employees (100%)</span>
+                                                                    </div>
+                                                                </div>
+                                                                
+                                                                <!-- Employee icons visualization -->
+                                                                <div class="mb-3">
+                                                                    <div style="display: flex; flex-wrap: wrap; gap: 3px; justify-content: center;">
+                                                                        @for (int i = 1; i <= totalStaff; i++)
+                                                                        {
+                                                                            @if (i <= participatedEmployees)
+                                                                            {
+                                                                                <i class="fas fa-user" style="color: var(--onejax-orange); font-size: 0.8rem;" title="Participated"></i>
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                <i class="far fa-user" style="color: #e5e7eb; font-size: 0.8rem;" title="Not yet participated"></i>
+                                                                            }
+                                                                        }
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
+	                                            else if ((metricName.Contains("Board", StringComparison.OrdinalIgnoreCase) && metricName.Contains("Recruitment", StringComparison.OrdinalIgnoreCase)) && (goal.Name.Contains("Organizational", StringComparison.OrdinalIgnoreCase) || goal.Name.Contains("Building", StringComparison.OrdinalIgnoreCase)))
+	                                            {
+	                                                <!-- Enhanced Board Member Recruitment Card -->
+	                                                <div class="col-md-12 mb-3 order-4">
+                                                    <div class="card" style="background: linear-gradient(135deg, #f8fafc, #f1f5f9); border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); position: relative; overflow: hidden;">
+                                                        <!-- Header with gradient -->
+                                                        <div class="card-header" style="background: linear-gradient(135deg, #64748b, #475569); color: white; border: none; border-radius: 16px 16px 0 0; padding: 1.25rem;">
+                                                            <div class="d-flex justify-content-between align-items-center">
+                                                                <div>
+                                                                    <h6 class="mb-0" style="font-weight: 600; font-size: 1rem;">
+                                                                        <i class="fas fa-user-plus me-2"></i>Board Member Recruitment
+                                                                    </h6>
+                                                                    <small style="opacity: 0.9;">Quarterly Prospecting vs Recruited</small>
+                                                                </div>
+                                                                <div class="text-end">
+                                                                    @{
+                                                                        // Mock data for preparation - will be replaced with real quarterly data
+                                                                        int totalRecruitedForYear = (int)metric.CurrentValue;
+                                                                        int targetRecruitment = 6;
+                                                                        bool hasRecruitmentData = totalRecruitedForYear > 0;
+                                                                    }
+                                                                    @if (hasRecruitmentData && totalRecruitedForYear >= targetRecruitment)
+                                                                    {
+                                                                        <span class="badge" style="background: #10b981; font-size: 0.75rem;">
+                                                                            <i class="fas fa-check-circle"></i> Target Met
+                                                                        </span>
+                                                                    }
+                                                                    else if (hasRecruitmentData)
+                                                                    {
+                                                                        <span class="badge" style="background: #64748b; font-size: 0.75rem;">
+                                                                            <i class="fas fa-chart-line"></i> In Progress
+                                                                        </span>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <span class="badge" style="background: #94a3b8; font-size: 0.75rem;">
+                                                                            <i class="fas fa-hourglass-start"></i> Ready to Track
+                                                                        </span>
+                                                                    }
+
+                                                                    @if (canManageData)
+                                                                    {
+                                                                        <div class="mt-2">
+                                                                            <a asp-controller="BoardMemberRecruitment" asp-action="Index"
+                                                                               class="btn btn-sm btn-outline-light"
+                                                                               style="border-radius: 999px;">
+                                                                                Enter data
+                                                                            </a>
+                                                                        </div>
+                                                                    }
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div class="card-body" style="padding: 2rem;">
+                                                            <!-- Summary stats -->
+                                                            <div class="row align-items-center mb-4">
+                                                                <div class="col-md-3">
+                                                                    <div class="text-center">
+                                                                        <div style="font-size: 2.5rem; font-weight: 700; color: #475569; line-height: 1;">
+                                                                            @totalRecruitedForYear
+                                                                        </div>
+                                                                        <small style="color: var(--onejax-text-muted);">Actually Recruited</small>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-3">
+                                                                    <div class="text-center">
+                                                                        <div style="font-size: 2rem; font-weight: 600; color: #64748b; line-height: 1;">
+                                                                            @(hasRecruitmentData ? totalRecruitedForYear + 4 : 0)
+                                                                        </div>
+                                                                        <small style="color: var(--onejax-text-muted);">Total Prospected</small>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-3">
+                                                                    <div class="text-center">
+                                                                        <div style="font-size: 1.5rem; font-weight: 600; color: #475569; line-height: 1;">
+                                                                            @targetRecruitment
+                                                                        </div>
+                                                                        <small style="color: var(--onejax-text-muted);">2026 Target</small>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-3">
+                                                                    <div class="text-center">
+                                                                        <div style="font-size: 1.5rem; font-weight: 600; color: #94a3b8; line-height: 1;">
+                                                                            @(hasRecruitmentData && totalRecruitedForYear > 0 ? Math.Round(((decimal)totalRecruitedForYear / (totalRecruitedForYear + 4)) * 100, 1) : 0)%
+                                                                        </div>
+                                                                        <small style="color: var(--onejax-text-muted);">Success Rate</small>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            
+                                                            <!-- Quarterly Column Chart -->
+                                                            <div class="mb-4">
+                                                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                                                    <h6 style="color: var(--onejax-navy); margin: 0; font-weight: 600;">Quarterly Progress Breakdown</h6>
+                                                                    <small style="color: var(--onejax-text-muted);">
+                                                                        <i class="fas fa-chart-column"></i> Prospecting vs Recruitment by Quarter
+                                                                    </small>
+                                                                </div>
+                                                                
+                                                                <div style="height: 280px; position: relative;">
+                                                                    <canvas id="board-recruitment-chart-@(metric.Id)" style="width: 100%; height: 100%;"></canvas>
+                                                                </div>
+                                                                
+                                                                <!-- Legend -->
+                                                                <div class="d-flex justify-content-center mt-2" style="gap: 2rem;">
+                                                                    <div class="d-flex align-items-center">
+                                                                        <div style="width: 15px; height: 15px; background: rgba(148, 163, 184, 0.8); border: 1px solid #94a3b8; border-radius: 3px; margin-right: 8px;"></div>
+                                                                        <small style="color: var(--onejax-text-muted); font-weight: 500; font-size: 0.8rem;">Prospected Candidates</small>
+                                                                    </div>
+                                                                    <div class="d-flex align-items-center">
+                                                                        <div style="width: 15px; height: 15px; background: #475569; border: 1px solid #334155; border-radius: 3px; margin-right: 8px;"></div>
+                                                                        <small style="color: var(--onejax-text-muted); font-weight: 500; font-size: 0.8rem;">Actually Recruited</small>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            
+                                                            <!-- Goal progress -->
+                                                            <div class="mt-2 pt-2" style="border-top: 1px solid #e2e8f0;">
+                                                                <div class="d-flex justify-content-between align-items-center">
+                                                                    <div>
+                                                                        <small style="color: var(--onejax-text-muted);">Goal: Recruit 6 new board members by Q2 2026</small>
+                                                                    </div>
+                                                                    <div>
+                                                                        <span class="badge @(hasRecruitmentData && totalRecruitedForYear >= targetRecruitment ? "bg-success" : hasRecruitmentData ? "" : "")" style="@(hasRecruitmentData && totalRecruitedForYear >= targetRecruitment ? "" : hasRecruitmentData ? "background: #64748b; color: white;" : "background: #94a3b8; color: white;")">
+                                                                            @(hasRecruitmentData && totalRecruitedForYear >= targetRecruitment ? "Target Achieved" : hasRecruitmentData ? "In Progress" : "Ready to Track")
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <script>
+                                                    // Initialize the board recruitment chart
+                                                    document.addEventListener('DOMContentLoaded', function() {
+                                                        const recruitmentCtx = document.getElementById('board-recruitment-chart-@(metric.Id)');
+                                                        if (recruitmentCtx) {
+                                                            // Mock quarterly data - prepare for future form structure
+                                                            const hasData = @hasRecruitmentData.ToString().ToLower();
+                                                            
+                                                            // Sample data structure for quarters (will be replaced with real data)
+                                                            const quarterlyData = hasData ? {
+                                                                // Mock data based on current total
+                                                                prospected: [3, 2, 1, 1], // Q1, Q2, Q3, Q4
+                                                                recruited: [@((totalRecruitedForYear >= 1) ? 1 : 0), @((totalRecruitedForYear >= 2) ? 1 : 0), @((totalRecruitedForYear >= 3) ? 1 : 0), @((totalRecruitedForYear >= 4) ? 1 : 0)]
+                                                            } : {
+                                                                prospected: [0, 0, 0, 0],
+                                                                recruited: [0, 0, 0, 0]
+                                                            };
+                                                            
+                                                            new Chart(recruitmentCtx, {
+                                                                type: 'bar',
+                                                                data: {
+                                                                    labels: ['Q1 2025-26', 'Q2 2025-26', 'Q3 2025-26', 'Q4 2025-26'],
+                                                                    datasets: [{
+                                                                        label: 'Prospected Candidates',
+                                                                        data: quarterlyData.prospected,
+                                                                        backgroundColor: 'rgba(148, 163, 184, 0.8)',
+                                                                        borderColor: '#94a3b8',
+                                                                        borderWidth: 1,
+                                                                        borderRadius: 4,
+                                                                        borderSkipped: false,
+                                                                        categoryPercentage: 0.8,
+                                                                        barPercentage: 0.7
+                                                                    }, {
+                                                                        label: 'Actually Recruited',
+                                                                        data: quarterlyData.recruited,
+                                                                        backgroundColor: '#475569',
+                                                                        borderColor: '#334155',
+                                                                        borderWidth: 1,
+                                                                        borderRadius: 4,
+                                                                        borderSkipped: false,
+                                                                        categoryPercentage: 0.8,
+                                                                        barPercentage: 0.7
+                                                                    }]
+                                                                },
+                                                                options: {
+                                                                    responsive: true,
+                                                                    maintainAspectRatio: false,
+                                                                    plugins: {
+                                                                        legend: {
+                                                                            display: false
+                                                                        },
+                                                                        tooltip: {
+                                                                            backgroundColor: 'rgba(71, 85, 105, 0.95)',
+                                                                            titleColor: 'white',
+                                                                            bodyColor: 'white',
+                                                                            borderColor: '#475569',
+                                                                            borderWidth: 1,
+                                                                            cornerRadius: 8,
+                                                                            displayColors: true,
+                                                                            callbacks: {
+                                                                                title: function(context) {
+                                                                                    return context[0].label;
+                                                                                },
+                                                                                label: function(context) {
+                                                                                    const datasetLabel = context.dataset.label;
+                                                                                    const value = context.parsed.y;
+                                                                                    return datasetLabel + ': ' + value + (value === 1 ? ' person' : ' people');
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    },
+                                                                    scales: {
+                                                                        y: {
+                                                                            beginAtZero: true,
+                                                                            max: Math.max(6, Math.max(...quarterlyData.prospected, ...quarterlyData.recruited) + 1),
+                                                                            ticks: {
+                                                                                stepSize: 1,
+                                                                                color: '#64748b',
+                                                                                font: {
+                                                                                    size: 12,
+                                                                                    family: 'Inter, sans-serif'
+                                                                                }
+                                                                            },
+                                                                            grid: {
+                                                                                color: 'rgba(148, 163, 184, 0.2)',
+                                                                                lineWidth: 1
+                                                                            },
+                                                                            title: {
+                                                                                display: true,
+                                                                                text: 'Number of People',
+                                                                                color: '#64748b',
+                                                                                font: {
+                                                                                    size: 12,
+                                                                                    weight: 500
+                                                                                }
+                                                                            }
+                                                                        },
+                                                                        x: {
+                                                                            ticks: {
+                                                                                color: '#64748b',
+                                                                                font: {
+                                                                                    size: 12,
+                                                                                    family: 'Inter, sans-serif',
+                                                                                    weight: 500
+                                                                                }
+                                                                            },
+                                                                            grid: {
+                                                                                display: false
+                                                                            },
+                                                                            title: {
+                                                                                display: true,
+                                                                                text: 'Fiscal Year Quarters',
+                                                                                color: '#64748b',
+                                                                                font: {
+                                                                                    size: 12,
+                                                                                    weight: 500
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    },
+                                                                    layout: {
+                                                                        padding: {
+                                                                            top: 10,
+                                                                            bottom: 10,
+                                                                            left: 10,
+                                                                            right: 10
+                                                                        }
+                                                                    }
+                                                                }
+                                                            });
+                                                        }
+                                                    });
+                                                </script>
+		                                            }
+                                            else if (metricName.Contains("Media Placements", StringComparison.OrdinalIgnoreCase) || 
+                                                     metricName.Contains("Key Plan Milestones", StringComparison.OrdinalIgnoreCase) || 
+                                                     metricName.Contains("Content calendar", StringComparison.OrdinalIgnoreCase) ||
+                                                     metricName.Contains("brand messaging", StringComparison.OrdinalIgnoreCase) ||
+                                                     metricName.Contains("Budget Variance", StringComparison.OrdinalIgnoreCase) ||
+                                                     (metric.Description ?? string.Empty).Contains("Variance from annual budget", StringComparison.OrdinalIgnoreCase))
+                                            {
+                                                // Skip these unwanted metrics - they don't have proper forms
+                                            }
+                                            else
+                                            {
+                                                <div class="col-md-6 mb-3">
+                                                    <div class="card" style="background:var(--onejax-white); border-radius:12px; border-left: 5px solid var(--onejax-orange);">
+                                                        <div class="card-body">
+                                                            <h6 class="card-title" style="color:var(--onejax-navy);">@metric.Name</h6>
+                                                            <p class="card-text" style="color:var(--onejax-navy); font-size:0.9em;">@metric.Description</p>
+                                                            
+                                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                                <span style="color:var(--onejax-navy);"><strong>Progress:</strong></span>
+                                                                <span class="badge bg-primary">@metric.CurrentValue @metric.Unit / @metric.Target @metric.Unit</span>
+                                                            </div>
+                                                            
+                                                            <div class="progress mb-2" style="height: 12px; border-radius:6px;">
+                                                                <div class="progress-bar" role="progressbar" 
+                                                                     style="width: @(metric.ProgressPercentage > 0 ? Math.Max(metric.ProgressPercentage, 2) : 0)%; background-color: var(--onejax-blue);"
+                                                                     aria-valuenow="@metric.ProgressPercentage" aria-valuemin="0" aria-valuemax="100"></div>
+                                                            </div>
+                                                            <small style="color:var(--onejax-navy);">
+                                                                <strong>Target:</strong> @metric.TargetDate.ToString("MMM yyyy") | 
+                                                                <span class="badge @(metric.Status == "Active" ? "bg-success" : "bg-secondary")">@metric.Status</span>
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
+    }
+}
