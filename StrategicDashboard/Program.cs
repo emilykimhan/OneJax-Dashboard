@@ -114,7 +114,9 @@ static void EnsureCanonicalStrategicGoals(ApplicationDbContext db)
     var removableGoals = db.StrategicGoals
         .Where(goal => !canonicalGoalIds.Contains(goal.Id))
         .Where(goal =>
-            !db.Events.Any(e => e.StrategicGoalId == goal.Id) &&
+            !db.Events.Any(e =>
+                e.StrategyId.HasValue &&
+                db.Strategies.Any(s => s.Id == e.StrategyId.Value && s.StrategicGoalId == goal.Id)) &&
             !db.Strategies.Any(s => s.StrategicGoalId == goal.Id) &&
             !db.GoalMetrics.Any(m => m.StrategicGoalId == goal.Id))
         .ToList();

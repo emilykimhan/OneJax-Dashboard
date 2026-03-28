@@ -613,11 +613,11 @@ public class HomeController : Controller
             .ToList();
 
         var linkedEvents = await _context.Events
-            .Where(e => !e.IsArchived && e.StrategyTemplateId.HasValue && strategyIds.Contains(e.StrategyTemplateId.Value))
+            .Where(e => !e.IsArchived && e.StrategyId.HasValue && strategyIds.Contains(e.StrategyId.Value))
             .ToListAsync();
 
         var linkedEventsByStrategyId = linkedEvents
-            .GroupBy(e => e.StrategyTemplateId!.Value)
+            .GroupBy(e => e.StrategyId!.Value)
             .ToDictionary(
                 group => group.Key,
                 group => group
@@ -875,11 +875,11 @@ public class HomeController : Controller
                     .ToList();
 
                 var recentLinkedEvents = _context.Events
-                    .Where(e => !e.IsArchived && e.StrategyTemplateId.HasValue && recentStrategyIds.Contains(e.StrategyTemplateId.Value))
+                    .Where(e => !e.IsArchived && e.StrategyId.HasValue && recentStrategyIds.Contains(e.StrategyId.Value))
                     .ToList();
 
                 var recentLinkedEventsByStrategyId = recentLinkedEvents
-                    .GroupBy(e => e.StrategyTemplateId!.Value)
+                    .GroupBy(e => e.StrategyId!.Value)
                     .ToDictionary(
                         group => group.Key,
                         group => group
