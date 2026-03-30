@@ -38,10 +38,16 @@ namespace OneJaxDashboard.Models
         public DateTime? EndDate { get; set; }
 
         [Display(Name = "Strategic Goal")]
+        [NotMapped]
         public int? StrategicGoalId { get; set; }
 
         [Display(Name = "Strategy Template")]
-        public int? StrategyTemplateId { get; set; }
+        [NotMapped]
+        public int? StrategyTemplateId
+        {
+            get => StrategyId;
+            set => StrategyId = value;
+        }
 
         // Link to Strategy
         [Display(Name = "Event")]

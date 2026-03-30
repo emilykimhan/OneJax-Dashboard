@@ -116,20 +116,23 @@ namespace OneJaxDashboard.Services
         public IEnumerable<Event> GetByStrategicGoal(int goalId)
             => _db.Events
                 .Include(e => e.AssignedStaff)
-                .Where(e => e.StrategicGoalId == goalId && !e.IsArchived)
+                .Where(e =>
+                    e.StrategyId.HasValue &&
+                    !e.IsArchived &&
+                    _db.Strategies.Any(s => s.Id == e.StrategyId.Value && s.StrategicGoalId == goalId))
                 .ToList();
 
         public IEnumerable<Event> GetByStrategyTemplate(int strategyTemplateId)
             => _db.Events
                 .Include(e => e.AssignedStaff)
-                .Where(e => e.StrategyTemplateId == strategyTemplateId && !e.IsArchived)
+                .Where(e => e.StrategyId == strategyTemplateId && !e.IsArchived)
                 .ToList();
 
         // Remove events that reference deleted strategies
         public void RemoveByStrategyTemplate(int strategyTemplateId)
         {
             var eventsToRemove = _db.Events
-                .Where(e => e.StrategyTemplateId == strategyTemplateId)
+                .Where(e => e.StrategyId == strategyTemplateId)
                 .ToList();
 
             _db.Events.RemoveRange(eventsToRemove);
@@ -139,7 +142,7 @@ namespace OneJaxDashboard.Services
         public void ArchiveByStrategyTemplate(int strategyTemplateId)
         {
             var eventsToArchive = _db.Events
-                .Where(e => e.StrategyTemplateId == strategyTemplateId && !e.IsArchived)
+                .Where(e => e.StrategyId == strategyTemplateId && !e.IsArchived)
                 .ToList();
 
             if (!eventsToArchive.Any())
@@ -160,7 +163,7 @@ namespace OneJaxDashboard.Services
         public void UnarchiveByStrategyTemplate(int strategyTemplateId)
         {
             var eventsToUnarchive = _db.Events
-                .Where(e => e.StrategyTemplateId == strategyTemplateId && e.IsArchived)
+                .Where(e => e.StrategyId == strategyTemplateId && e.IsArchived)
                 .ToList();
 
             if (!eventsToUnarchive.Any())

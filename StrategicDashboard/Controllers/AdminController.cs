@@ -14,6 +14,7 @@ namespace OneJaxDashboard.Controllers
     public class AdminController : Controller
     {
         private const int RecentActivityLimit = 10;
+        private const string DashboardSyncOwnerUsername = "staff";
         private readonly ApplicationDbContext _db;
         private readonly EventsService _eventsService;
         private readonly StrategyService _strategyService;
@@ -59,9 +60,9 @@ namespace OneJaxDashboard.Controllers
             var allEvents = _db.Events
                 .Include(e => e.AssignedStaff)
                 .Where(e => !e.IsArchived)
-                .Where(e => !string.IsNullOrWhiteSpace(e.OwnerUsername))
+                .Where(e => !string.IsNullOrWhiteSpace(e.OwnerUsername) && e.OwnerUsername != DashboardSyncOwnerUsername)
                 .ToList()
-                .Where(e => e.StrategyTemplateId.HasValue && _strategyService.GetStrategy(e.StrategyTemplateId.Value) != null)
+                .Where(e => e.StrategyId.HasValue && _strategyService.GetStrategy(e.StrategyId.Value) != null)
                 .ToList();
 
             // Separate into active and completed
@@ -160,9 +161,9 @@ namespace OneJaxDashboard.Controllers
             var archivedEvents = _db.Events
                 .Include(e => e.AssignedStaff)
                 .Where(e => e.IsArchived)
-                .Where(e => !string.IsNullOrWhiteSpace(e.OwnerUsername))
+                .Where(e => !string.IsNullOrWhiteSpace(e.OwnerUsername) && e.OwnerUsername != DashboardSyncOwnerUsername)
                 .ToList()
-                .Where(e => e.StrategyTemplateId.HasValue && _strategyService.GetStrategy(e.StrategyTemplateId.Value) != null)
+                .Where(e => e.StrategyId.HasValue && _strategyService.GetStrategy(e.StrategyId.Value) != null)
                 .ToList();
 
             return View(archivedEvents);

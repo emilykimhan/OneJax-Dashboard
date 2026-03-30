@@ -11,6 +11,7 @@ using System.Linq;
 [Authorize(Roles = "Admin,Staff")]
 public class StrategyController : Controller
 {
+    private const string DashboardSyncOwnerUsername = "staff";
     private readonly ApplicationDbContext _context;
     private readonly ActivityLogService _activityLog;
     private readonly EventsService _events;
@@ -228,6 +229,7 @@ public class StrategyController : Controller
         _context.SaveChanges();
         SyncLinkedDashboardEvent(dbEvent);
         _context.SaveChanges();
+
 
         string goalName = selectedGoal.Name;
         // Log the creation
@@ -502,17 +504,16 @@ public class StrategyController : Controller
     {
         var canonicalEvent = _context.Events
             .FirstOrDefault(e =>
-                e.StrategyTemplateId == strategy.Id
+                e.StrategyId == strategy.Id
                 && !e.IsAssignedByAdmin
-                && string.IsNullOrEmpty(e.OwnerUsername));
+                && (string.IsNullOrEmpty(e.OwnerUsername) || e.OwnerUsername == DashboardSyncOwnerUsername));
 
         if (canonicalEvent == null)
         {
             canonicalEvent = new Event
             {
-                StrategyTemplateId = strategy.Id,
                 StrategyId = strategy.Id,
-                OwnerUsername = string.Empty,
+                OwnerUsername = DashboardSyncOwnerUsername,
                 Status = "Planned",
                 IsAssignedByAdmin = false
             };
@@ -522,7 +523,6 @@ public class StrategyController : Controller
 
         canonicalEvent.Title = strategy.Name;
         canonicalEvent.Description = strategy.Description;
-        canonicalEvent.StrategicGoalId = strategy.StrategicGoalId;
         canonicalEvent.StrategyId = strategy.Id;
         canonicalEvent.Type = strategy.ProgramType ?? canonicalEvent.Type ?? string.Empty;
         canonicalEvent.DueDate = ParseStrategyDate(strategy.Date);
