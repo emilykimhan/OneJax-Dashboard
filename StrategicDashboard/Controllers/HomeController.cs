@@ -1197,7 +1197,7 @@ public class HomeController : Controller
 
         // 3. Board Member Recruitment
         var boardMembers = await _context.BoardMember_29D.ToListAsync();
-        var totalRecruited = boardMembers.Sum(b => b.NumberRecruited);
+        var totalRecruited = boardMembers.Sum(b => b.NumberRecruited ?? 0);
         
         AddOrUpdateMetric(goal, "Board Recruitment", "New board member acquisition", 
             totalRecruited, "members", "10", boardMembers.Any() ? "Active" : "Planning",
