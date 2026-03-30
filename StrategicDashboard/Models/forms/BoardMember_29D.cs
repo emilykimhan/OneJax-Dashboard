@@ -16,9 +16,8 @@ namespace OneJaxDashboard.Models
         [Required]
         public int Year { get; set; }
 
-        [Required]
         [Range(0, 100)]
-        public int NumberRecruited { get; set; } // Total number of board members recruited in this period
+        public int? NumberRecruited { get; set; } // Optional: total number of board members recruited in this period
 
         [StringLength(1000)]
         public string ProspectNames { get; set; } = string.Empty; // Comma-separated list of prospect names

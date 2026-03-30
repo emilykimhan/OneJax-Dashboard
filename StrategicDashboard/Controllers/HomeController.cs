@@ -1514,12 +1514,8 @@ public class HomeController : Controller
                 : "No professional development yet - Go to Data Entry → Professional Development", nextId++);
 
         // 3. Board Member Recruitment
-        var boardMembers = FilterByFiscalYearYearsWithCreatedDateFallback(
-            await _context.BoardMember_29D.ToListAsync(),
-            fiscalYear,
-            b => b.Year,
-            b => b.CreatedDate);
-        var totalRecruited = boardMembers.Sum(b => b.NumberRecruited);
+        var boardMembers = await _context.BoardMember_29D.ToListAsync();
+        var totalRecruited = boardMembers.Sum(b => b.NumberRecruited ?? 0);
         
         AddOrUpdateMetric(goal, "Board Recruitment", "New board member acquisition", 
             totalRecruited, "members", "10", boardMembers.Any() ? "Active" : "Planning",
