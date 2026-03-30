@@ -28,8 +28,8 @@ namespace OneJaxDashboard.Controllers
                 .ThenByDescending(b => b.Quarter)
                 .ToList();
             
-            var totalRecruited = allEntries.Sum(e => e.NumberRecruited);
-            var currentYearRecruited = allEntries.Where(e => e.Year == DateTime.Now.Year).Sum(e => e.NumberRecruited);
+            var totalRecruited = allEntries.Sum(e => e.NumberRecruited ?? 0);
+            var currentYearRecruited = allEntries.Where(e => e.Year == DateTime.Now.Year).Sum(e => e.NumberRecruited ?? 0);
             var totalProspectOutreach = allEntries.Sum(e => e.TotalProspectOutreach);
             var currentYearProspectOutreach = allEntries.Where(e => e.Year == DateTime.Now.Year).Sum(e => e.TotalProspectOutreach);
             
@@ -72,8 +72,8 @@ namespace OneJaxDashboard.Controllers
                 .ThenByDescending(b => b.Quarter)
                 .ToList();
             
-            ViewBag.TotalRecruited = allEntries.Sum(e => e.NumberRecruited);
-            ViewBag.CurrentYearRecruited = allEntries.Where(e => e.Year == DateTime.Now.Year).Sum(e => e.NumberRecruited);
+            ViewBag.TotalRecruited = allEntries.Sum(e => e.NumberRecruited ?? 0);
+            ViewBag.CurrentYearRecruited = allEntries.Where(e => e.Year == DateTime.Now.Year).Sum(e => e.NumberRecruited ?? 0);
             ViewBag.TotalProspectOutreach = allEntries.Sum(e => e.TotalProspectOutreach);
             ViewBag.CurrentYearProspectOutreach = allEntries.Where(e => e.Year == DateTime.Now.Year).Sum(e => e.TotalProspectOutreach);
             ViewBag.TotalEntries = allEntries.Count;
