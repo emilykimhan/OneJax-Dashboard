@@ -361,78 +361,22 @@
                         color: var(--onejax-navy);
                     }
                 </style>
-                <div class="col-12 mb-3">
-                    <h5 style="color: var(--onejax-navy); font-weight: 600; margin-bottom: 1rem;">
-                        <i class="fas fa-rocket"></i> Quick Access & KPIs
-                    </h5>
-                </div>
-
-                <div class="col-md-3 mb-3">
-                    <div class="card hover-card metric-card-creative" style="border-radius: 12px; border: 1px solid var(--onejax-border); cursor: pointer; transition: all 0.3s ease; background: linear-gradient(135deg, var(--onejax-blue), var(--onejax-navy));" onclick="switchTab('Community_Engagement', null, event)">
-                        <div class="card-body text-center" style="padding: 1.5rem; color: white;">
-                            <div class="mb-3">
-                                <i class="fas fa-users" style="font-size: 2.5rem;"></i>
-                            </div>
-                            <h6 class="card-title" style="font-weight: 600; margin-bottom: 0.5rem;">Community Events</h6>
-                            <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">@totalEvents</div>
-                            <small style="opacity: 0.8;">Total Strategic Events</small>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-3 mb-3">
-                    <div class="card hover-card metric-card-creative" style="border-radius: 12px; border: 1px solid var(--onejax-border); cursor: pointer; transition: all 0.3s ease; background: linear-gradient(135deg, var(--onejax-green), #059669);" onclick="window.location.href='@(canManageData ? "/MediaPlacements" : "/Account/Login")'">
-                        <div class="card-body text-center" style="padding: 1.5rem; color: white;">
-                            <div class="mb-3">
-                                <i class="fas fa-newspaper" style="font-size: 2.5rem;"></i>
-                            </div>
-                            <h6 class="card-title" style="font-weight: 600; margin-bottom: 0.5rem;">Media Coverage</h6>
-                            <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">@Model.Summary.TotalMediaPlacements</div>
-                            <small style="opacity: 0.8;">Media Placements</small>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-3 mb-3">
-                    <div class="card hover-card metric-card-creative" style="border-radius: 12px; border: 1px solid var(--onejax-border); cursor: pointer; transition: all 0.3s ease; background: linear-gradient(135deg, var(--onejax-orange), #ea580c);" onclick="switchTab('Financial_Sustainability', null, event)">
-                        <div class="card-body text-center" style="padding: 1.5rem; color: white;">
-                            <div class="mb-3">
-                                <i class="fas fa-dollar-sign" style="font-size: 2.5rem;"></i>
-                            </div>
-                            <h6 class="card-title" style="font-weight: 600; margin-bottom: 0.5rem;">Staff Surveys</h6>
-                            <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">@Model.Summary.TotalStaffSurveys</div>
-                            <small style="opacity: 0.8;">Survey Responses</small>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-3 mb-3">
-                    <div class="card hover-card metric-card-creative" style="border-radius: 12px; border: 1px solid var(--onejax-border); cursor: pointer; transition: all 0.3s ease; background: linear-gradient(135deg, #8B5CF6, #7C3AED);" onclick="switchTab('Organizational_Building', null, event)">
-                        <div class="card-body text-center" style="padding: 1.5rem; color: white;">
-                            <div class="mb-3">
-                                <i class="fas fa-chart-line" style="font-size: 2.5rem;"></i>
-                            </div>
-                            <h6 class="card-title" style="font-weight: 600; margin-bottom: 0.5rem;">Growth Metrics</h6>
-                            <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">@Math.Round(avgProgress, 0)%</div>
-                            <small style="opacity: 0.8;">Avg Progress Rate</small>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="col-md-4 mb-3">
                     <div class="card metric-card-creative summary-link-card h-100" style="border-radius: 12px; border: 1px solid var(--onejax-border); transition: all 0.3s ease;">
                         <div class="card-body text-center d-flex flex-column justify-content-center h-100" style="padding: 1.5rem;">
                             <div class="mb-3">
                                 <i class="fas fa-calendar-alt" style="font-size: 2.5rem; color: var(--onejax-blue);"></i>
                             </div>
-                            <h6 class="card-title" style="color: var(--onejax-navy); font-weight: 600; margin-bottom: 0.5rem;">Public Events</h6>
-                            <p class="card-text text-muted" style="font-size: 0.9rem; margin-bottom: 1rem;">View upcoming initiatives across the four strategic goals</p>
+                            <h6 class="card-title" style="color: var(--onejax-navy); font-weight: 600; margin-bottom: 0.5rem;">@(canManageData ? "View Events" : "Public Events")</h6>
+                            <p class="card-text text-muted" style="font-size: 0.9rem; margin-bottom: 1rem;">@(canManageData ? "Open the full events view for strategic planning and tracking" : "View upcoming initiatives across the four strategic goals")</p>
                             <div class="d-flex justify-content-center align-items-center">
                                 <span class="badge" style="background: linear-gradient(135deg, var(--onejax-blue), var(--onejax-navy)); color: white; font-size: 0.75rem;">
                                     @publicEventsCount Events
                                 </span>
                             </div>
-                            <a href="/Public/Events" class="stretched-link" aria-label="View public events"></a>
+                            <a href="@(canManageData ? "/Strategy/ViewEvents" : "/Public/Events")"
+                               class="stretched-link"
+                               aria-label="@(canManageData ? "View events" : "View public events")"></a>
                         </div>
                     </div>
                 </div>

@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace OneJaxDashboard.Data;
 
@@ -54,8 +53,6 @@ public static class DatabaseConfiguration
                 options.UseSqlite(settings.ConnectionString);
                 break;
         }
-
-        options.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
     }
 
     private static DatabaseProvider ResolveProvider(string? providerSetting, string? environmentName)
