@@ -503,22 +503,29 @@ public class StrategyController : Controller
     private void SyncLinkedDashboardEvent(Strategy strategy)
     {
         var canonicalEvent = _context.Events
-            .FirstOrDefault(e =>
-                e.StrategyId == strategy.Id
-                && !e.IsAssignedByAdmin
-                && (string.IsNullOrEmpty(e.OwnerUsername) || e.OwnerUsername == DashboardSyncOwnerUsername));
+            .FirstOrDefault(e => e.StrategyId == strategy.Id && !e.IsAssignedByAdmin);
 
+        var resolvedOwnerUsername = ResolveDashboardSyncOwnerUsername();
         if (canonicalEvent == null)
         {
+            if (string.IsNullOrWhiteSpace(resolvedOwnerUsername))
+            {
+                return;
+            }
+
             canonicalEvent = new Event
             {
                 StrategyId = strategy.Id,
-                OwnerUsername = DashboardSyncOwnerUsername,
+                OwnerUsername = resolvedOwnerUsername,
                 Status = "Planned",
                 IsAssignedByAdmin = false
             };
 
             _context.Events.Add(canonicalEvent);
+        }
+        else if (string.IsNullOrWhiteSpace(canonicalEvent.OwnerUsername) && !string.IsNullOrWhiteSpace(resolvedOwnerUsername))
+        {
+            canonicalEvent.OwnerUsername = resolvedOwnerUsername;
         }
 
         canonicalEvent.Title = strategy.Name;
@@ -526,6 +533,27 @@ public class StrategyController : Controller
         canonicalEvent.StrategyId = strategy.Id;
         canonicalEvent.Type = strategy.ProgramType ?? canonicalEvent.Type ?? string.Empty;
         canonicalEvent.DueDate = ParseStrategyDate(strategy.Date);
+    }
+
+    private string? ResolveDashboardSyncOwnerUsername()
+    {
+        if (_context.Staffauth.Any(s => s.Username == DashboardSyncOwnerUsername))
+        {
+            return DashboardSyncOwnerUsername;
+        }
+
+        var currentUsername = User.Identity?.Name?.Trim();
+        if (!string.IsNullOrWhiteSpace(currentUsername)
+            && _context.Staffauth.Any(s => s.Username == currentUsername))
+        {
+            return currentUsername;
+        }
+
+        return _context.Staffauth
+            .OrderByDescending(s => s.IsAdmin)
+            .ThenBy(s => s.Username)
+            .Select(s => s.Username)
+            .FirstOrDefault();
     }
 
     private static DateTime? ParseStrategyDate(string? eventDate)
