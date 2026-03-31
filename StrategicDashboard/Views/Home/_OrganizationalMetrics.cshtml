@@ -240,6 +240,9 @@
 	                                            {
 	                                                <!-- Enhanced Board Meeting Attendance Card with Scrollable Table -->
 	                                                <div class="col-md-12 mb-3 order-3">
+                                                    @{
+                                                        var showBoardAttendanceValue = metricIsScheduled;
+                                                    }
                                                     <div class="card" style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); position: relative; overflow: hidden; height: 400px; display: flex; flex-direction: column;">
                                                         <!-- Fixed Header -->
                                                         <div class="card-header" style="background: #f8fafc; border-bottom: 1px solid #e5e7eb; border-radius: 12px 12px 0 0; padding: 1.25rem 1.5rem; flex-shrink: 0; position: relative;">
@@ -248,15 +251,15 @@
                                                                     <h6 class="mb-1" style="font-weight: 600; font-size: 1rem; color: #1f2937;">
                                                                         <i class="fas fa-calendar-check me-2" style="color: #6b7280;"></i>Board Meeting Attendance
                                                                     </h6>
-                                                                    <small style="color: #6b7280;">Goal: Maintain 90% attendance</small>
-                                                                </div>
-                                                                <div class="text-end">
-                                                                    <div style="font-size: 1.75rem; font-weight: 700; color: @(metric.CurrentValue >= 90 ? "#10b981" : metric.CurrentValue >= 75 ? "#3b82f6" : "#6b7280"); line-height: 1;">
-                                                                        @(Math.Round(metric.CurrentValue, 1))%
-                                                                    </div>
-                                                                    <small style="color: #6b7280;">Current Average</small>
-                                                                </div>
-                                                            </div>
+	                                                                    <small style="color: #6b7280;">Goal: Maintain 90% attendance</small>
+	                                                                </div>
+	                                                                <div class="text-end">
+	                                                                    <div style="font-size: 1.75rem; font-weight: 700; color: @(showBoardAttendanceValue ? (metric.CurrentValue >= 90 ? "#10b981" : metric.CurrentValue >= 75 ? "#3b82f6" : "#6b7280") : "#94a3b8"); line-height: 1;">
+	                                                                        @(showBoardAttendanceValue ? $"{Math.Round(metric.CurrentValue, 1)}%" : "--")
+	                                                                    </div>
+	                                                                    <small style="color: #6b7280;">@(showBoardAttendanceValue ? "Current Average" : "Starts Later")</small>
+	                                                                </div>
+	                                                            </div>
 
                                                             @if (!metricIsScheduled || canManageData)
                                                             {
@@ -376,12 +379,18 @@
                                                                         <span><i class="fas fa-info-circle me-1"></i>Ready to track meetings</span>
                                                                     }
                                                                 </small>
-                                                                <div>
-                                                                    @if (metric.CurrentValue > 0 && metric.CurrentValue >= 90)
-                                                                    {
-                                                                        <span class="badge bg-success" style="font-size: 0.75rem;">
-                                                                            <i class="fas fa-check me-1"></i>Goal Met
-                                                                        </span>
+	                                                                <div>
+	                                                                    @if (!metricIsScheduled)
+	                                                                    {
+	                                                                        <span class="badge" style="background: #dbeafe; color: #1e3a8a; font-size: 0.75rem;">
+	                                                                            <i class="fas fa-calendar-alt me-1"></i>Starts Later
+	                                                                        </span>
+	                                                                    }
+	                                                                    else if (metric.CurrentValue > 0 && metric.CurrentValue >= 90)
+	                                                                    {
+	                                                                        <span class="badge bg-success" style="font-size: 0.75rem;">
+	                                                                            <i class="fas fa-check me-1"></i>Goal Met
+	                                                                        </span>
                                                                     }
                                                                     else if (metric.CurrentValue > 0 && metric.CurrentValue >= 75)
                                                                     {
