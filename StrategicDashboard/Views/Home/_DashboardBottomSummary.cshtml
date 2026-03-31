@@ -2,74 +2,139 @@
 @using OneJaxDashboard.Models
 @{
     var activeFiscalYear = ViewData["ActiveFiscalYear"]?.ToString() ?? string.Empty;
-    var allEvents = Model.StrategicGoals?.SelectMany(g => g.Events ?? new List<Event>()) ?? new List<Event>();
-    var totalEventsCount = allEvents.Count();
-    var activeEventsCount = allEvents.Count(e => e.Status == "Active");
-    var completedEventsCount = allEvents.Count(e => e.Status == "Completed");
-    var activePercentage = totalEventsCount > 0 ? (activeEventsCount * 100.0 / totalEventsCount) : 0;
-    var completedPercentage = totalEventsCount > 0 ? (completedEventsCount * 100.0 / totalEventsCount) : 0;
-    var totalProgress = Model.StrategicGoals?.SelectMany(g => g.Metrics ?? new List<GoalMetric>()).Any() == true
-        ? Model.StrategicGoals.SelectMany(g => g.Metrics ?? new List<GoalMetric>()).Average(m => m.ProgressPercentage)
+    bool IsScheduledMetric(GoalMetric metric)
+    {
+        return MetricTrackingSchedule.IsScheduledForFiscalYear(metric.Name, activeFiscalYear);
+    }
+
+    bool IsReportingMetric(GoalMetric metric)
+    {
+        var clean = (metric.Target ?? string.Empty).Replace("$", "").Replace(",", "").Replace("%", "").Trim();
+        return IsScheduledMetric(metric)
+            && !string.Equals(metric.Status, "Planning", StringComparison.OrdinalIgnoreCase)
+            && decimal.TryParse(clean, out var target)
+            && target > 0;
+    }
+
+    decimal LiveGoalProgress(IEnumerable<GoalMetric>? metrics)
+    {
+        var liveMetrics = (metrics ?? Enumerable.Empty<GoalMetric>())
+            .Where(IsReportingMetric)
+            .Select(m => Math.Min(m.ProgressPercentage, 100))
+            .ToList();
+
+        return liveMetrics.Any() ? Math.Round(liveMetrics.Average(), 1) : 0;
+    }
+
+    var allMetrics = Model.StrategicGoals?.SelectMany(g => g.Metrics ?? new List<GoalMetric>()).ToList() ?? new List<GoalMetric>();
+    var scheduledMetrics = allMetrics.Where(IsScheduledMetric).ToList();
+    var reportingMetrics = scheduledMetrics.Where(IsReportingMetric).ToList();
+    var inScopeMetricsLabel = string.IsNullOrWhiteSpace(activeFiscalYear) || string.Equals(activeFiscalYear, "All Years", StringComparison.OrdinalIgnoreCase)
+        ? "Across the full strategic plan"
+        : $"Counted toward {activeFiscalYear}";
+    var activeMetricsCount = scheduledMetrics.Count(m => string.Equals(m.Status, "Active", StringComparison.OrdinalIgnoreCase));
+    var metricsAtTargetCount = reportingMetrics.Count(m => m.ProgressPercentage >= 100);
+    var reportingMetricsPercentage = scheduledMetrics.Count > 0 ? (reportingMetrics.Count * 100.0 / scheduledMetrics.Count) : 0;
+    var activeMetricsPercentage = scheduledMetrics.Count > 0 ? (activeMetricsCount * 100.0 / scheduledMetrics.Count) : 0;
+    var metricsAtTargetPercentage = reportingMetrics.Count > 0 ? (metricsAtTargetCount * 100.0 / reportingMetrics.Count) : 0;
+    var goalProgresses = (Model.StrategicGoals ?? new List<StrategicGoal>())
+        .Where(g => (g.Metrics ?? new List<GoalMetric>()).Any(IsReportingMetric))
+        .Select(g => LiveGoalProgress(g.Metrics))
+        .ToList();
+    var overallGoalProgress = goalProgresses.Any()
+        ? goalProgresses.Average()
         : 0;
 }
+
+<style>
+    .dashboard-summary-card {
+        height: 100%;
+        display: flex;
+        align-items: stretch;
+    }
+
+    .dashboard-summary-card > div {
+        width: 100%;
+    }
+
+    .dashboard-summary-card .stat-card-modern {
+        height: 100%;
+    }
+
+    .dashboard-summary-card-content {
+        color: white;
+        min-height: 164px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .dashboard-summary-card-copy {
+        min-height: 2.8rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+</style>
 
 <div class="row mt-6 fade-in">
     <div class="col-12 mb-4 text-center">
         <h2 style="color: var(--onejax-navy); font-weight: 700; margin-bottom: 1rem;">
-            Investment Summary & Project Overview
+            Metrics Summary & Strategic Overview
         </h2>
-        <p style="color: var(--onejax-text-muted); font-size: 1.1rem;">Real-time tracking of strategic initiatives and financial performance</p>
+        <p style="color: var(--onejax-text-muted); font-size: 1.1rem;">Live tracking of dashboard metrics across the strategic plan</p>
     </div>
 </div>
 
 <div class="row g-4">
-    <div class="col-md-3 slide-in-left">
+    <div class="col-md-3 slide-in-left dashboard-summary-card">
         <div class="stat-card-modern" style="background: var(--gradient-primary);">
-            <div style="color: white;">
-                <div style="font-size: 0.9rem; margin-bottom: 1.5rem; opacity: 0.9;">TOTAL INVESTMENT</div>
-                <h2 style="color: white; margin-bottom: 1rem; font-weight: 700;">--</h2>
-                <small style="opacity: 0.8;">No financial data entered</small>
+            <div class="dashboard-summary-card-content">
+                <div style="font-size: 0.9rem; margin-bottom: 1.5rem; opacity: 0.9;">IN-SCOPE METRICS</div>
+                <h2 style="color: white; margin-bottom: 1rem; font-weight: 700;">@scheduledMetrics.Count</h2>
+                <small class="dashboard-summary-card-copy" style="opacity: 0.8;">@inScopeMetricsLabel</small>
                 <div class="progress-modern mt-3" style="background: rgba(255,255,255,0.2);">
-                    <div class="progress-bar" style="width: 0%; background: rgba(255,255,255,0.8);"></div>
+                    <div class="progress-bar" style="width: @reportingMetricsPercentage%; background: rgba(255,255,255,0.8);"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="col-md-3 slide-in-left" style="animation-delay: 0.1s;">
+    <div class="col-md-3 slide-in-left dashboard-summary-card" style="animation-delay: 0.1s;">
         <div class="stat-card-modern" style="background: var(--gradient-secondary);">
-            <div style="color: white;">
-                <div style="font-size: 0.9rem; margin-bottom: 1.5rem; opacity: 0.9;">ACTIVE PROJECTS</div>
-                <h2 style="color: white; margin-bottom: 1rem; font-weight: 700;">@activeEventsCount</h2>
-                <small style="opacity: 0.8;">Currently In Progress</small>
+            <div class="dashboard-summary-card-content">
+                <div style="font-size: 0.9rem; margin-bottom: 1.5rem; opacity: 0.9;">ACTIVE METRICS</div>
+                <h2 style="color: white; margin-bottom: 1rem; font-weight: 700;">@activeMetricsCount</h2>
+                <small class="dashboard-summary-card-copy" style="opacity: 0.8;">Scheduled metrics with live data</small>
                 <div class="progress-modern mt-3" style="background: rgba(255,255,255,0.2);">
-                    <div class="progress-bar" style="width: @activePercentage%; background: rgba(255,255,255,0.8);"></div>
+                    <div class="progress-bar" style="width: @activeMetricsPercentage%; background: rgba(255,255,255,0.8);"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="col-md-3 slide-in-right" style="animation-delay: 0.2s;">
+    <div class="col-md-3 slide-in-right dashboard-summary-card" style="animation-delay: 0.2s;">
         <div class="stat-card-modern" style="background: linear-gradient(135deg, var(--onejax-green), #059669);">
-            <div style="color: white;">
-                <div style="font-size: 0.9rem; margin-bottom: 1.5rem; opacity: 0.9;">COMPLETED</div>
-                <h2 style="color: white; margin-bottom: 1rem; font-weight: 700;">@completedEventsCount</h2>
-                <small style="opacity: 0.8;">Successfully Delivered</small>
+            <div class="dashboard-summary-card-content">
+                <div style="font-size: 0.9rem; margin-bottom: 1.5rem; opacity: 0.9;">METRICS AT TARGET</div>
+                <h2 style="color: white; margin-bottom: 1rem; font-weight: 700;">@metricsAtTargetCount</h2>
+                <small class="dashboard-summary-card-copy" style="opacity: 0.8;">Reporting metrics meeting target</small>
                 <div class="progress-modern mt-3" style="background: rgba(255,255,255,0.2);">
-                    <div class="progress-bar" style="width: @completedPercentage%; background: rgba(255,255,255,0.8);"></div>
+                    <div class="progress-bar" style="width: @metricsAtTargetPercentage%; background: rgba(255,255,255,0.8);"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="col-md-3 slide-in-right" style="animation-delay: 0.3s;">
+    <div class="col-md-3 slide-in-right dashboard-summary-card" style="animation-delay: 0.3s;">
         <div class="stat-card-modern" style="background: var(--gradient-accent);">
-            <div style="color: white;">
+            <div class="dashboard-summary-card-content">
                 <div style="font-size: 0.9rem; margin-bottom: 1.5rem; opacity: 0.9;">OVERALL PROGRESS</div>
-                <h2 style="color: white; margin-bottom: 1rem; font-weight: 700;">@Math.Round(totalProgress, 1)%</h2>
-                <small style="opacity: 0.8;">Strategic Plan Progress</small>
+                <h2 style="color: white; margin-bottom: 1rem; font-weight: 700;">@Math.Round(overallGoalProgress, 1)%</h2>
+                <small class="dashboard-summary-card-copy" style="opacity: 0.8;">Average progress across reporting goals</small>
                 <div class="progress-modern mt-3" style="background: rgba(255,255,255,0.2);">
-                    <div class="progress-bar" style="width: @Math.Min(totalProgress, 100)%; background: rgba(255,255,255,0.8);"></div>
+                    <div class="progress-bar" style="width: @Math.Min(overallGoalProgress, 100)%; background: rgba(255,255,255,0.8);"></div>
                 </div>
             </div>
         </div>

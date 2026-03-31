@@ -132,21 +132,7 @@ const trendsChart = new Chart(trendsCtx, {
 
 // Export Dashboard Data
 function exportDashboard() {
-    const exportData = {
-        summary: dashboardData.summary,
-        goals: dashboardData.goals,
-        exportDate: new Date().toISOString()
-    };
-    
-    const dataStr = JSON.stringify(exportData, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-    
-    const exportFileDefaultName = `OneJax_Dashboard_Export_${new Date().toISOString().split('T')[0]}.json`;
-    
-    const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', exportFileDefaultName);
-    linkElement.click();
+    window.location.href = '/DataEntry/RecordHistory';
 }
 </script>
 

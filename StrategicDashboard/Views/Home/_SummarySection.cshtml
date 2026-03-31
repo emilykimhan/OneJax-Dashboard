@@ -76,6 +76,7 @@
     IEnumerable<GoalMetric> ReportingMetrics(IEnumerable<GoalMetric>? metrics)
     {
         return (metrics ?? Enumerable.Empty<GoalMetric>())
+            .Where(m => MetricTrackingSchedule.IsScheduledForFiscalYear(m.Name, activeFiscalYear))
             .Where(m => !string.Equals(m.Status, "Planning", StringComparison.OrdinalIgnoreCase))
             .Where(m => !string.IsNullOrWhiteSpace(m.Target))
             .Where(m =>
@@ -83,6 +84,12 @@
                 var clean = (m.Target ?? string.Empty).Replace("$", "").Replace(",", "").Replace("%", "").Trim();
                 return decimal.TryParse(clean, out var target) && target > 0;
             });
+    }
+
+    IEnumerable<GoalMetric> ScheduledMetrics(IEnumerable<GoalMetric>? metrics)
+    {
+        return (metrics ?? Enumerable.Empty<GoalMetric>())
+            .Where(m => MetricTrackingSchedule.IsScheduledForFiscalYear(m.Name, activeFiscalYear));
     }
 
     string GetMetricCategory(GoalMetric metric)
@@ -157,14 +164,14 @@
         .Select(g => new
         {
             Goal = g,
-            TotalMetricCount = g.Metrics?.Count() ?? 0,
+            ScheduledMetricCount = ScheduledMetrics(g.Metrics).Count(),
             ReportingMetricCount = ReportingMetrics(g.Metrics).Count(),
             Progress = LiveGoalProgress(g.Metrics)
         })
         .ToList();
 
     var goalsWithReporting = goalSummaries.Where(g => g.ReportingMetricCount > 0).ToList();
-    var totalMetrics = goalSummaries.Sum(g => g.TotalMetricCount);
+    var totalMetrics = goalSummaries.Sum(g => g.ScheduledMetricCount);
     var totalReportingMetrics = goalSummaries.Sum(g => g.ReportingMetricCount);
     var summaryEligibleMetrics = (Model.StrategicGoals ?? new List<StrategicGoal>())
         .SelectMany(g => ReportingMetrics(g.Metrics))
@@ -177,13 +184,10 @@
         ? Math.Round((decimal)totalMetricsMeetingGoal / totalEligibleMetrics * 100, 1)
         : 0;
     var totalEvents = Model.StrategicGoals?.SelectMany(g => g.Events ?? new List<Event>()).Count() ?? 0;
-    var avgProgress = Model.StrategicGoals?.Any() == true ? Model.StrategicGoals.Average(g => LiveGoalProgress(g.Metrics)) : 0;
     var publicEventsCount = totalEvents;
-    var overallDashboardProgress =
-        (Model.Charts.GoalProgress.OrganizationalProgress +
-         Model.Charts.GoalProgress.FinancialProgress +
-         Model.Charts.GoalProgress.IdentityProgress +
-         Model.Charts.GoalProgress.CommunityProgress) / 4m;
+    var overallDashboardProgress = goalsWithReporting.Any()
+        ? Math.Round(goalsWithReporting.Average(g => g.Progress), 1)
+        : 0;
 }
 
 <div class="col-12 mb-4 goal-section" data-goal="summary" style="@(string.IsNullOrEmpty(selectedGoal) ? "" : "display: none;")">
@@ -222,18 +226,21 @@
                     {
                         var goalProgress = summaryGoal.Progress;
                         var hasReportingMetrics = summaryGoal.ReportingMetricCount > 0;
+                        var hasScheduledMetrics = summaryGoal.ScheduledMetricCount > 0;
                         <div class="col-md-6 col-lg-3 mb-3">
                             <div class="card hover-card" style="background: var(--onejax-white); border: 1px solid var(--onejax-border); border-radius: 12px; cursor: pointer; transition: all 0.3s ease;" onclick="switchTab('@summaryGoal.Goal.Name.Replace(" ", "_")', null, event)">
                                 <div class="card-body text-center" style="padding: 1.5rem;">
                                     <h6 style="color: var(--onejax-navy); margin-bottom: 1rem; font-weight: 600;">@summaryGoal.Goal.Name</h6>
-                                    <div style="font-size: 1.8rem; font-weight: 700; color: var(--onejax-navy); margin-bottom: 1rem;">@(hasReportingMetrics ? $"{Math.Round(goalProgress, 1)}%" : "No data")</div>
+                                    <div style="font-size: 1.8rem; font-weight: 700; color: var(--onejax-navy); margin-bottom: 1rem;">@(hasReportingMetrics ? $"{Math.Round(goalProgress, 1)}%" : hasScheduledMetrics ? "Awaiting data" : "Starts later")</div>
                                     <div class="progress" style="height: 8px; border-radius: 4px; background: rgba(59, 130, 246, 0.1);">
                                         <div class="progress-bar" style="width: @Math.Min(goalProgress, 100)%; background: var(--gradient-secondary); border-radius: 4px;"></div>
                                     </div>
                                     <small style="color: var(--onejax-text-muted); margin-top: 0.5rem; display: block;">
                                         @(hasReportingMetrics
-                                            ? $"{summaryGoal.ReportingMetricCount} of {summaryGoal.TotalMetricCount} metrics reporting"
-                                            : $"No reporting metrics in {(string.IsNullOrWhiteSpace(activeFiscalYear) ? "this view" : activeFiscalYear)}")
+                                            ? $"{summaryGoal.ReportingMetricCount} of {summaryGoal.ScheduledMetricCount} scheduled metrics reporting"
+                                            : hasScheduledMetrics
+                                                ? $"{summaryGoal.ScheduledMetricCount} scheduled metrics have not started reporting yet"
+                                                : $"No metrics scheduled in {(string.IsNullOrWhiteSpace(activeFiscalYear) ? "this view" : activeFiscalYear)}")
                                     </small>
                                     <small style="color: var(--onejax-text-muted); margin-top: 0.15rem; display: block;">
                                         @(summaryGoal.Goal.Events?.Count() ?? 0) Events
@@ -361,78 +368,22 @@
                         color: var(--onejax-navy);
                     }
                 </style>
-                <div class="col-12 mb-3">
-                    <h5 style="color: var(--onejax-navy); font-weight: 600; margin-bottom: 1rem;">
-                        <i class="fas fa-rocket"></i> Quick Access & KPIs
-                    </h5>
-                </div>
-
-                <div class="col-md-3 mb-3">
-                    <div class="card hover-card metric-card-creative" style="border-radius: 12px; border: 1px solid var(--onejax-border); cursor: pointer; transition: all 0.3s ease; background: linear-gradient(135deg, var(--onejax-blue), var(--onejax-navy));" onclick="switchTab('Community_Engagement', null, event)">
-                        <div class="card-body text-center" style="padding: 1.5rem; color: white;">
-                            <div class="mb-3">
-                                <i class="fas fa-users" style="font-size: 2.5rem;"></i>
-                            </div>
-                            <h6 class="card-title" style="font-weight: 600; margin-bottom: 0.5rem;">Community Events</h6>
-                            <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">@totalEvents</div>
-                            <small style="opacity: 0.8;">Total Strategic Events</small>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-3 mb-3">
-                    <div class="card hover-card metric-card-creative" style="border-radius: 12px; border: 1px solid var(--onejax-border); cursor: pointer; transition: all 0.3s ease; background: linear-gradient(135deg, var(--onejax-green), #059669);" onclick="window.location.href='@(canManageData ? "/MediaPlacements" : "/Account/Login")'">
-                        <div class="card-body text-center" style="padding: 1.5rem; color: white;">
-                            <div class="mb-3">
-                                <i class="fas fa-newspaper" style="font-size: 2.5rem;"></i>
-                            </div>
-                            <h6 class="card-title" style="font-weight: 600; margin-bottom: 0.5rem;">Media Coverage</h6>
-                            <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">@Model.Summary.TotalMediaPlacements</div>
-                            <small style="opacity: 0.8;">Media Placements</small>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-3 mb-3">
-                    <div class="card hover-card metric-card-creative" style="border-radius: 12px; border: 1px solid var(--onejax-border); cursor: pointer; transition: all 0.3s ease; background: linear-gradient(135deg, var(--onejax-orange), #ea580c);" onclick="switchTab('Financial_Sustainability', null, event)">
-                        <div class="card-body text-center" style="padding: 1.5rem; color: white;">
-                            <div class="mb-3">
-                                <i class="fas fa-dollar-sign" style="font-size: 2.5rem;"></i>
-                            </div>
-                            <h6 class="card-title" style="font-weight: 600; margin-bottom: 0.5rem;">Staff Surveys</h6>
-                            <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">@Model.Summary.TotalStaffSurveys</div>
-                            <small style="opacity: 0.8;">Survey Responses</small>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-3 mb-3">
-                    <div class="card hover-card metric-card-creative" style="border-radius: 12px; border: 1px solid var(--onejax-border); cursor: pointer; transition: all 0.3s ease; background: linear-gradient(135deg, #8B5CF6, #7C3AED);" onclick="switchTab('Organizational_Building', null, event)">
-                        <div class="card-body text-center" style="padding: 1.5rem; color: white;">
-                            <div class="mb-3">
-                                <i class="fas fa-chart-line" style="font-size: 2.5rem;"></i>
-                            </div>
-                            <h6 class="card-title" style="font-weight: 600; margin-bottom: 0.5rem;">Growth Metrics</h6>
-                            <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">@Math.Round(avgProgress, 0)%</div>
-                            <small style="opacity: 0.8;">Avg Progress Rate</small>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="col-md-4 mb-3">
                     <div class="card metric-card-creative summary-link-card h-100" style="border-radius: 12px; border: 1px solid var(--onejax-border); transition: all 0.3s ease;">
                         <div class="card-body text-center d-flex flex-column justify-content-center h-100" style="padding: 1.5rem;">
                             <div class="mb-3">
                                 <i class="fas fa-calendar-alt" style="font-size: 2.5rem; color: var(--onejax-blue);"></i>
                             </div>
-                            <h6 class="card-title" style="color: var(--onejax-navy); font-weight: 600; margin-bottom: 0.5rem;">Public Events</h6>
-                            <p class="card-text text-muted" style="font-size: 0.9rem; margin-bottom: 1rem;">View upcoming initiatives across the four strategic goals</p>
+                            <h6 class="card-title" style="color: var(--onejax-navy); font-weight: 600; margin-bottom: 0.5rem;">@(canManageData ? "View Events" : "Public Events")</h6>
+                            <p class="card-text text-muted" style="font-size: 0.9rem; margin-bottom: 1rem;">@(canManageData ? "Open the full events view for strategic planning and tracking" : "View upcoming initiatives across the four strategic goals")</p>
                             <div class="d-flex justify-content-center align-items-center">
                                 <span class="badge" style="background: linear-gradient(135deg, var(--onejax-blue), var(--onejax-navy)); color: white; font-size: 0.75rem;">
                                     @publicEventsCount Events
                                 </span>
                             </div>
-                            <a href="/Public/Events" class="stretched-link" aria-label="View public events"></a>
+                            <a href="@(canManageData ? "/Strategy/ViewEvents" : "/Public/Events")"
+                               class="stretched-link"
+                               aria-label="@(canManageData ? "View events" : "View public events")"></a>
                         </div>
                     </div>
                 </div>

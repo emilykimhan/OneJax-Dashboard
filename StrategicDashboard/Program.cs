@@ -93,6 +93,7 @@ using (var scope = app.Services.CreateScope())
     }
 
     EnsureStaffAdminSupport(db);
+    EnsureFallbackAdminAccess(db);
 
     EnsureCanonicalStrategicGoals(db);
 }
@@ -234,4 +235,22 @@ static void EnsureStaffAdminSupport(ApplicationDbContext db)
             connection.Close();
         }
     }
+}
+
+static void EnsureFallbackAdminAccess(ApplicationDbContext db)
+{
+    if (db.Staffauth.Any(staff => staff.IsAdmin))
+    {
+        return;
+    }
+
+    var fallbackAdmin = db.Staffauth.FirstOrDefault(staff => staff.Username == "admin");
+    if (fallbackAdmin == null)
+    {
+        return;
+    }
+
+    fallbackAdmin.IsAdmin = true;
+    db.SaveChanges();
+    Console.WriteLine("[admin-bootstrap] Promoted 'admin' to administrator because no admin accounts were found.");
 }

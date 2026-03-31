@@ -3,21 +3,34 @@
 @{
     var goal = ViewData["Goal"] as StrategicGoal;
     var canManageData = ViewData["CanManageData"] as bool? ?? false;
+    var activeFiscalYearLabel = ViewBag.ActiveFiscalYearLabel as string ?? string.Empty;
     var goalMetrics = goal?.Metrics ?? new List<GoalMetric>();
+    var scheduledGoalMetrics = goalMetrics
+        .Where(m => MetricTrackingSchedule.IsScheduledForFiscalYear(m.Name, activeFiscalYearLabel))
+        .ToList();
 }
 
 	                                        @if (goal?.Name.Contains("Community", StringComparison.OrdinalIgnoreCase) == true)
 	                                        {
-	                                            var mInterfaith = goalMetrics.FirstOrDefault(m => (m.Name ?? "").Contains("Interfaith", StringComparison.OrdinalIgnoreCase) && (m.Name ?? "").Contains("Events", StringComparison.OrdinalIgnoreCase));
-	                                            var mYouth = goalMetrics.FirstOrDefault(m => (m.Name ?? "").Contains("Youth", StringComparison.OrdinalIgnoreCase) && (m.Name ?? "").Contains("Attendance", StringComparison.OrdinalIgnoreCase));
-	                                            var mSatisfaction = goalMetrics.FirstOrDefault(m => (m.Name ?? "").Contains("Satisfaction", StringComparison.OrdinalIgnoreCase) && (m.Name ?? "").Contains("Event", StringComparison.OrdinalIgnoreCase))
-	                                                ?? goalMetrics.FirstOrDefault(m => (m.Name ?? "").Contains("Satisfaction", StringComparison.OrdinalIgnoreCase));
-	                                            var mPartners = goalMetrics.FirstOrDefault(m => (m.Name ?? "").Contains("Partner", StringComparison.OrdinalIgnoreCase) && (m.Name ?? "").Contains("Touchpoints", StringComparison.OrdinalIgnoreCase))
-	                                                ?? goalMetrics.FirstOrDefault(m => (m.Name ?? "").Contains("Collaboration", StringComparison.OrdinalIgnoreCase));
-	                                            var mFaith = goalMetrics.FirstOrDefault(m => (m.Name ?? "").Contains("Faith", StringComparison.OrdinalIgnoreCase) && (m.Name ?? "").Contains("Representation", StringComparison.OrdinalIgnoreCase));
-	                                            var mClergy = goalMetrics.FirstOrDefault(m => (m.Name ?? "").Contains("Clergy", StringComparison.OrdinalIgnoreCase) && (m.Name ?? "").Contains("Network", StringComparison.OrdinalIgnoreCase));
-	                                            var mDiversity = goalMetrics.FirstOrDefault(m => (m.Name ?? "").Contains("Diversity", StringComparison.OrdinalIgnoreCase) && (m.Name ?? "").Contains("Participant", StringComparison.OrdinalIgnoreCase));
-	                                            var mFirstTime = goalMetrics.FirstOrDefault(m => (m.Name ?? "").Contains("First-Time", StringComparison.OrdinalIgnoreCase) && (m.Name ?? "").Contains("Participants", StringComparison.OrdinalIgnoreCase));
+	                                            bool IsScheduledMetric(string metricName) => MetricTrackingSchedule.IsScheduledForFiscalYear(metricName, activeFiscalYearLabel);
+	                                            var interfaithScheduled = IsScheduledMetric("Interfaith Events Hosted");
+	                                            var youthScheduled = IsScheduledMetric("Youth Attendance Growth");
+	                                            var partnersScheduled = IsScheduledMetric("Cross-Sector Collaborations");
+	                                            var faithScheduled = IsScheduledMetric("Faith Representation");
+	                                            var satisfactionScheduled = IsScheduledMetric("Event Satisfaction");
+	                                            var clergyScheduled = IsScheduledMetric("Clergy Network Growth");
+	                                            var diversityScheduled = IsScheduledMetric("Participant Diversity");
+	                                            var firstTimeScheduled = IsScheduledMetric("First-Time Participants");
+	                                            var mInterfaith = scheduledGoalMetrics.FirstOrDefault(m => (m.Name ?? "").Contains("Interfaith", StringComparison.OrdinalIgnoreCase) && (m.Name ?? "").Contains("Events", StringComparison.OrdinalIgnoreCase));
+	                                            var mYouth = scheduledGoalMetrics.FirstOrDefault(m => (m.Name ?? "").Contains("Youth", StringComparison.OrdinalIgnoreCase) && (m.Name ?? "").Contains("Attendance", StringComparison.OrdinalIgnoreCase));
+	                                            var mSatisfaction = scheduledGoalMetrics.FirstOrDefault(m => (m.Name ?? "").Contains("Satisfaction", StringComparison.OrdinalIgnoreCase) && (m.Name ?? "").Contains("Event", StringComparison.OrdinalIgnoreCase))
+	                                                ?? scheduledGoalMetrics.FirstOrDefault(m => (m.Name ?? "").Contains("Satisfaction", StringComparison.OrdinalIgnoreCase));
+	                                            var mPartners = scheduledGoalMetrics.FirstOrDefault(m => (m.Name ?? "").Contains("Partner", StringComparison.OrdinalIgnoreCase) && (m.Name ?? "").Contains("Touchpoints", StringComparison.OrdinalIgnoreCase))
+	                                                ?? scheduledGoalMetrics.FirstOrDefault(m => (m.Name ?? "").Contains("Collaboration", StringComparison.OrdinalIgnoreCase));
+	                                            var mFaith = scheduledGoalMetrics.FirstOrDefault(m => (m.Name ?? "").Contains("Faith", StringComparison.OrdinalIgnoreCase) && (m.Name ?? "").Contains("Representation", StringComparison.OrdinalIgnoreCase));
+	                                            var mClergy = scheduledGoalMetrics.FirstOrDefault(m => (m.Name ?? "").Contains("Clergy", StringComparison.OrdinalIgnoreCase) && (m.Name ?? "").Contains("Network", StringComparison.OrdinalIgnoreCase));
+	                                            var mDiversity = scheduledGoalMetrics.FirstOrDefault(m => (m.Name ?? "").Contains("Diversity", StringComparison.OrdinalIgnoreCase) && (m.Name ?? "").Contains("Participant", StringComparison.OrdinalIgnoreCase));
+	                                            var mFirstTime = scheduledGoalMetrics.FirstOrDefault(m => (m.Name ?? "").Contains("First-Time", StringComparison.OrdinalIgnoreCase) && (m.Name ?? "").Contains("Participants", StringComparison.OrdinalIgnoreCase));
 
 	                                            decimal parseTarget(string? raw)
 	                                            {
@@ -35,12 +48,13 @@
 	                                                return parsed > 0 ? parsed : null;
 	                                            }
 
-	                                            string metricStatus(bool hasValue, decimal current, decimal? target, string? fallbackStatus)
-	                                            {
-	                                                if (!hasValue) return "No entries yet";
-	                                                if (target.HasValue && target.Value > 0 && current >= target.Value) return "Target met";
-	                                                return string.IsNullOrWhiteSpace(fallbackStatus) ? "Tracking" : fallbackStatus!;
-	                                            }
+                                            string metricStatus(bool isScheduled, bool hasValue, decimal current, decimal? target, string? fallbackStatus)
+                                            {
+                                                if (!isScheduled) return "Starts later";
+                                                if (!hasValue) return "No entries yet";
+                                                if (target.HasValue && target.Value > 0 && current >= target.Value) return "Target met";
+                                                return string.IsNullOrWhiteSpace(fallbackStatus) ? "Tracking" : fallbackStatus!;
+                                            }
 
 	                                            decimal? bagNullable(string key)
 	                                            {
@@ -67,9 +81,9 @@
 	                                                return Math.Round(current / target.Value * 100, 1);
 	                                            }
 
-	                                            string valueLabel(decimal? value, string format = "0.#", string suffix = "", bool signed = false)
-	                                            {
-	                                                if (!value.HasValue) return "No data";
+                                            string valueLabel(decimal? value, string format = "0.#", string suffix = "", bool signed = false)
+                                            {
+                                                if (!value.HasValue) return "No data";
 	                                                var rendered = value.Value.ToString(format, System.Globalization.CultureInfo.InvariantCulture);
 	                                                if (signed && value.Value > 0) rendered = $"+{rendered}";
 	                                                return $"{rendered}{suffix}";
@@ -78,8 +92,40 @@
 	                                            string targetLabel(decimal? target, string format = "0.#", string prefix = "", string suffix = "")
 	                                            {
 	                                                if (!target.HasValue) return "No target set";
-	                                                return $"{prefix}{target.Value.ToString(format, System.Globalization.CultureInfo.InvariantCulture)}{suffix}";
-	                                            }
+                                                return $"{prefix}{target.Value.ToString(format, System.Globalization.CultureInfo.InvariantCulture)}{suffix}";
+                                            }
+
+                                            string scheduledValueLabel(bool isScheduled, decimal? value, string format = "0.#", string suffix = "", bool signed = false)
+                                            {
+                                                return isScheduled ? valueLabel(value, format, suffix, signed) : "--";
+                                            }
+
+                                            string earliestStartFiscalYear(params string[] metricNames)
+                                            {
+                                                return metricNames
+                                                    .Select(MetricTrackingSchedule.GetStartFiscalYear)
+                                                    .Where(label => !string.IsNullOrWhiteSpace(label))
+                                                    .OrderBy(label => label)
+                                                    .FirstOrDefault() ?? string.Empty;
+                                            }
+
+                                            string panelBadgeText(bool anyScheduled, bool allScheduled, params string[] metricNames)
+                                            {
+                                                if (allScheduled) return "In scope";
+                                                if (anyScheduled) return "Some start later";
+                                                var start = earliestStartFiscalYear(metricNames);
+                                                return string.IsNullOrWhiteSpace(start) ? "Starts later" : $"Starts FY {start}";
+                                            }
+
+                                            string panelNoteText(bool anyScheduled, bool allScheduled, params string[] metricNames)
+                                            {
+                                                if (allScheduled) return string.Empty;
+                                                if (anyScheduled) return $"Some metrics in this section do not count toward {activeFiscalYearLabel} yet.";
+                                                var start = earliestStartFiscalYear(metricNames);
+                                                return string.IsNullOrWhiteSpace(start)
+                                                    ? $"This section does not count toward {activeFiscalYearLabel} yet."
+                                                    : $"This section starts in FY {start} and does not count toward {activeFiscalYearLabel} yet.";
+                                            }
 
 	                                            var youthTarget = targetOrNull(mYouth);
 	                                            var partnersTarget = targetOrNull(mPartners);
@@ -89,14 +135,14 @@
 	                                            var diversityTarget = targetOrNull(mDiversity);
 	                                            var firstTimeTarget = targetOrNull(mFirstTime);
 	                                            var satisfactionTarget = targetOrNull(mSatisfaction);
-	                                            var youthValueRaw = bagNullable("CommunityYouthGrowthPercent");
-	                                            var satisfactionValueRaw = bagNullable("CommunityEventSatisfactionAvg");
-	                                            var firstTimeValueRaw = bagNullable("CommunityFirstTimeRateAvg");
-	                                            var faithValueRaw = bagNullable("CommunityFaithPercentMeetingGoal");
-	                                            var interfaithValueRaw = bagNullable("CommunityInterfaithEventsCount");
-	                                            var partnersValueRaw = bagNullable("CommunityPartnersCurrentCount");
-	                                            var clergyValueRaw = bagNullable("CommunityClergyGrowthPercent");
-	                                            var diversityValueRaw = bagNullable("CommunityDiversityGrowthPercent");
+	                                            var youthValueRaw = youthScheduled ? bagNullable("CommunityYouthGrowthPercent") : null;
+	                                            var satisfactionValueRaw = satisfactionScheduled ? bagNullable("CommunityEventSatisfactionAvg") : null;
+	                                            var firstTimeValueRaw = firstTimeScheduled ? bagNullable("CommunityFirstTimeRateAvg") : null;
+	                                            var faithValueRaw = faithScheduled ? bagNullable("CommunityFaithPercentMeetingGoal") : null;
+	                                            var interfaithValueRaw = interfaithScheduled ? bagNullable("CommunityInterfaithEventsCount") : null;
+	                                            var partnersValueRaw = partnersScheduled ? bagNullable("CommunityPartnersCurrentCount") : null;
+	                                            var clergyValueRaw = clergyScheduled ? bagNullable("CommunityClergyGrowthPercent") : null;
+	                                            var diversityValueRaw = diversityScheduled ? bagNullable("CommunityDiversityGrowthPercent") : null;
 	                                            var youthValue = youthValueRaw ?? 0;
 	                                            var satisfactionValue = satisfactionValueRaw ?? 0;
 	                                            var firstTimeValue = firstTimeValueRaw ?? 0;
@@ -109,15 +155,15 @@
 	                                            var satisfactionHasValue = satisfactionValueRaw.HasValue;
 	                                            var firstTimeHasValue = firstTimeValueRaw.HasValue;
 	                                            var faithHasValue = faithValueRaw.HasValue;
-	                                            var interfaithEntryCount = bagNumber("CommunityInterfaithEntryCount");
-	                                            var partnerEntryCount = bagNumber("CommunityPartnerEntryCount");
+	                                            var interfaithEntryCount = interfaithScheduled ? bagNumber("CommunityInterfaithEntryCount") : 0;
+	                                            var partnerEntryCount = partnersScheduled ? bagNumber("CommunityPartnerEntryCount") : 0;
 	                                            var interfaithHasValue = interfaithEntryCount > 0;
 	                                            var partnersHasValue = partnerEntryCount > 0;
-	                                            var faithEventsMeetingGoal = bagNumber("CommunityFaithEventsMeetingGoal");
-	                                            var faithTotalEvents = bagNumber("CommunityFaithTotalEvents");
-	                                            var clergyLatestTotal = bagNumber("CommunityClergyLatestTotal");
-	                                            var diversityLatestCount = bagNumber("CommunityDiversityLatestCount");
-	                                            var firstTimeTotalParticipants = bagNumber("CommunityFirstTimeTotalParticipants");
+	                                            var faithEventsMeetingGoal = faithScheduled ? bagNumber("CommunityFaithEventsMeetingGoal") : 0;
+	                                            var faithTotalEvents = faithScheduled ? bagNumber("CommunityFaithTotalEvents") : 0;
+	                                            var clergyLatestTotal = clergyScheduled ? bagNumber("CommunityClergyLatestTotal") : 0;
+	                                            var diversityLatestCount = diversityScheduled ? bagNumber("CommunityDiversityLatestCount") : 0;
+	                                            var firstTimeTotalParticipants = firstTimeScheduled ? bagNumber("CommunityFirstTimeTotalParticipants") : 0;
 	                                            var youthProgress = progressValue(youthValue, youthTarget);
 	                                            var partnersProgress = progressValue(partnersValue, partnersTarget);
 	                                            var interfaithProgress = progressValue(interfaithValue, interfaithTarget);
@@ -125,15 +171,25 @@
 	                                            var satisfactionProgress = progressValue(satisfactionValue, satisfactionTarget);
 	                                            var diversityProgress = progressValue(diversityValue, diversityTarget);
 	                                            var firstTimeProgress = progressValue(firstTimeValue, firstTimeTarget);
-	                                            var youthStatusText = metricStatus(youthHasValue, youthValue, youthTarget, mYouth?.Status);
-	                                            var partnersStatusText = metricStatus(partnersHasValue, partnersValue, partnersTarget, mPartners?.Status);
-	                                            var faithStatusText = metricStatus(faithHasValue, faithValue, faithTarget, mFaith?.Status);
-	                                            var satisfactionStatusText = metricStatus(satisfactionHasValue, satisfactionValue, satisfactionTarget, mSatisfaction?.Status);
-	                                            var diversityStatusText = metricStatus(diversityValueRaw.HasValue, diversityValue, diversityTarget, mDiversity?.Status);
-	                                            var firstTimeStatusText = metricStatus(firstTimeHasValue, firstTimeValue, firstTimeTarget, mFirstTime?.Status);
+                                            var youthStatusText = metricStatus(youthScheduled, youthHasValue, youthValue, youthTarget, mYouth?.Status);
+                                            var interfaithStatusText = metricStatus(interfaithScheduled, interfaithHasValue, interfaithValue, interfaithTarget, mInterfaith?.Status);
+                                            var partnersStatusText = metricStatus(partnersScheduled, partnersHasValue, partnersValue, partnersTarget, mPartners?.Status);
+                                            var faithStatusText = metricStatus(faithScheduled, faithHasValue, faithValue, faithTarget, mFaith?.Status);
+                                            var satisfactionStatusText = metricStatus(satisfactionScheduled, satisfactionHasValue, satisfactionValue, satisfactionTarget, mSatisfaction?.Status);
+                                            var clergyStatusText = metricStatus(clergyScheduled, clergyValueRaw.HasValue, clergyValue, clergyTarget, mClergy?.Status);
+                                            var diversityStatusText = metricStatus(diversityScheduled, diversityValueRaw.HasValue, diversityValue, diversityTarget, mDiversity?.Status);
+                                            var firstTimeStatusText = metricStatus(firstTimeScheduled, firstTimeHasValue, firstTimeValue, firstTimeTarget, mFirstTime?.Status);
 
-	                                            var latestPartners = ViewBag.CommunityPartnersLatest as IEnumerable<dynamic>;
-	                                            var anyLatestPartners = latestPartners != null && latestPartners.Any();
+                                            var latestPartners = partnersScheduled ? ViewBag.CommunityPartnersLatest as IEnumerable<dynamic> : null;
+                                            var anyLatestPartners = latestPartners != null && latestPartners.Any();
+                                            var pulseAnyScheduled = youthScheduled || satisfactionScheduled || firstTimeScheduled || faithScheduled;
+                                            var pulseAllScheduled = youthScheduled && satisfactionScheduled && firstTimeScheduled && faithScheduled;
+                                            var relationshipAnyScheduled = partnersScheduled;
+                                            var relationshipAllScheduled = partnersScheduled;
+                                            var representationAnyScheduled = interfaithScheduled || faithScheduled || satisfactionScheduled || diversityScheduled || firstTimeScheduled;
+                                            var representationAllScheduled = interfaithScheduled && faithScheduled && satisfactionScheduled && diversityScheduled && firstTimeScheduled;
+                                            var networkAnyScheduled = interfaithScheduled || clergyScheduled || diversityScheduled || firstTimeScheduled;
+                                            var networkAllScheduled = interfaithScheduled && clergyScheduled && diversityScheduled && firstTimeScheduled;
 
 	                                            <style>
 	                                                .community-pulse-shell {
@@ -195,9 +251,9 @@
 	                                                    flex-wrap: wrap;
 	                                                }
 
-	                                                .community-pulse-shell .community-kicker {
-	                                                    display: inline-flex;
-	                                                    align-items: center;
+                                                .community-pulse-shell .community-kicker {
+                                                    display: inline-flex;
+                                                    align-items: center;
 	                                                    gap: 0.4rem;
 	                                                    padding: 0.35rem 0.75rem;
 	                                                    border-radius: 999px;
@@ -206,8 +262,39 @@
 	                                                    font-size: 0.75rem;
 	                                                    font-weight: 800;
 	                                                    letter-spacing: 0.08em;
-	                                                    text-transform: uppercase;
-	                                                }
+                                                    text-transform: uppercase;
+                                                }
+
+                                                .community-pulse-shell .community-state-badge {
+                                                    display: inline-flex;
+                                                    align-items: center;
+                                                    gap: 0.4rem;
+                                                    padding: 0.38rem 0.8rem;
+                                                    border-radius: 999px;
+                                                    border: 1px solid rgba(23, 50, 77, 0.12);
+                                                    background: rgba(255,255,255,0.72);
+                                                    color: #466075;
+                                                    font-size: 0.76rem;
+                                                    font-weight: 800;
+                                                    letter-spacing: 0.04em;
+                                                    text-transform: uppercase;
+                                                }
+
+                                                .community-pulse-shell .community-relationships .community-state-badge {
+                                                    background: rgba(255,255,255,0.12);
+                                                    border-color: rgba(255,255,255,0.16);
+                                                    color: rgba(255,255,255,0.88);
+                                                }
+
+                                                .community-pulse-shell .community-state-note {
+                                                    margin-top: -0.2rem;
+                                                    color: #6a8397;
+                                                    font-size: 0.88rem;
+                                                }
+
+                                                .community-pulse-shell .community-relationships .community-state-note {
+                                                    color: rgba(255,255,255,0.78);
+                                                }
 
 	                                                .community-pulse-shell .community-panel h4 {
 	                                                    color: var(--community-ink);
@@ -559,36 +646,43 @@
 	                                                    <div class="row g-3">
 	                                                        <div class="col-xl-8 d-flex">
 	                                                            <section class="community-panel community-hero w-100">
-	                                                                <div class="community-panel-header">
-	                                                                    <div>
-	                                                                        <span class="community-kicker">Community Pulse</span>
-	                                                                        <h4>Participation and community reach</h4>
-	                                                                    </div>
-	                                                                    @if (canManageData)
-	                                                                    {
-	                                                                        <a asp-controller="CommYouth15D" asp-action="Index" class="btn btn-sm btn-outline-dark">Update youth data</a>
-	                                                                    }
-	                                                                </div>
+                                                                <div class="community-panel-header">
+                                                                    <div>
+                                                                        <span class="community-kicker">Community Pulse</span>
+                                                                        <h4>Participation and community reach</h4>
+                                                                    </div>
+                                                                    <span class="community-state-badge">@panelBadgeText(pulseAnyScheduled, pulseAllScheduled, "Youth Attendance Growth", "Event Satisfaction", "First-Time Participants", "Faith Representation")</span>
+                                                                </div>
+                                                                @if (!pulseAllScheduled)
+                                                                {
+                                                                    <div class="community-state-note">@panelNoteText(pulseAnyScheduled, pulseAllScheduled, "Youth Attendance Growth", "Event Satisfaction", "First-Time Participants", "Faith Representation")</div>
+                                                                }
+                                                                <div class="community-panel-header">
+                                                                    @if (canManageData)
+                                                                    {
+                                                                        <a asp-controller="CommYouth15D" asp-action="Index" class="btn btn-sm btn-outline-dark">Update youth data</a>
+                                                                    }
+                                                                </div>
 
 	                                                                <div class="community-chip-row">
 	                                                                    <div class="community-chip">
 	                                                                        <span class="community-chip-label">Youth Growth</span>
-	                                                                        <span class="community-chip-value">@valueLabel(youthValueRaw, "0.#", "%", true)</span>
+                                                                        <span class="community-chip-value">@scheduledValueLabel(youthScheduled, youthValueRaw, "0.#", "%", true)</span>
 	                                                                        <span class="community-chip-meta">Target: @targetLabel(youthTarget, "0.#", "+", "%") | @youthStatusText</span>
 	                                                                    </div>
 	                                                                    <div class="community-chip">
 	                                                                        <span class="community-chip-label">Event Satisfaction</span>
-	                                                                        <span class="community-chip-value">@valueLabel(satisfactionValueRaw, "0.#", "%")</span>
+                                                                        <span class="community-chip-value">@scheduledValueLabel(satisfactionScheduled, satisfactionValueRaw, "0.#", "%")</span>
 	                                                                        <span class="community-chip-meta">Target: @targetLabel(satisfactionTarget, "0.#", "", "%") | @satisfactionStatusText</span>
 	                                                                    </div>
 	                                                                    <div class="community-chip">
 	                                                                        <span class="community-chip-label">First-Time Audience</span>
-	                                                                        <span class="community-chip-value">@valueLabel(firstTimeValueRaw, "0.#", "%")</span>
+                                                                        <span class="community-chip-value">@scheduledValueLabel(firstTimeScheduled, firstTimeValueRaw, "0.#", "%")</span>
 	                                                                        <span class="community-chip-meta">Target: @targetLabel(firstTimeTarget, "0.#", "", "%") | @firstTimeStatusText</span>
 	                                                                    </div>
 	                                                                    <div class="community-chip">
 	                                                                        <span class="community-chip-label">Faith Representation</span>
-	                                                                        <span class="community-chip-value">@valueLabel(faithValueRaw, "0.#", "%")</span>
+                                                                        <span class="community-chip-value">@scheduledValueLabel(faithScheduled, faithValueRaw, "0.#", "%")</span>
 	                                                                        <span class="community-chip-meta">Target: @targetLabel(faithTarget, "0.#", "", "%") | @faithStatusText</span>
 	                                                                    </div>
 	                                                                </div>
@@ -608,7 +702,7 @@
 	                                                                        <div class="community-insight-card signal-band">
 	                                                                            <div class="community-insight-main">
 	                                                                                <div class="community-chart-label">Learning signal</div>
-	                                                                                <div class="community-kpi-big">@(youthHasValue && youthTarget.HasValue ? $"{youthProgress:0.#}%" : "No data")</div>
+                                                                                <div class="community-kpi-big">@(youthHasValue && youthTarget.HasValue ? $"{youthProgress:0.#}%" : youthStatusText)</div>
 	                                                                                <div class="community-kpi-caption">Progress toward youth attendance growth target</div>
 	                                                                            </div>
 	                                                                            <div class="community-inline-meta">
@@ -633,20 +727,27 @@
 
 	                                                        <div class="col-xl-4 d-flex">
 	                                                            <section class="community-panel community-relationships w-100">
-	                                                                <div class="community-panel-header">
-	                                                                    <div>
-	                                                                        <span class="community-kicker">Relationship Momentum</span>
-	                                                                        <h4>Collaborative partner touchpoints</h4>
-	                                                                    </div>
-	                                                                    @if (canManageData)
-	                                                                    {
-	                                                                        <a asp-controller="CommCollab47D" asp-action="Index" class="btn btn-sm btn-outline-light">Enter data</a>
-	                                                                    }
-	                                                                </div>
+                                                                <div class="community-panel-header">
+                                                                    <div>
+                                                                        <span class="community-kicker">Relationship Momentum</span>
+                                                                        <h4>Collaborative partner touchpoints</h4>
+                                                                    </div>
+                                                                    <span class="community-state-badge">@panelBadgeText(relationshipAnyScheduled, relationshipAllScheduled, "Cross-Sector Collaborations")</span>
+                                                                </div>
+                                                                @if (!relationshipAllScheduled)
+                                                                {
+                                                                    <div class="community-state-note">@panelNoteText(relationshipAnyScheduled, relationshipAllScheduled, "Cross-Sector Collaborations")</div>
+                                                                }
+                                                                <div class="community-panel-header">
+                                                                    @if (canManageData)
+                                                                    {
+                                                                        <a asp-controller="CommCollab47D" asp-action="Index" class="btn btn-sm btn-outline-light">Enter data</a>
+                                                                    }
+                                                                </div>
 
 	                                                                <div class="community-mini-card">
 	                                                                    <div class="community-chart-label">Current pace</div>
-	                                                                    <div class="community-kpi-big">@partnersValue.ToString("0")</div>
+                                                                    <div class="community-kpi-big">@(partnersScheduled ? partnersValue.ToString("0") : "--")</div>
 	                                                                    <div class="community-kpi-caption">New collaborative partners added</div>
 	                                                                    <div class="community-inline-meta">
 	                                                                        <span>Target: @targetLabel(partnersTarget, "0.#") / year</span>
@@ -673,12 +774,12 @@
 	                                                                                </tr>
 	                                                                            </thead>
 	                                                                            <tbody>
-	                                                                                @if (!anyLatestPartners)
-	                                                                                {
-	                                                                                    <tr>
-	                                                                                        <td colspan="2">No entries yet.</td>
-	                                                                                    </tr>
-	                                                                                }
+                                                                                @if (!anyLatestPartners)
+                                                                                {
+                                                                                    <tr>
+                                                                                        <td colspan="2">@(partnersScheduled ? "No entries yet." : $"Starts later for FY {activeFiscalYearLabel}.")</td>
+                                                                                    </tr>
+                                                                                }
 	                                                                                else
 	                                                                                {
 	                                                                                    foreach (var row in latestPartners!)
@@ -698,14 +799,21 @@
 
 	                                                        <div class="col-12 d-flex">
 	                                                            <section class="community-panel community-representation w-100">
-	                                                                <div class="community-panel-header">
-	                                                                    <div>
-	                                                                        <span class="community-kicker">Representation and Belonging</span>
-	                                                                        <h4>Progress mix across inclusion goals</h4>
-	                                                                    </div>
-	                                                                    @if (canManageData)
-	                                                                    {
-	                                                                        <div class="community-link-cluster">
+                                                                <div class="community-panel-header">
+                                                                    <div>
+                                                                        <span class="community-kicker">Representation and Belonging</span>
+                                                                        <h4>Progress mix across inclusion goals</h4>
+                                                                    </div>
+                                                                    <span class="community-state-badge">@panelBadgeText(representationAnyScheduled, representationAllScheduled, "Interfaith Events Hosted", "Faith Representation", "Event Satisfaction", "Participant Diversity", "First-Time Participants")</span>
+                                                                </div>
+                                                                @if (!representationAllScheduled)
+                                                                {
+                                                                    <div class="community-state-note">@panelNoteText(representationAnyScheduled, representationAllScheduled, "Interfaith Events Hosted", "Faith Representation", "Event Satisfaction", "Participant Diversity", "First-Time Participants")</div>
+                                                                }
+                                                                <div class="community-panel-header">
+                                                                    @if (canManageData)
+                                                                    {
+                                                                        <div class="community-link-cluster">
 	                                                                            <a asp-controller="Interfaith11D" asp-action="Index" class="btn btn-sm btn-outline-dark">Interfaith</a>
 	                                                                            <a asp-controller="CommFaith13D" asp-action="Index" class="btn btn-sm btn-outline-dark">Faith mix</a>
 	                                                                            <a asp-controller="EventSatisfaction12D" asp-action="Index" class="btn btn-sm btn-outline-dark">Satisfaction</a>
@@ -730,16 +838,16 @@
 	                                                                            <div class="community-rail-card">
 	                                                                                <div class="community-rail-header">
 	                                                                                    <span class="community-rail-title">Interfaith events</span>
-	                                                                                    <span class="community-rail-value">@interfaithValue.ToString("0")</span>
+                                                                                    <span class="community-rail-value">@(interfaithScheduled ? interfaithValue.ToString("0") : "--")</span>
 	                                                                                </div>
 	                                                                                <div class="community-rail-track"><div class="community-rail-fill" style="width:@Math.Min((double)interfaithProgress, 100)%"></div></div>
-	                                                                                <div class="community-rail-meta"><span>Target: @targetLabel(interfaithTarget)</span><span>@(interfaithHasValue && interfaithTarget.HasValue ? $"{interfaithProgress:0.#}% complete" : "No entries yet")</span></div>
+                                                                                <div class="community-rail-meta"><span>Target: @targetLabel(interfaithTarget)</span><span>@(!interfaithScheduled ? interfaithStatusText : interfaithHasValue && interfaithTarget.HasValue ? $"{interfaithProgress:0.#}% complete" : "No entries yet")</span></div>
 	                                                                            </div>
 
 	                                                                            <div class="community-rail-card">
 	                                                                                <div class="community-rail-header">
 	                                                                                    <span class="community-rail-title">Faith representation</span>
-	                                                                                    <span class="community-rail-value">@valueLabel(faithValueRaw, "0.#", "%")</span>
+                                                                                    <span class="community-rail-value">@scheduledValueLabel(faithScheduled, faithValueRaw, "0.#", "%")</span>
 	                                                                                </div>
 	                                                                                <div class="community-rail-track"><div class="community-rail-fill" style="width:@Math.Min((double)faithProgress, 100)%"></div></div>
 	                                                                                <div class="community-rail-meta">
@@ -751,7 +859,7 @@
 	                                                                            <div class="community-rail-card">
 	                                                                                <div class="community-rail-header">
 	                                                                                    <span class="community-rail-title">Event satisfaction</span>
-	                                                                                    <span class="community-rail-value">@valueLabel(satisfactionValueRaw, "0.#", "%")</span>
+                                                                                    <span class="community-rail-value">@scheduledValueLabel(satisfactionScheduled, satisfactionValueRaw, "0.#", "%")</span>
 	                                                                                </div>
 	                                                                                <div class="community-rail-track"><div class="community-rail-fill" style="width:@Math.Min((double)satisfactionProgress, 100)%"></div></div>
 	                                                                                <div class="community-rail-meta"><span>Target: @targetLabel(satisfactionTarget, "0.#", "", "%")</span><span>@satisfactionStatusText</span></div>
@@ -760,7 +868,7 @@
 	                                                                            <div class="community-rail-card">
 	                                                                                <div class="community-rail-header">
 	                                                                                    <span class="community-rail-title">Participant diversity</span>
-	                                                                                    <span class="community-rail-value">@valueLabel(diversityValueRaw, "0.#", "%", true)</span>
+                                                                                    <span class="community-rail-value">@scheduledValueLabel(diversityScheduled, diversityValueRaw, "0.#", "%", true)</span>
 	                                                                                </div>
 	                                                                                <div class="community-rail-track"><div class="community-rail-fill" style="width:@Math.Min((double)diversityProgress, 100)%"></div></div>
 	                                                                                <div class="community-rail-meta"><span>Target: @targetLabel(diversityTarget, "0.#", "+", "%")</span><span>@diversityStatusText</span></div>
@@ -769,7 +877,7 @@
 	                                                                            <div class="community-rail-card">
 	                                                                                <div class="community-rail-header">
 	                                                                                    <span class="community-rail-title">First-time participation</span>
-	                                                                                    <span class="community-rail-value">@valueLabel(firstTimeValueRaw, "0.#", "%")</span>
+                                                                                    <span class="community-rail-value">@scheduledValueLabel(firstTimeScheduled, firstTimeValueRaw, "0.#", "%")</span>
 	                                                                                </div>
 	                                                                                <div class="community-rail-track"><div class="community-rail-fill" style="width:@Math.Min((double)firstTimeProgress, 100)%"></div></div>
 	                                                                                <div class="community-rail-meta"><span>Target: @targetLabel(firstTimeTarget, "0.#", "", "%")</span><span>@firstTimeStatusText</span></div>
@@ -782,37 +890,44 @@
 
 	                                                        <div class="col-12 d-flex">
 	                                                            <section class="community-panel community-network w-100">
-	                                                                <div class="community-panel-header">
-	                                                                    <div>
-	                                                                        <span class="community-kicker">Field Signals</span>
-	                                                                        <h4>Quick reads for relationship-building work</h4>
-	                                                                    </div>
-	                                                                    @if (canManageData)
-	                                                                    {
-	                                                                        <a asp-controller="CommContact14D" asp-action="Index" class="btn btn-sm btn-outline-dark">Update contacts</a>
-	                                                                    }
-	                                                                </div>
+                                                                <div class="community-panel-header">
+                                                                    <div>
+                                                                        <span class="community-kicker">Field Signals</span>
+                                                                        <h4>Quick reads for relationship-building work</h4>
+                                                                    </div>
+                                                                    <span class="community-state-badge">@panelBadgeText(networkAnyScheduled, networkAllScheduled, "Interfaith Events Hosted", "Clergy Network Growth", "Participant Diversity", "First-Time Participants")</span>
+                                                                </div>
+                                                                @if (!networkAllScheduled)
+                                                                {
+                                                                    <div class="community-state-note">@panelNoteText(networkAnyScheduled, networkAllScheduled, "Interfaith Events Hosted", "Clergy Network Growth", "Participant Diversity", "First-Time Participants")</div>
+                                                                }
+                                                                <div class="community-panel-header">
+                                                                    @if (canManageData)
+                                                                    {
+                                                                        <a asp-controller="CommContact14D" asp-action="Index" class="btn btn-sm btn-outline-dark">Update contacts</a>
+                                                                    }
+                                                                </div>
 
 	                                                                <div class="community-network-grid">
 	                                                                    <div class="community-stat-card accent-teal">
 	                                                                        <div class="community-stat-label">Interfaith events</div>
-	                                                                        <div class="community-stat-value">@interfaithValue.ToString("0")</div>
-	                                                                        <div class="community-stat-meta">Target: @targetLabel(interfaithTarget) events hosted</div>
+                                                                        <div class="community-stat-value">@(interfaithScheduled ? interfaithValue.ToString("0") : "--")</div>
+                                                                        <div class="community-stat-meta">@(interfaithScheduled ? $"Target: {targetLabel(interfaithTarget)} events hosted" : interfaithStatusText)</div>
 	                                                                    </div>
 	                                                                    <div class="community-stat-card accent-coral">
 	                                                                        <div class="community-stat-label">Network growth</div>
-	                                                                        <div class="community-stat-value">@valueLabel(clergyValueRaw, "0.#", "%", true)</div>
-	                                                                        <div class="community-stat-meta">Latest logged contacts: @clergyLatestTotal.ToString("0") | Target: @targetLabel(clergyTarget, "0.#", "+", "%")</div>
+                                                                        <div class="community-stat-value">@scheduledValueLabel(clergyScheduled, clergyValueRaw, "0.#", "%", true)</div>
+                                                                        <div class="community-stat-meta">@(clergyScheduled ? $"Latest logged contacts: {clergyLatestTotal:0} | Target: {targetLabel(clergyTarget, "0.#", "+", "%")}" : clergyStatusText)</div>
 	                                                                    </div>
 	                                                                    <div class="community-stat-card accent-sand">
 	                                                                        <div class="community-stat-label">Diversity increase</div>
-	                                                                        <div class="community-stat-value">@valueLabel(diversityValueRaw, "0.#", "%", true)</div>
-	                                                                        <div class="community-stat-meta">Latest logged diversity count: @diversityLatestCount.ToString("0")</div>
+                                                                        <div class="community-stat-value">@scheduledValueLabel(diversityScheduled, diversityValueRaw, "0.#", "%", true)</div>
+                                                                        <div class="community-stat-meta">@(diversityScheduled ? $"Latest logged diversity count: {diversityLatestCount:0}" : diversityStatusText)</div>
 	                                                                    </div>
 	                                                                    <div class="community-stat-card accent-sea">
 	                                                                        <div class="community-stat-label">First-time participants</div>
-	                                                                        <div class="community-stat-value">@valueLabel(firstTimeValueRaw, "0.#", "%")</div>
-	                                                                        <div class="community-stat-meta">Logged first-time participants: @firstTimeTotalParticipants.ToString("0") | Target: @targetLabel(firstTimeTarget, "0.#", "", "%")</div>
+                                                                        <div class="community-stat-value">@scheduledValueLabel(firstTimeScheduled, firstTimeValueRaw, "0.#", "%")</div>
+                                                                        <div class="community-stat-meta">@(firstTimeScheduled ? $"Logged first-time participants: {firstTimeTotalParticipants:0} | Target: {targetLabel(firstTimeTarget, "0.#", "", "%")}" : firstTimeStatusText)</div>
 	                                                                    </div>
 	                                                                </div>
 	                                                            </section>

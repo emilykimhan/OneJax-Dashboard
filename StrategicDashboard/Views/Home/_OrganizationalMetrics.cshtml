@@ -3,6 +3,19 @@
 @{
     var goal = ViewData["Goal"] as StrategicGoal;
     var canManageData = ViewData["CanManageData"] as bool? ?? false;
+    var activeFiscalYearLabel = ViewBag.ActiveFiscalYearLabel as string ?? string.Empty;
+    var scheduleYearLabel = string.IsNullOrWhiteSpace(activeFiscalYearLabel) ? "this fiscal year" : activeFiscalYearLabel;
+    bool IsScheduledMetric(string metricName) => MetricTrackingSchedule.IsScheduledForFiscalYear(metricName, activeFiscalYearLabel);
+    string ScheduleBadgeText(bool isScheduled, string? startFiscalYear, string fallbackText) =>
+        isScheduled
+            ? fallbackText
+            : "Starts later";
+    string ScheduleHintText(bool isScheduled, string? startFiscalYear) =>
+        isScheduled
+            ? string.Empty
+            : string.IsNullOrWhiteSpace(startFiscalYear)
+                ? $"This metric does not count toward {scheduleYearLabel}."
+                : $"This metric does not count toward {scheduleYearLabel}. Starts in FY {startFiscalYear}.";
 }
 
 @if (goal?.Metrics != null && goal.Metrics.Any())
@@ -10,6 +23,8 @@
     foreach (var metric in goal.Metrics)
     {
         var metricName = metric.Name ?? string.Empty;
+        var metricIsScheduled = IsScheduledMetric(metricName);
+        var metricStartFiscalYear = MetricTrackingSchedule.GetStartFiscalYear(metricName);
 		                                            @if (metricName.Contains("Earned Media", StringComparison.OrdinalIgnoreCase))
 		                                            {
 		                                                <!-- Professional Media Card -->
@@ -76,7 +91,13 @@
                                                                     <small style="opacity: 0.9;">Annual Team Satisfaction Survey</small>
                                                                 </div>
 	                                                                <div class="text-end d-flex flex-column align-items-end gap-2">
-	                                                                    @if (metric.CurrentValue >= Convert.ToDecimal(metric.Target))
+	                                                                    @if (!metricIsScheduled)
+	                                                                    {
+	                                                                        <span class="badge" style="background: #dbeafe; color: #1e3a8a; font-size: 0.75rem;">
+	                                                                            <i class="fas fa-calendar-alt"></i> @ScheduleBadgeText(metricIsScheduled, metricStartFiscalYear, "In Progress")
+	                                                                        </span>
+	                                                                    }
+	                                                                    else if (metric.CurrentValue >= Convert.ToDecimal(metric.Target))
 	                                                                    {
 	                                                                        <span class="badge" style="background: #10b981; font-size: 0.75rem;">
 	                                                                            <i class="fas fa-check-circle"></i> Target Met
@@ -102,6 +123,19 @@
 	                                                        </div>
                                                         
                                                         <div class="card-body" style="padding: 1.5rem; flex: 1;">
+                                                            @if (!metricIsScheduled)
+                                                            {
+                                                                <div class="d-flex flex-column justify-content-center h-100">
+                                                                    <div style="font-size: 2.5rem; font-weight: 700; color: var(--onejax-navy); line-height: 1;">--</div>
+                                                                    <div class="mt-2" style="color: #475569; font-weight: 500;">Staff satisfaction is scheduled later.</div>
+                                                                    <small style="color: var(--onejax-text-muted);">@ScheduleHintText(metricIsScheduled, metricStartFiscalYear)</small>
+                                                                    <div class="progress mt-4" style="height: 8px; border-radius: 999px; background: rgba(148, 163, 184, 0.18);">
+                                                                        <div class="progress-bar" style="width: 0%; background: #cbd5e1;"></div>
+                                                                    </div>
+                                                                </div>
+                                                            }
+                                                            else
+                                                            {
                                                             <!-- Main satisfaction display with circle chart -->
                                                             <div class="row align-items-center">
                                                                 <div class="col-md-6">
@@ -142,16 +176,17 @@
                                                                         
                                                                         <!-- Status and date -->
                                                                         <div class="d-flex justify-content-between align-items-center">
-                                                                            <span class="badge @(metric.Status == "Active" ? "bg-success" : "bg-secondary")" style="font-size: 0.75rem;">
-                                                                                @metric.Status
+                                                                            <span class="badge @((metricIsScheduled && metric.Status == "Active") ? "bg-success" : "bg-secondary")" style="font-size: 0.75rem;">
+                                                                                @(metricIsScheduled ? metric.Status : ScheduleBadgeText(metricIsScheduled, metricStartFiscalYear, metric.Status ?? "Planned"))
                                                                             </span>
                                                                             <small style="color: var(--onejax-text-muted);">
-                                                                                Target: @metric.TargetDate.ToString("MMM yyyy")
+                                                                                @(metricIsScheduled ? $"Target: {metric.TargetDate:MMM yyyy}" : ScheduleHintText(metricIsScheduled, metricStartFiscalYear))
                                                                             </small>
                                                                         </div>
                                                                     </div>
                                                                 </div>
                                                             </div>
+                                                            }
 
 	                                                        </div>
 	                                                    </div>
@@ -223,21 +258,41 @@
                                                                 </div>
                                                             </div>
 
-                                                            @if (canManageData)
+                                                            @if (!metricIsScheduled || canManageData)
                                                             {
-                                                                <div style="position: absolute; top: 1.1rem; right: 1.25rem;">
-                                                                    <a asp-controller="BoardMeetingAttendance" asp-action="Index"
-                                                                       class="btn btn-sm btn-outline-secondary"
-                                                                       style="border-radius: 999px; background: white;">
-                                                                        Enter data
-                                                                    </a>
+                                                                <div style="position: absolute; top: 1.1rem; right: 1.25rem; display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;">
+                                                                    @if (!metricIsScheduled)
+                                                                    {
+                                                                        <span class="badge" style="background: #e2e8f0; color: #334155; font-size: 0.75rem;">
+                                                                            <i class="fas fa-calendar-alt"></i> @ScheduleBadgeText(metricIsScheduled, metricStartFiscalYear, "Tracking")
+                                                                        </span>
+                                                                    }
+                                                                    @if (canManageData)
+                                                                    {
+                                                                        <a asp-controller="BoardMeetingAttendance" asp-action="Index"
+                                                                           class="btn btn-sm btn-outline-secondary"
+                                                                           style="border-radius: 999px; background: white;">
+                                                                            Enter data
+                                                                        </a>
+                                                                    }
                                                                 </div>
                                                             }
                                                         </div>
                                                         
                                                         <!-- Scrollable Content Area -->
                                                         <div style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
-                                                            @if (metric.CurrentValue > 0)
+                                                            @if (!metricIsScheduled)
+                                                            {
+                                                                <div class="d-flex flex-column justify-content-center h-100 p-4">
+                                                                    <div style="font-size: 2.5rem; font-weight: 700; color: #1f2937; line-height: 1;">--</div>
+                                                                    <div class="mt-2" style="color: #475569; font-weight: 500;">Board meeting attendance is scheduled later.</div>
+                                                                    <small style="color: #6b7280;">@ScheduleHintText(metricIsScheduled, metricStartFiscalYear)</small>
+                                                                    <div class="progress mt-4" style="height: 8px; border-radius: 999px; background: rgba(148, 163, 184, 0.18);">
+                                                                        <div class="progress-bar" style="width: 0%; background: #cbd5e1;"></div>
+                                                                    </div>
+                                                                </div>
+                                                            }
+                                                            else if (metric.CurrentValue > 0)
                                                             {
                                                                 var meetingRecords = ViewBag.BoardMeetingAttendance as List<OneJaxDashboard.Models.BoardMeetingAttendance> ?? new List<OneJaxDashboard.Models.BoardMeetingAttendance>();
                                                                 if (meetingRecords.Any())
@@ -306,7 +361,11 @@
                                                         <div class="card-footer" style="background: #f8fafc; border-top: 1px solid #e5e7eb; padding: 1rem 1.5rem; flex-shrink: 0;">
                                                             <div class="d-flex justify-content-between align-items-center">
                                                                 <small style="color: #6b7280; font-weight: 500;">
-                                                                    @if (metric.CurrentValue > 0)
+                                                                    @if (!metricIsScheduled)
+                                                                    {
+                                                                        <span>@ScheduleHintText(metricIsScheduled, metricStartFiscalYear)</span>
+                                                                    }
+                                                                    else if (metric.CurrentValue > 0)
                                                                     {
                                                                         var meetingRecords = ViewBag.BoardMeetingAttendance as List<OneJaxDashboard.Models.BoardMeetingAttendance> ?? new List<OneJaxDashboard.Models.BoardMeetingAttendance>();
                                                                         var meetingCount = meetingRecords?.Count ?? 0;
@@ -362,8 +421,8 @@
                                                                     <small style="opacity: 0.9;">Annual board self-evaluation score</small>
                                                                 </div>
 	                                                                <div class="text-end d-flex flex-column align-items-end gap-2">
-	                                                                    <span class="badge" style="background: @(metric.CurrentValue >= Convert.ToDecimal(metric.Target) ? "#10b981" : "#f59e0b"); font-size: 0.75rem;">
-	                                                                        @(metric.CurrentValue >= Convert.ToDecimal(metric.Target) ? "On Target" : "Improvement Area")
+	                                                                    <span class="badge" style="background: @(!metricIsScheduled ? "#dbeafe" : metric.CurrentValue >= Convert.ToDecimal(metric.Target) ? "#10b981" : "#f59e0b"); color: @(!metricIsScheduled ? "#1e3a8a" : "white"); font-size: 0.75rem;">
+	                                                                        @ScheduleBadgeText(metricIsScheduled, metricStartFiscalYear, metric.CurrentValue >= Convert.ToDecimal(metric.Target) ? "On Target" : "Improvement Area")
 	                                                                    </span>
 	                                                                    @if (canManageData)
 	                                                                    {
@@ -377,6 +436,19 @@
 	                                                            </div>
 	                                                        </div>
                                                         <div class="card-body d-flex flex-column justify-content-center" style="padding: 1.5rem;">
+                                                            @if (!metricIsScheduled)
+                                                            {
+                                                                <div class="d-flex flex-column justify-content-center h-100">
+                                                                    <div style="font-size: 2.5rem; font-weight: 700; color: #111827; line-height: 1;">--</div>
+                                                                    <div class="mt-2" style="color: #475569; font-weight: 500;">Board self-assessment is scheduled later.</div>
+                                                                    <small style="color: var(--onejax-text-muted);">@ScheduleHintText(metricIsScheduled, metricStartFiscalYear)</small>
+                                                                    <div class="progress mt-4" style="height: 8px; border-radius: 999px; background: rgba(148, 163, 184, 0.18);">
+                                                                        <div class="progress-bar" style="width: 0%; background: #cbd5e1;"></div>
+                                                                    </div>
+                                                                </div>
+                                                            }
+                                                            else
+                                                            {
                                                             <div class="text-center mb-3">
                                                                 <div style="font-size: 2.25rem; font-weight: 700; color: #111827; line-height: 1;">
                                                                     @Math.Round(metric.CurrentValue, 1)%
@@ -392,6 +464,7 @@
                                                                     <div class="progress-bar" style="width: @Math.Min(metric.ProgressPercentage, 100)%; background: #374151; border-radius: 4px;"></div>
                                                                 </div>
                                                             </div>
+                                                            }
 
 	                                                        </div>
 	                                                    </div>
@@ -411,8 +484,8 @@
                                                                     <small style="opacity: 0.9;">Volunteer participation and initiatives</small>
                                                                 </div>
 	                                                                <div class="text-end d-flex flex-column align-items-end gap-2">
-	                                                                    <span class="badge" style="background: @(metric.CurrentValue > 0 ? "#10b981" : "#6b7280"); font-size: 0.75rem;">
-	                                                                        @(metric.CurrentValue > 0 ? "Active" : "Awaiting Data")
+	                                                                    <span class="badge" style="background: @(!metricIsScheduled ? "#dbeafe" : metric.CurrentValue > 0 ? "#10b981" : "#6b7280"); color: @(!metricIsScheduled ? "#1e3a8a" : "white"); font-size: 0.75rem;">
+	                                                                        @ScheduleBadgeText(metricIsScheduled, metricStartFiscalYear, metric.CurrentValue > 0 ? "Active" : "Awaiting Data")
 	                                                                    </span>
 	                                                                    @if (canManageData)
 	                                                                    {
@@ -434,6 +507,19 @@
                                                                     .ThenByDescending(v => v.CreatedDate)
                                                                     .FirstOrDefault();
                                                             }
+                                                            @if (!metricIsScheduled)
+                                                            {
+                                                                <div class="d-flex flex-column justify-content-center h-100">
+                                                                    <div style="font-size: 2.5rem; font-weight: 700; color: #111827; line-height: 1;">--</div>
+                                                                    <div class="mt-2" style="color: #475569; font-weight: 500;">Volunteer program participation is scheduled later.</div>
+                                                                    <small style="color: var(--onejax-text-muted);">@ScheduleHintText(metricIsScheduled, metricStartFiscalYear)</small>
+                                                                    <div class="progress mt-4" style="height: 8px; border-radius: 999px; background: rgba(148, 163, 184, 0.18);">
+                                                                        <div class="progress-bar" style="width: 0%; background: #cbd5e1;"></div>
+                                                                    </div>
+                                                                </div>
+                                                            }
+                                                            else
+                                                            {
                                                             <div class="row text-center mb-3">
                                                                 <div class="col-6">
                                                                     <div style="font-size: 2rem; font-weight: 700; color: #111827; line-height: 1;">@Math.Round(metric.CurrentValue, 0)</div>
@@ -460,10 +546,10 @@
                                                                 </div>
                                                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                                                     <span class="badge bg-dark">
-                                                                        @(latestVolunteerRecord != null ? $"Q{latestVolunteerRecord.Quarter}" : "Q-")
+                                                                        @(metricIsScheduled ? latestVolunteerRecord != null ? $"Q{latestVolunteerRecord.Quarter}" : "Q-" : "Starts later")
                                                                     </span>
                                                                     <span class="badge bg-secondary">
-                                                                        @(latestVolunteerRecord?.Year.ToString() ?? "No Year")
+                                                                        @(metricIsScheduled ? latestVolunteerRecord?.Year.ToString() ?? "No Year" : metricStartFiscalYear ?? "Planned")
                                                                     </span>
                                                                 </div>
                                                                 <div class="mb-2">
@@ -485,6 +571,7 @@
                                                                     </div>
                                                                 </div>
                                                             </div>
+                                                            }
 
 	                                                        </div>
 	                                                    </div>
@@ -507,13 +594,19 @@
                                                                 <div class="text-end">
                                                                     @{
                                                                         // Calculate participation rate from metric value (employee participants)
-                                                                        decimal totalStaff = 25; // This should be configurable
+                                                                        decimal.TryParse((metric.Target ?? string.Empty).Replace("$", "").Replace(",", "").Replace("%", "").Trim(), out var totalStaff);
                                                                         // Clamp to valid range [0, totalStaff]
                                                                         decimal participatedEmployees = Math.Max(0, Math.Min(metric.CurrentValue, totalStaff));
                                                                         decimal participationRate = totalStaff > 0 ? (participatedEmployees / totalStaff) * 100 : 0;
                                                                         bool hasData = metric.CurrentValue > 0;
                                                                     }
-                                                                    @if (hasData && participationRate >= 80)
+                                                                    @if (!metricIsScheduled)
+                                                                    {
+                                                                        <span class="badge" style="background: #ffedd5; color: #9a3412; font-size: 0.75rem;">
+                                                                            <i class="fas fa-calendar-alt"></i> @ScheduleBadgeText(metricIsScheduled, metricStartFiscalYear, "Awaiting Data")
+                                                                        </span>
+                                                                    }
+                                                                    else if (hasData && participationRate >= 80)
                                                                     {
                                                                         <span class="badge" style="background: #10b981; font-size: 0.75rem;">
                                                                             <i class="fas fa-check-circle"></i> Strong Participation
@@ -553,6 +646,19 @@
                                                         </div>
                                                         
                                                         <div class="card-body" style="padding: 1.5rem; flex: 1; overflow: hidden;">
+                                                            @if (!metricIsScheduled)
+                                                            {
+                                                                <div class="d-flex flex-column justify-content-center h-100">
+                                                                    <div style="font-size: 2.5rem; font-weight: 700; color: var(--onejax-orange); line-height: 1;">--</div>
+                                                                    <div class="mt-2" style="color: #475569; font-weight: 500;">Professional development tracking is scheduled later.</div>
+                                                                    <small style="color: var(--onejax-text-muted);">@ScheduleHintText(metricIsScheduled, metricStartFiscalYear)</small>
+                                                                    <div class="progress mt-4" style="height: 8px; border-radius: 999px; background: rgba(148, 163, 184, 0.18);">
+                                                                        <div class="progress-bar" style="width: 0%; background: #cbd5e1;"></div>
+                                                                    </div>
+                                                                </div>
+                                                            }
+                                                            else
+                                                            {
                                                             <!-- Employee participation visual -->
                                                             <div class="mb-4">
                                                                 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -598,6 +704,7 @@
                                                                     </div>
                                                                 </div>
                                                             </div>
+                                                            }
                                                         </div>
                                                     </div>
                                                 </div>
@@ -618,12 +725,41 @@
                                                                 </div>
                                                                 <div class="text-end">
                                                                     @{
-                                                                        // Mock data for preparation - will be replaced with real quarterly data
-                                                                        int totalRecruitedForYear = (int)metric.CurrentValue;
-                                                                        int targetRecruitment = 6;
-                                                                        bool hasRecruitmentData = totalRecruitedForYear > 0;
+                                                                        var boardRecruitmentRecords = ViewBag.BoardRecruitmentRecords as List<BoardMemberRecruitment> ?? new List<BoardMemberRecruitment>();
+                                                                        var totalRecruitedForYear = boardRecruitmentRecords.Sum(r => r.NumberRecruited ?? 0);
+                                                                        var totalProspectedForYear = boardRecruitmentRecords.Sum(r => r.TotalProspectOutreach);
+                                                                        var targetRecruitment = int.TryParse(metric.Target, out var parsedTargetRecruitment) ? parsedTargetRecruitment : 6;
+                                                                        var hasRecruitmentData = boardRecruitmentRecords.Any();
+                                                                        var successRate = totalProspectedForYear > 0
+                                                                            ? Math.Round(((decimal)totalRecruitedForYear / totalProspectedForYear) * 100, 1)
+                                                                            : 0;
+                                                                        var quarterlyProspected = Enumerable.Range(1, 4)
+                                                                            .Select(quarter => boardRecruitmentRecords
+                                                                                .Where(r => r.Quarter == quarter)
+                                                                                .Sum(r => r.TotalProspectOutreach))
+                                                                            .ToList();
+                                                                        var quarterlyRecruited = Enumerable.Range(1, 4)
+                                                                            .Select(quarter => boardRecruitmentRecords
+                                                                                .Where(r => r.Quarter == quarter)
+                                                                                .Sum(r => r.NumberRecruited ?? 0))
+                                                                            .ToList();
+                                                                        var quarterLabels = string.Equals(activeFiscalYearLabel, "All Years", StringComparison.OrdinalIgnoreCase)
+                                                                            ? new[] { "Q1", "Q2", "Q3", "Q4" }
+                                                                            : new[]
+                                                                            {
+                                                                                $"Q1 {activeFiscalYearLabel}",
+                                                                                $"Q2 {activeFiscalYearLabel}",
+                                                                                $"Q3 {activeFiscalYearLabel}",
+                                                                                $"Q4 {activeFiscalYearLabel}"
+                                                                            };
                                                                     }
-                                                                    @if (hasRecruitmentData && totalRecruitedForYear >= targetRecruitment)
+                                                                    @if (!metricIsScheduled)
+                                                                    {
+                                                                        <span class="badge" style="background: #dbeafe; color: #1e3a8a; font-size: 0.75rem;">
+                                                                            <i class="fas fa-calendar-alt"></i> @ScheduleBadgeText(metricIsScheduled, metricStartFiscalYear, "Ready to Track")
+                                                                        </span>
+                                                                    }
+                                                                    else if (hasRecruitmentData && totalRecruitedForYear >= targetRecruitment)
                                                                     {
                                                                         <span class="badge" style="background: #10b981; font-size: 0.75rem;">
                                                                             <i class="fas fa-check-circle"></i> Target Met
@@ -657,6 +793,19 @@
                                                         </div>
                                                         
                                                         <div class="card-body" style="padding: 2rem;">
+                                                            @if (!metricIsScheduled)
+                                                            {
+                                                                <div class="d-flex flex-column justify-content-center h-100">
+                                                                    <div style="font-size: 2.5rem; font-weight: 700; color: #475569; line-height: 1;">--</div>
+                                                                    <div class="mt-2" style="color: #475569; font-weight: 500;">Board recruitment is scheduled later.</div>
+                                                                    <small style="color: var(--onejax-text-muted);">@ScheduleHintText(metricIsScheduled, metricStartFiscalYear)</small>
+                                                                    <div class="progress mt-4" style="height: 8px; border-radius: 999px; background: rgba(148, 163, 184, 0.18);">
+                                                                        <div class="progress-bar" style="width: 0%; background: #cbd5e1;"></div>
+                                                                    </div>
+                                                                </div>
+                                                            }
+                                                            else
+                                                            {
                                                             <!-- Summary stats -->
                                                             <div class="row align-items-center mb-4">
                                                                 <div class="col-md-3">
@@ -670,7 +819,7 @@
                                                                 <div class="col-md-3">
                                                                     <div class="text-center">
                                                                         <div style="font-size: 2rem; font-weight: 600; color: #64748b; line-height: 1;">
-                                                                            @(hasRecruitmentData ? totalRecruitedForYear + 4 : 0)
+                                                                            @totalProspectedForYear
                                                                         </div>
                                                                         <small style="color: var(--onejax-text-muted);">Total Prospected</small>
                                                                     </div>
@@ -686,7 +835,7 @@
                                                                 <div class="col-md-3">
                                                                     <div class="text-center">
                                                                         <div style="font-size: 1.5rem; font-weight: 600; color: #94a3b8; line-height: 1;">
-                                                                            @(hasRecruitmentData && totalRecruitedForYear > 0 ? Math.Round(((decimal)totalRecruitedForYear / (totalRecruitedForYear + 4)) * 100, 1) : 0)%
+                                                                            @successRate%
                                                                         </div>
                                                                         <small style="color: var(--onejax-text-muted);">Success Rate</small>
                                                                     </div>
@@ -723,15 +872,16 @@
                                                             <div class="mt-2 pt-2" style="border-top: 1px solid #e2e8f0;">
                                                                 <div class="d-flex justify-content-between align-items-center">
                                                                     <div>
-                                                                        <small style="color: var(--onejax-text-muted);">Goal: Recruit 6 new board members by Q2 2026</small>
+                                                                        <small style="color: var(--onejax-text-muted);">Goal: Recruit @targetRecruitment new board members by Q2 2026</small>
                                                                     </div>
                                                                     <div>
-                                                                        <span class="badge @(hasRecruitmentData && totalRecruitedForYear >= targetRecruitment ? "bg-success" : hasRecruitmentData ? "" : "")" style="@(hasRecruitmentData && totalRecruitedForYear >= targetRecruitment ? "" : hasRecruitmentData ? "background: #64748b; color: white;" : "background: #94a3b8; color: white;")">
-                                                                            @(hasRecruitmentData && totalRecruitedForYear >= targetRecruitment ? "Target Achieved" : hasRecruitmentData ? "In Progress" : "Ready to Track")
+                                                                        <span class="badge @(metricIsScheduled && hasRecruitmentData && totalRecruitedForYear >= targetRecruitment ? "bg-success" : "")" style="@(!metricIsScheduled ? "background: #dbeafe; color: #1e3a8a;" : hasRecruitmentData && totalRecruitedForYear >= targetRecruitment ? "" : hasRecruitmentData ? "background: #64748b; color: white;" : "background: #94a3b8; color: white;")">
+                                                                            @ScheduleBadgeText(metricIsScheduled, metricStartFiscalYear, hasRecruitmentData && totalRecruitedForYear >= targetRecruitment ? "Target Achieved" : hasRecruitmentData ? "In Progress" : "Ready to Track")
                                                                         </span>
                                                                     </div>
                                                                 </div>
                                                             </div>
+                                                            }
                                                         </div>
                                                     </div>
                                                 </div>
@@ -741,23 +891,17 @@
                                                     document.addEventListener('DOMContentLoaded', function() {
                                                         const recruitmentCtx = document.getElementById('board-recruitment-chart-@(metric.Id)');
                                                         if (recruitmentCtx) {
-                                                            // Mock quarterly data - prepare for future form structure
                                                             const hasData = @hasRecruitmentData.ToString().ToLower();
-                                                            
-                                                            // Sample data structure for quarters (will be replaced with real data)
-                                                            const quarterlyData = hasData ? {
-                                                                // Mock data based on current total
-                                                                prospected: [3, 2, 1, 1], // Q1, Q2, Q3, Q4
-                                                                recruited: [@((totalRecruitedForYear >= 1) ? 1 : 0), @((totalRecruitedForYear >= 2) ? 1 : 0), @((totalRecruitedForYear >= 3) ? 1 : 0), @((totalRecruitedForYear >= 4) ? 1 : 0)]
-                                                            } : {
-                                                                prospected: [0, 0, 0, 0],
-                                                                recruited: [0, 0, 0, 0]
+                                                            const quarterLabels = ['@quarterLabels[0]', '@quarterLabels[1]', '@quarterLabels[2]', '@quarterLabels[3]'];
+                                                            const quarterlyData = {
+                                                                prospected: [@string.Join(", ", quarterlyProspected)],
+                                                                recruited: [@string.Join(", ", quarterlyRecruited)]
                                                             };
                                                             
                                                             new Chart(recruitmentCtx, {
                                                                 type: 'bar',
                                                                 data: {
-                                                                    labels: ['Q1 2025-26', 'Q2 2025-26', 'Q3 2025-26', 'Q4 2025-26'],
+                                                                    labels: quarterLabels,
                                                                     datasets: [{
                                                                         label: 'Prospected Candidates',
                                                                         data: quarterlyData.prospected,
@@ -810,7 +954,7 @@
                                                                     scales: {
                                                                         y: {
                                                                             beginAtZero: true,
-                                                                            max: Math.max(6, Math.max(...quarterlyData.prospected, ...quarterlyData.recruited) + 1),
+                                                                            max: Math.max(6, ...quarterlyData.prospected, ...quarterlyData.recruited) + 1,
                                                                             ticks: {
                                                                                 stepSize: 1,
                                                                                 color: '#64748b',

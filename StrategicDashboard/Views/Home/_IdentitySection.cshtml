@@ -4,11 +4,55 @@
 @{
     var goal = ViewData["Goal"] as StrategicGoal;
     var canManageData = ViewData["CanManageData"] as bool? ?? false;
+    var activeFiscalYearLabel = ViewBag.ActiveFiscalYearLabel?.ToString() ?? string.Empty;
 }
 
 @if (goal?.Name.Contains("Identity") == true || goal?.Name.Contains("Value") == true)
 {
     var id = Model.Identity ?? new IdentityDashboardData();
+    var scheduleYearLabel = string.IsNullOrWhiteSpace(activeFiscalYearLabel) ? "this fiscal year" : activeFiscalYearLabel;
+    bool IsScheduledMetric(string metricName) => MetricTrackingSchedule.IsScheduledForFiscalYear(metricName, activeFiscalYearLabel);
+    string UnscheduledMetricText(string metricName, string subject)
+    {
+        var startFiscalYear = MetricTrackingSchedule.GetStartFiscalYear(metricName);
+        return string.IsNullOrWhiteSpace(startFiscalYear)
+            ? $"{subject} does not count toward {scheduleYearLabel}."
+            : $"{subject} does not count toward {scheduleYearLabel}. Starts in FY {startFiscalYear}.";
+    }
+    var mediaScheduled = IsScheduledMetric("Earned Media Placements");
+    var trustScheduled = IsScheduledMetric("Community Perception Survey");
+    var frameworkScheduled = IsScheduledMetric("Strategic Plan Completion");
+    var socialScheduled = IsScheduledMetric("Website Traffic");
+    var mediaStatusText = mediaScheduled ? "Tracking" : "Starts later";
+    var mediaDisplayText = mediaScheduled ? id.MediaPlacementsTotal.ToString("N0") : "--";
+    var mediaSubtext = mediaScheduled
+        ? $"Target: {id.MediaPlacementsTarget} placements"
+        : UnscheduledMetricText("Earned Media Placements", "Media placements");
+    var mediaProgressWidth = mediaScheduled && id.MediaPlacementsTarget > 0
+        ? Math.Min(id.MediaPlacementsTotal * 100.0m / id.MediaPlacementsTarget, 100)
+        : 0;
+    var trustStatusClass = trustScheduled && id.TrustPercent >= id.TrustTargetPercent ? "ok" : trustScheduled ? "warn" : string.Empty;
+    var trustStatusText = !trustScheduled ? "Starts later" : id.TrustPercent >= id.TrustTargetPercent ? "Target achieved" : "In progress";
+    var trustDisplayText = trustScheduled ? $"{id.TrustPercent:N1}%" : "--";
+    var trustSubtext = trustScheduled
+        ? $"Target: {id.TrustTargetPercent:N0}%{(id.TrustRespondents.HasValue ? $" | {id.TrustRespondents} respondents" : string.Empty)}"
+        : UnscheduledMetricText("Community Perception Survey", "This survey");
+    var trustProgressWidth = trustScheduled && id.TrustTargetPercent > 0
+        ? Math.Min(id.TrustPercent * 100.0m / id.TrustTargetPercent, 100)
+        : 0;
+    var frameworkStatusClass = frameworkScheduled && !string.IsNullOrWhiteSpace(id.FrameworkStatus) && id.FrameworkStatus.Contains("track", StringComparison.OrdinalIgnoreCase)
+        ? "ok"
+        : string.Empty;
+    var frameworkStatusText = !frameworkScheduled ? "Starts later" : string.IsNullOrWhiteSpace(id.FrameworkStatus) ? "Planning" : id.FrameworkStatus;
+    var frameworkHeadline = frameworkScheduled ? (id.FrameworkGoalMet ? "Goal met" : "In progress") : "Scheduled later";
+    var frameworkDetailText = frameworkScheduled
+        ? $"{(id.FrameworkYear.HasValue ? id.FrameworkYear.Value.ToString() : string.Empty)}{(!string.IsNullOrWhiteSpace(id.FrameworkQuarter) ? $" {id.FrameworkQuarter}" : string.Empty)}"
+        : UnscheduledMetricText("Strategic Plan Completion", "Framework rollout");
+    var socialStatusText = socialScheduled ? "Tracking" : "Starts later";
+    var socialDisplayText = socialScheduled ? $"{id.SocialAvgEngagementRate:N1}%" : "--";
+    var socialSubtext = socialScheduled
+        ? $"Avg engagement {(id.SocialYear.HasValue ? $"({id.SocialYear})" : string.Empty)}{(id.SocialGoalMet ? " | Goal met" : string.Empty)}"
+        : UnscheduledMetricText("Website Traffic", "Social engagement");
     var zipServed = id.ZipCodesServed;
     var zipTarget = id.ZipCodeGoal;
     var zipProgressPct = zipTarget > 0 ? (zipServed * 100.0m / zipTarget) : 0m;
@@ -52,14 +96,14 @@
 	                                        }
 	                                        .onejax-kpi-card.kpi-trust::before { background: var(--gradient-accent); }
 
-	                                        .onejax-kpi-card.kpi-framework {
-	                                            background: linear-gradient(180deg, rgba(11, 44, 58, 0.08), rgba(255, 255, 255, 0.00) 58%);
-	                                        }
-	                                        .onejax-kpi-card.kpi-framework::before { background: linear-gradient(135deg, var(--onejax-dark-blue), var(--onejax-navy)); }
+		                                        .onejax-kpi-card.kpi-framework {
+		                                            background: linear-gradient(180deg, rgba(11, 44, 58, 0.08), rgba(255, 255, 255, 0.00) 58%);
+		                                        }
+		                                        .onejax-kpi-card.kpi-framework::before { background: linear-gradient(135deg, var(--onejax-dark-blue), var(--onejax-navy)); }
 
-	                                        .onejax-kpi-card.kpi-social {
-	                                            background: linear-gradient(180deg, rgba(43, 58, 85, 0.08), rgba(255, 255, 255, 0.00) 58%);
-	                                        }
+		                                        .onejax-kpi-card.kpi-social {
+		                                            background: linear-gradient(180deg, rgba(43, 58, 85, 0.08), rgba(255, 255, 255, 0.00) 58%);
+		                                        }
 	                                        .onejax-kpi-card.kpi-social::before { background: var(--gradient-cool); }
 
 		                                        .onejax-kpi-body {
@@ -210,32 +254,32 @@
                                     </style>
 
 	                                    <div class="row g-3">
-				                                        <div class="col-md-6 col-lg-6">
-				                                            <div class="card onejax-kpi-card kpi-media" style="border-left: 5px solid var(--onejax-navy);">
-			                                                <div class="onejax-kpi-topright">
-			                                                    <span class="onejax-kpi-badge">Tracking</span>
-			                                                    @if (canManageData)
-			                                                    {
-			                                                        <a asp-controller="MediaPlacements" asp-action="Index" class="onejax-kpi-enter">Enter data</a>
-			                                                    }
-			                                                </div>
-			                                                <div class="card-body onejax-kpi-body d-flex flex-column">
-		                                                    <div style="font-size: 0.8rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--onejax-text-muted); font-weight: 700;">Media Placements</div>
-		                                                    <div style="font-size: 2rem; font-weight: 800; color: var(--onejax-navy); line-height: 1.1; margin-top: 0.5rem;">@id.MediaPlacementsTotal.ToString("N0")</div>
-		                                                    <div style="color: var(--onejax-text-muted); font-size: 0.9rem;">Target: @id.MediaPlacementsTarget placements</div>
-		                                                    <div class="onejax-kpi-spark">
-		                                                        <canvas id="identityMediaSpark"></canvas>
-		                                                    </div>
-		                                                    <div class="mt-auto">
-		                                                        <div class="progress mt-2" style="height: 10px; border-radius: 999px; background: rgba(2,6,23,0.08);">
-		                                                            <div class="progress-bar" style="width: @Math.Min(id.MediaPlacementsTarget > 0 ? (id.MediaPlacementsTotal * 100.0m / id.MediaPlacementsTarget) : 0, 100)%; background: #0f3d57; border-radius: 999px;"></div>
-		                                                        </div>
-		                                                        @if (canManageData)
-		                                                        {
-		                                                            <div class="d-flex justify-content-between align-items-center mt-2">
-		                                                                <a asp-controller="DataEntry" asp-action="RecordHistory" asp-route-recordType="media-placements" class="onejax-kpi-link">History</a>
-		                                                            </div>
-		                                                        }
+	                                        <div class="col-md-6 col-lg-6">
+	                                            <div class="card onejax-kpi-card kpi-media" style="border-left: 5px solid var(--onejax-navy);">
+	                                                <div class="onejax-kpi-topright">
+	                                                    <span class="onejax-kpi-badge">@mediaStatusText</span>
+	                                                    @if (canManageData)
+	                                                    {
+	                                                        <a asp-controller="MediaPlacements" asp-action="Index" class="onejax-kpi-enter">Enter data</a>
+	                                                    }
+	                                                </div>
+	                                                <div class="card-body onejax-kpi-body d-flex flex-column">
+	                                                    <div style="font-size: 0.8rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--onejax-text-muted); font-weight: 700;">Media Placements</div>
+	                                                    <div style="font-size: 2rem; font-weight: 800; color: var(--onejax-navy); line-height: 1.1; margin-top: 0.5rem;">@mediaDisplayText</div>
+	                                                    <div style="color: var(--onejax-text-muted); font-size: 0.9rem;">@mediaSubtext</div>
+	                                                    <div class="onejax-kpi-spark">
+	                                                        <canvas id="identityMediaSpark"></canvas>
+	                                                    </div>
+	                                                    <div class="mt-auto">
+	                                                        <div class="progress mt-2" style="height: 10px; border-radius: 999px; background: rgba(2,6,23,0.08);">
+	                                                            <div class="progress-bar" style="width: @mediaProgressWidth%; background: #0f3d57; border-radius: 999px;"></div>
+	                                                        </div>
+	                                                        @if (canManageData)
+	                                                        {
+	                                                            <div class="d-flex justify-content-between align-items-center mt-2">
+	                                                                <a asp-controller="DataEntry" asp-action="RecordHistory" asp-route-recordType="media-placements" class="onejax-kpi-link">History</a>
+	                                                            </div>
+	                                                        }
 	                                                        else
 	                                                        {
 	                                                            @* Public view: hide staff-only message *@
@@ -244,54 +288,47 @@
 	                                                </div>
 	                                            </div>
 	                                        </div>
-				                                        <div class="col-md-6 col-lg-6">
-				                                            <div class="card onejax-kpi-card kpi-trust" style="border-left: 5px solid var(--onejax-gold);">
-			                                                <div class="onejax-kpi-topright">
-			                                                    <span class="onejax-kpi-badge @((id.TrustPercent >= id.TrustTargetPercent) ? "ok" : "warn")">@((id.TrustPercent >= id.TrustTargetPercent) ? "Target achieved" : "In progress")</span>
-			                                                    @if (canManageData)
-			                                                    {
-			                                                        <a asp-controller="IdentityAnnual_7D" asp-action="Index" class="onejax-kpi-enter">Enter data</a>
-			                                                    }
-			                                                </div>
-			                                                <div class="card-body onejax-kpi-body d-flex flex-column">
-		                                                    <div style="font-size: 0.8rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--onejax-text-muted); font-weight: 700;">Community Perception Survey</div>
-		                                                    <div style="font-size: 2rem; font-weight: 800; color: var(--onejax-navy); line-height: 1.1; margin-top: 0.5rem;">@id.TrustPercent.ToString("N1")%</div>
-		                                                    <div style="color: var(--onejax-text-muted); font-size: 0.9rem;">
-		                                                        Target: @id.TrustTargetPercent.ToString("N0")%
-	                                                        @if (id.TrustRespondents.HasValue)
-	                                                        {
-	                                                            <span> | @id.TrustRespondents respondents</span>
-	                                                        }
+	                                        <div class="col-md-6 col-lg-6">
+	                                            <div class="card onejax-kpi-card kpi-trust" style="border-left: 5px solid var(--onejax-gold);">
+	                                                <div class="onejax-kpi-topright">
+	                                                    <span class="onejax-kpi-badge @trustStatusClass">@trustStatusText</span>
+	                                                    @if (canManageData)
+	                                                    {
+	                                                        <a asp-controller="IdentityAnnual_7D" asp-action="Index" class="onejax-kpi-enter">Enter data</a>
+	                                                    }
+	                                                </div>
+	                                                <div class="card-body onejax-kpi-body d-flex flex-column">
+	                                                    <div style="font-size: 0.8rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--onejax-text-muted); font-weight: 700;">Community Perception Survey</div>
+	                                                    <div style="font-size: 2rem; font-weight: 800; color: var(--onejax-navy); line-height: 1.1; margin-top: 0.5rem;">@trustDisplayText</div>
+	                                                    <div style="color: var(--onejax-text-muted); font-size: 0.9rem;">@trustSubtext</div>
+	                                                    <div class="onejax-kpi-spark">
+	                                                        <canvas id="identityTrustSpark"></canvas>
 	                                                    </div>
-		                                                    <div class="onejax-kpi-spark">
-		                                                        <canvas id="identityTrustSpark"></canvas>
-		                                                    </div>
-		                                                    <div class="mt-auto">
-		                                                        <div class="progress mt-2" style="height: 10px; border-radius: 999px; background: rgba(2,6,23,0.08);">
-		                                                            <div class="progress-bar" style="width: @Math.Min(id.TrustTargetPercent > 0 ? (id.TrustPercent * 100.0m / id.TrustTargetPercent) : 0, 100)%; background: #7a5c0b; border-radius: 999px;"></div>
-		                                                        </div>
-		                                                        @if (canManageData)
-		                                                        {
-		                                                            <div class="d-flex justify-content-between align-items-center mt-2">
-		                                                                <a asp-controller="DataEntry" asp-action="RecordHistory" asp-route-recordType="community-perception" class="onejax-kpi-link">History</a>
-		                                                            </div>
-		                                                        }
+	                                                    <div class="mt-auto">
+	                                                        <div class="progress mt-2" style="height: 10px; border-radius: 999px; background: rgba(2,6,23,0.08);">
+	                                                            <div class="progress-bar" style="width: @trustProgressWidth%; background: #7a5c0b; border-radius: 999px;"></div>
+	                                                        </div>
+	                                                        @if (canManageData)
+	                                                        {
+	                                                            <div class="d-flex justify-content-between align-items-center mt-2">
+	                                                                <a asp-controller="DataEntry" asp-action="RecordHistory" asp-route-recordType="community-perception" class="onejax-kpi-link">History</a>
+	                                                            </div>
+	                                                        }
 	                                                        else
 	                                                        {
 	                                                            @* Public view: hide staff-only message *@
 	                                                        }
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-		                                    </div>
+	                                                    </div>
+	                                                </div>
+	                                            </div>
+	                                        </div>
+	                                    </div>
 
-		                                    <div class="row g-3 mt-3">
-		                                        @* Milestone Achievement removed from Identity dashboard per request *@
-			                                        <div class="col-md-12 col-lg-8">
-			                                            <div class="card onejax-kpi-card kpi-framework" style="border-left: 5px solid var(--onejax-dark-blue);">
+                                    <div class="row g-3 mt-3">
+		                                        <div class="col-12">
+		                                            <div class="card onejax-kpi-card kpi-framework" style="border-left: 5px solid var(--onejax-dark-blue);">
 			                                                <div class="onejax-kpi-topright">
-			                                                    <span class="onejax-kpi-badge @((!string.IsNullOrWhiteSpace(id.FrameworkStatus) && id.FrameworkStatus.Contains("track", StringComparison.OrdinalIgnoreCase)) ? "ok" : "")">@((string.IsNullOrWhiteSpace(id.FrameworkStatus) ? "Planning" : id.FrameworkStatus))</span>
+			                                                    <span class="onejax-kpi-badge @frameworkStatusClass">@frameworkStatusText</span>
 			                                                    @if (canManageData)
 			                                                    {
 			                                                        <a asp-controller="identityPlan_24D" asp-action="Index" class="onejax-kpi-enter">Enter data</a>
@@ -300,30 +337,32 @@
 			                                                <div class="card-body onejax-kpi-body onejax-kpi-body--tall d-flex flex-column">
 		                                                    <div style="font-size: 0.8rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--onejax-text-muted); font-weight: 700;">Framework Development Plan</div>
 		                                                    <div style="font-size: 1.6rem; font-weight: 900; color: var(--onejax-navy); line-height: 1.15; margin-top: 0.35rem;">
-		                                                        @((id.FrameworkGoalMet) ? "Goal met" : "In progress")
+		                                                        @frameworkHeadline
 		                                                    </div>
 		                                                    <div style="color: var(--onejax-text-muted); font-size: 0.95rem; margin-top: 0.15rem;">
-		                                                        @((id.FrameworkYear.HasValue ? id.FrameworkYear.Value.ToString() : ""))
-		                                                        @((!string.IsNullOrWhiteSpace(id.FrameworkQuarter) ? $" {id.FrameworkQuarter}" : ""))
+		                                                        @frameworkDetailText
 		                                                    </div>
-		                                                    <div class="onejax-kpi-pill-row" aria-label="Framework quarter">
-		                                                        <span class="onejax-kpi-pill @((id.FrameworkQuarter ?? "").Trim().Equals("Q1", StringComparison.OrdinalIgnoreCase) ? "active" : "")">Q1</span>
-		                                                        <span class="onejax-kpi-pill @((id.FrameworkQuarter ?? "").Trim().Equals("Q2", StringComparison.OrdinalIgnoreCase) ? "active" : "")">Q2</span>
-		                                                        <span class="onejax-kpi-pill @((id.FrameworkQuarter ?? "").Trim().Equals("Q3", StringComparison.OrdinalIgnoreCase) ? "active" : "")">Q3</span>
-		                                                        <span class="onejax-kpi-pill @((id.FrameworkQuarter ?? "").Trim().Equals("Q4", StringComparison.OrdinalIgnoreCase) ? "active" : "")">Q4</span>
-		                                                    </div>
-		                                                    <div class="mt-3" style="display:grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; color:#475569; font-size: 0.92rem;">
-		                                                        <div style="border: 1px solid rgba(15,23,42,0.10); border-radius: 10px; padding: 0.75rem; background: rgba(255,255,255,0.7);">
-		                                                            <div style="font-weight: 900; color:#0f172a; margin-bottom: 0.25rem;">Pipeline</div>
-		                                                            <div>Discovery</div>
-		                                                            <div>Drafting</div>
+                                                            @if (frameworkScheduled)
+                                                            {
+		                                                        <div class="onejax-kpi-pill-row" aria-label="Framework quarter">
+		                                                            <span class="onejax-kpi-pill @((id.FrameworkQuarter ?? "").Trim().Equals("Q1", StringComparison.OrdinalIgnoreCase) ? "active" : "")">Q1</span>
+		                                                            <span class="onejax-kpi-pill @((id.FrameworkQuarter ?? "").Trim().Equals("Q2", StringComparison.OrdinalIgnoreCase) ? "active" : "")">Q2</span>
+		                                                            <span class="onejax-kpi-pill @((id.FrameworkQuarter ?? "").Trim().Equals("Q3", StringComparison.OrdinalIgnoreCase) ? "active" : "")">Q3</span>
+		                                                            <span class="onejax-kpi-pill @((id.FrameworkQuarter ?? "").Trim().Equals("Q4", StringComparison.OrdinalIgnoreCase) ? "active" : "")">Q4</span>
 		                                                        </div>
-		                                                        <div style="border: 1px solid rgba(15,23,42,0.10); border-radius: 10px; padding: 0.75rem; background: rgba(255,255,255,0.7);">
-		                                                            <div style="font-weight: 900; color:#0f172a; margin-bottom: 0.25rem;">Delivery</div>
-		                                                            <div>Approval</div>
-		                                                            <div>Rollout</div>
+		                                                        <div class="mt-3" style="display:grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; color:#475569; font-size: 0.92rem;">
+		                                                            <div style="border: 1px solid rgba(15,23,42,0.10); border-radius: 10px; padding: 0.75rem; background: rgba(255,255,255,0.7);">
+		                                                                <div style="font-weight: 900; color:#0f172a; margin-bottom: 0.25rem;">Pipeline</div>
+		                                                                <div>Discovery</div>
+		                                                                <div>Drafting</div>
+		                                                            </div>
+		                                                            <div style="border: 1px solid rgba(15,23,42,0.10); border-radius: 10px; padding: 0.75rem; background: rgba(255,255,255,0.7);">
+		                                                                <div style="font-weight: 900; color:#0f172a; margin-bottom: 0.25rem;">Delivery</div>
+		                                                                <div>Approval</div>
+		                                                                <div>Rollout</div>
+		                                                            </div>
 		                                                        </div>
-		                                                    </div>
+                                                            }
 		                                                    <div class="mt-auto">
 			                                                        @if (canManageData)
 			                                                        {
@@ -336,13 +375,16 @@
 		                                                            @* Public view: hide staff-only message *@
 		                                                        }
 		                                                    </div>
-		                                                </div>
-		                                            </div>
-		                                        </div>
-			                                        <div class="col-md-6 col-lg-4">
-			                                            <div class="card onejax-kpi-card kpi-social" style="border-left: 5px solid var(--onejax-dark-blue);">
+			                                                </div>
+			                                            </div>
+			                                        </div>
+		                                    </div>
+
+                                    <div class="row g-3 mt-3">
+		                                        <div class="col-12">
+		                                            <div class="card onejax-kpi-card kpi-social" style="border-left: 5px solid var(--onejax-dark-blue);">
 			                                                <div class="onejax-kpi-topright">
-			                                                    <span class="onejax-kpi-badge">Tracking</span>
+			                                                    <span class="onejax-kpi-badge">@socialStatusText</span>
 			                                                    @if (canManageData)
 			                                                    {
 			                                                        <a asp-controller="identitySocial_5D" asp-action="Index" class="onejax-kpi-enter">Enter data</a>
@@ -350,22 +392,16 @@
 			                                                </div>
 			                                                <div class="card-body onejax-kpi-body onejax-kpi-body--tall d-flex flex-column">
 		                                                    <div style="font-size: 0.8rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--onejax-text-muted); font-weight: 700;">Social Media Engagement</div>
-		                                                    <div style="font-size: 2rem; font-weight: 800; color: var(--onejax-navy); line-height: 1.1; margin-top: 0.5rem;">@id.SocialAvgEngagementRate.ToString("N1")%</div>
-		                                                    <div style="color: var(--onejax-text-muted); font-size: 0.9rem;">
-		                                                        Avg engagement @((id.SocialYear.HasValue ? $"({id.SocialYear})" : ""))
-		                                                        @if (id.SocialGoalMet)
-		                                                        {
-		                                                            <span> | Goal met</span>
-		                                                        }
-		                                                    </div>
+		                                                    <div style="font-size: 2rem; font-weight: 800; color: var(--onejax-navy); line-height: 1.1; margin-top: 0.5rem;">@socialDisplayText</div>
+		                                                    <div style="color: var(--onejax-text-muted); font-size: 0.9rem;">@socialSubtext</div>
 		                                                    <div class="onejax-kpi-spark">
 		                                                        <canvas id="identitySocialSpark"></canvas>
 		                                                    </div>
 		                                                    <div class="mt-2" style="display:grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; font-size: 0.85rem; color:#475569;">
-		                                                        <div>Q1: <strong>@(id.SocialQ1?.ToString("N1") ?? "-")%</strong></div>
-		                                                        <div>Q2: <strong>@(id.SocialQ2?.ToString("N1") ?? "-")%</strong></div>
-		                                                        <div>Q3: <strong>@(id.SocialQ3?.ToString("N1") ?? "-")%</strong></div>
-		                                                        <div>Q4: <strong>@(id.SocialQ4?.ToString("N1") ?? "-")%</strong></div>
+                                                        <div>Q1: <strong>@(socialScheduled ? $"{id.SocialQ1?.ToString("N1") ?? "-"}%" : "--")</strong></div>
+                                                        <div>Q2: <strong>@(socialScheduled ? $"{id.SocialQ2?.ToString("N1") ?? "-"}%" : "--")</strong></div>
+                                                        <div>Q3: <strong>@(socialScheduled ? $"{id.SocialQ3?.ToString("N1") ?? "-"}%" : "--")</strong></div>
+                                                        <div>Q4: <strong>@(socialScheduled ? $"{id.SocialQ4?.ToString("N1") ?? "-"}%" : "--")</strong></div>
 		                                                    </div>
 		                                                    <div class="mt-auto">
 			                                                        @if (canManageData)
@@ -401,15 +437,15 @@
 	                                                }
 	                                                window.__onejaxIdentitySparksInitialized = true;
 
-                                            const mediaMonthly = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(id.MediaPlacementsByMonth ?? new int[12]));
-                                            const trafficQuarterly = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(id.WebsiteClicksByQuarter ?? new int[4]));
-                                            const trustYears = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(id.TrustHistoryYears ?? new List<int>()));
-                                            const trustPercents = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(id.TrustHistoryPercents ?? new List<decimal>()));
+                                            const mediaMonthly = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(mediaScheduled ? id.MediaPlacementsByMonth ?? new int[12] : new int[12]));
+                                            const trafficQuarterly = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(socialScheduled ? id.WebsiteClicksByQuarter ?? new int[4] : new int[4]));
+                                            const trustYears = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(trustScheduled ? id.TrustHistoryYears ?? new List<int>() : new List<int>()));
+                                            const trustPercents = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(trustScheduled ? id.TrustHistoryPercents ?? new List<decimal>() : new List<decimal>()));
                                             const socialQuarterly = [
-                                                @((id.SocialQ1 ?? 0).ToString(System.Globalization.CultureInfo.InvariantCulture)),
-                                                @((id.SocialQ2 ?? 0).ToString(System.Globalization.CultureInfo.InvariantCulture)),
-                                                @((id.SocialQ3 ?? 0).ToString(System.Globalization.CultureInfo.InvariantCulture)),
-                                                @((id.SocialQ4 ?? 0).ToString(System.Globalization.CultureInfo.InvariantCulture))
+                                                @((socialScheduled ? (id.SocialQ1 ?? 0) : 0).ToString(System.Globalization.CultureInfo.InvariantCulture)),
+                                                @((socialScheduled ? (id.SocialQ2 ?? 0) : 0).ToString(System.Globalization.CultureInfo.InvariantCulture)),
+                                                @((socialScheduled ? (id.SocialQ3 ?? 0) : 0).ToString(System.Globalization.CultureInfo.InvariantCulture)),
+                                                @((socialScheduled ? (id.SocialQ4 ?? 0) : 0).ToString(System.Globalization.CultureInfo.InvariantCulture))
                                             ];
 
                                             const common = {

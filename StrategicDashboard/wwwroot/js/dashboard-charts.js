@@ -503,13 +503,7 @@ function initializeDashboardCharts() {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: { display: false },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return 'Overall Progress: ' + context.parsed + '%';
-                            }
-                        }
-                    }
+                    tooltip: { enabled: false }
                 },
                 cutout: '72%'
             }
@@ -519,21 +513,7 @@ function initializeDashboardCharts() {
 
 // Export Dashboard Function
 function exportDashboard() {
-    const dashboardData = {
-        summary: window.summaryData || {},
-        exportDate: new Date().toISOString(),
-        source: window.dashboardConfig?.dataSource || 'OneJax Dashboard'
-    };
-    
-    const dataStr = JSON.stringify(dashboardData, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-    
-    const exportFileName = `OneJax_Dashboard_${new Date().toISOString().split('T')[0]}.json`;
-    
-    const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', exportFileName);
-    linkElement.click();
+    window.location.href = '/DataEntry/RecordHistory';
 }
 
 // OneJax Chart Theme Helpers
