@@ -29,6 +29,9 @@
     var allMetrics = Model.StrategicGoals?.SelectMany(g => g.Metrics ?? new List<GoalMetric>()).ToList() ?? new List<GoalMetric>();
     var scheduledMetrics = allMetrics.Where(IsScheduledMetric).ToList();
     var reportingMetrics = scheduledMetrics.Where(IsReportingMetric).ToList();
+    var inScopeMetricsLabel = string.IsNullOrWhiteSpace(activeFiscalYear) || string.Equals(activeFiscalYear, "All Years", StringComparison.OrdinalIgnoreCase)
+        ? "Across the full strategic plan"
+        : $"Counted toward {activeFiscalYear}";
     var activeMetricsCount = scheduledMetrics.Count(m => string.Equals(m.Status, "Active", StringComparison.OrdinalIgnoreCase));
     var metricsAtTargetCount = reportingMetrics.Count(m => m.ProgressPercentage >= 100);
     var reportingMetricsPercentage = scheduledMetrics.Count > 0 ? (reportingMetrics.Count * 100.0 / scheduledMetrics.Count) : 0;
@@ -88,9 +91,9 @@
     <div class="col-md-3 slide-in-left dashboard-summary-card">
         <div class="stat-card-modern" style="background: var(--gradient-primary);">
             <div class="dashboard-summary-card-content">
-                <div style="font-size: 0.9rem; margin-bottom: 1.5rem; opacity: 0.9;">TRACKED METRICS</div>
+                <div style="font-size: 0.9rem; margin-bottom: 1.5rem; opacity: 0.9;">IN-SCOPE METRICS</div>
                 <h2 style="color: white; margin-bottom: 1rem; font-weight: 700;">@scheduledMetrics.Count</h2>
-                <small class="dashboard-summary-card-copy" style="opacity: 0.8;">Scheduled in @activeFiscalYear</small>
+                <small class="dashboard-summary-card-copy" style="opacity: 0.8;">@inScopeMetricsLabel</small>
                 <div class="progress-modern mt-3" style="background: rgba(255,255,255,0.2);">
                     <div class="progress-bar" style="width: @reportingMetricsPercentage%; background: rgba(255,255,255,0.8);"></div>
                 </div>
