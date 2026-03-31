@@ -61,8 +61,8 @@
                 <p class="lead mb-4 dashboard-hero-lead">See the Revenue and the Projects</p>
                 <p class="mb-3 dashboard-hero-copy">The OneJax Strategic Dashboard provides comprehensive financial and project progress tracking of our strategic initiatives.</p>
                 <div class="mt-4">
-                    <a href="/Public/Overview" class="btn btn-outline-light btn-lg dashboard-hero-cta">
-                        🎯 View Goals Overview
+                    <a href="@(canManageData ? "/Strategy/ViewEvents" : "/Public/Events")" class="btn btn-outline-light btn-lg dashboard-hero-cta">
+                        @(canManageData ? "View Events" : "View Public Events")
                     </a>
                 </div>
             </div>

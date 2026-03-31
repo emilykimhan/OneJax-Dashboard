@@ -15,42 +15,10 @@ namespace OneJaxDashboard.Controllers
             _context = context;
         }
 
-        // User Story 1: Quick overview of all projects
+        // Retired public goals overview: keep the route alive but send people to public events instead.
         public IActionResult Overview()
         {
-            try
-            {
-                // Get all strategic goals with their metrics and events
-                var goals = new List<StrategicGoal>();
-                
-                try
-                {
-                    if (_context.StrategicGoals != null)
-                    {
-                        goals = _context.StrategicGoals
-                            .Include(g => g.Metrics)
-                            .ToList();
-                        AttachEventsToGoals(goals);
-                    }
-                }
-                catch
-                {
-                    // If database tables don't exist, use sample data
-                    goals = GetSampleGoals();
-                }
-
-                if (!goals.Any())
-                {
-                    goals = GetSampleGoals();
-                }
-
-                return View(goals);
-            }
-            catch
-            {
-                // Fallback to sample data
-                return View(GetSampleGoals());
-            }
+            return RedirectToAction(nameof(Events));
         }
 
         // Read-only public events listing (does not allow creating/editing events).
