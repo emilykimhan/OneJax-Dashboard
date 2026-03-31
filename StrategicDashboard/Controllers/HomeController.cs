@@ -10,7 +10,6 @@ using System.Linq;
 //emily
 public class HomeController : Controller
 {
-    private const string DefaultFiscalYear = "2025-2026";
     private readonly ApplicationDbContext _context;
     private readonly MetricsService _metricsService;
 
@@ -25,12 +24,14 @@ public class HomeController : Controller
         try 
         {
             var hasFiscalYearParam = Request.Query.ContainsKey("fiscalYear");
+            var defaultFiscalYear = GetCurrentFiscalYearLabel();
             var selectedFiscalYear = hasFiscalYearParam
                 ? (fiscalYear ?? string.Empty).Trim()
-                : DefaultFiscalYear;
+                : defaultFiscalYear;
 
             ViewBag.SelectedFiscalYear = selectedFiscalYear;
             ViewBag.ActiveFiscalYearLabel = string.IsNullOrWhiteSpace(selectedFiscalYear) ? "All Years" : selectedFiscalYear;
+            ViewBag.FiscalYearOptions = GetFiscalYearOptions(defaultFiscalYear, yearsBefore: 2, yearsAfter: 2);
 
             // Create enhanced dashboard data with comprehensive metrics
             var dashboardData = await BuildEnhancedDashboardAsync(selectedFiscalYear);
@@ -250,6 +251,23 @@ public class HomeController : Controller
                 .Take(10)
                 .ToList();
 
+            // Add board recruitment records for detailed organizational card display
+            var boardRecruitmentRecords = await _context.BoardMember_29D
+                .OrderByDescending(b => b.Year)
+                .ThenByDescending(b => b.Quarter)
+                .ThenByDescending(b => b.CreatedDate)
+                .ToListAsync();
+            ViewBag.BoardRecruitmentRecords = FilterByFiscalYearCalendarQuarterWithCreatedDateFallback(
+                    boardRecruitmentRecords,
+                    selectedFiscalYear,
+                    b => b.Year,
+                    b => b.Quarter,
+                    b => b.CreatedDate)
+                .OrderByDescending(b => b.Year)
+                .ThenByDescending(b => b.Quarter)
+                .ThenByDescending(b => b.CreatedDate)
+                .ToList();
+
             // Add budget tracking data for Financial Sustainability chart
             var budgetTracking = await _context.BudgetTracking_28D.ToListAsync();
             if (TryParseFiscalYearEnd(selectedFiscalYear, out var budgetFiscalYearEnd))
@@ -268,10 +286,11 @@ public class HomeController : Controller
                 .ThenByDescending(v => v.Quarter)
                 .ThenByDescending(v => v.CreatedDate)
                 .ToListAsync();
-            ViewBag.VolunteerProgramRecords = FilterByFiscalYearYearsWithCreatedDateFallback(
+            ViewBag.VolunteerProgramRecords = FilterByFiscalYearCalendarQuarterWithCreatedDateFallback(
                     volunteerProgramRecords,
                     selectedFiscalYear,
                     v => v.Year,
+                    v => v.Quarter,
                     v => v.CreatedDate)
                 .OrderByDescending(v => v.Year)
                 .ThenByDescending(v => v.Quarter)
@@ -463,21 +482,42 @@ public class HomeController : Controller
         return (fiscalYearEnd - 1, fiscalYearEnd);
     }
 
-    private List<T> FilterByFiscalYearDate<T>(IEnumerable<T> source, string fiscalYear, Func<T, DateTime> dateSelector)
+    private static int GetFiscalYearEndFromDate(DateTime date)
     {
-        var fiscalYearRange = GetFiscalYearRangeOrNull(fiscalYear);
-        if (fiscalYearRange == null)
+        return date.Month >= 7 ? date.Year + 1 : date.Year;
+    }
+
+    private static int? GetFiscalYearEndFromCalendarQuarterRecord(int year, int quarter)
+    {
+        if (year <= 0 || quarter is < 1 or > 4)
+        {
+            return null;
+        }
+
+        return quarter <= 2 ? year : year + 1;
+    }
+
+    private List<T> FilterByResolvedFiscalYear<T>(
+        IEnumerable<T> source,
+        string fiscalYear,
+        Func<T, int?> fiscalYearEndSelector)
+    {
+        if (!TryParseFiscalYearEnd(fiscalYear, out var selectedFiscalYearEnd))
         {
             return source.ToList();
         }
 
         return source
-            .Where(item =>
-            {
-                var date = dateSelector(item);
-                return date >= fiscalYearRange.Value.StartDate && date <= fiscalYearRange.Value.EndDate;
-            })
+            .Where(item => fiscalYearEndSelector(item) == selectedFiscalYearEnd)
             .ToList();
+    }
+
+    private List<T> FilterByFiscalYearDate<T>(IEnumerable<T> source, string fiscalYear, Func<T, DateTime> dateSelector)
+    {
+        return FilterByResolvedFiscalYear(
+            source,
+            fiscalYear,
+            item => GetFiscalYearEndFromDate(dateSelector(item)));
     }
 
     private List<T> FilterByFiscalYearYears<T>(IEnumerable<T> source, string fiscalYear, Func<T, int> yearSelector)
@@ -495,6 +535,20 @@ public class HomeController : Controller
                 return year == yearRange.Value.StartYear || year == yearRange.Value.EndYear;
             })
             .ToList();
+    }
+
+    private List<T> FilterByFiscalYearCalendarQuarterWithCreatedDateFallback<T>(
+        IEnumerable<T> source,
+        string fiscalYear,
+        Func<T, int> yearSelector,
+        Func<T, int> quarterSelector,
+        Func<T, DateTime> createdDateSelector)
+    {
+        return FilterByResolvedFiscalYear(
+            source,
+            fiscalYear,
+            item => GetFiscalYearEndFromCalendarQuarterRecord(yearSelector(item), quarterSelector(item))
+                ?? GetFiscalYearEndFromDate(createdDateSelector(item)));
     }
 
     private List<T> FilterByFiscalYearYearsWithCreatedDateFallback<T>(
@@ -1116,8 +1170,9 @@ public class HomeController : Controller
         return goal;
     }
 
-    private async Task<DashboardViewModel> BuildEnhancedDashboardAsync(string fiscalYear = "2025-2026")
+    private async Task<DashboardViewModel> BuildEnhancedDashboardAsync(string? fiscalYear = null)
     {
+        fiscalYear ??= GetCurrentFiscalYearLabel();
         var dashboard = new DashboardViewModel();
         
         // Always create all four strategic goals (regardless of data)
@@ -1145,6 +1200,58 @@ public class HomeController : Controller
         dashboard.Identity = await BuildIdentityDashboardDataAsync(dashboard.ZipCoverage, fiscalYear);
         
         return dashboard;
+    }
+
+    private static string GetCurrentFiscalYearLabel(DateTime? currentDate = null)
+    {
+        var date = currentDate ?? DateTime.Today;
+        var startYear = date.Month >= 7 ? date.Year : date.Year - 1;
+        var endYear = startYear + 1;
+        return $"{startYear}-{endYear}";
+    }
+
+    private static List<string> GetFiscalYearOptions(string centerFiscalYear, int yearsBefore, int yearsAfter)
+    {
+        if (!TryParseFiscalYearLabel(centerFiscalYear, out var startYear, out _))
+        {
+            centerFiscalYear = GetCurrentFiscalYearLabel();
+            TryParseFiscalYearLabel(centerFiscalYear, out startYear, out _);
+        }
+
+        return Enumerable.Range(startYear - yearsBefore, yearsBefore + yearsAfter + 1)
+            .Select(year => $"{year}-{year + 1}")
+            .ToList();
+    }
+
+    private static bool TryParseFiscalYearLabel(string? fiscalYear, out int startYear, out int endYear)
+    {
+        startYear = 0;
+        endYear = 0;
+
+        if (string.IsNullOrWhiteSpace(fiscalYear))
+        {
+            return false;
+        }
+
+        var normalized = fiscalYear.Trim();
+        if (normalized.StartsWith("FY ", StringComparison.OrdinalIgnoreCase))
+        {
+            normalized = normalized.Substring(3).Trim();
+        }
+        else if (normalized.StartsWith("FY", StringComparison.OrdinalIgnoreCase))
+        {
+            normalized = normalized.Substring(2).Trim();
+        }
+
+        var parts = normalized.Split(new[] { '-', '/' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (parts.Length != 2
+            || !int.TryParse(parts[0], out startYear)
+            || !int.TryParse(parts[1], out endYear))
+        {
+            return false;
+        }
+
+        return endYear == startYear + 1;
     }
 
     private async Task<IdentityDashboardData> BuildIdentityDashboardDataAsync(Dictionary<string, int> zipCoverage, string fiscalYear)
@@ -1506,20 +1613,30 @@ public class HomeController : Controller
             p => p.Year,
             p => p.CreatedDate);
         var participatingEmployees = profDevs.Count;
+        var dashboardAccessAccountCount = await _context.Staffauth
+            .CountAsync(staff => !string.IsNullOrWhiteSpace(staff.Username));
         
         AddOrUpdateMetric(goal, "Professional Development Plans", "Staff growth initiatives", 
-            participatingEmployees, "employees", "25", profDevs.Any() ? "Active" : "Planning",
+            participatingEmployees, "employees", dashboardAccessAccountCount.ToString(CultureInfo.InvariantCulture), profDevs.Any() ? "Active" : "Planning",
             profDevs.Any()
-                ? $"{participatingEmployees} employees participating | Form: Data Entry → Professional Development"
-                : "No professional development yet - Go to Data Entry → Professional Development", nextId++);
+                ? $"{participatingEmployees} employees participating out of {dashboardAccessAccountCount} dashboard accounts | Form: Data Entry → Professional Development"
+                : $"No professional development yet. {dashboardAccessAccountCount} dashboard accounts currently have access | Go to Data Entry → Professional Development", nextId++);
 
         // 3. Board Member Recruitment
-        var boardMembers = await _context.BoardMember_29D.ToListAsync();
+        var boardMembers = FilterByFiscalYearCalendarQuarterWithCreatedDateFallback(
+            await _context.BoardMember_29D.ToListAsync(),
+            fiscalYear,
+            b => b.Year,
+            b => b.Quarter,
+            b => b.CreatedDate);
         var totalRecruited = boardMembers.Sum(b => b.NumberRecruited ?? 0);
+        var totalProspectOutreach = boardMembers.Sum(b => b.TotalProspectOutreach);
         
         AddOrUpdateMetric(goal, "Board Recruitment", "New board member acquisition", 
-            totalRecruited, "members", "10", boardMembers.Any() ? "Active" : "Planning",
-            boardMembers.Any() ? $"Board members recruited: {totalRecruited}" : "No board recruitment data yet - Go to Data Entry → Board Management", nextId++);
+            totalRecruited, "members", "6", boardMembers.Any() ? "Active" : "Planning",
+            boardMembers.Any()
+                ? $"Board members recruited: {totalRecruited}, total prospect outreach: {totalProspectOutreach} | Form: Data Entry → Board Management"
+                : "No board recruitment data yet - Go to Data Entry → Board Management", nextId++);
 
         // 4. Board Meeting Attendance
         var boardAttendance = FilterByFiscalYearDate(await _context.BoardMeetingAttendance.ToListAsync(), fiscalYear, b => b.MeetingDate);
@@ -1554,10 +1671,11 @@ public class HomeController : Controller
                 : "No board self-assessment data yet - Go to Data Entry → Board Self-Assessment", nextId++);
 
         // 6. Volunteer Program
-        var volunteerPrograms = FilterByFiscalYearYearsWithCreatedDateFallback(
+        var volunteerPrograms = FilterByFiscalYearCalendarQuarterWithCreatedDateFallback(
             await _context.volunteerProgram_40D.ToListAsync(),
             fiscalYear,
             v => v.Year,
+            v => v.Quarter,
             v => v.CreatedDate);
         var totalVolunteers = volunteerPrograms.Sum(v => v.NumberOfVolunteers);
         var totalVolunteerInitiatives = volunteerPrograms.Sum(v => v.VolunteerLedInitiatives);
@@ -1824,10 +1942,11 @@ public class HomeController : Controller
     }
 
     private void AddOrUpdateMetric(StrategicGoal goal, string name, string description, decimal currentValue, 
-                                 string unit, string target, string status, string detailedDescription, int id)
+                                 string unit, string target, string status, string detailedDescription, int id, string? fiscalYear = null)
     {
         var existingMetric = goal.Metrics.FirstOrDefault(m => m.Name == name);
         var hasIncomingData = !string.Equals(status, "Planning", StringComparison.OrdinalIgnoreCase);
+        var resolvedFiscalYear = string.IsNullOrWhiteSpace(fiscalYear) ? GetCurrentFiscalYearLabel() : fiscalYear;
         
         if (existingMetric != null)
         {
@@ -1836,6 +1955,7 @@ public class HomeController : Controller
             existingMetric.Description = detailedDescription;
             existingMetric.Target = target;
             existingMetric.Unit = unit;
+            existingMetric.FiscalYear = resolvedFiscalYear;
         }
         else
         {
@@ -1854,7 +1974,7 @@ public class HomeController : Controller
                 DataSource = "Form",
                 MetricType = "Count",
                 IsPublic = true,
-                FiscalYear = "2025-2026",
+                FiscalYear = resolvedFiscalYear,
                 Status = resolvedStatus,
                 TargetDate = DateTime.Now.AddMonths(12)
             });
@@ -1908,10 +2028,10 @@ public class HomeController : Controller
 
         chartData.GoalProgress = new GoalProgressData
         {
-            OrganizationalProgress = CalculateGoalProgress(orgGoal),
-            FinancialProgress = CalculateGoalProgress(finGoal),
-            IdentityProgress = CalculateGoalProgress(identityGoal),
-            CommunityProgress = CalculateGoalProgress(communityGoal)
+            OrganizationalProgress = CalculateGoalProgress(orgGoal, fiscalYear),
+            FinancialProgress = CalculateGoalProgress(finGoal, fiscalYear),
+            IdentityProgress = CalculateGoalProgress(identityGoal, fiscalYear),
+            CommunityProgress = CalculateGoalProgress(communityGoal, fiscalYear)
         };
 
         // Monthly Trends - Based on actual data creation dates
@@ -1926,12 +2046,13 @@ public class HomeController : Controller
         return chartData;
     }
 
-    private decimal CalculateGoalProgress(StrategicGoal? goal)
+    private decimal CalculateGoalProgress(StrategicGoal? goal, string fiscalYear)
     {
         if (goal?.Metrics == null || !goal.Metrics.Any())
             return 0;
 
         var metricsWithTargets = goal.Metrics.Where(m =>
+            MetricTrackingSchedule.IsScheduledForFiscalYear(m.Name, fiscalYear) &&
             !string.Equals(m.Status, "Planning", StringComparison.OrdinalIgnoreCase) &&
             !string.IsNullOrEmpty(m.Target) && 
             decimal.TryParse(m.Target, out var target) && 

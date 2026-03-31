@@ -3,6 +3,19 @@
 @{
     var goal = ViewData["Goal"] as StrategicGoal;
     var canManageData = ViewData["CanManageData"] as bool? ?? false;
+    var activeFiscalYearLabel = ViewBag.ActiveFiscalYearLabel as string ?? string.Empty;
+    var scheduleYearLabel = string.IsNullOrWhiteSpace(activeFiscalYearLabel) ? "this fiscal year" : activeFiscalYearLabel;
+    bool IsScheduledMetric(string metricName) => MetricTrackingSchedule.IsScheduledForFiscalYear(metricName, activeFiscalYearLabel);
+    string ScheduleBadgeText(bool isScheduled, string? startFiscalYear, string fallbackText) =>
+        isScheduled
+            ? fallbackText
+            : "Starts later";
+    string ScheduleHintText(bool isScheduled, string? startFiscalYear) =>
+        isScheduled
+            ? string.Empty
+            : string.IsNullOrWhiteSpace(startFiscalYear)
+                ? $"This metric does not count toward {scheduleYearLabel}."
+                : $"This metric does not count toward {scheduleYearLabel}. Starts in FY {startFiscalYear}.";
     var isFinancialGoal = goal != null && (goal.Name.Contains("Financial") || goal.Name.Contains("Sustainability"));
     IEnumerable<GoalMetric> orderedMetrics = goal?.Metrics != null
         ? goal.Metrics
@@ -21,8 +34,10 @@
     var renderedFinancialCards = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
     foreach (var metric in orderedMetrics)
     {
-		                                            // Hide redundant/basic financial cards that shouldn't show on the dashboard.
-		                                            if (isFinancialGoal)
+		                                            var metricIsScheduled = IsScheduledMetric(metric.Name ?? string.Empty);
+		                                            var metricStartFiscalYear = MetricTrackingSchedule.GetStartFiscalYear(metric.Name ?? string.Empty);
+			                                            // Hide redundant/basic financial cards that shouldn't show on the dashboard.
+			                                            if (isFinancialGoal)
 		                                            {
 		                                                var n = metric.Name ?? string.Empty;
 		                                                if (n.Equals("Communication Satisfaction", StringComparison.OrdinalIgnoreCase) ||
@@ -112,7 +127,13 @@
                                                                         bool isOverspending = chartTotalExpenses > chartTotalRevenue;
                                                                         bool isHealthy = hasRealData && chartNetIncome >= chartTotalRevenue * 0.15m; // 15% profit margin is healthy
                                                                     }
-                                                                    @if (!hasRealData)
+                                                                    @if (!metricIsScheduled)
+                                                                    {
+                                                                        <span class="badge" style="background: #dbeafe; color: #1e3a8a; font-size: 0.75rem;">
+                                                                            <i class="fas fa-calendar-alt"></i> @ScheduleBadgeText(metricIsScheduled, metricStartFiscalYear, "No Data Available")
+                                                                        </span>
+                                                                    }
+                                                                    else if (!hasRealData)
                                                                     {
                                                                         <span class="badge" style="background: #9ca3af; font-size: 0.75rem;">
                                                                             <i class="fas fa-info-circle"></i> No Data Available
@@ -152,6 +173,19 @@
 	                                                        </div>
                                                         
                                                         <div class="card-body" style="padding: 2rem;">
+                                                            @if (!metricIsScheduled)
+                                                            {
+                                                                <div class="d-flex flex-column justify-content-center h-100">
+                                                                    <div style="font-size: 2.5rem; font-weight: 700; color: #0f3d57; line-height: 1;">--</div>
+                                                                    <div class="mt-2" style="color: #475569; font-weight: 500;">Budget revenue tracking is scheduled later.</div>
+                                                                    <small style="color: #64748b;">@ScheduleHintText(metricIsScheduled, metricStartFiscalYear)</small>
+                                                                    <div class="progress mt-4" style="height: 8px; border-radius: 999px; background: rgba(148, 163, 184, 0.18);">
+                                                                        <div class="progress-bar" style="width: 0%; background: #cbd5e1;"></div>
+                                                                    </div>
+                                                                </div>
+                                                            }
+                                                            else
+                                                            {
                                                             <div class="row">
                                                                 <!-- Financial Summary Cards -->
                                                                 <div class="col-md-4">
@@ -237,6 +271,7 @@
                                                                     </div>
                                                                 </div>
                                                             </div>
+                                                            }
                                                         </div>
                                                     </div>
                                                 </div>
@@ -373,7 +408,13 @@
                                                                         var totalAttendees = (int)Math.Max(0, Math.Round(metric.Q2Value));
                                                                         var avgPerService = serviceCount > 0 ? metric.CurrentValue / serviceCount : 0;
                                                                     }
-                                                                    @if (hasServiceData && metric.CurrentValue >= serviceTarget * 0.8m)
+                                                                    @if (!metricIsScheduled)
+                                                                    {
+	                                                                    <span class="badge" style="background: #dbeafe; color: #1e3a8a; font-size: 0.75rem;">
+	                                                                        <i class="fas fa-calendar-alt"></i> @ScheduleBadgeText(metricIsScheduled, metricStartFiscalYear, "Ready to Launch")
+	                                                                    </span>
+                                                                    }
+                                                                    else if (hasServiceData && metric.CurrentValue >= serviceTarget * 0.8m)
                                                                     {
 	                                                                    <span class="badge" style="background: #0f766e; font-size: 0.75rem;">
 	                                                                        <i class="fas fa-star"></i> Excellent
@@ -407,6 +448,19 @@
 	                                                        </div>
                                                         
 	                                                        <div class="card-body" style="padding: 1.5rem; flex: 1; overflow: hidden;">
+	                                                            @if (!metricIsScheduled)
+	                                                            {
+	                                                                <div class="d-flex flex-column justify-content-center h-100">
+	                                                                    <div style="font-size: 2.5rem; font-weight: 700; color: var(--onejax-navy); line-height: 1;">--</div>
+	                                                                    <div class="mt-2" style="color: #475569; font-weight: 500;">Fee-for-service income is scheduled later.</div>
+	                                                                    <small style="color: var(--onejax-text-muted);">@ScheduleHintText(metricIsScheduled, metricStartFiscalYear)</small>
+	                                                                    <div class="progress mt-4" style="height: 8px; border-radius: 999px; background: rgba(148, 163, 184, 0.18);">
+	                                                                        <div class="progress-bar" style="width: 0%; background: #cbd5e1;"></div>
+	                                                                    </div>
+	                                                                </div>
+	                                                            }
+	                                                            else
+	                                                            {
 	                                                            <!-- Service income display -->
 	                                                            <div class="text-center mb-3">
 	                                                                <div style="font-size: 2.5rem; font-weight: 800; color: var(--onejax-navy); line-height: 1;">
@@ -451,6 +505,7 @@
                                                                     <small style="color: var(--onejax-text-muted); font-size: 0.75rem;">$75K Target</small>
                                                                 </div>
                                                             </div>
+	                                                            }
                                                         </div>
                                                     </div>
                                                 </div>
@@ -470,7 +525,13 @@
                                                                     <small style="opacity: 0.9;">Annual donor satisfaction with communications</small>
                                                                 </div>
 	                                                                <div class="text-end">
-                                                                    @if (metric.ProgressPercentage >= 100)
+                                                                    @if (!metricIsScheduled)
+                                                                    {
+                                                                        <span class="badge" style="background: #dbeafe; color: #1e3a8a; font-size: 0.75rem;">
+                                                                            <i class="fas fa-calendar-alt"></i> @ScheduleBadgeText(metricIsScheduled, metricStartFiscalYear, "In Progress")
+                                                                        </span>
+                                                                    }
+                                                                    else if (metric.ProgressPercentage >= 100)
                                                                     {
                                                                         <span class="badge" style="background: #10b981; font-size: 0.75rem;">
                                                                             <i class="fas fa-check-circle"></i> Target Met
@@ -498,6 +559,19 @@
 	                                                        </div>
 
                                                         <div class="card-body" style="padding: 1.5rem; flex: 1;">
+                                                            @if (!metricIsScheduled)
+                                                            {
+                                                                <div class="d-flex flex-column justify-content-center h-100">
+                                                                    <div style="font-size: 2.5rem; font-weight: 700; color: #1f2937; line-height: 1;">--</div>
+                                                                    <div class="mt-2" style="color: #475569; font-weight: 500;">Donor communication satisfaction is scheduled later.</div>
+                                                                    <small style="color: var(--onejax-text-muted);">@ScheduleHintText(metricIsScheduled, metricStartFiscalYear)</small>
+                                                                    <div class="progress mt-4" style="height: 8px; border-radius: 999px; background: rgba(148, 163, 184, 0.18);">
+                                                                        <div class="progress-bar" style="width: 0%; background: #cbd5e1;"></div>
+                                                                    </div>
+                                                                </div>
+                                                            }
+                                                            else
+                                                            {
                                                             <div class="text-center mb-3">
                                                                 <div style="font-size: 3rem; font-weight: 700; color: #1f2937; line-height: 1;">
                                                                     @Math.Round(metric.CurrentValue, 1)<span style="font-size: 1.5rem;">%</span>
@@ -534,6 +608,7 @@
                                                                 <small style="color: var(--onejax-text-muted);">Status</small>
                                                                 <span class="badge @(metric.Status == "Active" ? "bg-success" : "bg-secondary")">@metric.Status</span>
                                                             </div>
+                                                            }
                                                         </div>
                                                     </div>
                                                 </div>
@@ -560,7 +635,13 @@
                                                                         var donorEventCount = (int)Math.Max(0, Math.Round(metric.Q1Value));
                                                                         var donorSatisfactionRate = Math.Max(0, metric.Q2Value);
                                                                     }
-                                                                    @if (hasDonorData && metric.CurrentValue >= donorTarget * 0.9m)
+                                                                    @if (!metricIsScheduled)
+                                                                    {
+                                                                        <span class="badge" style="background: #dbeafe; color: #1e3a8a; font-size: 0.75rem;">
+                                                                            <i class="fas fa-calendar-alt"></i> @ScheduleBadgeText(metricIsScheduled, metricStartFiscalYear, "Planning Phase")
+                                                                        </span>
+                                                                    }
+                                                                    else if (hasDonorData && metric.CurrentValue >= donorTarget * 0.9m)
                                                                     {
                                                                         <span class="badge" style="background: #10b981; font-size: 0.75rem;">
                                                                             <i class="fas fa-trophy"></i> Outstanding Engagement
@@ -594,6 +675,19 @@
 	                                                        </div>
                                                         
                                                         <div class="card-body" style="padding: 2rem;">
+                                                            @if (!metricIsScheduled)
+                                                            {
+                                                                <div class="d-flex flex-column justify-content-center h-100">
+                                                                    <div style="font-size: 2.5rem; font-weight: 700; color: #14532d; line-height: 1;">--</div>
+                                                                    <div class="mt-2" style="color: #475569; font-weight: 500;">Donor engagement events are scheduled later.</div>
+                                                                    <small style="color: var(--onejax-text-muted);">@ScheduleHintText(metricIsScheduled, metricStartFiscalYear)</small>
+                                                                    <div class="progress mt-4" style="height: 8px; border-radius: 999px; background: rgba(148, 163, 184, 0.18);">
+                                                                        <div class="progress-bar" style="width: 0%; background: #cbd5e1;"></div>
+                                                                    </div>
+                                                                </div>
+                                                            }
+                                                            else
+                                                            {
                                                             <!-- Summary stats row -->
                                                             <div class="row align-items-center mb-4">
                                                                 <div class="col-md-3">
@@ -652,6 +746,7 @@
                                                                     </small>
                                                                 </div>
                                                             </div>
+                                                            }
                                                         </div>
                                                     </div>
                                                 </div>
@@ -784,7 +879,13 @@
                                                                         bool hasIncomeData = metric.CurrentValue > 0;
                                                                         var incomeSourceCount = (int)Math.Max(0, Math.Round(metric.Q1Value));
                                                                     }
-                                                                    @if (hasIncomeData && metric.CurrentValue >= incomeTarget * 0.85m)
+                                                                    @if (!metricIsScheduled)
+                                                                    {
+                                                                        <span class="badge" style="background: #dbeafe; color: #1e3a8a; font-size: 0.75rem;">
+                                                                            <i class="fas fa-calendar-alt"></i> @ScheduleBadgeText(metricIsScheduled, metricStartFiscalYear, "Building Streams")
+                                                                        </span>
+                                                                    }
+                                                                    else if (hasIncomeData && metric.CurrentValue >= incomeTarget * 0.85m)
                                                                     {
                                                                         <span class="badge" style="background: #10b981; font-size: 0.75rem;">
                                                                             <i class="fas fa-chart-line"></i> Excellent Diversification
@@ -818,6 +919,19 @@
 	                                                        </div>
                                                         
                                                         <div class="card-body" style="padding: 2rem;">
+                                                            @if (!metricIsScheduled)
+                                                            {
+                                                                <div class="d-flex flex-column justify-content-center h-100">
+                                                                    <div style="font-size: 2.5rem; font-weight: 700; color: var(--onejax-blue); line-height: 1;">--</div>
+                                                                    <div class="mt-2" style="color: #475569; font-weight: 500;">General income streams are scheduled later.</div>
+                                                                    <small style="color: var(--onejax-text-muted);">@ScheduleHintText(metricIsScheduled, metricStartFiscalYear)</small>
+                                                                    <div class="progress mt-4" style="height: 8px; border-radius: 999px; background: rgba(148, 163, 184, 0.18);">
+                                                                        <div class="progress-bar" style="width: 0%; background: #cbd5e1;"></div>
+                                                                    </div>
+                                                                </div>
+                                                            }
+                                                            else
+                                                            {
                                                             <div class="row">
                                                                 <!-- Main income display -->
                                                                 <div class="col-md-4 mb-4">
@@ -906,6 +1020,7 @@
                                                                     </div>
                                                                 </div>
                                                             </div>
+                                                            }
                                                         </div>
                                                     </div>
                                                 </div>

@@ -17,16 +17,24 @@
     // Gate all data-entry/admin actions from public viewers.
     var canManageData = (User?.Identity?.IsAuthenticated ?? false) && (User.IsInRole("Admin") || User.IsInRole("Staff"));
 
+    bool IsScheduledMetric(GoalMetric metric)
+    {
+        return MetricTrackingSchedule.IsScheduledForFiscalYear(metric.Name, activeFiscalYear);
+    }
+
+    bool IsReportingMetric(GoalMetric metric)
+    {
+        var clean = (metric.Target ?? string.Empty).Replace("$", "").Replace(",", "").Replace("%", "").Trim();
+        return IsScheduledMetric(metric)
+            && !string.Equals(metric.Status, "Planning", StringComparison.OrdinalIgnoreCase)
+            && decimal.TryParse(clean, out var target)
+            && target > 0;
+    }
+
     decimal LiveGoalProgress(IEnumerable<GoalMetric>? metrics)
     {
         var liveMetrics = (metrics ?? Enumerable.Empty<GoalMetric>())
-            .Where(m => !string.Equals(m.Status, "Planning", StringComparison.OrdinalIgnoreCase))
-            .Where(m => !string.IsNullOrWhiteSpace(m.Target))
-            .Where(m =>
-            {
-                var clean = (m.Target ?? string.Empty).Replace("$", "").Replace(",", "").Replace("%", "").Trim();
-                return decimal.TryParse(clean, out var target) && target > 0;
-            })
+            .Where(IsReportingMetric)
             .Select(m =>
             {
                 var clean = (m.Target ?? string.Empty).Replace("$", "").Replace(",", "").Replace("%", "").Trim();
@@ -148,10 +156,12 @@
                                 <div class="col-md-4 text-end">
                                     @{
                                         var goalMetrics = goal.Metrics ?? new List<GoalMetric>();
+                                        var scheduledMetricCount = goalMetrics.Count(IsScheduledMetric);
+                                        var reportingMetricCount = goalMetrics.Count(IsReportingMetric);
                                         var goalProgress = LiveGoalProgress(goalMetrics);
                                     }
                                     <div class="goal-panel-progress">
-                                        <div class="goal-panel-progress-value">@Math.Round(goalProgress, 1)%</div>
+                                        <div class="goal-panel-progress-value">@(reportingMetricCount > 0 ? $"{Math.Round(goalProgress, 1)}%" : scheduledMetricCount > 0 ? "Awaiting data" : "Starts later")</div>
                                         <small>Overall Progress</small>
                                     </div>
                                 </div>
@@ -165,7 +175,7 @@
                                     </div>
                                     <div class="d-flex justify-content-between mt-2">
                                         <small class="goal-panel-progress-label-muted">Project Start</small>
-                                        <small class="goal-panel-progress-label-active">@Math.Round(goalProgress, 1)% Complete</small>
+                                        <small class="goal-panel-progress-label-active">@(reportingMetricCount > 0 ? $"{Math.Round(goalProgress, 1)}% Complete" : scheduledMetricCount > 0 ? "Awaiting data" : "Starts later")</small>
                                         <small class="goal-panel-progress-label-muted">Target Completion</small>
                                     </div>
                                 </div>

@@ -1,24 +1,57 @@
 // OneJax Dashboard Interactions
 // Tab switching, filters, modal loading, and UI interactions.
 
-function applyFilters() {
-    const fiscalYearFilter = document.getElementById('fiscalYearFilter');
-    const params = new URLSearchParams();
+const DASHBOARD_SCROLL_KEY = 'onejax-dashboard-scroll-y';
+const DASHBOARD_GOAL_KEY = 'onejax-dashboard-goal';
 
-    if (fiscalYearFilter) {
-        params.set('fiscalYear', fiscalYearFilter.value || '');
+function getActiveDashboardGoal() {
+    const activeTab = document.querySelector('.nav-tabs-modern .nav-link.active');
+    if (activeTab) {
+        return activeTab.getAttribute('data-tab') || 'summary';
     }
 
-    const newUrl = params.toString()
-        ? `${window.location.pathname}?${params.toString()}`
-        : window.location.pathname;
+    const visibleSection = getVisibleGoalSection();
+    return visibleSection?.getAttribute('data-goal') || 'summary';
+}
 
-    const filterDescription = fiscalYearFilter && fiscalYearFilter.value
-        ? `Fiscal Year: ${fiscalYearFilter.value}`
-        : 'All years';
+function persistDashboardViewState() {
+    try {
+        sessionStorage.setItem(DASHBOARD_SCROLL_KEY, String(window.scrollY || 0));
+        sessionStorage.setItem(DASHBOARD_GOAL_KEY, getActiveDashboardGoal());
+    } catch (_error) {
+        // Ignore storage issues and allow normal navigation.
+    }
+}
 
-    showNotification('Applying Filters', `Filtering by: ${filterDescription}`, 'info');
-    window.location.href = newUrl;
+function buildDashboardFilterUrl(fiscalYearValue) {
+    const params = new URLSearchParams(window.location.search);
+    const activeGoal = getActiveDashboardGoal();
+
+    // Keep the query key even when blank so the server can distinguish
+    // "All Years" from "no filter param provided" (which defaults to current FY).
+    params.set('fiscalYear', fiscalYearValue || '');
+
+    if (activeGoal && activeGoal !== 'summary') {
+        params.set('goal', activeGoal.replaceAll('_', ' '));
+    } else {
+        params.delete('goal');
+    }
+
+    const query = params.toString();
+    return query ? `${window.location.pathname}?${query}` : window.location.pathname;
+}
+
+function applyFilters() {
+    const fiscalYearFilter = document.getElementById('fiscalYearFilter');
+    const fiscalYearValue = fiscalYearFilter ? (fiscalYearFilter.value || '') : '';
+
+    persistDashboardViewState();
+    showNotification(
+        'Applying Filters',
+        fiscalYearValue ? `Filtering by Fiscal Year: ${fiscalYearValue}` : 'Showing all fiscal years',
+        'info'
+    );
+    window.location.href = buildDashboardFilterUrl(fiscalYearValue);
 }
 
 function resetFilters() {
@@ -27,8 +60,9 @@ function resetFilters() {
         fiscalYearFilter.value = '';
     }
 
+    persistDashboardViewState();
     showNotification('Filters Reset', 'Fiscal year filter has been cleared. Showing all years.', 'info');
-    window.location.href = `${window.location.pathname}?fiscalYear=`;
+    window.location.href = buildDashboardFilterUrl('');
 }
 
 function showComingSoon(feature) {
@@ -147,10 +181,57 @@ function switchTab(goalName, clickedTab, evt) {
         scheduleProgressBarInitialization(targetSection);
     }
 
-    const newUrl = goalName === 'summary'
-        ? window.location.pathname
-        : `${window.location.pathname}?goal=${goalName.replace('_', ' ')}`;
-    window.history.replaceState(null, '', newUrl);
+    const params = new URLSearchParams(window.location.search);
+    const fiscalYearFilter = document.getElementById('fiscalYearFilter');
+    if (fiscalYearFilter) {
+        params.set('fiscalYear', fiscalYearFilter.value || '');
+    }
+
+    if (goalName === 'summary') {
+        params.delete('goal');
+    } else {
+        params.set('goal', goalName.replaceAll('_', ' '));
+    }
+
+    const query = params.toString();
+    window.history.replaceState(null, '', query ? `${window.location.pathname}?${query}` : window.location.pathname);
+}
+
+function restoreDashboardViewState() {
+    try {
+        const savedGoal = sessionStorage.getItem(DASHBOARD_GOAL_KEY);
+        const savedScroll = sessionStorage.getItem(DASHBOARD_SCROLL_KEY);
+
+        if (savedGoal) {
+            const activeTab = document.querySelector('.nav-tabs-modern .nav-link.active');
+            const currentGoal = activeTab?.getAttribute('data-tab') || 'summary';
+            if (savedGoal !== currentGoal) {
+                const targetTab = document.querySelector(`.nav-link[data-tab="${savedGoal}"]`);
+                if (targetTab) {
+                    switchTab(savedGoal, targetTab);
+                }
+            }
+        }
+
+        window.requestAnimationFrame(() => {
+            window.requestAnimationFrame(() => {
+                if (savedScroll) {
+                    window.scrollTo({ top: Math.max(parseInt(savedScroll, 10) || 0, 0), behavior: 'auto' });
+                } else if (savedGoal && savedGoal !== 'summary') {
+                    const section = document.querySelector(`.goal-section[data-goal="${savedGoal}"]`);
+                    if (section) {
+                        const targetTop = window.scrollY + section.getBoundingClientRect().top - 24;
+                        window.scrollTo({ top: Math.max(targetTop, 0), behavior: 'auto' });
+                    }
+                }
+
+                sessionStorage.removeItem(DASHBOARD_GOAL_KEY);
+                sessionStorage.removeItem(DASHBOARD_SCROLL_KEY);
+            });
+        });
+    } catch (_error) {
+        // Ignore storage issues and allow normal page load behavior.
+    }
 }
 
 function getDisplayProgressWidth(targetWidth, minVisiblePercent = 4) {
@@ -603,6 +684,8 @@ document.addEventListener('DOMContentLoaded', function () {
     setTimeout(() => {
         initializeTabs();
     }, 100);
+
+    restoreDashboardViewState();
 });
 
 window.addEventListener('load', function () {

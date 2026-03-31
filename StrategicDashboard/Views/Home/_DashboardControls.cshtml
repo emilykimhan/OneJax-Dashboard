@@ -1,6 +1,7 @@
 @model DashboardViewModel
 @{
     var selectedFiscalYear = ViewData["SelectedFiscalYear"]?.ToString() ?? string.Empty;
+    var fiscalYearOptions = ViewData["FiscalYearOptions"] as IEnumerable<string> ?? Enumerable.Empty<string>();
 }
 
 <div class="floating-card mb-5 fade-in">
@@ -27,10 +28,10 @@
                     </label>
                     <select class="form-select" id="fiscalYearFilter" name="fiscalYear" style="border-radius: 12px; border: 2px solid var(--onejax-border); padding: 12px;">
                         <option value="" selected="@(string.IsNullOrEmpty(selectedFiscalYear))">All Years</option>
-                        <option value="2024-2025" selected="@(selectedFiscalYear == "2024-2025")">FY 2024-2025</option>
-                        <option value="2025-2026" selected="@(selectedFiscalYear == "2025-2026")">FY 2025-2026</option>
-                        <option value="2026-2027" selected="@(selectedFiscalYear == "2026-2027")">FY 2026-2027</option>
-                        <option value="2027-2028" selected="@(selectedFiscalYear == "2027-2028")">FY 2027-2028</option>
+                        @foreach (var fiscalYearOption in fiscalYearOptions)
+                        {
+                            <option value="@fiscalYearOption" selected="@(selectedFiscalYear == fiscalYearOption)">FY @fiscalYearOption</option>
+                        }
                     </select>
                 </div>
 
