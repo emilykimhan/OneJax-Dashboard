@@ -165,7 +165,7 @@ public class ProgramsController : Controller
                     details: $"Id={program.Id}; Archived '{program.ProgramName}' ({program.ProgramType})");
                 TempData["ProgramsSuccess"] = "Program archived successfully.";
             }
-            catch (DbUpdateException)
+            catch (Exception)
             {
                 TempData["ProgramsError"] = "We couldn't archive that program right now. Please try again.";
                 return RedirectToAction(nameof(Index));
@@ -236,7 +236,7 @@ public class ProgramsController : Controller
                     details: $"ArchivedId={archivedProgram.Id}; Restored '{restoredProgram.ProgramName}' ({restoredProgram.ProgramType}) as Id={restoredProgram.Id}");
                 TempData["ProgramsSuccess"] = "Program restored successfully.";
             }
-            catch (DbUpdateException)
+            catch (Exception)
             {
                 TempData["ProgramsError"] = "We couldn't restore that program right now. Please try again.";
             }
