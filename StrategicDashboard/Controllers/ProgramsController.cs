@@ -182,11 +182,20 @@ public class ProgramsController : Controller
             .OrderByDescending(p => p.Id)
             .ToList();
 
-        var events = _context.Strategies
-            .Where(s => s.IsArchived)
-            .OrderByDescending(s => s.ArchivedAtUtc ?? DateTime.MinValue)
-            .ThenByDescending(s => s.Id)
-            .ToList();
+        List<Strategy> events;
+        try
+        {
+            events = _context.Strategies
+                .Where(s => s.IsArchived)
+                .OrderByDescending(s => s.ArchivedAtUtc ?? DateTime.MinValue)
+                .ThenByDescending(s => s.Id)
+                .ToList();
+        }
+        catch (Exception)
+        {
+            events = new List<Strategy>();
+            TempData["ProgramsError"] ??= "Archived events couldn't be loaded right now, but archived programs are still available.";
+        }
 
         var model = new ProgramArchiveViewModel
         {
