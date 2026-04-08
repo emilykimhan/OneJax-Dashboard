@@ -1,16 +1,19 @@
 using Microsoft.EntityFrameworkCore;
 using OneJaxDashboard.Data;
 using OneJaxDashboard.Models;
+using Microsoft.Extensions.Logging;
 //Talijah's
 namespace OneJaxDashboard.Services
 {
     public class ActivityLogService
     {
         private readonly ApplicationDbContext _db;
+        private readonly ILogger<ActivityLogService> _logger;
 
-        public ActivityLogService(ApplicationDbContext db)
+        public ActivityLogService(ApplicationDbContext db, ILogger<ActivityLogService> logger)
         {
             _db = db;
+            _logger = logger;
         }
 
         public IEnumerable<ActivityLogEntry> GetRecent(string username, int take = 10)
@@ -50,15 +53,26 @@ namespace OneJaxDashboard.Services
 
         public void Log(string user, string action, string? entity = null, string? details = null)
         {
-            _db.ActivityLogs.Add(new ActivityLogEntry
+            try
             {
-                Timestamp = DateTime.UtcNow,
-                User = user,
-                Action = action,
-                Entity = entity,
-                Details = details
-            });
-            _db.SaveChanges();
+                _db.ActivityLogs.Add(new ActivityLogEntry
+                {
+                    Timestamp = DateTime.UtcNow,
+                    User = user,
+                    Action = action,
+                    Entity = entity,
+                    Details = details
+                });
+                _db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(
+                    ex,
+                    "Activity log write failed for user '{User}' and action '{Action}'.",
+                    user,
+                    action);
+            }
         }
 
         private static HashSet<string> BuildIdentifierSet(IEnumerable<string> identifiers)
