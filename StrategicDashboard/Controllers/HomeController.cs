@@ -35,9 +35,21 @@ public class HomeController : Controller
 
             // Create enhanced dashboard data with comprehensive metrics
             var dashboardData = await BuildEnhancedDashboardAsync(selectedFiscalYear);
-            
-            // Apply filters
-            dashboardData = ApplyFilters(dashboardData, status ?? "", time ?? "", goal ?? "", selectedFiscalYear, quarter ?? "");
+            var overallGoals = await CreateAllStrategicGoalsAsync();
+            await EnhanceGoalsWithComprehensiveMetricsAsync(overallGoals, string.Empty);
+            PopulateDashboardComputedValues(dashboardData, selectedFiscalYear, overallGoals);
+            dashboardData.StrategicGoals = overallGoals;
+
+            // Apply status and time filters to the cumulative goal detail view.
+            // Skip fiscal-year filtering here so the goal tabs remain all-years.
+            dashboardData = ApplyFilters(
+                dashboardData,
+                status ?? "",
+                time ?? "",
+                goal ?? "",
+                selectedFiscalYear,
+                quarter ?? "",
+                includeFiscalYearFilter: false);
 
             // Community Engagement visuals (dashboard only): Youth Attendance + Partner Touchpoints charts/tables.
             // Keep public safe: aggregate values only, and latest-entries table excludes partner/contact PII.
@@ -272,9 +284,8 @@ public class HomeController : Controller
             var budgetTracking = await _context.BudgetTracking_28D.ToListAsync();
             if (TryParseFiscalYearEnd(selectedFiscalYear, out var budgetFiscalYearEnd))
             {
-                var budgetFiscalYearStart = budgetFiscalYearEnd - 1;
                 var fiscalYearBudgetTracking = budgetTracking
-                    .Where(b => b.Year == budgetFiscalYearStart || b.Year == budgetFiscalYearEnd)
+                    .Where(b => b.Year == budgetFiscalYearEnd)
                     .ToList();
                 budgetTracking = fiscalYearBudgetTracking;
             }
@@ -326,7 +337,14 @@ public class HomeController : Controller
         }
     }
 
-    private DashboardViewModel ApplyFilters(DashboardViewModel dashboard, string status, string time, string goal, string fiscalYear, string quarter)
+    private DashboardViewModel ApplyFilters(
+        DashboardViewModel dashboard,
+        string status,
+        string time,
+        string goal,
+        string fiscalYear,
+        string quarter,
+        bool includeFiscalYearFilter = true)
     {
         // Do not filter StrategicGoals by `goal` query param.
         // The selected tab is handled in the view/client, and filtering here causes
@@ -353,7 +371,8 @@ public class HomeController : Controller
                                        (e.DueDate >= timeFilter.Value.StartDate && e.DueDate <= timeFilter.Value.EndDate);
 
                         // Fiscal year filter (events only). Keep events without dates visible.
-                        var fiscalYearMatch = fiscalYearRange == null
+                        var fiscalYearMatch = !includeFiscalYearFilter
+                            || fiscalYearRange == null
                             || !e.DueDate.HasValue
                             || (e.DueDate.Value >= fiscalYearRange.Value.StartDate && e.DueDate.Value <= fiscalYearRange.Value.EndDate);
                         
@@ -373,6 +392,86 @@ public class HomeController : Controller
         }
 
         return dashboard;
+    }
+
+    private static void PopulateDashboardComputedValues(
+        DashboardViewModel dashboard,
+        string activeFiscalYear,
+        IReadOnlyCollection<StrategicGoal> overallGoals)
+    {
+        var goals = dashboard.StrategicGoals?.ToList() ?? new List<StrategicGoal>();
+
+        foreach (var goal in goals)
+        {
+            var goalMetrics = goal.Metrics ?? new List<GoalMetric>();
+            var goalScheduledMetrics = DashboardMetricRules.ScheduledMetrics(goalMetrics, activeFiscalYear).ToList();
+            var goalReportingMetrics = DashboardMetricRules.ReportingMetrics(goalMetrics, activeFiscalYear).ToList();
+
+            goal.ScheduledMetricCount = goalScheduledMetrics.Count;
+            goal.ReportingMetricCount = goalReportingMetrics.Count;
+            goal.Progress = DashboardMetricRules.CalculateGoalProgress(goalMetrics, activeFiscalYear);
+        }
+
+        var overallScheduledMetrics = new List<GoalMetric>();
+        var overallReportingMetrics = new List<GoalMetric>();
+        var overallProgressMetrics = new List<GoalMetric>();
+
+        foreach (var overallGoal in overallGoals)
+        {
+            var overallGoalMetrics = overallGoal.Metrics ?? new List<GoalMetric>();
+            var scheduledMetrics = DashboardMetricRules.ScheduledMetrics(overallGoalMetrics, string.Empty).ToList();
+            var reportingMetrics = DashboardMetricRules.ReportingMetrics(overallGoalMetrics, string.Empty).ToList();
+            var progressMetrics = DashboardMetricRules.OverallProgressMetrics(overallGoalMetrics, string.Empty).ToList();
+
+            overallGoal.OverallScheduledMetricCount = scheduledMetrics.Count;
+            overallGoal.OverallReportingMetricCount = reportingMetrics.Count;
+            overallGoal.OverallProgress = DashboardMetricRules.CalculateGoalProgress(overallGoalMetrics, string.Empty);
+            overallGoal.OverallEventCount = overallGoal.Events?.Count ?? 0;
+
+            overallScheduledMetrics.AddRange(scheduledMetrics);
+            overallReportingMetrics.AddRange(reportingMetrics);
+            overallProgressMetrics.AddRange(progressMetrics);
+
+            var matchingGoal = goals.FirstOrDefault(goal => goal.Id == overallGoal.Id);
+            if (matchingGoal != null)
+            {
+                matchingGoal.OverallScheduledMetricCount = overallGoal.OverallScheduledMetricCount;
+                matchingGoal.OverallReportingMetricCount = overallGoal.OverallReportingMetricCount;
+                matchingGoal.OverallProgress = overallGoal.OverallProgress;
+                matchingGoal.OverallEventCount = overallGoal.OverallEventCount;
+            }
+        }
+
+        dashboard.TotalMetricsMeetingGoal = overallProgressMetrics.Count(metric =>
+            DashboardMetricRules.IsReportingMetric(metric, string.Empty)
+            && DashboardMetricRules.IsMetricAtTarget(metric));
+        dashboard.TotalEligibleMetrics = overallProgressMetrics.Count;
+        dashboard.OverallDashboardProgress = overallGoals
+            .Where(g => g.OverallScheduledMetricCount > 0)
+            .Select(g => g.OverallProgress)
+            .DefaultIfEmpty(0m)
+            .Average();
+        dashboard.PublicEventsCount = overallGoals.Sum(g => g.OverallEventCount);
+        dashboard.InScopeMetricsCount = overallScheduledMetrics.Count;
+        dashboard.ReportingMetricsCount = overallReportingMetrics.Count;
+        dashboard.ActiveMetricsCount = overallScheduledMetrics.Count(m => string.Equals(m.Status, "Active", StringComparison.OrdinalIgnoreCase));
+        dashboard.MetricsAtTargetCount = dashboard.TotalMetricsMeetingGoal;
+        dashboard.ReportingMetricsPercentage = dashboard.InScopeMetricsCount > 0
+            ? dashboard.ReportingMetricsCount * 100.0 / dashboard.InScopeMetricsCount
+            : 0;
+        dashboard.ActiveMetricsPercentage = dashboard.InScopeMetricsCount > 0
+            ? dashboard.ActiveMetricsCount * 100.0 / dashboard.InScopeMetricsCount
+            : 0;
+        dashboard.MetricsAtTargetPercentage = dashboard.InScopeMetricsCount > 0
+            ? dashboard.MetricsAtTargetCount * 100.0 / dashboard.InScopeMetricsCount
+            : 0;
+        dashboard.Charts.GoalProgress = new GoalProgressData
+        {
+            OrganizationalProgress = overallGoals.FirstOrDefault(g => g.Name.Contains("Organizational", StringComparison.OrdinalIgnoreCase))?.OverallProgress ?? 0,
+            FinancialProgress = overallGoals.FirstOrDefault(g => g.Name.Contains("Financial", StringComparison.OrdinalIgnoreCase))?.OverallProgress ?? 0,
+            IdentityProgress = overallGoals.FirstOrDefault(g => g.Name.Contains("Identity", StringComparison.OrdinalIgnoreCase))?.OverallProgress ?? 0,
+            CommunityProgress = overallGoals.FirstOrDefault(g => g.Name.Contains("Community", StringComparison.OrdinalIgnoreCase))?.OverallProgress ?? 0
+        };
     }
 
     private (DateTime StartDate, DateTime EndDate)? GetTimeFilter(string time, string fiscalYear, string quarter)
@@ -472,19 +571,14 @@ public class HomeController : Controller
             : ((DateTime StartDate, DateTime EndDate)?)null;
     }
 
-    private (int StartYear, int EndYear)? GetFiscalYearNumbersOrNull(string fiscalYear)
-    {
-        if (!TryParseFiscalYearEnd(fiscalYear, out var fiscalYearEnd))
-        {
-            return null;
-        }
-
-        return (fiscalYearEnd - 1, fiscalYearEnd);
-    }
-
     private static int GetFiscalYearEndFromDate(DateTime date)
     {
         return date.Month >= 7 ? date.Year + 1 : date.Year;
+    }
+
+    private static int? GetFiscalYearEndFromStoredYear(int year)
+    {
+        return year > 0 ? year : null;
     }
 
     private static int? GetFiscalYearEndFromCalendarQuarterRecord(int year, int quarter)
@@ -494,7 +588,8 @@ public class HomeController : Controller
             return null;
         }
 
-        return quarter <= 2 ? year : year + 1;
+        // Quarter-based records store the fiscal year ending year directly.
+        return year;
     }
 
     private List<T> FilterByResolvedFiscalYear<T>(
@@ -522,19 +617,10 @@ public class HomeController : Controller
 
     private List<T> FilterByFiscalYearYears<T>(IEnumerable<T> source, string fiscalYear, Func<T, int> yearSelector)
     {
-        var yearRange = GetFiscalYearNumbersOrNull(fiscalYear);
-        if (yearRange == null)
-        {
-            return source.ToList();
-        }
-
-        return source
-            .Where(item =>
-            {
-                var year = yearSelector(item);
-                return year == yearRange.Value.StartYear || year == yearRange.Value.EndYear;
-            })
-            .ToList();
+        return FilterByResolvedFiscalYear(
+            source,
+            fiscalYear,
+            item => GetFiscalYearEndFromStoredYear(yearSelector(item)));
     }
 
     private List<T> FilterByFiscalYearCalendarQuarterWithCreatedDateFallback<T>(
@@ -557,24 +643,11 @@ public class HomeController : Controller
         Func<T, int> yearSelector,
         Func<T, DateTime> createdDateSelector)
     {
-        var yearRange = GetFiscalYearNumbersOrNull(fiscalYear);
-        if (yearRange == null)
-        {
-            return source.ToList();
-        }
-
-        return source
-            .Where(item =>
-            {
-                var year = yearSelector(item);
-                if (year <= 0)
-                {
-                    year = createdDateSelector(item).Year;
-                }
-
-                return year == yearRange.Value.StartYear || year == yearRange.Value.EndYear;
-            })
-            .ToList();
+        return FilterByResolvedFiscalYear(
+            source,
+            fiscalYear,
+            item => GetFiscalYearEndFromStoredYear(yearSelector(item))
+                ?? GetFiscalYearEndFromDate(createdDateSelector(item)));
     }
 
     private bool FiscalYearMatches(string? recordFiscalYear, string selectedFiscalYear)
@@ -1508,21 +1581,23 @@ public class HomeController : Controller
 
     private int? GetIncomeRecordYear(income_27D income)
     {
-        if (!string.IsNullOrWhiteSpace(income.Month))
-        {
-            var parts = income.Month.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length > 0 && int.TryParse(parts[^1], out var yearFromMonth))
-            {
-                return yearFromMonth;
-            }
-        }
-
         if (income.Year.HasValue && income.Year.Value > 0)
         {
+            if (!string.IsNullOrWhiteSpace(income.Month)
+                && DateTime.TryParseExact(
+                    $"{income.Month} {income.Year.Value}",
+                    new[] { "MMMM yyyy", "MMM yyyy", "M yyyy" },
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.None,
+                    out var occurrenceDate))
+            {
+                return GetFiscalYearEndFromDate(occurrenceDate);
+            }
+
             return income.Year.Value;
         }
 
-        return income.CreatedDate.Year > 0 ? income.CreatedDate.Year : null;
+        return income.CreatedDate.Year > 0 ? GetFiscalYearEndFromDate(income.CreatedDate) : null;
     }
 
     private async Task AddIdentityMetricsAsync(StrategicGoal goal, string fiscalYear)
@@ -1706,14 +1781,13 @@ public class HomeController : Controller
     {
         var nextId = goal.Metrics.Count + 3000;
         var hasFiscalYear = TryParseFiscalYearEnd(fiscalYear, out var fiscalYearEnd);
-        var fiscalYearStart = fiscalYearEnd - 1;
 
         // 1. Budget Tracking
         var budgetTracking = await _context.BudgetTracking_28D.ToListAsync();
         if (hasFiscalYear)
         {
             var fiscalYearBudgetTracking = budgetTracking
-                .Where(b => b.Year == fiscalYearStart || b.Year == fiscalYearEnd)
+                .Where(b => b.Year == fiscalYearEnd)
                 .ToList();
             budgetTracking = fiscalYearBudgetTracking;
         }
@@ -1737,14 +1811,10 @@ public class HomeController : Controller
             budgetTracking.Any() ? $"Total revenue: ${totalRevenue:N0}, Total expenses: ${totalExpenses:N0}" : "No budget data yet - Go to Data Entry → Budget Tracking", nextId++, metricType: "Currency", fiscalYear: fiscalYear);
 
         // 2. Fee-for-Service Revenue
-        var feeServices = await _context.FeeForServices_21D.ToListAsync();
-        if (hasFiscalYear)
-        {
-            var fiscalYearFeeServices = feeServices
-                .Where(f => f.Year == fiscalYearStart || f.Year == fiscalYearEnd)
-                .ToList();
-            feeServices = fiscalYearFeeServices;
-        }
+        var feeServices = FilterByFiscalYearDate(
+            await _context.FeeForServices_21D.ToListAsync(),
+            fiscalYear,
+            f => f.WorkshopDate);
         var totalFeeRevenue = feeServices.Sum(f => f.RevenueReceived);
         var totalFeeExpenses = feeServices.Sum(f => f.ExpenseReceived);
         var totalFeeNetRevenue = totalFeeRevenue - totalFeeExpenses;
@@ -1773,7 +1843,7 @@ public class HomeController : Controller
                 .Where(i =>
                 {
                     var effectiveYear = GetIncomeRecordYear(i);
-                    return !effectiveYear.HasValue || effectiveYear.Value == fiscalYearStart || effectiveYear.Value == fiscalYearEnd;
+                    return !effectiveYear.HasValue || effectiveYear.Value == fiscalYearEnd;
                 })
                 .ToList();
             incomeData = fiscalYearIncomeData;

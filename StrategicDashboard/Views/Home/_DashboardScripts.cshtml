@@ -2,22 +2,13 @@
 @using OneJaxDashboard.Models
 @{
     var canManageData = ViewData["CanManageData"] as bool? ?? false;
-    var activeFiscalYear = ViewBag.ActiveFiscalYearLabel?.ToString() ?? string.Empty;
 
     var dashboardChartEvents = Model.StrategicGoals?.SelectMany(g => g.Events ?? new List<Event>()) ?? new List<Event>();
     var dashboardPlannedEventsChart = dashboardChartEvents.Count(e => e.Status == "Planned");
     var dashboardActiveEventsChart = dashboardChartEvents.Count(e => e.Status == "Active" || e.Status == "In Progress");
     var dashboardCompletedEventsChart = dashboardChartEvents.Count(e => e.Status == "Completed");
     var dashboardCancelledEventsChart = dashboardChartEvents.Count(e => e.Status == "Cancelled");
-    var dashboardGoalProgresses = new List<decimal>();
-    foreach (var goal in Model.StrategicGoals ?? Enumerable.Empty<StrategicGoal>())
-    {
-        if (DashboardMetricRules.ReportingMetrics(goal.Metrics, activeFiscalYear).Any())
-        {
-            dashboardGoalProgresses.Add(DashboardMetricRules.CalculateGoalProgress(goal.Metrics, activeFiscalYear));
-        }
-    }
-    var dashboardOverallProgress = dashboardGoalProgresses.Any() ? dashboardGoalProgresses.Average() : 0;
+    var dashboardOverallProgress = Model.OverallDashboardProgress;
     var dashboardTotalDataEntries = Model.Summary.TotalWebsiteTrafficEntries +
         Model.Summary.TotalStaffSurveys +
         Model.Summary.TotalMediaPlacements +

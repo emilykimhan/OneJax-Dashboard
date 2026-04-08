@@ -11,7 +11,7 @@
                 <h5 style="color: var(--onejax-navy); margin-bottom: 0.5rem; font-weight: 700;">
                     Dashboard Controls
                 </h5>
-                <p style="color: var(--onejax-text-muted); margin-bottom: 0;">Customize your view by fiscal year</p>
+                <p style="color: var(--onejax-text-muted); margin-bottom: 0;">Overall accomplishment is shown across all years. Use filters to narrow year-specific supporting data.</p>
             </div>
             <div class="col-md-4 text-end">
                 <span class="badge-modern" style="background: var(--gradient-secondary); color: white;">
@@ -24,7 +24,7 @@
             <div class="row g-4 align-items-end">
                 <div class="col-md-6 col-lg-4">
                     <label for="fiscalYearFilter" class="form-label" style="color: var(--onejax-navy); font-weight: 600;">
-                        Fiscal Year
+                        Supporting Data Fiscal Year
                     </label>
                     <select class="form-select" id="fiscalYearFilter" name="fiscalYear" style="border-radius: 12px; border: 2px solid var(--onejax-border); padding: 12px;">
                         <option value="" selected="@(string.IsNullOrEmpty(selectedFiscalYear))">All Years</option>
@@ -33,6 +33,9 @@
                             <option value="@fiscalYearOption" selected="@(selectedFiscalYear == fiscalYearOption)">FY @fiscalYearOption</option>
                         }
                     </select>
+                    <small style="display: block; margin-top: 0.5rem; color: var(--onejax-text-muted);">
+                        Summary progress stays cumulative. This filter is for year-specific detail slices and supporting records.
+                    </small>
                 </div>
 
                 <div class="col-md-3 col-lg-2">

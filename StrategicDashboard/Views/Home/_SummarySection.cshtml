@@ -4,31 +4,12 @@
     var selectedGoal = ViewData["SelectedGoal"]?.ToString() ?? string.Empty;
     var canManageData = ViewData["CanManageData"] as bool? ?? false;
     var activeFiscalYear = ViewBag.ActiveFiscalYearLabel?.ToString() ?? string.Empty;
-    var goalSummaries = (Model.StrategicGoals ?? new List<StrategicGoal>())
-        .Select(g => new
-        {
-            Goal = g,
-            ScheduledMetricCount = DashboardMetricRules.ScheduledMetrics(g.Metrics, activeFiscalYear).Count(),
-            ReportingMetricCount = DashboardMetricRules.ReportingMetrics(g.Metrics, activeFiscalYear).Count(),
-            Progress = DashboardMetricRules.CalculateGoalProgress(g.Metrics, activeFiscalYear)
-        })
-        .ToList();
-
-    var goalsWithReporting = goalSummaries.Where(g => g.ReportingMetricCount > 0).ToList();
-    var summaryEligibleMetrics = new List<GoalMetric>();
-    foreach (var goal in Model.StrategicGoals ?? new List<StrategicGoal>())
-    {
-        summaryEligibleMetrics.AddRange(DashboardMetricRules.OverallProgressMetrics(goal.Metrics, activeFiscalYear));
-    }
-    var totalMetricsMeetingGoal = summaryEligibleMetrics
-        .Count(DashboardMetricRules.IsMetricAtTarget);
-    var totalEligibleMetrics = summaryEligibleMetrics.Count;
-    var overallProgress = goalsWithReporting.Any()
-        ? Math.Round(goalsWithReporting.Average(g => g.Progress), 1)
-        : 0;
-    var totalEvents = Model.StrategicGoals?.SelectMany(g => g.Events ?? new List<Event>()).Count() ?? 0;
-    var publicEventsCount = totalEvents;
-    var overallDashboardProgress = overallProgress;
+    var strategicGoals = Model.StrategicGoals?.ToList() ?? new List<StrategicGoal>();
+    var totalMetricsMeetingGoal = Model.TotalMetricsMeetingGoal;
+    var totalEligibleMetrics = Model.TotalEligibleMetrics;
+    var overallProgress = Model.OverallDashboardProgress;
+    var publicEventsCount = Model.PublicEventsCount;
+    var overallDashboardProgress = Model.OverallDashboardProgress;
 }
 
 <div class="col-12 mb-4 goal-section" data-goal="summary" style="@(string.IsNullOrEmpty(selectedGoal) ? "" : "display: none;")">
@@ -39,14 +20,14 @@
                     <h3 style="color: white; margin: 0;">
                         Strategic Overview Summary
                     </h3>
-                    <p style="color: rgba(255,255,255,0.8); margin: 0; font-size: 0.9em;">All Strategic Goals | Consolidated Progress View</p>
+                    <p style="color: rgba(255,255,255,0.8); margin: 0; font-size: 0.9em;">All Strategic Goals | Overall accomplishment across all years</p>
                 </div>
                 <div class="col-md-4 text-end">
                     <div style="color: white;">
                         <div style="font-size: 2rem; font-weight: 700;">@Math.Round(overallProgress, 1)%</div>
-                        <small>Overall Progress</small>
+                        <small>Overall Accomplishment</small>
                         <div style="font-size: 0.8rem; opacity: 0.85;">
-                            @totalMetricsMeetingGoal of @totalEligibleMetrics reporting metrics are at target in @(string.IsNullOrWhiteSpace(activeFiscalYear) ? "this view" : activeFiscalYear)
+                            @totalMetricsMeetingGoal of @totalEligibleMetrics scheduled metrics are at target across all years
                         </div>
                     </div>
                 </div>
@@ -61,30 +42,28 @@
             </div>
 
             <div class="row mb-5">
-                @if (goalSummaries.Any())
+                @if (strategicGoals.Any())
                 {
-                    @foreach (var summaryGoal in goalSummaries)
+                    @foreach (var goal in strategicGoals)
                     {
-                        var goalProgress = summaryGoal.Progress;
-                        var hasReportingMetrics = summaryGoal.ReportingMetricCount > 0;
-                        var hasScheduledMetrics = summaryGoal.ScheduledMetricCount > 0;
+                        var goalProgress = goal.OverallProgress;
+                        var hasReportingMetrics = goal.OverallReportingMetricCount > 0;
+                        var hasScheduledMetrics = goal.OverallScheduledMetricCount > 0;
                         <div class="col-md-6 col-lg-3 mb-3">
-                            <div class="card hover-card" style="background: var(--onejax-white); border: 1px solid var(--onejax-border); border-radius: 12px; cursor: pointer; transition: all 0.3s ease;" onclick="switchTab('@summaryGoal.Goal.Name.Replace(" ", "_")', null, event)">
+                            <div class="card hover-card" style="background: var(--onejax-white); border: 1px solid var(--onejax-border); border-radius: 12px; cursor: pointer; transition: all 0.3s ease;" onclick="switchTab('@goal.Name.Replace(" ", "_")', null, event)">
                                 <div class="card-body text-center" style="padding: 1.5rem;">
-                                    <h6 style="color: var(--onejax-navy); margin-bottom: 1rem; font-weight: 600;">@summaryGoal.Goal.Name</h6>
+                                    <h6 style="color: var(--onejax-navy); margin-bottom: 1rem; font-weight: 600;">@goal.Name</h6>
                                     <div style="font-size: 1.8rem; font-weight: 700; color: var(--onejax-navy); margin-bottom: 1rem;">@(hasReportingMetrics ? $"{Math.Round(goalProgress, 1)}%" : hasScheduledMetrics ? "Awaiting data" : "Starts later")</div>
                                     <div class="progress" style="height: 8px; border-radius: 4px; background: rgba(59, 130, 246, 0.1);">
                                         <div class="progress-bar" style="width: @Math.Min(goalProgress, 100)%; background: var(--gradient-secondary); border-radius: 4px;"></div>
                                     </div>
                                     <small style="color: var(--onejax-text-muted); margin-top: 0.5rem; display: block;">
-                                        @(hasReportingMetrics
-                                            ? $"{summaryGoal.ReportingMetricCount} of {summaryGoal.ScheduledMetricCount} scheduled metrics reporting"
-                                            : hasScheduledMetrics
-                                                ? $"{summaryGoal.ScheduledMetricCount} scheduled metrics have not started reporting yet"
-                                                : $"No metrics scheduled in {(string.IsNullOrWhiteSpace(activeFiscalYear) ? "this view" : activeFiscalYear)}")
+                                        @(hasScheduledMetrics
+                                            ? $"{goal.OverallReportingMetricCount} of {goal.OverallScheduledMetricCount} scheduled metrics have data across all years"
+                                            : "No metrics scheduled yet")
                                     </small>
                                     <small style="color: var(--onejax-text-muted); margin-top: 0.15rem; display: block;">
-                                        @(summaryGoal.Goal.Events?.Count() ?? 0) Events
+                                        @goal.OverallEventCount Events
                                     </small>
                                     <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--onejax-blue);">
                                         Click to view details →
@@ -232,12 +211,12 @@
                 <div class="col-md-4 mb-3">
                     <div class="card metric-card-creative summary-static-card h-100" style="border-radius: 12px; border: 1px solid var(--onejax-border); transition: all 0.3s ease;">
                         <div class="card-body text-center d-flex flex-column justify-content-center h-100" style="padding: 1.5rem; gap: 0.65rem;">
-                            <h6 class="card-title" style="color: var(--onejax-navy); font-weight: 700; margin: 0;">Overall Progress</h6>
+                            <h6 class="card-title" style="color: var(--onejax-navy); font-weight: 700; margin: 0;">Overall Accomplishment</h6>
                             <div class="onejax-overall-gauge-wrap">
                                 <canvas id="performanceGauge"></canvas>
                                 <div class="onejax-overall-gauge-text">@Math.Round(overallDashboardProgress, 1)%</div>
                             </div>
-                            <p class="card-text text-muted" style="font-size: 0.95rem; margin: 0;">Average progress across all strategic goals</p>
+                            <p class="card-text text-muted" style="font-size: 0.95rem; margin: 0;">Average progress across all strategic goals and all years</p>
                         </div>
                     </div>
                 </div>

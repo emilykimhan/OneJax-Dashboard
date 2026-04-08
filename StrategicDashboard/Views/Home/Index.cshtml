@@ -127,14 +127,19 @@
                                 </div>
                                 <div class="col-md-4 text-end">
                                     @{
-                                        var goalMetrics = goal.Metrics ?? new List<GoalMetric>();
-                                        var scheduledMetricCount = DashboardMetricRules.ScheduledMetrics(goalMetrics, activeFiscalYear).Count();
-                                        var reportingMetricCount = DashboardMetricRules.ReportingMetrics(goalMetrics, activeFiscalYear).Count();
-                                        var goalProgress = DashboardMetricRules.CalculateGoalProgress(goalMetrics, activeFiscalYear);
+                                        var scheduledMetricCount = goal.OverallScheduledMetricCount;
+                                        var reportingMetricCount = goal.OverallReportingMetricCount;
+                                        var goalProgress = goal.OverallProgress;
+                                        var hasScheduledMetrics = scheduledMetricCount > 0;
                                     }
                                     <div class="goal-panel-progress">
-                                        <div class="goal-panel-progress-value">@(reportingMetricCount > 0 ? $"{Math.Round(goalProgress, 1)}%" : scheduledMetricCount > 0 ? "Awaiting data" : "Starts later")</div>
-                                        <small>Overall Progress</small>
+                                        <div class="goal-panel-progress-value">@(hasScheduledMetrics ? $"{Math.Round(goalProgress, 1)}%" : "Starts later")</div>
+                                        <small>Overall Accomplishment</small>
+                                        <div style="font-size: 0.8rem; opacity: 0.85; margin-top: 0.25rem;">
+                                            @(hasScheduledMetrics
+                                                ? $"{reportingMetricCount} of {scheduledMetricCount} metrics have data"
+                                                : "No metrics scheduled yet")
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -147,7 +152,7 @@
                                     </div>
                                     <div class="d-flex justify-content-between mt-2">
                                         <small class="goal-panel-progress-label-muted">Project Start</small>
-                                        <small class="goal-panel-progress-label-active">@(reportingMetricCount > 0 ? $"{Math.Round(goalProgress, 1)}% Complete" : scheduledMetricCount > 0 ? "Awaiting data" : "Starts later")</small>
+                                        <small class="goal-panel-progress-label-active">@(hasScheduledMetrics ? $"{Math.Round(goalProgress, 1)}% Accomplished" : "Starts later")</small>
                                         <small class="goal-panel-progress-label-muted">Target Completion</small>
                                     </div>
                                 </div>

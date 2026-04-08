@@ -108,8 +108,10 @@ public static class DashboardMetricRules
 
     public static decimal CalculateGoalProgress(IEnumerable<GoalMetric>? metrics, string? fiscalYear)
     {
-        var progressValues = ReportingMetrics(metrics, fiscalYear)
-            .Select(metric => GetMetricProgressPercentage(metric, 100m))
+        var progressValues = ScheduledMetrics(metrics, fiscalYear)
+            .Select(metric => IsReportingMetric(metric, fiscalYear)
+                ? GetMetricProgressPercentage(metric, 100m)
+                : 0m)
             .ToList();
 
         return progressValues.Any() ? Math.Round(progressValues.Average(), 1) : 0m;
@@ -154,7 +156,7 @@ public static class DashboardMetricRules
 
     public static IEnumerable<GoalMetric> OverallProgressMetrics(IEnumerable<GoalMetric>? metrics, string? fiscalYear)
     {
-        return ReportingMetrics(metrics, fiscalYear)
+        return ScheduledMetrics(metrics, fiscalYear)
             .Where(CountsTowardOverallProgress);
     }
 

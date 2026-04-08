@@ -2,25 +2,13 @@
 @using OneJaxDashboard.Models
 @{
     var activeFiscalYear = ViewData["ActiveFiscalYear"]?.ToString() ?? string.Empty;
-    var allMetrics = Model.StrategicGoals?.SelectMany(g => g.Metrics ?? new List<GoalMetric>()).ToList() ?? new List<GoalMetric>();
-    var scheduledMetrics = DashboardMetricRules.ScheduledMetrics(allMetrics, activeFiscalYear).ToList();
-    var reportingMetrics = DashboardMetricRules.ReportingMetrics(allMetrics, activeFiscalYear).ToList();
-    var progressMetrics = DashboardMetricRules.OverallProgressMetrics(allMetrics, activeFiscalYear).ToList();
-    var inScopeMetricsLabel = string.IsNullOrWhiteSpace(activeFiscalYear) || string.Equals(activeFiscalYear, "All Years", StringComparison.OrdinalIgnoreCase)
-        ? "Across the full strategic plan"
-        : $"Counted toward {activeFiscalYear}";
-    var activeMetricsCount = scheduledMetrics.Count(m => string.Equals(m.Status, "Active", StringComparison.OrdinalIgnoreCase));
-    var metricsAtTargetCount = progressMetrics.Count(DashboardMetricRules.IsMetricAtTarget);
-    var reportingMetricsPercentage = scheduledMetrics.Count > 0 ? (reportingMetrics.Count * 100.0 / scheduledMetrics.Count) : 0;
-    var activeMetricsPercentage = scheduledMetrics.Count > 0 ? (activeMetricsCount * 100.0 / scheduledMetrics.Count) : 0;
-    var metricsAtTargetPercentage = progressMetrics.Count > 0 ? (metricsAtTargetCount * 100.0 / progressMetrics.Count) : 0;
-    var goalProgresses = (Model.StrategicGoals ?? new List<StrategicGoal>())
-        .Where(g => DashboardMetricRules.ReportingMetrics(g.Metrics, activeFiscalYear).Any())
-        .Select(g => DashboardMetricRules.CalculateGoalProgress(g.Metrics, activeFiscalYear))
-        .ToList();
-    var overallGoalProgress = goalProgresses.Any()
-        ? goalProgresses.Average()
-        : 0;
+    var inScopeMetricsLabel = "Across all years of the strategic plan";
+    var activeMetricsCount = Model.ActiveMetricsCount;
+    var metricsAtTargetCount = Model.MetricsAtTargetCount;
+    var reportingMetricsPercentage = Model.ReportingMetricsPercentage;
+    var activeMetricsPercentage = Model.ActiveMetricsPercentage;
+    var metricsAtTargetPercentage = Model.MetricsAtTargetPercentage;
+    var overallGoalProgress = Model.OverallDashboardProgress;
 }
 
 <style>
@@ -69,7 +57,7 @@
         <div class="stat-card-modern" style="background: var(--gradient-primary);">
             <div class="dashboard-summary-card-content">
                 <div style="font-size: 0.9rem; margin-bottom: 1.5rem; opacity: 0.9;">IN-SCOPE METRICS</div>
-                <h2 style="color: white; margin-bottom: 1rem; font-weight: 700;">@scheduledMetrics.Count</h2>
+                <h2 style="color: white; margin-bottom: 1rem; font-weight: 700;">@Model.InScopeMetricsCount</h2>
                 <small class="dashboard-summary-card-copy" style="opacity: 0.8;">@inScopeMetricsLabel</small>
                 <div class="progress-modern mt-3" style="background: rgba(255,255,255,0.2);">
                     <div class="progress-bar" style="width: @reportingMetricsPercentage%; background: rgba(255,255,255,0.8);"></div>
@@ -83,7 +71,7 @@
             <div class="dashboard-summary-card-content">
                 <div style="font-size: 0.9rem; margin-bottom: 1.5rem; opacity: 0.9;">ACTIVE METRICS</div>
                 <h2 style="color: white; margin-bottom: 1rem; font-weight: 700;">@activeMetricsCount</h2>
-                <small class="dashboard-summary-card-copy" style="opacity: 0.8;">Scheduled metrics with live data</small>
+                <small class="dashboard-summary-card-copy" style="opacity: 0.8;">Metrics with reportable progress across all years</small>
                 <div class="progress-modern mt-3" style="background: rgba(255,255,255,0.2);">
                     <div class="progress-bar" style="width: @activeMetricsPercentage%; background: rgba(255,255,255,0.8);"></div>
                 </div>
@@ -96,7 +84,7 @@
             <div class="dashboard-summary-card-content">
                 <div style="font-size: 0.9rem; margin-bottom: 1.5rem; opacity: 0.9;">METRICS AT TARGET</div>
                 <h2 style="color: white; margin-bottom: 1rem; font-weight: 700;">@metricsAtTargetCount</h2>
-                <small class="dashboard-summary-card-copy" style="opacity: 0.8;">Reporting metrics meeting target</small>
+                <small class="dashboard-summary-card-copy" style="opacity: 0.8;">Scheduled metrics meeting target across all years</small>
                 <div class="progress-modern mt-3" style="background: rgba(255,255,255,0.2);">
                     <div class="progress-bar" style="width: @metricsAtTargetPercentage%; background: rgba(255,255,255,0.8);"></div>
                 </div>
@@ -107,9 +95,9 @@
     <div class="col-md-3 slide-in-right dashboard-summary-card" style="animation-delay: 0.3s;">
         <div class="stat-card-modern" style="background: var(--gradient-accent);">
             <div class="dashboard-summary-card-content">
-                <div style="font-size: 0.9rem; margin-bottom: 1.5rem; opacity: 0.9;">OVERALL PROGRESS</div>
+                <div style="font-size: 0.9rem; margin-bottom: 1.5rem; opacity: 0.9;">OVERALL ACCOMPLISHMENT</div>
                 <h2 style="color: white; margin-bottom: 1rem; font-weight: 700;">@Math.Round(overallGoalProgress, 1)%</h2>
-                <small class="dashboard-summary-card-copy" style="opacity: 0.8;">Average progress across reporting goals</small>
+                <small class="dashboard-summary-card-copy" style="opacity: 0.8;">Average progress across reporting goals and all years</small>
                 <div class="progress-modern mt-3" style="background: rgba(255,255,255,0.2);">
                     <div class="progress-bar" style="width: @Math.Min(overallGoalProgress, 100)%; background: rgba(255,255,255,0.8);"></div>
                 </div>
@@ -143,7 +131,7 @@
                     <div class="col-12">
                         <div style="height: 1px; background: rgba(255,255,255,0.2); margin: 1rem 0;"></div>
                         <p style="color: rgba(255,255,255,0.7); margin-bottom: 0; font-size: 0.9rem;">
-                            OneJax Strategic Dashboard | Fiscal Year @activeFiscalYear |
+                            OneJax Strategic Dashboard | Overall progress across all years |
                             Secure & Confidential |
                             Real-time Data Analytics
                         </p>
