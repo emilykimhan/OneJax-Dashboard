@@ -2,34 +2,22 @@
 @using OneJaxDashboard.Models
 @{
     var canManageData = ViewData["CanManageData"] as bool? ?? false;
-
-    decimal LiveGoalProgress(IEnumerable<GoalMetric>? metrics)
-    {
-        var liveMetrics = (metrics ?? Enumerable.Empty<GoalMetric>())
-            .Where(m => !string.Equals(m.Status, "Planning", StringComparison.OrdinalIgnoreCase))
-            .Where(m => !string.IsNullOrWhiteSpace(m.Target))
-            .Where(m =>
-            {
-                var clean = (m.Target ?? string.Empty).Replace("$", "").Replace(",", "").Replace("%", "").Trim();
-                return decimal.TryParse(clean, out var target) && target > 0;
-            })
-            .Select(m =>
-            {
-                var clean = (m.Target ?? string.Empty).Replace("$", "").Replace(",", "").Replace("%", "").Trim();
-                decimal.TryParse(clean, out var target);
-                return target > 0 ? Math.Min((m.CurrentValue / target) * 100, 100) : 0;
-            })
-            .ToList();
-
-        return liveMetrics.Any() ? Math.Round(liveMetrics.Average(), 1) : 0;
-    }
+    var activeFiscalYear = ViewBag.ActiveFiscalYearLabel?.ToString() ?? string.Empty;
 
     var dashboardChartEvents = Model.StrategicGoals?.SelectMany(g => g.Events ?? new List<Event>()) ?? new List<Event>();
     var dashboardPlannedEventsChart = dashboardChartEvents.Count(e => e.Status == "Planned");
     var dashboardActiveEventsChart = dashboardChartEvents.Count(e => e.Status == "Active" || e.Status == "In Progress");
     var dashboardCompletedEventsChart = dashboardChartEvents.Count(e => e.Status == "Completed");
     var dashboardCancelledEventsChart = dashboardChartEvents.Count(e => e.Status == "Cancelled");
-    var dashboardOverallProgress = Model.StrategicGoals?.Any() == true ? Model.StrategicGoals.Average(g => LiveGoalProgress(g.Metrics)) : 0;
+    var dashboardGoalProgresses = new List<decimal>();
+    foreach (var goal in Model.StrategicGoals ?? Enumerable.Empty<StrategicGoal>())
+    {
+        if (DashboardMetricRules.ReportingMetrics(goal.Metrics, activeFiscalYear).Any())
+        {
+            dashboardGoalProgresses.Add(DashboardMetricRules.CalculateGoalProgress(goal.Metrics, activeFiscalYear));
+        }
+    }
+    var dashboardOverallProgress = dashboardGoalProgresses.Any() ? dashboardGoalProgresses.Average() : 0;
     var dashboardTotalDataEntries = Model.Summary.TotalWebsiteTrafficEntries +
         Model.Summary.TotalStaffSurveys +
         Model.Summary.TotalMediaPlacements +

@@ -1,0 +1,17 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "StrategicDashboard",
+      "type": "dotnet",
+      "request": "launch",
+      "projectPath": "${workspaceFolder}/StrategicDashboard/StrategicDashboard.csproj",
+      "launchSettingsProfile": "http",
+      "console": "integratedTerminal",
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      }
+    }
+  ]
+}

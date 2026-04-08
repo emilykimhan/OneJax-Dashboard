@@ -5,6 +5,7 @@
     var canManageData = ViewData["CanManageData"] as bool? ?? false;
     var userAuthenticated = ViewData["UserAuthenticated"] as bool? ?? false;
     var selectedStatus = ViewData["SelectedStatus"]?.ToString() ?? string.Empty;
+    var activeFiscalYear = ViewBag.ActiveFiscalYearLabel?.ToString() ?? string.Empty;
 
     string GetEventHeaderColor(string? status)
     {
@@ -49,7 +50,7 @@
                                                 <div class="card-body text-center" style="padding: 1.5rem;">
                                                     <h6 style="color: var(--onejax-navy); margin-bottom: 1rem; font-weight: 600;">Overall Progress</h6>
                                                     @{
-                                                        var currentGoalProgress = goal.Metrics?.Any() == true ? goal.Metrics.Average(m => m.ProgressPercentage) : 0;
+                                                        var currentGoalProgress = DashboardMetricRules.CalculateGoalProgress(goal.Metrics, activeFiscalYear);
                                                     }
                                                     <div style="font-size: 2rem; font-weight: 700; color: var(--onejax-navy); margin-bottom: 1rem;">@Math.Round(currentGoalProgress, 1)%</div>
                                                     <div class="progress" style="height: 8px; border-radius: 4px; background: rgba(59, 130, 246, 0.1);">

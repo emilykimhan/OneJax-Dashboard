@@ -2,44 +2,21 @@
 @using OneJaxDashboard.Models
 @{
     var activeFiscalYear = ViewData["ActiveFiscalYear"]?.ToString() ?? string.Empty;
-    bool IsScheduledMetric(GoalMetric metric)
-    {
-        return MetricTrackingSchedule.IsScheduledForFiscalYear(metric.Name, activeFiscalYear);
-    }
-
-    bool IsReportingMetric(GoalMetric metric)
-    {
-        var clean = (metric.Target ?? string.Empty).Replace("$", "").Replace(",", "").Replace("%", "").Trim();
-        return IsScheduledMetric(metric)
-            && !string.Equals(metric.Status, "Planning", StringComparison.OrdinalIgnoreCase)
-            && decimal.TryParse(clean, out var target)
-            && target > 0;
-    }
-
-    decimal LiveGoalProgress(IEnumerable<GoalMetric>? metrics)
-    {
-        var liveMetrics = (metrics ?? Enumerable.Empty<GoalMetric>())
-            .Where(IsReportingMetric)
-            .Select(m => Math.Min(m.ProgressPercentage, 100))
-            .ToList();
-
-        return liveMetrics.Any() ? Math.Round(liveMetrics.Average(), 1) : 0;
-    }
-
     var allMetrics = Model.StrategicGoals?.SelectMany(g => g.Metrics ?? new List<GoalMetric>()).ToList() ?? new List<GoalMetric>();
-    var scheduledMetrics = allMetrics.Where(IsScheduledMetric).ToList();
-    var reportingMetrics = scheduledMetrics.Where(IsReportingMetric).ToList();
+    var scheduledMetrics = DashboardMetricRules.ScheduledMetrics(allMetrics, activeFiscalYear).ToList();
+    var reportingMetrics = DashboardMetricRules.ReportingMetrics(allMetrics, activeFiscalYear).ToList();
+    var progressMetrics = DashboardMetricRules.OverallProgressMetrics(allMetrics, activeFiscalYear).ToList();
     var inScopeMetricsLabel = string.IsNullOrWhiteSpace(activeFiscalYear) || string.Equals(activeFiscalYear, "All Years", StringComparison.OrdinalIgnoreCase)
         ? "Across the full strategic plan"
         : $"Counted toward {activeFiscalYear}";
     var activeMetricsCount = scheduledMetrics.Count(m => string.Equals(m.Status, "Active", StringComparison.OrdinalIgnoreCase));
-    var metricsAtTargetCount = reportingMetrics.Count(m => m.ProgressPercentage >= 100);
+    var metricsAtTargetCount = progressMetrics.Count(DashboardMetricRules.IsMetricAtTarget);
     var reportingMetricsPercentage = scheduledMetrics.Count > 0 ? (reportingMetrics.Count * 100.0 / scheduledMetrics.Count) : 0;
     var activeMetricsPercentage = scheduledMetrics.Count > 0 ? (activeMetricsCount * 100.0 / scheduledMetrics.Count) : 0;
-    var metricsAtTargetPercentage = reportingMetrics.Count > 0 ? (metricsAtTargetCount * 100.0 / reportingMetrics.Count) : 0;
+    var metricsAtTargetPercentage = progressMetrics.Count > 0 ? (metricsAtTargetCount * 100.0 / progressMetrics.Count) : 0;
     var goalProgresses = (Model.StrategicGoals ?? new List<StrategicGoal>())
-        .Where(g => (g.Metrics ?? new List<GoalMetric>()).Any(IsReportingMetric))
-        .Select(g => LiveGoalProgress(g.Metrics))
+        .Where(g => DashboardMetricRules.ReportingMetrics(g.Metrics, activeFiscalYear).Any())
+        .Select(g => DashboardMetricRules.CalculateGoalProgress(g.Metrics, activeFiscalYear))
         .ToList();
     var overallGoalProgress = goalProgresses.Any()
         ? goalProgresses.Average()

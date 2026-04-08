@@ -17,34 +17,6 @@
     // Gate all data-entry/admin actions from public viewers.
     var canManageData = (User?.Identity?.IsAuthenticated ?? false) && (User.IsInRole("Admin") || User.IsInRole("Staff"));
 
-    bool IsScheduledMetric(GoalMetric metric)
-    {
-        return MetricTrackingSchedule.IsScheduledForFiscalYear(metric.Name, activeFiscalYear);
-    }
-
-    bool IsReportingMetric(GoalMetric metric)
-    {
-        var clean = (metric.Target ?? string.Empty).Replace("$", "").Replace(",", "").Replace("%", "").Trim();
-        return IsScheduledMetric(metric)
-            && !string.Equals(metric.Status, "Planning", StringComparison.OrdinalIgnoreCase)
-            && decimal.TryParse(clean, out var target)
-            && target > 0;
-    }
-
-    decimal LiveGoalProgress(IEnumerable<GoalMetric>? metrics)
-    {
-        var liveMetrics = (metrics ?? Enumerable.Empty<GoalMetric>())
-            .Where(IsReportingMetric)
-            .Select(m =>
-            {
-                var clean = (m.Target ?? string.Empty).Replace("$", "").Replace(",", "").Replace("%", "").Trim();
-                decimal.TryParse(clean, out var target);
-                return target > 0 ? Math.Min((m.CurrentValue / target) * 100, 100) : 0;
-            })
-            .ToList();
-
-        return liveMetrics.Any() ? Math.Round(liveMetrics.Average(), 1) : 0;
-    }
 }
 
 <!-- Enhanced Header Section -->
@@ -156,9 +128,9 @@
                                 <div class="col-md-4 text-end">
                                     @{
                                         var goalMetrics = goal.Metrics ?? new List<GoalMetric>();
-                                        var scheduledMetricCount = goalMetrics.Count(IsScheduledMetric);
-                                        var reportingMetricCount = goalMetrics.Count(IsReportingMetric);
-                                        var goalProgress = LiveGoalProgress(goalMetrics);
+                                        var scheduledMetricCount = DashboardMetricRules.ScheduledMetrics(goalMetrics, activeFiscalYear).Count();
+                                        var reportingMetricCount = DashboardMetricRules.ReportingMetrics(goalMetrics, activeFiscalYear).Count();
+                                        var goalProgress = DashboardMetricRules.CalculateGoalProgress(goalMetrics, activeFiscalYear);
                                     }
                                     <div class="goal-panel-progress">
                                         <div class="goal-panel-progress-value">@(reportingMetricCount > 0 ? $"{Math.Round(goalProgress, 1)}%" : scheduledMetricCount > 0 ? "Awaiting data" : "Starts later")</div>
