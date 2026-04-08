@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using OneJaxDashboard.Data; 
 using OneJaxDashboard.Models;
 using System.Data;
+using System.Data.Common;
 using System.Runtime.InteropServices;
 OfficeOpenXml.ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
 var builder = WebApplication.CreateBuilder(args);
@@ -93,7 +94,8 @@ using (var scope = app.Services.CreateScope())
     }
 
     EnsureStaffAdminSupport(db);
-    EnsureFallbackAdminAccess(db);
+    EnsureProgramArchiveSupport(db);
+    EnsureActivityLogSupport(db);
 
     EnsureCanonicalStrategicGoals(db);
 }
@@ -237,20 +239,232 @@ static void EnsureStaffAdminSupport(ApplicationDbContext db)
     }
 }
 
-static void EnsureFallbackAdminAccess(ApplicationDbContext db)
+static void EnsureProgramArchiveSupport(ApplicationDbContext db)
 {
-    if (db.Staffauth.Any(staff => staff.IsAdmin))
+    if (db.Database.IsSqlServer())
+    {
+        db.Database.ExecuteSqlRaw("""
+            IF OBJECT_ID(N'dbo.Programs', N'U') IS NULL
+            BEGIN
+                CREATE TABLE [dbo].[Programs]
+                (
+                    [Id] INT IDENTITY(1,1) NOT NULL CONSTRAINT [PK_Programs] PRIMARY KEY,
+                    [ProgramName] NVARCHAR(MAX) NOT NULL CONSTRAINT [DF_Programs_ProgramName] DEFAULT(N''),
+                    [Description] NVARCHAR(MAX) NOT NULL CONSTRAINT [DF_Programs_Description] DEFAULT(N''),
+                    [ProgramType] NVARCHAR(MAX) NOT NULL CONSTRAINT [DF_Programs_ProgramType] DEFAULT(N'')
+                );
+            END
+
+            IF COL_LENGTH('dbo.Programs', 'Description') IS NULL
+            BEGIN
+                ALTER TABLE [dbo].[Programs]
+                ADD [Description] NVARCHAR(MAX) NOT NULL CONSTRAINT [DF_Programs_Description] DEFAULT(N'');
+            END
+
+            IF COL_LENGTH('dbo.Programs', 'ProgramType') IS NULL
+            BEGIN
+                ALTER TABLE [dbo].[Programs]
+                ADD [ProgramType] NVARCHAR(MAX) NOT NULL CONSTRAINT [DF_Programs_ProgramType] DEFAULT(N'');
+            END
+
+            IF OBJECT_ID(N'dbo.ArchivedPrograms', N'U') IS NULL
+            BEGIN
+                CREATE TABLE [dbo].[ArchivedPrograms]
+                (
+                    [Id] INT IDENTITY(1,1) NOT NULL CONSTRAINT [PK_ArchivedPrograms] PRIMARY KEY,
+                    [OriginalProgramId] INT NOT NULL CONSTRAINT [DF_ArchivedPrograms_OriginalProgramId] DEFAULT(0),
+                    [ProgramName] NVARCHAR(MAX) NOT NULL CONSTRAINT [DF_ArchivedPrograms_ProgramName] DEFAULT(N''),
+                    [ProgramType] NVARCHAR(MAX) NOT NULL CONSTRAINT [DF_ArchivedPrograms_ProgramType] DEFAULT(N''),
+                    [Description] NVARCHAR(MAX) NOT NULL CONSTRAINT [DF_ArchivedPrograms_Description] DEFAULT(N''),
+                    [ArchivedAtUtc] DATETIME2 NOT NULL CONSTRAINT [DF_ArchivedPrograms_ArchivedAtUtc] DEFAULT(SYSUTCDATETIME())
+                );
+            END
+
+            IF COL_LENGTH('dbo.ArchivedPrograms', 'Description') IS NULL
+            BEGIN
+                ALTER TABLE [dbo].[ArchivedPrograms]
+                ADD [Description] NVARCHAR(MAX) NOT NULL CONSTRAINT [DF_ArchivedPrograms_Description] DEFAULT(N'');
+            END
+
+            IF COL_LENGTH('dbo.ArchivedPrograms', 'ArchivedAtUtc') IS NULL
+            BEGIN
+                ALTER TABLE [dbo].[ArchivedPrograms]
+                ADD [ArchivedAtUtc] DATETIME2 NOT NULL CONSTRAINT [DF_ArchivedPrograms_ArchivedAtUtc] DEFAULT(SYSUTCDATETIME());
+            END
+            """);
+
+        return;
+    }
+
+    if (!db.Database.IsSqlite())
     {
         return;
     }
 
-    var fallbackAdmin = db.Staffauth.FirstOrDefault(staff => staff.Username == "admin");
-    if (fallbackAdmin == null)
+    var connection = db.Database.GetDbConnection();
+    var shouldClose = connection.State != ConnectionState.Open;
+    if (shouldClose)
+    {
+        connection.Open();
+    }
+
+    try
+    {
+        EnsureSqliteTable(connection, "Programs", """
+            CREATE TABLE "Programs" (
+                "Id" INTEGER NOT NULL CONSTRAINT "PK_Programs" PRIMARY KEY AUTOINCREMENT,
+                "ProgramName" TEXT NOT NULL,
+                "Description" TEXT NOT NULL DEFAULT '',
+                "ProgramType" TEXT NOT NULL
+            );
+            """);
+
+        EnsureSqliteColumn(connection, "Programs", "Description",
+            "ALTER TABLE \"Programs\" ADD COLUMN \"Description\" TEXT NOT NULL DEFAULT '';");
+        EnsureSqliteColumn(connection, "Programs", "ProgramType",
+            "ALTER TABLE \"Programs\" ADD COLUMN \"ProgramType\" TEXT NOT NULL DEFAULT '';");
+
+        EnsureSqliteTable(connection, "ArchivedPrograms", """
+            CREATE TABLE "ArchivedPrograms" (
+                "Id" INTEGER NOT NULL CONSTRAINT "PK_ArchivedPrograms" PRIMARY KEY AUTOINCREMENT,
+                "OriginalProgramId" INTEGER NOT NULL,
+                "ProgramName" TEXT NOT NULL,
+                "ProgramType" TEXT NOT NULL,
+                "Description" TEXT NOT NULL DEFAULT '',
+                "ArchivedAtUtc" TEXT NOT NULL
+            );
+            """);
+
+        EnsureSqliteColumn(connection, "ArchivedPrograms", "Description",
+            "ALTER TABLE \"ArchivedPrograms\" ADD COLUMN \"Description\" TEXT NOT NULL DEFAULT '';");
+        EnsureSqliteColumn(connection, "ArchivedPrograms", "ArchivedAtUtc",
+            "ALTER TABLE \"ArchivedPrograms\" ADD COLUMN \"ArchivedAtUtc\" TEXT NOT NULL DEFAULT '0001-01-01T00:00:00.0000000Z';");
+    }
+    finally
+    {
+        if (shouldClose)
+        {
+            connection.Close();
+        }
+    }
+}
+
+static void EnsureActivityLogSupport(ApplicationDbContext db)
+{
+    if (db.Database.IsSqlServer())
+    {
+        db.Database.ExecuteSqlRaw("""
+            IF OBJECT_ID(N'dbo.ActivityLogs', N'U') IS NULL
+            BEGIN
+                CREATE TABLE [dbo].[ActivityLogs]
+                (
+                    [Id] INT IDENTITY(1,1) NOT NULL CONSTRAINT [PK_ActivityLogs] PRIMARY KEY,
+                    [Timestamp] DATETIME2 NOT NULL CONSTRAINT [DF_ActivityLogs_Timestamp] DEFAULT(SYSUTCDATETIME()),
+                    [User] NVARCHAR(MAX) NOT NULL CONSTRAINT [DF_ActivityLogs_User] DEFAULT(N''),
+                    [Action] NVARCHAR(MAX) NOT NULL CONSTRAINT [DF_ActivityLogs_Action] DEFAULT(N''),
+                    [Entity] NVARCHAR(MAX) NULL,
+                    [Details] NVARCHAR(MAX) NULL
+                );
+            END
+
+            IF COL_LENGTH('dbo.ActivityLogs', 'Entity') IS NULL
+            BEGIN
+                ALTER TABLE [dbo].[ActivityLogs] ADD [Entity] NVARCHAR(MAX) NULL;
+            END
+
+            IF COL_LENGTH('dbo.ActivityLogs', 'Details') IS NULL
+            BEGIN
+                ALTER TABLE [dbo].[ActivityLogs] ADD [Details] NVARCHAR(MAX) NULL;
+            END
+            """);
+
+        return;
+    }
+
+    if (!db.Database.IsSqlite())
     {
         return;
     }
 
-    fallbackAdmin.IsAdmin = true;
-    db.SaveChanges();
-    Console.WriteLine("[admin-bootstrap] Promoted 'admin' to administrator because no admin accounts were found.");
+    var connection = db.Database.GetDbConnection();
+    var shouldClose = connection.State != ConnectionState.Open;
+    if (shouldClose)
+    {
+        connection.Open();
+    }
+
+    try
+    {
+        EnsureSqliteTable(connection, "ActivityLogs", """
+            CREATE TABLE "ActivityLogs" (
+                "Id" INTEGER NOT NULL CONSTRAINT "PK_ActivityLogs" PRIMARY KEY AUTOINCREMENT,
+                "Timestamp" TEXT NOT NULL,
+                "User" TEXT NOT NULL,
+                "Action" TEXT NOT NULL,
+                "Entity" TEXT NULL,
+                "Details" TEXT NULL
+            );
+            """);
+
+        EnsureSqliteColumn(connection, "ActivityLogs", "Entity",
+            "ALTER TABLE \"ActivityLogs\" ADD COLUMN \"Entity\" TEXT NULL;");
+        EnsureSqliteColumn(connection, "ActivityLogs", "Details",
+            "ALTER TABLE \"ActivityLogs\" ADD COLUMN \"Details\" TEXT NULL;");
+    }
+    finally
+    {
+        if (shouldClose)
+        {
+            connection.Close();
+        }
+    }
+}
+
+static void EnsureSqliteTable(DbConnection connection, string tableName, string createSql)
+{
+    using var existsCommand = connection.CreateCommand();
+    existsCommand.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = $name;";
+
+    var nameParameter = existsCommand.CreateParameter();
+    nameParameter.ParameterName = "$name";
+    nameParameter.Value = tableName;
+    existsCommand.Parameters.Add(nameParameter);
+
+    var exists = Convert.ToInt32(existsCommand.ExecuteScalar()) > 0;
+    if (exists)
+    {
+        return;
+    }
+
+    using var createCommand = connection.CreateCommand();
+    createCommand.CommandText = createSql;
+    createCommand.ExecuteNonQuery();
+}
+
+static void EnsureSqliteColumn(DbConnection connection, string tableName, string columnName, string alterSql)
+{
+    using var pragmaCommand = connection.CreateCommand();
+    pragmaCommand.CommandText = $"PRAGMA table_info('{tableName}');";
+
+    var hasColumn = false;
+    using (var reader = pragmaCommand.ExecuteReader())
+    {
+        while (reader.Read())
+        {
+            if (string.Equals(reader["name"]?.ToString(), columnName, StringComparison.OrdinalIgnoreCase))
+            {
+                hasColumn = true;
+                break;
+            }
+        }
+    }
+
+    if (hasColumn)
+    {
+        return;
+    }
+
+    using var alterCommand = connection.CreateCommand();
+    alterCommand.CommandText = alterSql;
+    alterCommand.ExecuteNonQuery();
 }
