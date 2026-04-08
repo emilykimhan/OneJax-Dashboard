@@ -133,8 +133,6 @@ public class ProgramsController : Controller
         {
             try
             {
-                using var transaction = _context.Database.BeginTransaction();
-
                 var linkedStrategies = _context.Strategies
                     .Where(s => s.ProgramId == program.Id)
                     .ToList();
@@ -157,7 +155,6 @@ public class ProgramsController : Controller
                 _context.Programs.Remove(program);
                 _context.SaveChanges();
 
-                transaction.Commit();
                 _activityLog.Log(
                     GetActorName(),
                     "Archived Program",
@@ -215,8 +212,6 @@ public class ProgramsController : Controller
         {
             try
             {
-                using var transaction = _context.Database.BeginTransaction();
-
                 var restoredProgram = new Programs
                 {
                     ProgramName = archivedProgram.ProgramName,
@@ -228,7 +223,6 @@ public class ProgramsController : Controller
                 _context.ArchivedPrograms.Remove(archivedProgram);
                 _context.SaveChanges();
 
-                transaction.Commit();
                 _activityLog.Log(
                     GetActorName(),
                     "Restored Program",
