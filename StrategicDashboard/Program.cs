@@ -94,6 +94,7 @@ using (var scope = app.Services.CreateScope())
     }
 
     EnsureStaffAdminSupport(db);
+    EnsureStrategyProgramSupport(db);
     EnsureStrategyArchiveSupport(db);
     EnsureProgramArchiveSupport(db);
     EnsureActivityLogSupport(db);
@@ -389,6 +390,63 @@ static void EnsureStrategyArchiveSupport(ApplicationDbContext db)
             "ALTER TABLE \"Strategies\" ADD COLUMN \"IsArchived\" INTEGER NOT NULL DEFAULT 0;");
         EnsureSqliteColumn(connection, "Strategies", "ArchivedAtUtc",
             "ALTER TABLE \"Strategies\" ADD COLUMN \"ArchivedAtUtc\" TEXT NULL;");
+    }
+    finally
+    {
+        if (shouldClose)
+        {
+            connection.Close();
+        }
+    }
+}
+
+static void EnsureStrategyProgramSupport(ApplicationDbContext db)
+{
+    if (db.Database.IsSqlServer())
+    {
+        db.Database.ExecuteSqlRaw("""
+            IF COL_LENGTH('dbo.Strategies', 'ProgramId') IS NULL
+            BEGIN
+                ALTER TABLE [dbo].[Strategies]
+                ADD [ProgramId] int NULL;
+            END
+
+            IF COL_LENGTH('dbo.Strategies', 'ProgramName') IS NULL
+            BEGIN
+                ALTER TABLE [dbo].[Strategies]
+                ADD [ProgramName] nvarchar(max) NULL;
+            END
+
+            IF COL_LENGTH('dbo.Strategies', 'ProgramType') IS NULL
+            BEGIN
+                ALTER TABLE [dbo].[Strategies]
+                ADD [ProgramType] nvarchar(max) NULL;
+            END
+            """);
+
+        return;
+    }
+
+    if (!db.Database.IsSqlite())
+    {
+        return;
+    }
+
+    var connection = db.Database.GetDbConnection();
+    var shouldClose = connection.State != ConnectionState.Open;
+    if (shouldClose)
+    {
+        connection.Open();
+    }
+
+    try
+    {
+        EnsureSqliteColumn(connection, "Strategies", "ProgramId",
+            "ALTER TABLE \"Strategies\" ADD COLUMN \"ProgramId\" INTEGER NULL;");
+        EnsureSqliteColumn(connection, "Strategies", "ProgramName",
+            "ALTER TABLE \"Strategies\" ADD COLUMN \"ProgramName\" TEXT NULL;");
+        EnsureSqliteColumn(connection, "Strategies", "ProgramType",
+            "ALTER TABLE \"Strategies\" ADD COLUMN \"ProgramType\" TEXT NULL;");
     }
     finally
     {
