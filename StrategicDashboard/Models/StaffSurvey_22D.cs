@@ -12,6 +12,10 @@ namespace OneJaxDashboard.Models
         [Range(2020, 2030, ErrorMessage = "Year must be between 2020 and 2030.")]
         public int Year { get; set; }
 
+        [Required(ErrorMessage = "Please select a month.")]
+        [Range(1, 12, ErrorMessage = "Month must be between 1 and 12.")]
+        public int Month { get; set; }
+
         [Required(ErrorMessage = "Please enter a satisfaction rate.")]
         [Range(0, 100, ErrorMessage = "Satisfaction rate must be between 0 and 100.")]
         public int SatisfactionRate { get; set; }
