@@ -94,6 +94,7 @@ using (var scope = app.Services.CreateScope())
     }
 
     EnsureStaffAdminSupport(db);
+    EnsureStrategyArchiveSupport(db);
     EnsureProgramArchiveSupport(db);
     EnsureActivityLogSupport(db);
 
@@ -339,6 +340,55 @@ static void EnsureProgramArchiveSupport(ApplicationDbContext db)
             "ALTER TABLE \"ArchivedPrograms\" ADD COLUMN \"Description\" TEXT NOT NULL DEFAULT '';");
         EnsureSqliteColumn(connection, "ArchivedPrograms", "ArchivedAtUtc",
             "ALTER TABLE \"ArchivedPrograms\" ADD COLUMN \"ArchivedAtUtc\" TEXT NOT NULL DEFAULT '0001-01-01T00:00:00.0000000Z';");
+    }
+    finally
+    {
+        if (shouldClose)
+        {
+            connection.Close();
+        }
+    }
+}
+
+static void EnsureStrategyArchiveSupport(ApplicationDbContext db)
+{
+    if (db.Database.IsSqlServer())
+    {
+        db.Database.ExecuteSqlRaw("""
+            IF COL_LENGTH('dbo.Strategies', 'IsArchived') IS NULL
+            BEGIN
+                ALTER TABLE [dbo].[Strategies]
+                ADD [IsArchived] bit NOT NULL CONSTRAINT [DF_Strategies_IsArchived] DEFAULT(0);
+            END
+
+            IF COL_LENGTH('dbo.Strategies', 'ArchivedAtUtc') IS NULL
+            BEGIN
+                ALTER TABLE [dbo].[Strategies]
+                ADD [ArchivedAtUtc] datetime2 NULL;
+            END
+            """);
+
+        return;
+    }
+
+    if (!db.Database.IsSqlite())
+    {
+        return;
+    }
+
+    var connection = db.Database.GetDbConnection();
+    var shouldClose = connection.State != ConnectionState.Open;
+    if (shouldClose)
+    {
+        connection.Open();
+    }
+
+    try
+    {
+        EnsureSqliteColumn(connection, "Strategies", "IsArchived",
+            "ALTER TABLE \"Strategies\" ADD COLUMN \"IsArchived\" INTEGER NOT NULL DEFAULT 0;");
+        EnsureSqliteColumn(connection, "Strategies", "ArchivedAtUtc",
+            "ALTER TABLE \"Strategies\" ADD COLUMN \"ArchivedAtUtc\" TEXT NULL;");
     }
     finally
     {
