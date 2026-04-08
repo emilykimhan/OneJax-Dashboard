@@ -31,7 +31,18 @@ namespace OneJaxDashboard.Models
         public decimal Q2Value { get; set; }
         public decimal Q3Value { get; set; }
         public decimal Q4Value { get; set; }
-        
+
+        // Evidence/sample tracking for score-based metrics so one entry does not overstate progress.
+        public int? SampleCount { get; set; }
+        public int? MinimumSampleSize { get; set; }
+        public string SampleCountText { get; set; } = "";
+        public string SampleRequirementText { get; set; } = "";
+
+        public bool HasSampleRequirement => MinimumSampleSize.GetValueOrDefault() > 0;
+
+        public bool HasSufficientSample =>
+            !HasSampleRequirement || SampleCount.GetValueOrDefault() >= MinimumSampleSize.GetValueOrDefault();
+
         // Calculate progress percentage
         public decimal ProgressPercentage
         {
@@ -62,6 +73,14 @@ namespace OneJaxDashboard.Models
                     return 0;
 
                 var progressPercent = Math.Round((CurrentValue / targetValue) * 100, 1);
+
+                if (HasSampleRequirement && !HasSufficientSample)
+                {
+                    var sampleRatio = MinimumSampleSize.GetValueOrDefault() > 0
+                        ? (decimal)SampleCount.GetValueOrDefault() / MinimumSampleSize.GetValueOrDefault()
+                        : 0;
+                    progressPercent = Math.Round(progressPercent * Math.Clamp(sampleRatio, 0m, 1m), 1);
+                }
                 
                 // Cap at 150% to prevent extremely high values from skewing averages
                 return Math.Min(progressPercent, 150);

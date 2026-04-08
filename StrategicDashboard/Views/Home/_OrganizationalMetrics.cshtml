@@ -25,6 +25,8 @@
         var metricName = metric.Name ?? string.Empty;
         var metricIsScheduled = IsScheduledMetric(metricName);
         var metricStartFiscalYear = MetricTrackingSchedule.GetStartFiscalYear(metricName);
+        var metricAtTarget = DashboardMetricRules.IsMetricAtTarget(metric);
+        var metricBuildingSample = metric.HasSampleRequirement && metric.SampleCount.GetValueOrDefault() > 0 && !metric.HasSufficientSample;
 		                                            @if (metricName.Contains("Earned Media", StringComparison.OrdinalIgnoreCase))
 		                                            {
 		                                                <!-- Professional Media Card -->
@@ -57,7 +59,7 @@
                                                             <h6 class="card-title" style="color:var(--onejax-navy); font-weight:600;">Community Trust Rating</h6>
                                                             <div class="h2 mb-2" style="color:var(--onejax-navy);">@metric.CurrentValue%</div>
                                                             <small class="text-muted">Trust Rating Score</small>
-                                                            @if (metric.CurrentValue >= Convert.ToDecimal(metric.Target))
+                                                            @if (metricAtTarget)
                                                             {
                                                                 <div class="mt-3">
                                                                     <span class="badge bg-success">Target Achieved</span>
@@ -97,10 +99,16 @@
 	                                                                            <i class="fas fa-calendar-alt"></i> @ScheduleBadgeText(metricIsScheduled, metricStartFiscalYear, "In Progress")
 	                                                                        </span>
 	                                                                    }
-	                                                                    else if (metric.CurrentValue >= Convert.ToDecimal(metric.Target))
+	                                                                    else if (metricAtTarget)
 	                                                                    {
 	                                                                        <span class="badge" style="background: #10b981; font-size: 0.75rem;">
 	                                                                            <i class="fas fa-check-circle"></i> Target Met
+	                                                                        </span>
+                                                                    }
+                                                                    else if (metricBuildingSample)
+                                                                    {
+	                                                                        <span class="badge" style="background: #64748b; font-size: 0.75rem;">
+	                                                                            <i class="fas fa-chart-line"></i> Building Sample
 	                                                                        </span>
                                                                     }
                                                                     else
@@ -173,6 +181,17 @@
                                                                                 <div class="progress-bar" style="width: @Math.Min(metric.ProgressPercentage, 100)%; background: linear-gradient(90deg, var(--onejax-blue), var(--onejax-green)); border-radius: 4px;" role="progressbar"></div>
                                                                             </div>
                                                                         </div>
+
+                                                                        @if (!string.IsNullOrWhiteSpace(metric.SampleCountText))
+                                                                        {
+                                                                            <div>
+                                                                                <small style="color: var(--onejax-text-muted); display: block;">@metric.SampleCountText</small>
+                                                                                @if (metricBuildingSample && !string.IsNullOrWhiteSpace(metric.SampleRequirementText))
+                                                                                {
+                                                                                    <small style="color: #64748b; display: block;">@metric.SampleRequirementText</small>
+                                                                                }
+                                                                            </div>
+                                                                        }
                                                                         
                                                                         <!-- Status and date -->
                                                                         <div class="d-flex justify-content-between align-items-center">
@@ -430,8 +449,8 @@
                                                                     <small style="opacity: 0.9;">Annual board self-evaluation score</small>
                                                                 </div>
 	                                                                <div class="text-end d-flex flex-column align-items-end gap-2">
-	                                                                    <span class="badge" style="background: @(!metricIsScheduled ? "#dbeafe" : metric.CurrentValue >= Convert.ToDecimal(metric.Target) ? "#10b981" : "#f59e0b"); color: @(!metricIsScheduled ? "#1e3a8a" : "white"); font-size: 0.75rem;">
-	                                                                        @ScheduleBadgeText(metricIsScheduled, metricStartFiscalYear, metric.CurrentValue >= Convert.ToDecimal(metric.Target) ? "On Target" : "Improvement Area")
+	                                                                    <span class="badge" style="background: @(!metricIsScheduled ? "#dbeafe" : metricAtTarget ? "#10b981" : metricBuildingSample ? "#64748b" : "#f59e0b"); color: @(!metricIsScheduled ? "#1e3a8a" : "white"); font-size: 0.75rem;">
+	                                                                        @ScheduleBadgeText(metricIsScheduled, metricStartFiscalYear, metricAtTarget ? "On Target" : metricBuildingSample ? "Building Sample" : "Improvement Area")
 	                                                                    </span>
 	                                                                    @if (canManageData)
 	                                                                    {
@@ -473,6 +492,16 @@
                                                                     <div class="progress-bar" style="width: @Math.Min(metric.ProgressPercentage, 100)%; background: #374151; border-radius: 4px;"></div>
                                                                 </div>
                                                             </div>
+                                                            @if (!string.IsNullOrWhiteSpace(metric.SampleCountText))
+                                                            {
+                                                                <div class="text-center">
+                                                                    <small style="color: var(--onejax-text-muted); display: block;">@metric.SampleCountText</small>
+                                                                    @if (metricBuildingSample && !string.IsNullOrWhiteSpace(metric.SampleRequirementText))
+                                                                    {
+                                                                        <small style="color: #64748b; display: block;">@metric.SampleRequirementText</small>
+                                                                    }
+                                                                </div>
+                                                            }
                                                             }
 
 	                                                        </div>

@@ -98,12 +98,23 @@ public static class DashboardMetricRules
         }
 
         var progress = Math.Round((metric.CurrentValue / targetValue) * 100m, 1);
+
+        if (metric.HasSampleRequirement && !metric.HasSufficientSample)
+        {
+            var sampleRatio = metric.MinimumSampleSize.GetValueOrDefault() > 0
+                ? (decimal)metric.SampleCount.GetValueOrDefault() / metric.MinimumSampleSize.GetValueOrDefault()
+                : 0m;
+            progress = Math.Round(progress * Math.Clamp(sampleRatio, 0m, 1m), 1);
+        }
+
         return Math.Min(progress, cap);
     }
 
     public static bool IsMetricAtTarget(GoalMetric metric)
     {
-        return GetMetricProgressPercentage(metric, 100m) >= 100m;
+        return metric != null
+            && (!metric.HasSampleRequirement || metric.HasSufficientSample)
+            && GetMetricProgressPercentage(metric, 100m) >= 100m;
     }
 
     public static decimal CalculateGoalProgress(IEnumerable<GoalMetric>? metrics, string? fiscalYear)
