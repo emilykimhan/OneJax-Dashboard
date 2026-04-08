@@ -144,6 +144,9 @@
                                     <strong>Year:</strong> @survey.Year
                                 </div>
                                 <div class="detail-item">
+                                    <strong>Month:</strong> @System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(survey.Month)
+                                </div>
+                                <div class="detail-item">
                                     <strong>Satisfaction Rate:</strong> @survey.SatisfactionRate%
                                 </div>
                                 <div class="detail-item">
