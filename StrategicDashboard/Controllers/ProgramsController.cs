@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using OneJaxDashboard.Data;
 using OneJaxDashboard.Models;
 using OneJaxDashboard.Services;
@@ -130,23 +131,45 @@ public class ProgramsController : Controller
         var program = _context.Programs.FirstOrDefault(p => p.Id == id);
         if (program != null)
         {
-            using var transaction = _context.Database.BeginTransaction();
-
-            var archivedProgram = new ArchivedProgram
+            try
             {
-                OriginalProgramId = program.Id,
-                ProgramName = program.ProgramName,
-                ProgramType = program.ProgramType,
-                Description = program.Description,
-                ArchivedAtUtc = DateTime.UtcNow
-            };
+                using var transaction = _context.Database.BeginTransaction();
 
-            _context.ArchivedPrograms.Add(archivedProgram);
-            _context.Programs.Remove(program);
-            _context.SaveChanges();
+                var linkedStrategies = _context.Strategies
+                    .Where(s => s.ProgramId == program.Id)
+                    .ToList();
 
-            transaction.Commit();
-            TempData["ProgramsSuccess"] = "Program archived.";
+                foreach (var strategy in linkedStrategies)
+                {
+                    strategy.ProgramId = null;
+                }
+
+                var archivedProgram = new ArchivedProgram
+                {
+                    OriginalProgramId = program.Id,
+                    ProgramName = program.ProgramName,
+                    ProgramType = program.ProgramType,
+                    Description = program.Description,
+                    ArchivedAtUtc = DateTime.UtcNow
+                };
+
+                _context.ArchivedPrograms.Add(archivedProgram);
+                _context.Programs.Remove(program);
+                _context.SaveChanges();
+
+                transaction.Commit();
+                _activityLog.Log(
+                    GetActorName(),
+                    "Archived Program",
+                    "Program",
+                    details: $"Id={program.Id}; Archived '{program.ProgramName}' ({program.ProgramType})");
+                TempData["ProgramsSuccess"] = "Program archived successfully.";
+            }
+            catch (DbUpdateException)
+            {
+                TempData["ProgramsError"] = "We couldn't archive that program right now. Please try again.";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         return RedirectToAction(nameof(Archive));
@@ -181,27 +204,33 @@ public class ProgramsController : Controller
         var archivedProgram = _context.ArchivedPrograms.FirstOrDefault(p => p.Id == id);
         if (archivedProgram != null)
         {
-            using var transaction = _context.Database.BeginTransaction();
-
-            var restoredProgram = new Programs
+            try
             {
-                ProgramName = archivedProgram.ProgramName,
-                ProgramType = archivedProgram.ProgramType,
-                Description = archivedProgram.Description
-            };
+                using var transaction = _context.Database.BeginTransaction();
 
-            // Restore with the original Program ID when possible.
-            if (!_context.Programs.Any(p => p.Id == archivedProgram.OriginalProgramId))
-            {
-                restoredProgram.Id = archivedProgram.OriginalProgramId;
+                var restoredProgram = new Programs
+                {
+                    ProgramName = archivedProgram.ProgramName,
+                    ProgramType = archivedProgram.ProgramType,
+                    Description = archivedProgram.Description
+                };
+
+                _context.Programs.Add(restoredProgram);
+                _context.ArchivedPrograms.Remove(archivedProgram);
+                _context.SaveChanges();
+
+                transaction.Commit();
+                _activityLog.Log(
+                    GetActorName(),
+                    "Restored Program",
+                    "Program",
+                    details: $"ArchivedId={archivedProgram.Id}; Restored '{restoredProgram.ProgramName}' ({restoredProgram.ProgramType}) as Id={restoredProgram.Id}");
+                TempData["ProgramsSuccess"] = "Program restored successfully.";
             }
-
-            _context.Programs.Add(restoredProgram);
-            _context.ArchivedPrograms.Remove(archivedProgram);
-            _context.SaveChanges();
-
-            transaction.Commit();
-            TempData["ProgramsSuccess"] = "Program restored.";
+            catch (DbUpdateException)
+            {
+                TempData["ProgramsError"] = "We couldn't restore that program right now. Please try again.";
+            }
         }
 
         return RedirectToAction(nameof(Archive));
