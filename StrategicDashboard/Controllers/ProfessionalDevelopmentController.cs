@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 using OneJaxDashboard.Models;
 using OneJaxDashboard.Data;
 using OneJaxDashboard.Services;
@@ -41,7 +40,7 @@ namespace OneJaxDashboard.Controllers
 
                     var actor = User.Identity?.Name ?? "Unknown";
                     _activityLog.Log(actor, "Submitted Professional Development Survey", "ProfessionalDevelopment",
-                        details: $"Id={model.Id}; Staff member: {model.Name}");
+                        details: $"Id={model.Id}; Staff member: {model.Name}; Year: {model.Year}; Month: {model.Month}");
                     TempData["Success"] = "Professional development record submitted successfully!";
                     return RedirectToAction(nameof(Index));
                 }

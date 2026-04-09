@@ -2,6 +2,11 @@
 @{
     ViewData["Title"] = "Edit Professional Development";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var monthNames = new[]
+    {
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    };
 }
 
 <h1 class="headline mb-4" style="color:var(--onejax-navy);">Edit Professional Development</h1>
@@ -27,6 +32,18 @@
                 <label asp-for="Name" class="form-label fw-bold">Staff Member Name</label>
                 <input asp-for="Name" class="form-control" />
                 <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Month" class="form-label fw-bold">Month</label>
+                <select asp-for="Month" class="form-select">
+                    <option value="">-- Select Month --</option>
+                    @foreach (var month in monthNames)
+                    {
+                        <option value="@month" selected="@(Model.Month == month ? "selected" : null)">@month</option>
+                    }
+                </select>
+                <span asp-validation-for="Month" class="text-danger"></span>
             </div>
 
             <div class="mb-3">

@@ -144,6 +144,9 @@
                                     <strong>Year:</strong> @survey.Year
                                 </div>
                                 <div class="detail-item">
+                                    <strong>Month:</strong> @(string.IsNullOrWhiteSpace(survey.Month) ? "Not set" : survey.Month)
+                                </div>
+                                <div class="detail-item">
                                     <strong>Satisfaction Rate:</strong> @survey.SatisfactionRate%
                                 </div>
                                 <div class="detail-item">
@@ -193,6 +196,9 @@
                             <div class="record-details">
                                 <div class="detail-item">
                                     <strong>Year:</strong> @profDev.Year
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Month:</strong> @(string.IsNullOrWhiteSpace(profDev.Month) ? "Not set" : profDev.Month)
                                 </div>
                                 <div class="detail-item">
                                     <strong>Staff Name:</strong> @profDev.Name
@@ -1161,6 +1167,9 @@
                             <div class="record-details">
                                 <div class="detail-item">
                                     <strong>Year:</strong> @sa.Year
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Month:</strong> @(string.IsNullOrWhiteSpace(sa.Month) ? "Not set" : sa.Month)
                                 </div>
                                 <div class="detail-item">
                                     <strong>Self-Assessment Score:</strong> @sa.SelfAssessmentScore
