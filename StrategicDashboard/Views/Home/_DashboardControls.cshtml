@@ -3,6 +3,12 @@
     var selectedFiscalYear = ViewData["SelectedFiscalYear"]?.ToString() ?? string.Empty;
     var fiscalYearOptions = ViewData["FiscalYearOptions"] as IEnumerable<string> ?? Enumerable.Empty<string>();
     var defaultFiscalYear = fiscalYearOptions.FirstOrDefault() ?? string.Empty;
+    
+    // If no fiscal year is selected, default to the first option (current fiscal year)
+    if (string.IsNullOrEmpty(selectedFiscalYear) && !string.IsNullOrEmpty(defaultFiscalYear))
+    {
+        selectedFiscalYear = defaultFiscalYear;
+    }
 }
 
 <div class="floating-card mb-5 fade-in">
@@ -28,10 +34,24 @@
                         Supporting Data Fiscal Year
                     </label>
                     <select class="form-select" id="fiscalYearFilter" name="fiscalYear" data-default-fiscal-year="@defaultFiscalYear" style="border-radius: 12px; border: 2px solid var(--onejax-border); padding: 12px;">
-                        <option value="" selected="@(string.IsNullOrEmpty(selectedFiscalYear))">All Years</option>
+                        @if (!string.IsNullOrEmpty(selectedFiscalYear))
+                        {
+                            <option value="">All Years</option>
+                        }
+                        else
+                        {
+                            <option value="" selected>All Years</option>
+                        }
                         @foreach (var fiscalYearOption in fiscalYearOptions)
                         {
-                            <option value="@fiscalYearOption" selected="@(selectedFiscalYear == fiscalYearOption)">FY @fiscalYearOption</option>
+                            @if (selectedFiscalYear == fiscalYearOption)
+                            {
+                                <option value="@fiscalYearOption" selected>FY @fiscalYearOption</option>
+                            }
+                            else
+                            {
+                                <option value="@fiscalYearOption">FY @fiscalYearOption</option>
+                            }
                         }
                     </select>
                     <small style="display: block; margin-top: 0.5rem; color: var(--onejax-text-muted);">
