@@ -69,6 +69,9 @@
     var professionalDevelopmentAccountCount = ReadInt(ViewBag.ProfessionalDevelopmentAccountCount);
     var boardRecruitmentRecords = ViewBag.BoardRecruitmentRecords as List<BoardMemberRecruitment> ?? new List<BoardMemberRecruitment>();
     var volunteerRecords = ViewBag.VolunteerProgramRecords as List<OneJaxDashboard.Models.volunteerProgram_40D> ?? new List<OneJaxDashboard.Models.volunteerProgram_40D>();
+    var volunteerSummaryRecords = ViewBag.VolunteerProgramAllFilteredRecords as List<OneJaxDashboard.Models.volunteerProgram_40D> ?? volunteerRecords;
+    var volunteerTargetYearCount = ReadInt(ViewBag.VolunteerProgramTargetYearCount);
+    var isAllYearsVolunteerView = string.IsNullOrWhiteSpace(activeFiscalYearLabel);
 }
 
 @if (goal?.Metrics != null && goal.Metrics.Any())
@@ -550,18 +553,27 @@
                                             }
 	                                            else if (metricName.Contains("Volunteer Program", StringComparison.OrdinalIgnoreCase) && (goal.Name.Contains("Organizational", StringComparison.OrdinalIgnoreCase) || goal.Name.Contains("Building", StringComparison.OrdinalIgnoreCase)))
 	                                            {
-	                                                var latestVolunteerRecord = volunteerRecords
+	                                                var latestVolunteerRecord = volunteerSummaryRecords
 	                                                    .OrderByDescending(v => v.Year)
 	                                                    .ThenByDescending(v => v.Quarter)
 	                                                    .ThenByDescending(v => v.CreatedDate)
 	                                                    .FirstOrDefault();
-	                                                var totalVolunteers = volunteerRecords.Sum(v => v.NumberOfVolunteers);
-	                                                var totalVolunteerInitiatives = volunteerRecords.Sum(v => v.VolunteerLedInitiatives);
+	                                                var totalVolunteers = volunteerSummaryRecords.Sum(v => v.NumberOfVolunteers);
+	                                                var totalVolunteerInitiatives = volunteerSummaryRecords.Sum(v => v.VolunteerLedInitiatives);
 	                                                var volunteerTarget = ParseTarget(metric.Target);
-	                                                var volunteerProgress = volunteerTarget > 0
-	                                                    ? Math.Round((totalVolunteers / volunteerTarget) * 100m, 1)
+	                                                var effectiveVolunteerTarget = volunteerTarget > 0
+	                                                    ? volunteerTarget * Math.Max(volunteerTargetYearCount, 1)
 	                                                    : 0m;
-	                                                var hasVolunteerData = volunteerRecords.Any();
+	                                                var volunteerProgress = effectiveVolunteerTarget > 0
+	                                                    ? Math.Round((totalVolunteers / effectiveVolunteerTarget) * 100m, 1)
+	                                                    : 0m;
+	                                                var hasVolunteerData = volunteerSummaryRecords.Any();
+	                                                var volunteerProgressLabel = isAllYearsVolunteerView
+	                                                    ? "All-Years Goal Progress"
+	                                                    : "Volunteer Goal Progress";
+	                                                var volunteerTargetText = isAllYearsVolunteerView && volunteerTargetYearCount > 1
+	                                                    ? $"{effectiveVolunteerTarget:0} volunteers across {volunteerTargetYearCount} fiscal years"
+	                                                    : $"{volunteerTarget:0} volunteers";
 	                                                <!-- Volunteer Program Card -->
 	                                                <div class="col-md-8 mb-3 order-0 d-flex">
                                                     <div class="card h-100 w-100" style="background: #ffffff; border: 1px solid #d1d5db; border-radius: 8px; box-shadow: 0 2px 8px rgba(15,23,42,0.08); min-height: 300px; display: flex; flex-direction: column;">
@@ -603,12 +615,13 @@
                                                             </div>
                                                             <div class="mb-2">
                                                                 <div class="d-flex justify-content-between mb-1">
-                                                                    <small style="color: var(--onejax-text-muted);">Volunteer Goal Progress</small>
-                                                                    <small style="color: #1f2937; font-weight: 600;">@volunteerProgress%</small>
+                                                                    <small style="color: var(--onejax-text-muted);">@volunteerProgressLabel</small>
+                                                                    <small style="color: #1f2937; font-weight: 600;">@Math.Min(volunteerProgress, 100)%</small>
                                                                 </div>
                                                                 <div class="progress" style="height: 10px; border-radius: 4px; background: #e5e7eb;">
                                                                     <div class="progress-bar" style="width: @Math.Min(volunteerProgress, 100)%; background: #475569; border-radius: 4px;"></div>
                                                                 </div>
+                                                                <small style="color: var(--onejax-text-muted);">@volunteerTargetText target</small>
                                                             </div>
 
                                                             <div class="mt-3 pt-3" style="border-top: 1px solid #e5e7eb;">

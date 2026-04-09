@@ -352,7 +352,7 @@ public class HomeController : Controller
                 .ThenByDescending(v => v.Quarter)
                 .ThenByDescending(v => v.CreatedDate)
                 .ToListAsync();
-            ViewBag.VolunteerProgramRecords = FilterByFiscalYearCalendarQuarterWithCreatedDateFallback(
+            var filteredVolunteerProgramRecords = FilterByFiscalYearCalendarQuarterWithCreatedDateFallback(
                     volunteerProgramRecords,
                     selectedFiscalYear,
                     v => v.Year,
@@ -361,8 +361,28 @@ public class HomeController : Controller
                 .OrderByDescending(v => v.Year)
                 .ThenByDescending(v => v.Quarter)
                 .ThenByDescending(v => v.CreatedDate)
+                .ToList();
+
+            ViewBag.VolunteerProgramRecords = filteredVolunteerProgramRecords
                 .Take(12)
                 .ToList();
+            ViewBag.VolunteerProgramAllFilteredRecords = filteredVolunteerProgramRecords;
+
+            var volunteerTargetYearCount = 1;
+            if (!TryParseFiscalYearEnd(selectedFiscalYear, out _)
+                && filteredVolunteerProgramRecords.Any())
+            {
+                var currentFiscalYearEnd = GetFiscalYearEndFromDate(DateTime.Today);
+                var earliestVolunteerFiscalYearEnd = filteredVolunteerProgramRecords
+                    .Select(v => GetFiscalYearEndFromCalendarQuarterRecord(v.Year, v.Quarter)
+                        ?? GetFiscalYearEndFromDate(v.CreatedDate))
+                    .DefaultIfEmpty(currentFiscalYearEnd)
+                    .Min();
+
+                volunteerTargetYearCount = Math.Max(1, currentFiscalYearEnd - earliestVolunteerFiscalYearEnd + 1);
+            }
+
+            ViewBag.VolunteerProgramTargetYearCount = volunteerTargetYearCount;
 
             dashboardData.Summary.TotalEvents = dashboardData.StrategicGoals?.Sum(g => g.Events?.Count ?? 0) ?? 0;
             dashboardData.Summary.TotalActivities = dashboardData.Summary.TotalStaffSurveys +
