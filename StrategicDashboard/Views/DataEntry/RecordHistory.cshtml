@@ -1169,6 +1169,9 @@
                                     <strong>Year:</strong> @sa.Year
                                 </div>
                                 <div class="detail-item">
+                                    <strong>Month:</strong> @(string.IsNullOrWhiteSpace(sa.Month) ? "Not set" : sa.Month)
+                                </div>
+                                <div class="detail-item">
                                     <strong>Self-Assessment Score:</strong> @sa.SelfAssessmentScore
                                 </div>
                                 <div class="detail-item">

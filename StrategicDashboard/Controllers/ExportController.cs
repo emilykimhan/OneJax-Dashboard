@@ -196,8 +196,8 @@ public class ExportController : Controller
         if (byType.TryGetValue("self-assessment", out var saIds))
         {
             var records = _context.selfAssess_31D.Where(x => saIds.Contains(x.Id)).ToList();
-            AddSheet("Board Self-Assessment", new[] { "Year","SelfAssessmentScore","CreatedDate" },
-                records.Select(x => new object?[] { x.Year, x.SelfAssessmentScore, x.CreatedDate.ToString("MM/dd/yyyy") }));
+            AddSheet("Board Self-Assessment", new[] { "Year", "Month", "SelfAssessmentScore", "CreatedDate" },
+                records.Select(x => new object?[] { x.Year, x.Month, x.SelfAssessmentScore, x.CreatedDate.ToString("MM/dd/yyyy") }));
         }
         if (byType.TryGetValue("volunteer-program", out var vpIds))
         {

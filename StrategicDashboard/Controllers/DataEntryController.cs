@@ -1922,6 +1922,7 @@ namespace OneJaxDashboard.Controllers
                 if (existing != null)
                 {
                     existing.Year = model.Year;
+                    existing.Month = model.Month;
                     existing.SelfAssessmentScore = model.SelfAssessmentScore;
                     _context.SaveChanges();
                     TempData["Success"] = "Board Self-Assessment record updated successfully!";
