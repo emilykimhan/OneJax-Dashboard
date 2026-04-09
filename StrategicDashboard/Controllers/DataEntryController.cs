@@ -1572,6 +1572,7 @@ namespace OneJaxDashboard.Controllers
                 if (existingSurvey != null)
                 {
                     existingSurvey.Year = survey.Year;
+                    existingSurvey.Month = survey.Month;
                     existingSurvey.SatisfactionRate = survey.SatisfactionRate;
                     
                     _context.SaveChanges();
@@ -1610,6 +1611,7 @@ namespace OneJaxDashboard.Controllers
                 {
                     existingProfDev.Year = profDev.Year;
                     existingProfDev.Name = profDev.Name;
+                    existingProfDev.Month = profDev.Month;
                     existingProfDev.Activities = profDev.Activities;
                     
                     _context.SaveChanges();
@@ -1920,6 +1922,7 @@ namespace OneJaxDashboard.Controllers
                 if (existing != null)
                 {
                     existing.Year = model.Year;
+                    existing.Month = model.Month;
                     existing.SelfAssessmentScore = model.SelfAssessmentScore;
                     _context.SaveChanges();
                     TempData["Success"] = "Board Self-Assessment record updated successfully!";

@@ -14,6 +14,10 @@ namespace OneJaxDashboard.Models
         [Required(ErrorMessage = "Please select a staff member.")]
         public string Name { get; set; } = string.Empty;
 
+        [Required(ErrorMessage = "Please select a month.")]
+        [StringLength(20, ErrorMessage = "Month must be 20 characters or fewer.")]
+        public string Month { get; set; } = string.Empty;
+
         [StringLength(2000)]
         public string Activities { get; set; } = string.Empty; // List of professional development activities
 
