@@ -2,6 +2,7 @@
 @{
     var selectedFiscalYear = ViewData["SelectedFiscalYear"]?.ToString() ?? string.Empty;
     var fiscalYearOptions = ViewData["FiscalYearOptions"] as IEnumerable<string> ?? Enumerable.Empty<string>();
+    var defaultFiscalYear = fiscalYearOptions.FirstOrDefault() ?? string.Empty;
 }
 
 <div class="floating-card mb-5 fade-in">
@@ -26,7 +27,7 @@
                     <label for="fiscalYearFilter" class="form-label" style="color: var(--onejax-navy); font-weight: 600;">
                         Supporting Data Fiscal Year
                     </label>
-                    <select class="form-select" id="fiscalYearFilter" name="fiscalYear" style="border-radius: 12px; border: 2px solid var(--onejax-border); padding: 12px;">
+                    <select class="form-select" id="fiscalYearFilter" name="fiscalYear" data-default-fiscal-year="@defaultFiscalYear" style="border-radius: 12px; border: 2px solid var(--onejax-border); padding: 12px;">
                         <option value="" selected="@(string.IsNullOrEmpty(selectedFiscalYear))">All Years</option>
                         @foreach (var fiscalYearOption in fiscalYearOptions)
                         {

@@ -27,7 +27,7 @@ public class HomeController : Controller
             var defaultFiscalYear = GetCurrentFiscalYearLabel();
             var selectedFiscalYear = hasFiscalYearParam
                 ? (fiscalYear ?? string.Empty).Trim()
-                : string.Empty;
+                : defaultFiscalYear;
 
             ViewBag.SelectedFiscalYear = selectedFiscalYear;
             ViewBag.ActiveFiscalYearLabel = string.IsNullOrWhiteSpace(selectedFiscalYear) ? "All Years" : selectedFiscalYear;
@@ -256,12 +256,67 @@ public class HomeController : Controller
             // Add board meeting attendance records for the enhanced view
             var boardMeetingAttendance = await _context.BoardMeetingAttendance
                 .OrderByDescending(b => b.MeetingDate)
-                .Take(10) // Limit to last 10 meetings
                 .ToListAsync();
-            ViewBag.BoardMeetingAttendance = FilterByFiscalYearDate(boardMeetingAttendance, selectedFiscalYear, b => b.MeetingDate)
+            var filteredBoardMeetingAttendance = FilterByFiscalYearDate(boardMeetingAttendance, selectedFiscalYear, b => b.MeetingDate)
+                .OrderByDescending(b => b.MeetingDate)
+                .ToList();
+            var boardMeetingAttendanceAverage = filteredBoardMeetingAttendance
+                .Where(b => (b.TotalBoardMembers ?? 0) > 0)
+                .Select(b => (decimal)b.MembersInAttendance / (b.TotalBoardMembers ?? 0) * 100m)
+                .DefaultIfEmpty(0m)
+                .Average();
+
+            ViewBag.BoardMeetingAttendanceAverage = Math.Round(boardMeetingAttendanceAverage, 1);
+            ViewBag.BoardMeetingAttendanceCount = filteredBoardMeetingAttendance.Count;
+            ViewBag.BoardMeetingAttendance = filteredBoardMeetingAttendance
                 .OrderByDescending(b => b.MeetingDate)
                 .Take(10)
                 .ToList();
+
+            var staffSurveyRecords = FilterByFiscalYearDate(
+                    await _context.StaffSurveys_22D
+                        .OrderByDescending(s => s.CreatedDate)
+                        .ToListAsync(),
+                    selectedFiscalYear,
+                    s => s.CreatedDate)
+                .OrderByDescending(s => s.CreatedDate)
+                .ToList();
+            ViewBag.StaffSurveyRecords = staffSurveyRecords;
+            ViewBag.StaffSurveyAverage = staffSurveyRecords.Any()
+                ? Math.Round(staffSurveyRecords.Average(s => s.SatisfactionRate), 1)
+                : 0d;
+
+            var boardSelfAssessmentRecords = FilterByFiscalYearYearsWithCreatedDateFallback(
+                    await _context.selfAssess_31D
+                        .OrderByDescending(a => a.Year)
+                        .ThenByDescending(a => a.CreatedDate)
+                        .ToListAsync(),
+                    selectedFiscalYear,
+                    a => a.Year,
+                    a => a.CreatedDate)
+                .OrderByDescending(a => a.Year)
+                .ThenByDescending(a => a.CreatedDate)
+                .ToList();
+            ViewBag.BoardSelfAssessmentRecords = boardSelfAssessmentRecords;
+            ViewBag.BoardSelfAssessmentAverage = boardSelfAssessmentRecords.Any()
+                ? Math.Round(boardSelfAssessmentRecords.Average(a => a.SelfAssessmentScore), 1)
+                : 0d;
+
+            var professionalDevelopmentRecords = FilterByFiscalYearYearsWithCreatedDateFallback(
+                    await _context.ProfessionalDevelopments
+                        .OrderByDescending(p => p.Year)
+                        .ThenByDescending(p => p.CreatedDate)
+                        .ToListAsync(),
+                    selectedFiscalYear,
+                    p => p.Year,
+                    p => p.CreatedDate)
+                .OrderByDescending(p => p.Year)
+                .ThenByDescending(p => p.CreatedDate)
+                .ToList();
+            ViewBag.ProfessionalDevelopmentRecords = professionalDevelopmentRecords;
+            ViewBag.ProfessionalDevelopmentParticipantCount = professionalDevelopmentRecords.Count;
+            ViewBag.ProfessionalDevelopmentAccountCount = await _context.Staffauth
+                .CountAsync(staff => !string.IsNullOrWhiteSpace(staff.Username));
 
             // Add board recruitment records for detailed organizational card display
             var boardRecruitmentRecords = await _context.BoardMember_29D
@@ -588,8 +643,16 @@ public class HomeController : Controller
             return null;
         }
 
-        // Quarter-based records store the fiscal year ending year directly.
-        return year;
+        // These forms store calendar quarters:
+        // Q1 = Jan-Mar, Q2 = Apr-Jun, Q3 = Jul-Sep, Q4 = Oct-Dec.
+        // Convert those calendar-quarter records into the fiscal year ending year
+        // for OneJax's July 1 - June 30 fiscal year.
+        return quarter switch
+        {
+            1 or 2 => year,
+            3 or 4 => year + 1,
+            _ => null
+        };
     }
 
     private List<T> FilterByResolvedFiscalYear<T>(

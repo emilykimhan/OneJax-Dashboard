@@ -8,6 +8,8 @@ OfficeOpenXml.ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonComm
 var builder = WebApplication.CreateBuilder(args);
 
 var databaseSettings = DatabaseConfiguration.Resolve(builder.Configuration, builder.Environment.EnvironmentName);
+Console.WriteLine($"[startup] Environment: {builder.Environment.EnvironmentName}");
+Console.WriteLine($"[startup] Database provider: {databaseSettings.Provider}");
 var runSqliteMigration = args.Contains("--migrate-sqlite-to-sqlserver", StringComparer.OrdinalIgnoreCase);
 var runAdminCountCheck = args.Contains("--check-admin-count", StringComparer.OrdinalIgnoreCase);
 var runAppDataReset = args.Contains("--reset-app-data", StringComparer.OrdinalIgnoreCase);
@@ -81,21 +83,29 @@ builder.Services.AddSingleton<OneJaxDashboard.Services.ProjectsService>();
 
 var easternTimeZoneId = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "Eastern Standard Time" : "America/New_York";
 builder.Services.AddSingleton(TimeZoneInfo.FindSystemTimeZoneById(easternTimeZoneId));
+Console.WriteLine("[startup] Building web application...");
 var app = builder.Build();
+Console.WriteLine("[startup] Web application built.");
 
 using (var scope = app.Services.CreateScope())
 {
+    Console.WriteLine("[startup] Running database bootstrap...");
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
     if (databaseSettings.InitializeSchemaOnStartup)
     {
+        Console.WriteLine("[startup] Ensuring schema is created...");
         db.Database.EnsureCreated();
     }
 
+    Console.WriteLine("[startup] Ensuring staff admin support...");
     EnsureStaffAdminSupport(db);
+    Console.WriteLine("[startup] Ensuring fallback admin access...");
     EnsureFallbackAdminAccess(db);
 
+    Console.WriteLine("[startup] Ensuring canonical strategic goals...");
     EnsureCanonicalStrategicGoals(db);
+    Console.WriteLine("[startup] Database bootstrap complete.");
 }
 
 if (!app.Environment.IsDevelopment())
@@ -119,6 +129,7 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}"
 );
 
+Console.WriteLine("[startup] Starting web host...");
 app.Run();
 
 static void EnsureCanonicalStrategicGoals(ApplicationDbContext db)

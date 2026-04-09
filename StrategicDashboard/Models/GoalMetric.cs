@@ -2,6 +2,8 @@
 // Usage: Tracks progress against targets with quarterly data support
 
 //Emily
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace OneJaxDashboard.Models
 {
     public class GoalMetric
@@ -32,18 +34,25 @@ namespace OneJaxDashboard.Models
         public decimal Q3Value { get; set; }
         public decimal Q4Value { get; set; }
 
-        // Evidence/sample tracking for score-based metrics so one entry does not overstate progress.
+        // Evidence/sample tracking is derived at runtime for dashboard display only.
+        [NotMapped]
         public int? SampleCount { get; set; }
+        [NotMapped]
         public int? MinimumSampleSize { get; set; }
+        [NotMapped]
         public string SampleCountText { get; set; } = "";
+        [NotMapped]
         public string SampleRequirementText { get; set; } = "";
 
+        [NotMapped]
         public bool HasSampleRequirement => MinimumSampleSize.GetValueOrDefault() > 0;
 
+        [NotMapped]
         public bool HasSufficientSample =>
             !HasSampleRequirement || SampleCount.GetValueOrDefault() >= MinimumSampleSize.GetValueOrDefault();
 
         // Calculate progress percentage
+        [NotMapped]
         public decimal ProgressPercentage
         {
             get
