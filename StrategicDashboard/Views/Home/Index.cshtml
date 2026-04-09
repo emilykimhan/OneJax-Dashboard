@@ -17,34 +17,6 @@
     // Gate all data-entry/admin actions from public viewers.
     var canManageData = (User?.Identity?.IsAuthenticated ?? false) && (User.IsInRole("Admin") || User.IsInRole("Staff"));
 
-    bool IsScheduledMetric(GoalMetric metric)
-    {
-        return MetricTrackingSchedule.IsScheduledForFiscalYear(metric.Name, activeFiscalYear);
-    }
-
-    bool IsReportingMetric(GoalMetric metric)
-    {
-        var clean = (metric.Target ?? string.Empty).Replace("$", "").Replace(",", "").Replace("%", "").Trim();
-        return IsScheduledMetric(metric)
-            && !string.Equals(metric.Status, "Planning", StringComparison.OrdinalIgnoreCase)
-            && decimal.TryParse(clean, out var target)
-            && target > 0;
-    }
-
-    decimal LiveGoalProgress(IEnumerable<GoalMetric>? metrics)
-    {
-        var liveMetrics = (metrics ?? Enumerable.Empty<GoalMetric>())
-            .Where(IsReportingMetric)
-            .Select(m =>
-            {
-                var clean = (m.Target ?? string.Empty).Replace("$", "").Replace(",", "").Replace("%", "").Trim();
-                decimal.TryParse(clean, out var target);
-                return target > 0 ? Math.Min((m.CurrentValue / target) * 100, 100) : 0;
-            })
-            .ToList();
-
-        return liveMetrics.Any() ? Math.Round(liveMetrics.Average(), 1) : 0;
-    }
 }
 
 <!-- Enhanced Header Section -->
@@ -155,14 +127,19 @@
                                 </div>
                                 <div class="col-md-4 text-end">
                                     @{
-                                        var goalMetrics = goal.Metrics ?? new List<GoalMetric>();
-                                        var scheduledMetricCount = goalMetrics.Count(IsScheduledMetric);
-                                        var reportingMetricCount = goalMetrics.Count(IsReportingMetric);
-                                        var goalProgress = LiveGoalProgress(goalMetrics);
+                                        var scheduledMetricCount = goal.OverallScheduledMetricCount;
+                                        var reportingMetricCount = goal.OverallReportingMetricCount;
+                                        var goalProgress = goal.OverallProgress;
+                                        var hasScheduledMetrics = scheduledMetricCount > 0;
                                     }
                                     <div class="goal-panel-progress">
-                                        <div class="goal-panel-progress-value">@(reportingMetricCount > 0 ? $"{Math.Round(goalProgress, 1)}%" : scheduledMetricCount > 0 ? "Awaiting data" : "Starts later")</div>
-                                        <small>Overall Progress</small>
+                                        <div class="goal-panel-progress-value">@(hasScheduledMetrics ? $"{Math.Round(goalProgress, 1)}%" : "Starts later")</div>
+                                        <small>Overall Accomplishment</small>
+                                        <div style="font-size: 0.8rem; opacity: 0.85; margin-top: 0.25rem;">
+                                            @(hasScheduledMetrics
+                                                ? $"{reportingMetricCount} of {scheduledMetricCount} metrics have data"
+                                                : "No metrics scheduled yet")
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -175,7 +152,7 @@
                                     </div>
                                     <div class="d-flex justify-content-between mt-2">
                                         <small class="goal-panel-progress-label-muted">Project Start</small>
-                                        <small class="goal-panel-progress-label-active">@(reportingMetricCount > 0 ? $"{Math.Round(goalProgress, 1)}% Complete" : scheduledMetricCount > 0 ? "Awaiting data" : "Starts later")</small>
+                                        <small class="goal-panel-progress-label-active">@(hasScheduledMetrics ? $"{Math.Round(goalProgress, 1)}% Accomplished" : "Starts later")</small>
                                         <small class="goal-panel-progress-label-muted">Target Completion</small>
                                     </div>
                                 </div>

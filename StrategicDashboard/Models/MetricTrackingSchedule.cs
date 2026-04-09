@@ -23,17 +23,11 @@ namespace OneJaxDashboard.Models
                 ["Clergy Network Growth"] = "2025-2026",
                 ["Donor Engagement Events"] = "2025-2026",
                 ["Donor Communication Satisfaction"] = "2025-2026",
-                ["Staff Satisfaction Rating"] = "2026-2027",
-                ["Professional Development Plans"] = "2026-2027",
-                ["Board Recruitment"] = "2026-2027",
-                ["Board Meeting Participation"] = "2026-2027",
-                ["Board Self-Assessment"] = "2026-2027",
                 ["Budget Revenue Tracking"] = "2026-2027",
                 ["Fee-for-Service Income"] = "2026-2027",
                 ["General Income Streams"] = "2026-2027",
                 ["Participant Diversity"] = "2027-2028",
-                ["First-Time Participants"] = "2027-2028",
-                ["Volunteer Program Participation"] = "2027-2028"
+                ["First-Time Participants"] = "2027-2028"
             };
 
         public static string? GetStartFiscalYear(string metricName)

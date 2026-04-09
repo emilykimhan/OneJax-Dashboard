@@ -56,13 +56,20 @@ function applyFilters() {
 
 function resetFilters() {
     const fiscalYearFilter = document.getElementById('fiscalYearFilter');
+    const defaultFiscalYear = fiscalYearFilter?.dataset.defaultFiscalYear || '';
     if (fiscalYearFilter) {
-        fiscalYearFilter.value = '';
+        fiscalYearFilter.value = defaultFiscalYear;
     }
 
     persistDashboardViewState();
-    showNotification('Filters Reset', 'Fiscal year filter has been cleared. Showing all years.', 'info');
-    window.location.href = buildDashboardFilterUrl('');
+    showNotification(
+        'Filters Reset',
+        defaultFiscalYear
+            ? `Fiscal year filter has been reset to FY ${defaultFiscalYear}.`
+            : 'Fiscal year filter has been reset.',
+        'info'
+    );
+    window.location.href = buildDashboardFilterUrl(defaultFiscalYear);
 }
 
 function showComingSoon(feature) {

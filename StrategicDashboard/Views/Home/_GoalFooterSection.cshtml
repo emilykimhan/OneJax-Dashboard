@@ -5,6 +5,7 @@
     var canManageData = ViewData["CanManageData"] as bool? ?? false;
     var userAuthenticated = ViewData["UserAuthenticated"] as bool? ?? false;
     var selectedStatus = ViewData["SelectedStatus"]?.ToString() ?? string.Empty;
+    var activeFiscalYear = ViewBag.ActiveFiscalYearLabel?.ToString() ?? string.Empty;
 
     string GetEventHeaderColor(string? status)
     {
@@ -47,15 +48,20 @@
                                         <div class="col-md-6 col-lg-6 mb-3">
                                             <div class="card" style="border-radius: 12px; border: 1px solid var(--onejax-border); transition: all 0.2s ease;">
                                                 <div class="card-body text-center" style="padding: 1.5rem;">
-                                                    <h6 style="color: var(--onejax-navy); margin-bottom: 1rem; font-weight: 600;">Overall Progress</h6>
+                                                    <h6 style="color: var(--onejax-navy); margin-bottom: 1rem; font-weight: 600;">Overall Accomplishment</h6>
                                                     @{
-                                                        var currentGoalProgress = goal.Metrics?.Any() == true ? goal.Metrics.Average(m => m.ProgressPercentage) : 0;
+                                                        var currentGoalProgress = goal.OverallProgress;
+                                                        var currentGoalScheduledMetrics = goal.OverallScheduledMetricCount;
+                                                        var currentGoalReportingMetrics = goal.OverallReportingMetricCount;
                                                     }
                                                     <div style="font-size: 2rem; font-weight: 700; color: var(--onejax-navy); margin-bottom: 1rem;">@Math.Round(currentGoalProgress, 1)%</div>
                                                     <div class="progress" style="height: 8px; border-radius: 4px; background: rgba(59, 130, 246, 0.1);">
                                                         <div class="progress-bar" style="width: @Math.Min(currentGoalProgress, 100)%; background: var(--gradient-secondary); border-radius: 4px;"></div>
                                                     </div>
-                                                    <small class="text-muted mt-2 d-block">Strategic Initiative Progress</small>
+                                                    <small class="text-muted mt-2 d-block">Strategic initiative accomplishment across all years</small>
+                                                    <small class="text-muted d-block">@(currentGoalScheduledMetrics > 0
+                                                        ? $"{currentGoalReportingMetrics} of {currentGoalScheduledMetrics} scheduled metrics have data"
+                                                        : "No metrics scheduled yet")</small>
                                                 </div>
                                             </div>
                                         </div>

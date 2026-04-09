@@ -9,6 +9,8 @@ OfficeOpenXml.ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonComm
 var builder = WebApplication.CreateBuilder(args);
 
 var databaseSettings = DatabaseConfiguration.Resolve(builder.Configuration, builder.Environment.EnvironmentName);
+Console.WriteLine($"[startup] Environment: {builder.Environment.EnvironmentName}");
+Console.WriteLine($"[startup] Database provider: {databaseSettings.Provider}");
 var runSqliteMigration = args.Contains("--migrate-sqlite-to-sqlserver", StringComparer.OrdinalIgnoreCase);
 var runAdminCountCheck = args.Contains("--check-admin-count", StringComparer.OrdinalIgnoreCase);
 var runAppDataReset = args.Contains("--reset-app-data", StringComparer.OrdinalIgnoreCase);
@@ -82,24 +84,33 @@ builder.Services.AddSingleton<OneJaxDashboard.Services.ProjectsService>();
 
 var easternTimeZoneId = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "Eastern Standard Time" : "America/New_York";
 builder.Services.AddSingleton(TimeZoneInfo.FindSystemTimeZoneById(easternTimeZoneId));
+Console.WriteLine("[startup] Building web application...");
 var app = builder.Build();
+Console.WriteLine("[startup] Web application built.");
 
 using (var scope = app.Services.CreateScope())
 {
+    Console.WriteLine("[startup] Running database bootstrap...");
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
     if (databaseSettings.InitializeSchemaOnStartup)
     {
+        Console.WriteLine("[startup] Ensuring schema is created...");
         db.Database.EnsureCreated();
     }
 
+    Console.WriteLine("[startup] Ensuring staff admin support...");
     EnsureStaffAdminSupport(db);
     EnsureStrategyProgramSupport(db);
     EnsureStrategyArchiveSupport(db);
     EnsureProgramArchiveSupport(db);
     EnsureActivityLogSupport(db);
+    Console.WriteLine("[startup] Ensuring fallback admin access...");
+    EnsureFallbackAdminAccess(db);
 
+    Console.WriteLine("[startup] Ensuring canonical strategic goals...");
     EnsureCanonicalStrategicGoals(db);
+    Console.WriteLine("[startup] Database bootstrap complete.");
 }
 
 if (!app.Environment.IsDevelopment())
@@ -123,6 +134,7 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}"
 );
 
+Console.WriteLine("[startup] Starting web host...");
 app.Run();
 
 static void EnsureCanonicalStrategicGoals(ApplicationDbContext db)
@@ -239,6 +251,24 @@ static void EnsureStaffAdminSupport(ApplicationDbContext db)
             connection.Close();
         }
     }
+}
+
+static void EnsureFallbackAdminAccess(ApplicationDbContext db)
+{
+    if (db.Staffauth.Any(staff => staff.IsAdmin))
+    {
+        return;
+    }
+
+    var fallbackAdmin = db.Staffauth.FirstOrDefault(staff => staff.Username == "admin");
+    if (fallbackAdmin == null)
+    {
+        return;
+    }
+
+    fallbackAdmin.IsAdmin = true;
+    db.SaveChanges();
+    Console.WriteLine("[admin-bootstrap] Promoted 'admin' to administrator because no admin accounts were found.");
 }
 
 static void EnsureProgramArchiveSupport(ApplicationDbContext db)
