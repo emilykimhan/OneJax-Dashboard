@@ -106,8 +106,8 @@ public class ExportController : Controller
         if (byType.TryGetValue("professional-development", out var pdIds))
         {
             var records = _context.ProfessionalDevelopments.Where(x => pdIds.Contains(x.Id)).ToList();
-            AddSheet("Professional Development", new[] { "Year", "StaffName", "Activities", "CreatedDate" },
-                records.Select(x => new object?[] { x.Year, x.Name, x.Activities, x.CreatedDate.ToString("MM/dd/yyyy") }));
+            AddSheet("Professional Development", new[] { "Year", "Month", "StaffName", "Activities", "CreatedDate" },
+                records.Select(x => new object?[] { x.Year, x.Month, x.Name, x.Activities, x.CreatedDate.ToString("MM/dd/yyyy") }));
         }
         if (byType.TryGetValue("media-placements", out var mpIds))
         {

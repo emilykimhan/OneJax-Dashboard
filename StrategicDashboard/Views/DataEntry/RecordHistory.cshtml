@@ -198,6 +198,9 @@
                                     <strong>Year:</strong> @profDev.Year
                                 </div>
                                 <div class="detail-item">
+                                    <strong>Month:</strong> @(string.IsNullOrWhiteSpace(profDev.Month) ? "Not set" : profDev.Month)
+                                </div>
+                                <div class="detail-item">
                                     <strong>Staff Name:</strong> @profDev.Name
                                 </div>
                                 <div class="detail-item">

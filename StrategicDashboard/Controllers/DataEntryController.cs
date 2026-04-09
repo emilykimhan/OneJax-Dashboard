@@ -1611,6 +1611,7 @@ namespace OneJaxDashboard.Controllers
                 {
                     existingProfDev.Year = profDev.Year;
                     existingProfDev.Name = profDev.Name;
+                    existingProfDev.Month = profDev.Month;
                     existingProfDev.Activities = profDev.Activities;
                     
                     _context.SaveChanges();
