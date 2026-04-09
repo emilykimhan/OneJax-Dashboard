@@ -1572,6 +1572,7 @@ namespace OneJaxDashboard.Controllers
                 if (existingSurvey != null)
                 {
                     existingSurvey.Year = survey.Year;
+                    existingSurvey.Month = survey.Month;
                     existingSurvey.SatisfactionRate = survey.SatisfactionRate;
                     
                     _context.SaveChanges();

@@ -23,15 +23,17 @@ public class ExportController : Controller
         {
             var worksheet = workbook.Worksheets.Add("Staff Survey 22D");
             worksheet.Cell(1, 1).Value = "Year";
-            worksheet.Cell(1, 2).Value = "SatisfactionRate";
-            worksheet.Cell(1, 3).Value = "CreatedDate";
+            worksheet.Cell(1, 2).Value = "Month";
+            worksheet.Cell(1, 3).Value = "SatisfactionRate";
+            worksheet.Cell(1, 4).Value = "CreatedDate";
 
             for (int i = 0; i < surveys.Count; i++)
             {
                 var s = surveys[i];
                 worksheet.Cell(i + 2, 1).Value = s.Year;
-                worksheet.Cell(i + 2, 2).Value = s.SatisfactionRate;
-                worksheet.Cell(i + 2, 3).Value = s.CreatedDate.ToString("MM/dd/yyyy");
+                worksheet.Cell(i + 2, 2).Value = s.Month;
+                worksheet.Cell(i + 2, 3).Value = s.SatisfactionRate;
+                worksheet.Cell(i + 2, 4).Value = s.CreatedDate.ToString("MM/dd/yyyy");
             }
 
             worksheet.Columns().AdjustToContents();
@@ -98,8 +100,8 @@ public class ExportController : Controller
         if (byType.TryGetValue("staff-survey", out var ssIds))
         {
             var records = _context.StaffSurveys_22D.Where(x => ssIds.Contains(x.Id)).ToList();
-            AddSheet("Staff Survey", new[] { "Year", "SatisfactionRate", "CreatedDate" },
-                records.Select(x => new object?[] { x.Year, x.SatisfactionRate, x.CreatedDate.ToString("MM/dd/yyyy") }));
+            AddSheet("Staff Survey", new[] { "Year", "Month", "SatisfactionRate", "CreatedDate" },
+                records.Select(x => new object?[] { x.Year, x.Month, x.SatisfactionRate, x.CreatedDate.ToString("MM/dd/yyyy") }));
         }
         if (byType.TryGetValue("professional-development", out var pdIds))
         {
