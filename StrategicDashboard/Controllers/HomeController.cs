@@ -83,13 +83,15 @@ public class HomeController : Controller
 
             try
             {
-                var staffSurveyRecords = FilterByFiscalYearYears(
+                var staffSurveyRecords = FilterByFiscalYearYearMonthWithCreatedDateFallback(
                         await _context.StaffSurveys_22D
                             .OrderByDescending(s => s.Year)
                             .ThenByDescending(s => s.CreatedDate)
                             .ToListAsync(),
                         selectedFiscalYear,
-                        s => s.Year)
+                        s => s.Year,
+                        s => s.Month,
+                        s => s.CreatedDate)
                     .OrderByDescending(s => s.Year)
                     .ThenByDescending(s => s.CreatedDate)
                     .ToList();
@@ -107,13 +109,15 @@ public class HomeController : Controller
 
             try
             {
-                var boardSelfAssessmentRecords = FilterByFiscalYearYears(
+                var boardSelfAssessmentRecords = FilterByFiscalYearYearMonthWithCreatedDateFallback(
                         await _context.selfAssess_31D
                             .OrderByDescending(a => a.Year)
                             .ThenByDescending(a => a.CreatedDate)
                             .ToListAsync(),
                         selectedFiscalYear,
-                        a => a.Year)
+                        a => a.Year,
+                        a => a.Month,
+                        a => a.CreatedDate)
                     .OrderByDescending(a => a.Year)
                     .ThenByDescending(a => a.CreatedDate)
                     .ToList();
@@ -131,13 +135,15 @@ public class HomeController : Controller
 
             try
             {
-                var professionalDevelopmentRecords = FilterByFiscalYearYears(
+                var professionalDevelopmentRecords = FilterByFiscalYearYearMonthWithCreatedDateFallback(
                         await _context.ProfessionalDevelopments
                             .OrderByDescending(p => p.Year)
                             .ThenByDescending(p => p.CreatedDate)
                             .ToListAsync(),
                         selectedFiscalYear,
-                        p => p.Year)
+                        p => p.Year,
+                        p => p.Month,
+                        p => p.CreatedDate)
                     .OrderByDescending(p => p.Year)
                     .ThenByDescending(p => p.CreatedDate)
                     .ToList();
@@ -430,6 +436,42 @@ public class HomeController : Controller
         return year > 0 ? year : null;
     }
 
+    private static int? TryParseMonthNumber(string? month)
+    {
+        if (string.IsNullOrWhiteSpace(month))
+        {
+            return null;
+        }
+
+        if (DateTime.TryParseExact(
+                month.Trim(),
+                new[] { "MMMM", "MMM" },
+                System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None,
+                out var parsedDate))
+        {
+            return parsedDate.Month;
+        }
+
+        return null;
+    }
+
+    private static int? GetFiscalYearEndFromStoredYearMonth(int year, string? month)
+    {
+        if (year <= 0)
+        {
+            return null;
+        }
+
+        var monthNumber = TryParseMonthNumber(month);
+        if (!monthNumber.HasValue)
+        {
+            return GetFiscalYearEndFromStoredYear(year);
+        }
+
+        return GetFiscalYearEndFromDate(new DateTime(year, monthNumber.Value, 1));
+    }
+
     private static int? GetFiscalYearEndFromCalendarQuarterRecord(int year, int quarter)
     {
         if (year <= 0 || quarter is < 1 or > 4)
@@ -465,6 +507,20 @@ public class HomeController : Controller
     private List<T> FilterByFiscalYearYears<T>(IEnumerable<T> source, string fiscalYear, Func<T, int> yearSelector)
     {
         return FilterByResolvedFiscalYear(source, fiscalYear, item => GetFiscalYearEndFromStoredYear(yearSelector(item)));
+    }
+
+    private List<T> FilterByFiscalYearYearMonthWithCreatedDateFallback<T>(
+        IEnumerable<T> source,
+        string fiscalYear,
+        Func<T, int> yearSelector,
+        Func<T, string?> monthSelector,
+        Func<T, DateTime> createdDateSelector)
+    {
+        return FilterByResolvedFiscalYear(
+            source,
+            fiscalYear,
+            item => GetFiscalYearEndFromStoredYearMonth(yearSelector(item), monthSelector(item))
+                ?? GetFiscalYearEndFromDate(createdDateSelector(item)));
     }
 
     private List<T> FilterByFiscalYearCalendarQuarterWithCreatedDateFallback<T>(

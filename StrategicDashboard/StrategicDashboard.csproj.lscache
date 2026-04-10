@@ -252,6 +252,12 @@ Migrations/
  20260330191619_MakeBoardMemberNumberRecruitedOptional.Designer.cs
  20260330223112_AddIsAdminToStaffauthAndAlignAssignedStaffFk.cs
  20260330223112_AddIsAdminToStaffauthAndAlignAssignedStaffFk.Designer.cs
+ 20260409201708_AddMonthToStaffSurvey.cs
+ 20260409201708_AddMonthToStaffSurvey.Designer.cs
+ 20260409203017_AddMonthToProfessionalDevelopment.cs
+ 20260409203017_AddMonthToProfessionalDevelopment.Designer.cs
+ 20260409204528_AddMonthToSelfAssessment.cs
+ 20260409204528_AddMonthToSelfAssessment.Designer.cs
  ApplicationDbContextModelSnapshot.cs
 Models/
  ActivityLogEntry.cs
