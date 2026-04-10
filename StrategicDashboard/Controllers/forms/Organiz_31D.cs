@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OneJaxDashboard.Data;
 using OneJaxDashboard.Models;
-using Microsoft.EntityFrameworkCore;
 using OneJaxDashboard.Services;
 
 namespace OneJaxDashboard.Controllers
@@ -51,7 +50,7 @@ namespace OneJaxDashboard.Controllers
                     _context.SaveChanges();
                     var actor = User?.Identity?.Name ?? "Unknown";
                     _activityLog.Log(actor, "Created Board Self-Assessment Record", "SelfAssessment",
-                        details: $"Id={model.Id}");
+                        details: $"Id={model.Id}; Year: {model.Year}; Month: {model.Month}; Score: {model.SelfAssessmentScore}");
                     
                     TempData["Success"] = "Board self-assessment record submitted successfully!";
                     return RedirectToAction(nameof(Index));

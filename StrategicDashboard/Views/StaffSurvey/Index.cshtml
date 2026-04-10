@@ -2,6 +2,14 @@
 @{
     ViewData["Title"] = "Staff Survey";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var monthNames = new[]
+    {
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    };
+    var selectedMonth = string.IsNullOrWhiteSpace(Model.Month)
+        ? DateTime.Now.ToString("MMMM")
+        : Model.Month;
 }
 
 <div class="container mt-4">
@@ -46,6 +54,18 @@
                             <input asp-for="Year" type="number" min="2020" max="2100"
                                    class="form-control" placeholder="Enter year (e.g., 2026)" value="@DateTime.Now.Year" />
                             <span asp-validation-for="Year" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Month" class="form-label fw-bold">Month:</label>
+                            <select asp-for="Month" class="form-select">
+                                <option value="">-- Select Month --</option>
+                                @foreach (var month in monthNames)
+                                {
+                                    <option value="@month" selected="@(selectedMonth == month ? "selected" : null)">@month</option>
+                                }
+                            </select>
+                            <span asp-validation-for="Month" class="text-danger"></span>
                         </div>
 
                         <div class="mb-3">

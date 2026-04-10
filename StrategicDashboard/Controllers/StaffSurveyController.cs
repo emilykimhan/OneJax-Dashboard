@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using OneJaxDashboard.Models;
 using OneJaxDashboard.Data;
 using OneJaxDashboard.Services;
@@ -40,7 +39,7 @@ namespace OneJaxDashboard.Controllers
 
                     var actor = User.Identity?.Name ?? "Unknown";
                     _activityLog.Log(actor, "Submitted Staff Satisfaction Survey", "StaffSurvey",
-                        details: $"Id={model.Id}; Year: {model.Year}, Satisfaction: {model.SatisfactionRate}%");
+                        details: $"Id={model.Id}; Year: {model.Year}, Month: {model.Month}, Satisfaction: {model.SatisfactionRate}%");
                     
                     TempData["SuccessMessage"] = "Survey submitted and saved successfully!";
                     return RedirectToAction("Index");
