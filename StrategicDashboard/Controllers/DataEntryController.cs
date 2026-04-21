@@ -1371,6 +1371,16 @@ namespace OneJaxDashboard.Controllers
                 TempData["Error"] = "Record not found.";
                 return RedirectToAction("RecordHistory");
             }
+
+            if (!record.Year.HasValue && !string.IsNullOrWhiteSpace(record.Month))
+            {
+                var parts = record.Month.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length > 1 && int.TryParse(parts[^1], out var extractedYear))
+                {
+                    record.Year = extractedYear;
+                }
+            }
+
             return View(record);
         }
 
@@ -1386,7 +1396,8 @@ namespace OneJaxDashboard.Controllers
                     existing.IncomeSource = model.IncomeSource;
                     existing.Amount = model.Amount;
                     existing.Month = model.Month;
-                    if (!string.IsNullOrWhiteSpace(model.Month))
+                    existing.Year = model.Year;
+                    if (!existing.Year.HasValue && !string.IsNullOrWhiteSpace(model.Month))
                     {
                         var parts = model.Month.Split(' ', StringSplitOptions.RemoveEmptyEntries);
                         if (parts.Length > 0 && int.TryParse(parts[^1], out var extractedYear))

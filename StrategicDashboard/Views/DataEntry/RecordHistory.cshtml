@@ -476,6 +476,9 @@
                                     <strong>Year:</strong> @rate.Year
                                 </div>
                                 <div class="detail-item">
+                                    <strong>Month:</strong> @(rate.Month > 0 ? System.Globalization.DateTimeFormatInfo.CurrentInfo.GetMonthName(rate.Month) : "N/A")
+                                </div>
+                                <div class="detail-item">
                                     <strong>Average Communication Satisfaction:</strong> @rate.AverageCommunicationSatisfaction%
                                 </div>
                                 <div class="detail-item">
