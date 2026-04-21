@@ -57,15 +57,36 @@
                 <form asp-controller="FinanceRate20D" asp-action="Index" method="post">
                     <div class="row">
                         <!-- Year -->
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
                             <label asp-for="Year" class="form-label fw-bold">Year</label>
                             <input asp-for="Year" type="number" class="form-control" 
                                    placeholder="Enter year (e.g., 2025)" min="2020" max="2100" />
                             <span asp-validation-for="Year" class="text-danger"></span>
                         </div>
 
+                        <!-- Month -->
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="Month" class="form-label fw-bold">Month</label>
+                            <select asp-for="Month" class="form-select">
+                                <option value="">-- Select Month --</option>
+                                <option value="1">January</option>
+                                <option value="2">February</option>
+                                <option value="3">March</option>
+                                <option value="4">April</option>
+                                <option value="5">May</option>
+                                <option value="6">June</option>
+                                <option value="7">July</option>
+                                <option value="8">August</option>
+                                <option value="9">September</option>
+                                <option value="10">October</option>
+                                <option value="11">November</option>
+                                <option value="12">December</option>
+                            </select>
+                            <span asp-validation-for="Month" class="text-danger"></span>
+                        </div>
+
                         <!-- Average Communication Satisfaction -->
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
                             <label asp-for="AverageCommunicationSatisfaction" class="form-label fw-bold">
                                 Average Communication Satisfaction (%)
                             </label>
@@ -99,6 +120,11 @@
     .form-label {
         color: var(--onejax-navy);
         margin-bottom: 0.5rem;
+    }
+    
+    .form-select:focus {
+        border-color: var(--onejax-navy);
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 191, 0.25);
     }
     
     .card {

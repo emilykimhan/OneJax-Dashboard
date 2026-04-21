@@ -93,6 +93,9 @@ using (var scope = app.Services.CreateScope())
         db.Database.EnsureCreated();
     }
 
+    // Apply any pending migrations automatically on startup
+    db.Database.Migrate();
+
     EnsureStaffAdminSupport(db);
     EnsureStrategyProgramSupport(db);
     EnsureStrategyArchiveSupport(db);

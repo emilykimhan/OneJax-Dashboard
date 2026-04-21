@@ -45,7 +45,7 @@ namespace OneJaxDashboard.Controllers
             {
                 try
                 {
-                    if (TryExtractYearFromMonthValue(model.Month, out var extractedYear))
+                    if (!model.Year.HasValue && TryExtractYearFromMonthValue(model.Month, out var extractedYear))
                     {
                         model.Year = extractedYear;
                     }
