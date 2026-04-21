@@ -55,7 +55,7 @@
                         </div>
 
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-4 mb-3">
                                 <label asp-for="Amount" class="form-label fw-bold">Amount:</label>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
@@ -65,7 +65,13 @@
                                 <span asp-validation-for="Amount" class="text-danger"></span>
                             </div>
 
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="Year" class="form-label fw-bold">Year:</label>
+                                <input asp-for="Year" type="number" min="2020" max="2100" class="form-control" placeholder="e.g., 2026" />
+                                <span asp-validation-for="Year" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
                                 <label asp-for="Month" class="form-label fw-bold">Month:</label>
                                 <select asp-for="Month" class="form-select" asp-items="ViewBag.Months">
                                     <option value="">-- Select Month --</option>

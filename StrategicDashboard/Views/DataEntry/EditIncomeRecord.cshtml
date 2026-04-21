@@ -6,12 +6,13 @@
     var currentYear = DateTime.Now.Year;
     var monthNames = new[] { "January", "February", "March", "April", "May", "June",
                              "July", "August", "September", "October", "November", "December" };
-    var monthOptions = new List<string>();
-    for (int year = currentYear - 1; year <= currentYear + 2; year++)
+    var selectedMonth = string.Empty;
+    if (!string.IsNullOrWhiteSpace(Model.Month))
     {
-        foreach (var m in monthNames)
+        var monthParts = Model.Month.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (monthParts.Length > 0)
         {
-            monthOptions.Add($"{m} {year}");
+            selectedMonth = monthParts[0];
         }
     }
 }
@@ -43,12 +44,18 @@
             </div>
 
             <div class="mb-3">
+                <label asp-for="Year" class="form-label fw-bold">Year</label>
+                <input asp-for="Year" type="number" min="2020" max="2100" class="form-control" placeholder="e.g., 2026" />
+                <span asp-validation-for="Year" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
                 <label asp-for="Month" class="form-label fw-bold">Month</label>
                 <select asp-for="Month" class="form-select">
                     <option value="">-- Select Month --</option>
-                    @foreach (var option in monthOptions)
+                    @foreach (var month in monthNames)
                     {
-                        <option value="@option" selected="@(Model.Month == option ? "selected" : null)">@option</option>
+                        <option value="@month" selected="@(string.Equals(selectedMonth, month, StringComparison.OrdinalIgnoreCase) ? "selected" : null)">@month</option>
                     }
                 </select>
                 <span asp-validation-for="Month" class="text-danger"></span>
