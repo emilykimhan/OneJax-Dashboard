@@ -1076,6 +1076,8 @@ namespace OneJaxDashboard.Controllers
                 var existing = _context.achieveMile_6D.Find(model.Id);
                 if (existing != null)
                 {
+                    existing.Year = model.Year;
+                    existing.Month = model.Month;
                     existing.Percentage = model.Percentage;
                     existing.achievedReview = model.achievedReview;
                     _context.SaveChanges();

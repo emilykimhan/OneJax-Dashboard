@@ -794,6 +794,15 @@
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
+                                    <strong>Year:</strong> @milestone.Year
+                                </div>
+                                @if (milestone.Month.HasValue)
+                                {
+                                <div class="detail-item">
+                                    <strong>Month:</strong> @(new System.Globalization.DateTimeFormatInfo().GetMonthName(milestone.Month.Value))
+                                </div>
+                                }
+                                <div class="detail-item">
                                     <strong>Milestones Achieved:</strong> @milestone.Percentage%
                                 </div>
                                 <div class="detail-item">
