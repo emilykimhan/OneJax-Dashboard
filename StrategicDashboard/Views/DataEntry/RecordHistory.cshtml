@@ -1453,6 +1453,12 @@
                                 <div class="detail-item">
                                     <strong>Year:</strong> @nc.Year
                                 </div>
+                                @if (nc.Month.HasValue)
+                                {
+                                <div class="detail-item">
+                                    <strong>Month:</strong> @(new System.Globalization.DateTimeFormatInfo().GetMonthName(nc.Month.Value))
+                                </div>
+                                }
                                 <div class="detail-item">
                                     <strong>Total Interfaith Contacts:</strong> @nc.TotalInterfaithContacts
                                 </div>

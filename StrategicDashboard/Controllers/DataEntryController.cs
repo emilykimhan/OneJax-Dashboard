@@ -2205,6 +2205,7 @@ namespace OneJaxDashboard.Controllers
                 if (existing != null)
                 {
                     existing.Year = model.Year;
+                    existing.Month = model.Month;
                     existing.TotalInterfaithContacts = model.TotalInterfaithContacts;
                     _context.SaveChanges();
                     TempData["Success"] = "Network Contacts record updated successfully!";
