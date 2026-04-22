@@ -258,6 +258,16 @@ Migrations/
  20260409204528_AddMonthToSelfAssessment.Designer.cs
  20260421194708_AddMonthToCommunicationRate.cs
  20260421194708_AddMonthToCommunicationRate.Designer.cs
+ 20260422140012_AddYearToMediaPlacements.cs
+ 20260422140012_AddYearToMediaPlacements.Designer.cs
+ 20260422140649_AddYearToWebsiteTraffic.cs
+ 20260422140649_AddYearToWebsiteTraffic.Designer.cs
+ 20260422141537_AddMonthToCommunityPerception.cs
+ 20260422141537_AddMonthToCommunityPerception.Designer.cs
+ 20260422142715_AddYearMonthToMilestone.cs
+ 20260422142715_AddYearMonthToMilestone.Designer.cs
+ 20260422145035_AddMonthToNetworkContacts.cs
+ 20260422145035_AddMonthToNetworkContacts.Designer.cs
  ApplicationDbContextModelSnapshot.cs
 Models/
  ActivityLogEntry.cs
