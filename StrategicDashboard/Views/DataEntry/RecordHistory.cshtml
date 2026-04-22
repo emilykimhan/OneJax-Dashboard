@@ -252,6 +252,9 @@
                             </div>
                             <div class="record-details">
                                 <div class="detail-item">
+                                    <strong>Year:</strong> @media.Year
+                                </div>
+                                <div class="detail-item">
                                     <strong>Created Date:</strong> @media.CreatedDate.ToString("MM/dd/yyyy")
                                 </div>
                                 <div class="detail-item">
@@ -352,6 +355,9 @@
                                 </label>
                             </div>
                             <div class="record-details">
+                                <div class="detail-item">
+                                    <strong>Year:</strong> @traffic.Year
+                                </div>
                                 <div class="detail-item">
                                     <strong>Created Date:</strong> @traffic.CreatedDate.ToString("MM/dd/yyyy")
                                 </div>
@@ -841,6 +847,12 @@
                                 <div class="detail-item">
                                     <strong>Year:</strong> @cp.Year
                                 </div>
+                                @if (cp.Month.HasValue)
+                                {
+                                <div class="detail-item">
+                                    <strong>Month:</strong> @(new System.Globalization.DateTimeFormatInfo().GetMonthName(cp.Month.Value))
+                                </div>
+                                }
                                 <div class="detail-item">
                                     <strong>% Identifying OneJax as Trusted Leader:</strong> @cp.Percentage%
                                 </div>

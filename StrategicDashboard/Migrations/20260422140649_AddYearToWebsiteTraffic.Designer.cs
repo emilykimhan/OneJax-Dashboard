@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OneJaxDashboard.Data;
 
@@ -10,9 +11,11 @@ using OneJaxDashboard.Data;
 namespace StrategicDashboard.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260422140649_AddYearToWebsiteTraffic")]
+    partial class AddYearToWebsiteTraffic
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.10");
@@ -53,9 +56,6 @@ namespace StrategicDashboard.Migrations
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("TEXT");
-
-                    b.Property<int?>("Month")
-                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(500)

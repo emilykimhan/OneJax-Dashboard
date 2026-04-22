@@ -1018,12 +1018,13 @@ namespace OneJaxDashboard.Controllers
                 if (existing != null)
                 {
                     existing.Year = model.Year;
+                    existing.Month = model.Month;
                     existing.Percentage = model.Percentage;
                     existing.TotalRespondents = model.TotalRespondents;
                     existing.RespondentsIdentifyingAsTrusted = model.RespondentsIdentifyingAsTrusted;
                     existing.Notes = model.Notes;
                     _context.SaveChanges();
-                    TempData["Success"] = "Community Perception Survey record updated successfully!";
+                    TempData["Success"] = "Community Perception Survey record updated successfully!";  
                     return RedirectToAction("RecordHistory");
                 }
                 else
@@ -1648,6 +1649,7 @@ namespace OneJaxDashboard.Controllers
                 var existingMedia = _context.MediaPlacements_3D.Find(media.Id);
                 if (existingMedia != null)
                 {
+                    existingMedia.Year = media.Year;
                     existingMedia.January = media.January;
                     existingMedia.February = media.February;
                     existingMedia.March = media.March;
@@ -1695,6 +1697,7 @@ namespace OneJaxDashboard.Controllers
                 var existingTraffic = _context.WebsiteTraffic.Find(traffic.Id);
                 if (existingTraffic != null)
                 {
+                    existingTraffic.Year = traffic.Year;
                     existingTraffic.Q1_JulySeptember = traffic.Q1_JulySeptember;
                     existingTraffic.Q2_OctoberDecember = traffic.Q2_OctoberDecember;
                     existingTraffic.Q3_JanuaryMarch = traffic.Q3_JanuaryMarch;

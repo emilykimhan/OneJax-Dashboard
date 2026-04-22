@@ -11,6 +11,11 @@ namespace OneJaxDashboard.Models
         [Range(2020, 2100, ErrorMessage = "Please enter a valid year")]
         [Display(Name = "Year")]
         public int Year { get; set; }
+
+        [Range(1, 12, ErrorMessage = "Please select a valid month")]
+        [Display(Name = "Month")]
+        public int? Month { get; set; }
+
         [Required(ErrorMessage = "Percentage is required")]
         [Range(0, 100, ErrorMessage = "Percentage must be between 0 and 100")]
         [Display(Name = "Percentage of Respondents Identifying OneJax as Trusted Leader")]

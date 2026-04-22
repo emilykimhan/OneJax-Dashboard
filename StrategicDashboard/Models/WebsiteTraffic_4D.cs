@@ -7,6 +7,10 @@ namespace OneJaxDashboard.Models
         [Key]
         public int Id { get; set; }
 
+        [Required(ErrorMessage = "Year is required")]
+        [Range(2000, 2100, ErrorMessage = "Please enter a valid year")]
+        public int Year { get; set; } = DateTime.Now.Year;
+
         [Range(0, int.MaxValue, ErrorMessage = "Value cannot be negative")]
         public int? Q1_JulySeptember { get; set; }
 

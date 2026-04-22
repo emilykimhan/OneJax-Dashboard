@@ -47,6 +47,13 @@
 
                 <!-- Quarterly Input Form -->
                 <form asp-controller="WebsiteTraffic" asp-action="Index" method="post">
+                    <div class="row mb-4">
+                        <div class="col-md-6 mx-auto">
+                            <label asp-for="Year" class="form-label fw-bold">Year</label>
+                            <input asp-for="Year" type="number" class="form-control" min="2000" max="2100" />
+                            <span asp-validation-for="Year" class="text-danger"></span>
+                        </div>
+                    </div>
                     <div class="row">
                         <!-- Q1: July - September -->
                         <div class="col-md-6 mb-4">
