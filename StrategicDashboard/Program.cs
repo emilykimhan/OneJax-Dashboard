@@ -101,6 +101,7 @@ using (var scope = app.Services.CreateScope())
     EnsureStrategyArchiveSupport(db);
     EnsureProgramArchiveSupport(db);
     EnsureActivityLogSupport(db);
+    EnsureProfessionalDevelopmentSchemaSupport(db);
 
     EnsureCanonicalStrategicGoals(db);
 }
@@ -393,6 +394,99 @@ static void EnsureStrategyArchiveSupport(ApplicationDbContext db)
             "ALTER TABLE \"Strategies\" ADD COLUMN \"IsArchived\" INTEGER NOT NULL DEFAULT 0;");
         EnsureSqliteColumn(connection, "Strategies", "ArchivedAtUtc",
             "ALTER TABLE \"Strategies\" ADD COLUMN \"ArchivedAtUtc\" TEXT NULL;");
+    }
+    finally
+    {
+        if (shouldClose)
+        {
+            connection.Close();
+        }
+    }
+}
+
+static void EnsureProfessionalDevelopmentSchemaSupport(ApplicationDbContext db)
+{
+    EnsureRequiredColumn(
+        db,
+        tableName: "ProfessionalDevelopments",
+        columnName: "Year",
+        sqlServerDefinition: "[Year] int NOT NULL CONSTRAINT [DF_ProfessionalDevelopments_Year] DEFAULT(0)",
+        sqliteDefinition: "\"Year\" INTEGER NOT NULL DEFAULT 0");
+
+    EnsureRequiredColumn(
+        db,
+        tableName: "ProfessionalDevelopments",
+        columnName: "Activities",
+        sqlServerDefinition: "[Activities] nvarchar(2000) NOT NULL CONSTRAINT [DF_ProfessionalDevelopments_Activities] DEFAULT(N'')",
+        sqliteDefinition: "\"Activities\" TEXT NOT NULL DEFAULT ''");
+
+    EnsureRequiredColumn(
+        db,
+        tableName: "ProfessionalDevelopments",
+        columnName: "Month",
+        sqlServerDefinition: "[Month] nvarchar(20) NOT NULL CONSTRAINT [DF_ProfessionalDevelopments_Month] DEFAULT(N'')",
+        sqliteDefinition: "\"Month\" TEXT NOT NULL DEFAULT ''");
+}
+
+static void EnsureRequiredColumn(
+    ApplicationDbContext db,
+    string tableName,
+    string columnName,
+    string sqlServerDefinition,
+    string sqliteDefinition)
+{
+    if (db.Database.IsSqlServer())
+    {
+        db.Database.ExecuteSqlRaw($"""
+            IF COL_LENGTH('{tableName}', '{columnName}') IS NULL
+            BEGIN
+                ALTER TABLE [{tableName}]
+                ADD {sqlServerDefinition};
+            END
+            """);
+
+        return;
+    }
+
+    if (!db.Database.IsSqlite())
+    {
+        return;
+    }
+
+    var connection = db.Database.GetDbConnection();
+    var shouldClose = connection.State != ConnectionState.Open;
+    if (shouldClose)
+    {
+        connection.Open();
+    }
+
+    try
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText = $"PRAGMA table_info('{tableName}');";
+
+        var hasColumn = false;
+        using (var reader = command.ExecuteReader())
+        {
+            while (reader.Read())
+            {
+                if (string.Equals(reader["name"]?.ToString(), columnName, StringComparison.OrdinalIgnoreCase))
+                {
+                    hasColumn = true;
+                    break;
+                }
+            }
+        }
+
+        if (!hasColumn)
+        {
+            using var alterCommand = connection.CreateCommand();
+            alterCommand.CommandText = $"""
+                ALTER TABLE "{tableName}"
+                ADD COLUMN {sqliteDefinition};
+                """;
+            alterCommand.ExecuteNonQuery();
+        }
     }
     finally
     {
