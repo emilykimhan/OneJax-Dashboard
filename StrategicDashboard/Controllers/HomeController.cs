@@ -4,14 +4,15 @@ using OneJax.StrategicDashboard.Models;
 using OneJaxDashboard.Data;
 using OneJaxDashboard.Models;
 using OneJaxDashboard.Services;
+using System.Globalization;
 using System.Collections.Generic;
 using System.Linq;
 //emily
 public class HomeController : Controller
 {
-    private static string DefaultFiscalYear => GetCurrentFiscalYear();
     private readonly ApplicationDbContext _context;
     private readonly MetricsService _metricsService;
+    private Dictionary<int, DateTime?>? _strategyDateLookup;
 
     public HomeController(ApplicationDbContext context, MetricsService metricsService)
     {
@@ -23,69 +24,286 @@ public class HomeController : Controller
     {
         try 
         {
-            // Handle both null and empty string fiscal year parameters - both should default to current fiscal year
-            var selectedFiscalYear = string.IsNullOrWhiteSpace(fiscalYear) ? DefaultFiscalYear : fiscalYear;
-            // When no fiscal year is specified, default to current fiscal year instead of "all years"
-            var appliedFiscalYearFilter = string.IsNullOrWhiteSpace(fiscalYear) ? DefaultFiscalYear : fiscalYear;
+            var defaultFiscalYear = FiscalYearSelection.GetCurrentDashboardFiscalYearLabel();
+            var selectedFiscalYear = FiscalYearSelection.ResolveDashboardFiscalYear(Request, fiscalYear);
+            var fiscalYearOptionsCenter = string.IsNullOrWhiteSpace(selectedFiscalYear)
+                ? defaultFiscalYear
+                : selectedFiscalYear;
+
+            FiscalYearSelection.PersistSelection(Response, selectedFiscalYear);
+
+            ViewBag.SelectedFiscalYear = selectedFiscalYear;
+            ViewBag.ActiveFiscalYearLabel = string.IsNullOrWhiteSpace(selectedFiscalYear) ? "All Years" : selectedFiscalYear;
+            ViewBag.FiscalYearOptions = GetFiscalYearOptions(fiscalYearOptionsCenter, yearsBefore: 2, yearsAfter: 2);
 
             // Create enhanced dashboard data with comprehensive metrics
             var dashboardData = await BuildEnhancedDashboardAsync(selectedFiscalYear);
             
             // Apply filters
-            dashboardData = ApplyFilters(dashboardData, status ?? "", time ?? "", goal ?? "", appliedFiscalYearFilter, quarter ?? "");
+            dashboardData = ApplyFilters(dashboardData, status ?? "", time ?? "", goal ?? "", selectedFiscalYear, quarter ?? "");
+
+            // Community Engagement visuals (dashboard only): Youth Attendance + Partner Touchpoints charts/tables.
+            // Keep public safe: aggregate values only, and latest-entries table excludes partner/contact PII.
+            try
+            {
+                // Youth Attendance (YouthAttend_15D): line chart of attendees per event over time + avg pre/post assessment bars.
+                var youthRows = FilterByFiscalYearStrategyDateWithCreatedDateFallback(
+                        await _context.YouthAttend_15D
+                            .Include(y => y.Strategy)
+                            .OrderBy(y => y.CreatedDate)
+                            .ToListAsync(),
+                        selectedFiscalYear,
+                        y => y.StrategyId,
+                        y => y.CreatedDate)
+                    .OrderBy(y => GetStrategyOccurrenceDateOrCreatedDate(y.StrategyId, y.CreatedDate))
+                    .ToList();
+
+                var youthRecent = youthRows
+                    .TakeLast(20)
+                    .ToList();
+
+                ViewBag.CommunityYouthAttendanceSeries = youthRecent
+                    .Select(y => new
+                    {
+                        label = GetStrategyOccurrenceDateOrCreatedDate(y.StrategyId, y.CreatedDate)
+                            .ToString("MMM d", CultureInfo.InvariantCulture),
+                        attendees = y.NumberOfYouthAttendees
+                    })
+                    .ToList();
+                ViewBag.CommunityYouthEntryCount = youthRows.Count;
+
+                ViewBag.CommunityYouthPrePostAvg = new
+                {
+                    pre = youthRows.Any() ? Math.Round(youthRows.Average(y => (double)y.AveragePreAssessment), 1) : 0.0,
+                    post = youthRows.Any() ? Math.Round(youthRows.Average(y => (double)y.AveragePostAssessment), 1) : 0.0
+                };
+                ViewBag.CommunityYouthAverageSatisfaction = youthRows.Any()
+                    ? (double?)Math.Round(youthRows.Average(y => (double)y.PostEventSurveySatisfaction), 1)
+                    : null;
+
+                if (youthRows.Count >= 2)
+                {
+                    var latestYouth = youthRows[^1];
+                    var previousYouth = youthRows[^2];
+
+                    if (previousYouth.NumberOfYouthAttendees > 0)
+                    {
+                        ViewBag.CommunityYouthGrowthPercent = Math.Round(
+                            ((double)(latestYouth.NumberOfYouthAttendees - previousYouth.NumberOfYouthAttendees)
+                            / previousYouth.NumberOfYouthAttendees) * 100, 1);
+                    }
+                }
+
+                // Collaborative Partner Touchpoints (CollabTouch_47D): FY bar chart + latest 5 table (date + strategy only).
+                var collabRows = await _context.CollabTouch_47D
+                    .Include(c => c.Strategy)
+                    .OrderByDescending(c => c.CreatedDate)
+                    .ToListAsync();
+
+                collabRows = collabRows
+                    .Where(c => FiscalYearMatches(c.FiscalYear, selectedFiscalYear))
+                    .ToList();
+
+                ViewBag.CommunityPartnerEntryCount = collabRows.Count;
+                ViewBag.CommunityPartnersCurrentCount = collabRows.Count;
+                ViewBag.CommunityPartnersByFiscalYear = collabRows
+                    .GroupBy(c => string.IsNullOrWhiteSpace(c.FiscalYear) ? "Unknown" : c.FiscalYear.Trim())
+                    .OrderBy(g => g.Key)
+                    .Select(g => new { fiscalYear = g.Key, count = g.Count() })
+                    .ToList();
+
+                ViewBag.CommunityPartnersLatest = collabRows
+                    .OrderByDescending(c => c.CreatedDate)
+                    .Take(5)
+                    .Select(c => new
+                    {
+                        date = c.CreatedDate.ToString("MMM d, yyyy", CultureInfo.InvariantCulture),
+                        strategy = c.Strategy?.Name ?? "Unassigned"
+                    })
+                    .ToList();
+
+                var interfaithRows = await _context.Interfaith_11D
+                    .OrderByDescending(i => i.CreatedDate)
+                    .ToListAsync();
+
+                interfaithRows = FilterByFiscalYearStrategyDateWithCreatedDateFallback(
+                        interfaithRows,
+                        selectedFiscalYear,
+                        i => i.StrategyId,
+                        i => i.CreatedDate)
+                    .OrderByDescending(i => GetStrategyOccurrenceDateOrCreatedDate(i.StrategyId, i.CreatedDate))
+                    .ToList();
+
+                ViewBag.CommunityInterfaithEntryCount = interfaithRows.Count;
+                ViewBag.CommunityInterfaithEventsCount = interfaithRows.Count;
+
+                var faithRows = await _context.FaithCommunity_13D
+                    .OrderByDescending(f => f.CreatedDate)
+                    .ToListAsync();
+
+                faithRows = FilterByFiscalYearStrategyDateWithCreatedDateFallback(
+                        faithRows,
+                        selectedFiscalYear,
+                        f => f.StrategyId,
+                        f => f.CreatedDate)
+                    .OrderByDescending(f => GetStrategyOccurrenceDateOrCreatedDate(f.StrategyId, f.CreatedDate))
+                    .ToList();
+
+                var faithEventsMeetingGoal = faithRows.Count(f => f.NumberOfFaithsRepresented >= 3);
+                ViewBag.CommunityFaithEntryCount = faithRows.Count;
+                ViewBag.CommunityFaithTotalEvents = faithRows.Count;
+                ViewBag.CommunityFaithEventsMeetingGoal = faithEventsMeetingGoal;
+                ViewBag.CommunityFaithPercentMeetingGoal = faithRows.Count > 0
+                    ? (double?)Math.Round((double)faithEventsMeetingGoal / faithRows.Count * 100, 1)
+                    : null;
+
+                var satisfactionRows = await _context.EventSatisfaction_12D
+                    .OrderByDescending(s => s.CreatedDate)
+                    .ToListAsync();
+
+                satisfactionRows = FilterByFiscalYearStrategyDateWithCreatedDateFallback(
+                        satisfactionRows,
+                        selectedFiscalYear,
+                        s => s.StrategyId,
+                        s => s.CreatedDate)
+                    .OrderByDescending(s => GetStrategyOccurrenceDateOrCreatedDate(s.StrategyId, s.CreatedDate))
+                    .ToList();
+
+                ViewBag.CommunitySatisfactionEntryCount = satisfactionRows.Count;
+                ViewBag.CommunityEventSatisfactionAvg = satisfactionRows.Any()
+                    ? (double?)Math.Round(satisfactionRows.Average(s => (double)s.EventAttendeeSatisfactionPercentage), 1)
+                    : null;
+
+                var contactRows = await _context.ContactsInterfaith_14D
+                    .OrderBy(c => c.Year)
+                    .ToListAsync();
+
+                contactRows = FilterByFiscalYearYears(contactRows, selectedFiscalYear, c => c.Year)
+                    .OrderBy(c => c.Year)
+                    .ToList();
+
+                ViewBag.CommunityContactEntryCount = contactRows.Count;
+                ViewBag.CommunityClergyLatestTotal = contactRows.LastOrDefault()?.TotalInterfaithContacts ?? 0;
+                if (contactRows.Count >= 2)
+                {
+                    var latestContacts = contactRows[^1];
+                    var previousContacts = contactRows[^2];
+
+                    if (previousContacts.TotalInterfaithContacts > 0)
+                    {
+                        ViewBag.CommunityClergyGrowthPercent = Math.Round(
+                            ((double)(latestContacts.TotalInterfaithContacts - previousContacts.TotalInterfaithContacts)
+                            / previousContacts.TotalInterfaithContacts) * 100, 1);
+                    }
+                }
+
+                var diversityRows = await _context.Diversity_37D
+                    .OrderByDescending(d => d.CreatedDate)
+                    .ToListAsync();
+
+                diversityRows = diversityRows
+                    .Where(d => FiscalYearMatches(d.FiscalYear, selectedFiscalYear))
+                    .OrderByDescending(d => d.CreatedDate)
+                    .ToList();
+
+                ViewBag.CommunityDiversityEntryCount = diversityRows.Count;
+                ViewBag.CommunityDiversityLatestCount = diversityRows.FirstOrDefault()?.DiversityCount ?? 0;
+                if (diversityRows.Count >= 2)
+                {
+                    var latestDiversity = diversityRows[0];
+                    var previousDiversity = diversityRows[1];
+
+                    if (previousDiversity.DiversityCount > 0)
+                    {
+                        ViewBag.CommunityDiversityGrowthPercent = Math.Round(
+                            ((double)(latestDiversity.DiversityCount - previousDiversity.DiversityCount)
+                            / previousDiversity.DiversityCount) * 100, 1);
+                    }
+                }
+
+                var firstTimeRows = await _context.FirstTime_38D
+                    .OrderByDescending(f => f.CreatedDate)
+                    .ToListAsync();
+
+                firstTimeRows = firstTimeRows
+                    .Where(f => FiscalYearMatches(f.FiscalYear, selectedFiscalYear))
+                    .OrderByDescending(f => f.CreatedDate)
+                    .ToList();
+
+                ViewBag.CommunityFirstTimeEntryCount = firstTimeRows.Count;
+                ViewBag.CommunityFirstTimeTotalParticipants = firstTimeRows.Sum(f => f.NumberOfFirstTimeParticipants);
+                ViewBag.CommunityFirstTimeTotalAttendees = firstTimeRows.Sum(f => f.TotalAttendees);
+                ViewBag.CommunityFirstTimeEventsMeetingGoal = firstTimeRows.Count(f => f.GoalMet);
+                ViewBag.CommunityFirstTimeRateAvg = firstTimeRows.Any()
+                    ? (double?)Math.Round(firstTimeRows.Average(f => (double)f.FirstTimeParticipantRate), 1)
+                    : null;
+            }
+            catch { }
 
             // Add board meeting attendance records for the enhanced view
-            try
-            {
-                ViewBag.BoardMeetingAttendance = await _context.BoardMeetingAttendance
-                    .OrderByDescending(b => b.MeetingDate)
-                    .Take(10) // Limit to last 10 meetings
-                    .ToListAsync();
-            }
-            catch
-            {
-                ViewBag.BoardMeetingAttendance = new List<BoardMeetingAttendance>();
-            }
+            var boardMeetingAttendance = await _context.BoardMeetingAttendance
+                .OrderByDescending(b => b.MeetingDate)
+                .Take(10) // Limit to last 10 meetings
+                .ToListAsync();
+            ViewBag.BoardMeetingAttendance = FilterByFiscalYearDate(boardMeetingAttendance, selectedFiscalYear, b => b.MeetingDate)
+                .OrderByDescending(b => b.MeetingDate)
+                .Take(10)
+                .ToList();
+
+            // Add board recruitment records for detailed organizational card display
+            var boardRecruitmentRecords = await _context.BoardMember_29D
+                .OrderByDescending(b => b.Year)
+                .ThenByDescending(b => b.Quarter)
+                .ThenByDescending(b => b.CreatedDate)
+                .ToListAsync();
+            ViewBag.BoardRecruitmentRecords = FilterByFiscalYearCalendarQuarterWithCreatedDateFallback(
+                    boardRecruitmentRecords,
+                    selectedFiscalYear,
+                    b => b.Year,
+                    b => b.Quarter,
+                    b => b.CreatedDate)
+                .OrderByDescending(b => b.Year)
+                .ThenByDescending(b => b.Quarter)
+                .ThenByDescending(b => b.CreatedDate)
+                .ToList();
 
             // Add budget tracking data for Financial Sustainability chart
-            try
+            var budgetTracking = await _context.BudgetTracking_28D.ToListAsync();
+            if (TryParseFiscalYearEnd(selectedFiscalYear, out var budgetFiscalYearEnd))
             {
-                var budgetTracking = await _context.BudgetTracking_28D.ToListAsync();
-                if (TryParseFiscalYearEnd(appliedFiscalYearFilter, out var budgetFiscalYearEnd))
-                {
-                    var budgetFiscalYearStart = budgetFiscalYearEnd - 1;
-                    var fiscalYearBudgetTracking = budgetTracking
-                        .Where(b => b.Year == budgetFiscalYearStart || b.Year == budgetFiscalYearEnd)
-                        .ToList();
-                    budgetTracking = fiscalYearBudgetTracking.Any() ? fiscalYearBudgetTracking : budgetTracking;
-                }
-                ViewBag.BudgetTracking = budgetTracking;
+                var budgetFiscalYearStart = budgetFiscalYearEnd - 1;
+                var fiscalYearBudgetTracking = budgetTracking
+                    .Where(b => b.Year == budgetFiscalYearStart || b.Year == budgetFiscalYearEnd)
+                    .ToList();
+                budgetTracking = fiscalYearBudgetTracking;
             }
-            catch
-            {
-                ViewBag.BudgetTracking = new List<BudgetTracking_28D>();
-            }
+            ViewBag.BudgetTracking = budgetTracking;
 
             // Add volunteer program records for detailed organizational card display
-            try
-            {
-                ViewBag.VolunteerProgramRecords = await _context.volunteerProgram_40D
-                    .OrderByDescending(v => v.Year)
-                    .ThenByDescending(v => v.Quarter)
-                    .ThenByDescending(v => v.CreatedDate)
-                    .Take(12)
-                    .ToListAsync();
-            }
-            catch
-            {
-                ViewBag.VolunteerProgramRecords = new List<volunteerProgram_40D>();
-            }
+            var volunteerProgramRecords = await _context.volunteerProgram_40D
+                .OrderByDescending(v => v.Year)
+                .ThenByDescending(v => v.Quarter)
+                .ThenByDescending(v => v.CreatedDate)
+                .ToListAsync();
+            ViewBag.VolunteerProgramRecords = FilterByFiscalYearCalendarQuarterWithCreatedDateFallback(
+                    volunteerProgramRecords,
+                    selectedFiscalYear,
+                    v => v.Year,
+                    v => v.Quarter,
+                    v => v.CreatedDate)
+                .OrderByDescending(v => v.Year)
+                .ThenByDescending(v => v.Quarter)
+                .ThenByDescending(v => v.CreatedDate)
+                .Take(12)
+                .ToList();
 
-            // Pass the selected fiscal year to the view so the UI can display it correctly
-            ViewData["SelectedFiscalYear"] = selectedFiscalYear;
-            ViewData["FiscalYearOptions"] = GetAvailableFiscalYears();
-            ViewBag.CurrentFiscalYear = DefaultFiscalYear;
-            
+            dashboardData.Summary.TotalEvents = dashboardData.StrategicGoals?.Sum(g => g.Events?.Count ?? 0) ?? 0;
+            dashboardData.Summary.TotalActivities = dashboardData.Summary.TotalStaffSurveys +
+                                                   dashboardData.Summary.TotalProfessionalDevelopmentPlans +
+                                                   dashboardData.Summary.TotalMediaPlacements +
+                                                   dashboardData.Summary.TotalWebsiteTrafficEntries +
+                                                   dashboardData.Summary.TotalEvents;
+
             return View(dashboardData);
         }
         catch (Exception ex)
@@ -94,37 +312,14 @@ public class HomeController : Controller
             var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
             logger.LogError(ex, "Dashboard data loading failed. FiscalYear: {FiscalYear}, Goal: {Goal}", fiscalYear, goal);
             
-            // Show error message but keep the full tab structure so the UI doesn't look "gone".
-            // This also makes it easier to keep working while a specific table/query is broken.
-            List<StrategicGoal> fallbackGoals;
-            try
-            {
-                fallbackGoals = await CreateAllStrategicGoalsAsync();
-            }
-            catch
-            {
-                fallbackGoals = new List<StrategicGoal>
-                {
-                    new() { Id = 1, Name = "Organizational Building", Description = "", Color = "var(--onejax-navy)", Events = new List<Event>(), Metrics = new List<GoalMetric>() },
-                    new() { Id = 2, Name = "Financial Sustainability", Description = "", Color = "var(--onejax-green)", Events = new List<Event>(), Metrics = new List<GoalMetric>() },
-                    new() { Id = 3, Name = "Identity/Value Proposition", Description = "", Color = "var(--onejax-orange)", Events = new List<Event>(), Metrics = new List<GoalMetric>() },
-                    new() { Id = 4, Name = "Community Engagement", Description = "", Color = "var(--onejax-blue)", Events = new List<Event>(), Metrics = new List<GoalMetric>() }
-                };
-            }
-
-            var errorData = new DashboardViewModel
-            {
-                StrategicGoals = fallbackGoals,
+            // Show error message but with empty data structure
+            var errorData = new DashboardViewModel 
+            { 
+                StrategicGoals = new List<StrategicGoal>(),
                 HasError = true,
-                ErrorMessage = ex.ToString(),
-                DataSource = "Dashboard Load Error (Fallback Tabs Rendered)"
+                ErrorMessage = ex.InnerException?.Message ?? ex.Message,
+                DataSource = "Database Connection Error"
             };
-            
-            // Pass the fiscal year to the view even in error cases  
-            var selectedFiscalYear = string.IsNullOrWhiteSpace(fiscalYear) ? DefaultFiscalYear : fiscalYear;
-            ViewData["SelectedFiscalYear"] = selectedFiscalYear;
-            ViewData["FiscalYearOptions"] = GetAvailableFiscalYears();
-            ViewBag.CurrentFiscalYear = DefaultFiscalYear;
             
             return View(errorData);
         }
@@ -226,6 +421,10 @@ public class HomeController : Controller
         {
             normalized = normalized.Substring(3).Trim();
         }
+        else if (normalized.StartsWith("FY", StringComparison.OrdinalIgnoreCase))
+        {
+            normalized = normalized.Substring(2).Trim();
+        }
 
         // Preferred format: "2025-2026" (or with "/")
         var separators = new[] { '-', '/' };
@@ -265,6 +464,234 @@ public class HomeController : Controller
         };
     }
 
+    private (DateTime StartDate, DateTime EndDate)? GetFiscalYearRangeOrNull(string fiscalYear)
+    {
+        return TryParseFiscalYearEnd(fiscalYear, out var fiscalYearEnd)
+            ? GetFiscalYearRange(fiscalYearEnd)
+            : ((DateTime StartDate, DateTime EndDate)?)null;
+    }
+
+    private (int StartYear, int EndYear)? GetFiscalYearNumbersOrNull(string fiscalYear)
+    {
+        if (!TryParseFiscalYearEnd(fiscalYear, out var fiscalYearEnd))
+        {
+            return null;
+        }
+
+        return (fiscalYearEnd - 1, fiscalYearEnd);
+    }
+
+    private static int GetFiscalYearEndFromDate(DateTime date)
+    {
+        return date.Month >= 7 ? date.Year + 1 : date.Year;
+    }
+
+    private static int? GetFiscalYearEndFromCalendarQuarterRecord(int year, int quarter)
+    {
+        if (year <= 0 || quarter is < 1 or > 4)
+        {
+            return null;
+        }
+
+        return quarter <= 2 ? year : year + 1;
+    }
+
+    private List<T> FilterByResolvedFiscalYear<T>(
+        IEnumerable<T> source,
+        string fiscalYear,
+        Func<T, int?> fiscalYearEndSelector)
+    {
+        if (!TryParseFiscalYearEnd(fiscalYear, out var selectedFiscalYearEnd))
+        {
+            return source.ToList();
+        }
+
+        return source
+            .Where(item => fiscalYearEndSelector(item) == selectedFiscalYearEnd)
+            .ToList();
+    }
+
+    private List<T> FilterByFiscalYearDate<T>(IEnumerable<T> source, string fiscalYear, Func<T, DateTime> dateSelector)
+    {
+        return FilterByResolvedFiscalYear(
+            source,
+            fiscalYear,
+            item => GetFiscalYearEndFromDate(dateSelector(item)));
+    }
+
+    private List<T> FilterByFiscalYearYears<T>(IEnumerable<T> source, string fiscalYear, Func<T, int> yearSelector)
+    {
+        var yearRange = GetFiscalYearNumbersOrNull(fiscalYear);
+        if (yearRange == null)
+        {
+            return source.ToList();
+        }
+
+        return source
+            .Where(item =>
+            {
+                var year = yearSelector(item);
+                return year == yearRange.Value.StartYear || year == yearRange.Value.EndYear;
+            })
+            .ToList();
+    }
+
+    private List<T> FilterByFiscalYearCalendarQuarterWithCreatedDateFallback<T>(
+        IEnumerable<T> source,
+        string fiscalYear,
+        Func<T, int> yearSelector,
+        Func<T, int> quarterSelector,
+        Func<T, DateTime> createdDateSelector)
+    {
+        return FilterByResolvedFiscalYear(
+            source,
+            fiscalYear,
+            item => GetFiscalYearEndFromCalendarQuarterRecord(yearSelector(item), quarterSelector(item))
+                ?? GetFiscalYearEndFromDate(createdDateSelector(item)));
+    }
+
+    private List<T> FilterByFiscalYearYearsWithCreatedDateFallback<T>(
+        IEnumerable<T> source,
+        string fiscalYear,
+        Func<T, int> yearSelector,
+        Func<T, DateTime> createdDateSelector)
+    {
+        var yearRange = GetFiscalYearNumbersOrNull(fiscalYear);
+        if (yearRange == null)
+        {
+            return source.ToList();
+        }
+
+        return source
+            .Where(item =>
+            {
+                var year = yearSelector(item);
+                if (year <= 0)
+                {
+                    year = createdDateSelector(item).Year;
+                }
+
+                return year == yearRange.Value.StartYear || year == yearRange.Value.EndYear;
+            })
+            .ToList();
+    }
+
+    private List<T> FilterByFiscalYearMonthNameWithCreatedDateFallback<T>(
+        IEnumerable<T> source,
+        string fiscalYear,
+        Func<T, int?> yearSelector,
+        Func<T, string?> monthSelector,
+        Func<T, DateTime> createdDateSelector)
+    {
+        return FilterByResolvedFiscalYear(
+            source,
+            fiscalYear,
+            item => GetFiscalYearEndFromYearAndMonth(yearSelector(item), monthSelector(item))
+                ?? GetFiscalYearEndFromDate(createdDateSelector(item)));
+    }
+
+    private List<T> FilterByFiscalYearMonthNumberWithCreatedDateFallback<T>(
+        IEnumerable<T> source,
+        string fiscalYear,
+        Func<T, int?> yearSelector,
+        Func<T, int?> monthSelector,
+        Func<T, DateTime> createdDateSelector)
+    {
+        return FilterByResolvedFiscalYear(
+            source,
+            fiscalYear,
+            item => GetFiscalYearEndFromYearAndMonth(yearSelector(item), monthSelector(item))
+                ?? GetFiscalYearEndFromDate(createdDateSelector(item)));
+    }
+
+    private List<T> FilterByFiscalYearStrategyDateWithCreatedDateFallback<T>(
+        IEnumerable<T> source,
+        string fiscalYear,
+        Func<T, int> strategyIdSelector,
+        Func<T, DateTime> createdDateSelector)
+    {
+        return FilterByResolvedFiscalYear(
+            source,
+            fiscalYear,
+            item => GetStrategyOccurrenceDate(strategyIdSelector(item)) is DateTime strategyDate
+                ? GetFiscalYearEndFromDate(strategyDate)
+                : GetFiscalYearEndFromDate(createdDateSelector(item)));
+    }
+
+    private static int? GetFiscalYearEndFromYearAndMonth(int? year, string? monthValue)
+    {
+        if (!TryResolveMonthNumber(monthValue, out var monthNumber, out var parsedYearFromMonth))
+        {
+            return null;
+        }
+
+        var resolvedYear = year.HasValue && year.Value > 0 ? year : parsedYearFromMonth;
+        return GetFiscalYearEndFromYearAndMonth(resolvedYear, monthNumber);
+    }
+
+    private static int? GetFiscalYearEndFromYearAndMonth(int? year, int? monthNumber)
+    {
+        if (!year.HasValue || year.Value <= 0 || !monthNumber.HasValue || monthNumber.Value is < 1 or > 12)
+        {
+            return null;
+        }
+
+        return monthNumber.Value >= 7 ? year.Value + 1 : year.Value;
+    }
+
+    private static bool TryResolveMonthNumber(string? monthValue, out int monthNumber, out int? parsedYear)
+    {
+        monthNumber = 0;
+        parsedYear = null;
+
+        if (string.IsNullOrWhiteSpace(monthValue))
+        {
+            return false;
+        }
+
+        var normalized = monthValue.Trim();
+        if (int.TryParse(normalized, out monthNumber))
+        {
+            return monthNumber is >= 1 and <= 12;
+        }
+
+        if (DateTime.TryParseExact(
+            normalized,
+            new[] { "MMMM", "MMM" },
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.AllowWhiteSpaces,
+            out var parsedMonthOnly))
+        {
+            monthNumber = parsedMonthOnly.Month;
+            return true;
+        }
+
+        if (DateTime.TryParse(normalized, CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out var parsedDate))
+        {
+            monthNumber = parsedDate.Month;
+            if (parsedDate.Year > 1 && normalized.Any(char.IsDigit))
+            {
+                parsedYear = parsedDate.Year;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool FiscalYearMatches(string? recordFiscalYear, string selectedFiscalYear)
+    {
+        if (string.IsNullOrWhiteSpace(selectedFiscalYear))
+        {
+            return true;
+        }
+
+        return TryParseFiscalYearEnd(selectedFiscalYear, out var selectedFiscalYearEnd)
+            && TryParseFiscalYearEnd(recordFiscalYear ?? string.Empty, out var recordFiscalYearEnd)
+            && selectedFiscalYearEnd == recordFiscalYearEnd;
+    }
+
     private (DateTime StartDate, DateTime EndDate) GetCurrentQuarter(DateTime currentDate)
     {
         // Determine current fiscal quarter based on current date
@@ -282,76 +709,28 @@ public class HomeController : Controller
         return GetFiscalQuarterRange(currentFiscalYear, quarter);
     }
 
-    private static string GetCurrentFiscalYear()
-    {
-        var now = DateTime.Now;
-        // Fiscal year runs from July 1 to June 30
-        // If current month is July-December, we're in the first half of fiscal year (e.g., July 2025 = FY 2026)
-        // If current month is January-June, we're in the second half of fiscal year (e.g., April 2026 = FY 2026)
-        var fiscalYearEnd = now.Month >= 7 ? now.Year + 1 : now.Year;
-        var fiscalYearStart = fiscalYearEnd - 1;
-        return $"{fiscalYearStart}-{fiscalYearEnd}";
-    }
-
-    private static List<string> GetAvailableFiscalYears()
-    {
-        var currentFiscalYear = GetCurrentFiscalYear();
-        var currentYear = DateTime.Now.Year;
-        var fiscalYears = new List<string>();
-        
-        // Add current fiscal year and a few years around it
-        for (int i = -2; i <= 2; i++)
-        {
-            var year = currentYear + i;
-            var fiscalYearStart = year - 1;
-            var fiscalYearEnd = year;
-            fiscalYears.Add($"{fiscalYearStart}-{fiscalYearEnd}");
-        }
-        
-        // Ensure current fiscal year is in the list and put it first
-        fiscalYears = fiscalYears.Distinct().OrderByDescending(fy => fy).ToList();
-        if (!fiscalYears.Contains(currentFiscalYear))
-        {
-            fiscalYears.Insert(0, currentFiscalYear);
-        }
-        else
-        {
-            // Move current fiscal year to the front
-            fiscalYears.Remove(currentFiscalYear);
-            fiscalYears.Insert(0, currentFiscalYear);
-        }
-        
-        return fiscalYears;
-    }
-
     private DashboardViewModel BuildDashboardFromRealData()
     {
         var dashboard = new DashboardViewModel();
         
         // Only generate goals if we have real data entries
         var generatedGoals = GenerateGoalsFromRealDataOnly();
-        
-        // Always ensure we have the four strategic goals as tabs, even if empty
-        var allGoals = EnsureFourStrategicGoals(generatedGoals);
+        var allGoals = generatedGoals;
 
         // Build summary statistics from real data
-        dashboard.Summary = BuildDashboardSummary();
+        dashboard.Summary = BuildDashboardSummary(string.Empty);
         
         // Build recent activities from real data
-        dashboard.RecentActivities = BuildRecentActivities();
+        dashboard.RecentActivities = BuildRecentActivities(string.Empty);
 
         // Build chart data from real metrics
-        dashboard.Charts = BuildChartData(allGoals);
+        dashboard.Charts = BuildChartData(allGoals, string.Empty);
         
-        // Check if we have any data (database records OR strategy events)
-        var hasStrategyEvents = _context.Strategies.Any();
-        
-        if (allGoals.Any(g => g.Metrics.Any() || g.Events.Any()) || hasStrategyEvents)
+        if (allGoals.Any(g => g.Metrics.Any() || g.Events.Any()))
         {
             dashboard.StrategicGoals = allGoals;
-            dashboard.DataSource = hasStrategyEvents ? "Real Data Entries + Strategy Events" : "Real Data Entries";
-            dashboard.Message = hasStrategyEvents ? 
-                "Dashboard generated from your actual data entries and strategy events from the Core Strategies tab." :
+            dashboard.DataSource = "Real Data Entries";
+            dashboard.Message =
                 "Dashboard generated from your actual data entries including staff surveys, professional development plans, media placements, and website traffic data.";
         }
         else
@@ -365,216 +744,179 @@ public class HomeController : Controller
         return dashboard;
     }
 
-    private List<StrategicGoal> EnsureFourStrategicGoals(List<StrategicGoal> existingGoals)
+    private IQueryable<Strategy> GetVisibleDashboardStrategiesQuery()
     {
-        var allGoals = new List<StrategicGoal>();
-        
-        // Define the four strategic goals structure (matching StrategyController mapping)
-        var goalTemplates = new List<(int Id, string Name, string Description, string Color)>
-        {
-            (1, "Organizational Building", "Strengthening organizational structure and capacity", "var(--onejax-navy)"),
-            (2, "Financial Sustainability", "Ensuring sustainable financial health and growth", "var(--onejax-green)"),
-            (3, "Identity/Value Proposition", "Establishing and communicating OneJax's unique identity and value", "var(--onejax-orange)"),
-            (4, "Community Engagement", "Building partnerships and community connections", "var(--onejax-blue)")
-        };
-
-        foreach (var template in goalTemplates)
-        {
-            // Find existing goal with data or create empty one
-            var existingGoal = existingGoals.FirstOrDefault(g => g.Id == template.Id || g.Name == template.Name);
-            
-            if (existingGoal != null)
-            {
-                // Use the goal with real data
-                existingGoal.Id = template.Id; // Ensure consistent ID
-                existingGoal.Name = template.Name; // Ensure consistent name
-                existingGoal.Color = template.Color; // Ensure consistent color
-                
-                // Add events from Strategy controller's static list
-                existingGoal.Events.AddRange(GetEventsFromStrategyController(template.Id));
-                
-                allGoals.Add(existingGoal);
-            }
-            else
-            {
-                // Create empty goal structure for tab consistency
-                var newGoal = new StrategicGoal
-                {
-                    Id = template.Id,
-                    Name = template.Name,
-                    Description = template.Description,
-                    Color = template.Color,
-                    Events = new List<Event>(),
-                    Metrics = new List<GoalMetric>()
-                };
-                
-                // Add events from Strategy controller's static list
-                newGoal.Events.AddRange(GetEventsFromStrategyController(template.Id));
-                
-                allGoals.Add(newGoal);
-            }
-        }
-
-        return allGoals;
+        return _context.Strategies
+            .Where(s => !s.IsArchived)
+            .Where(s => s.StrategicGoalId >= 1 && s.StrategicGoalId <= 4);
     }
 
-    private List<Event> GetEventsFromStrategyController(int strategicGoalId)
+    private async Task<List<Event>> GetDashboardEventsForGoalAsync(int strategicGoalId)
     {
-        var events = new List<Event>();
-        
-        // Get strategies for this strategic goal
-        var strategiesForGoal = _context.Strategies
+        var strategies = await GetVisibleDashboardStrategiesQuery()
             .Where(s => s.StrategicGoalId == strategicGoalId)
+            .OrderBy(s => string.IsNullOrWhiteSpace(s.Date))
+            .ThenBy(s => s.Date)
+            .Take(12)
+            .ToListAsync();
+
+        if (!strategies.Any())
+        {
+            return new List<Event>();
+        }
+
+        var strategyIds = strategies
             .Select(s => s.Id)
             .ToList();
-        
-        // Get database events linked to those strategies
-        // Events are linked to Strategies, not directly to StrategicGoals
-        var dbEvents = _context.Events
-            .Where(e => e.StrategyId.HasValue && strategiesForGoal.Contains(e.StrategyId.Value))
+
+        var linkedEvents = await _context.Events
+            .Where(e => !e.IsArchived && e.StrategyId.HasValue && strategyIds.Contains(e.StrategyId.Value))
+            .ToListAsync();
+
+        var linkedEventsByStrategyId = linkedEvents
+            .GroupBy(e => e.StrategyId!.Value)
+            .ToDictionary(
+                group => group.Key,
+                group => group
+                    .OrderBy(e => e.IsAssignedByAdmin ? 1 : 0)
+                    .ThenBy(e => string.IsNullOrWhiteSpace(e.OwnerUsername) ? 0 : 1)
+                    .ThenByDescending(e => e.Id)
+                    .First());
+
+        return strategies
+            .Select(strategy => BuildDashboardEvent(strategy,
+                linkedEventsByStrategyId.TryGetValue(strategy.Id, out var linkedEvent) ? linkedEvent : null))
+            .OrderBy(e => e.DueDate == null)
+            .ThenBy(e => e.DueDate)
             .ToList();
-        
-        events.AddRange(dbEvents);
-        
-        // Get events from database Strategies table (Core Strategies events).
-        // IMPORTANT: The local SQLite schema may lag behind the current EF model (e.g. missing ArchivedAtUtc/ProgramType),
-        // so do a minimal raw SQL read of the columns that exist in older DBs.
-        try
-        {
-            var dbStrategies = LoadStrategiesForGoal(strategicGoalId);
-
-            foreach (var strategy in dbStrategies)
-            {
-                // Only add if not already in Events table
-                if (!dbEvents.Any(e => e.Title == strategy.Name && e.Description == strategy.Description))
-                {
-                    var typeLabel =
-                        !string.IsNullOrWhiteSpace(strategy.ProgramName)
-                            ? strategy.ProgramName
-                            : (!string.IsNullOrWhiteSpace(strategy.EventType) ? strategy.EventType : "Program");
-
-                    events.Add(new Event
-                    {
-                        Id = strategy.Id + 1000, // Offset to avoid ID conflicts
-                        Title = strategy.Name ?? "",
-                        Description = strategy.Description ?? "",
-                        Type = typeLabel,
-                        Status = "Planned",
-                        StrategicGoalId = strategicGoalId, // This is NotMapped, safe to set for display
-                        DueDate = DateTime.TryParse(strategy.Date, out var date) ? date : DateTime.Now.AddDays(30),
-                        Notes = $"Core Strategy Event. {(!string.IsNullOrEmpty(strategy.Time) ? $"Time: {strategy.Time}" : "")} {(!string.IsNullOrEmpty(strategy.EventFYear) ? $"Fiscal Year: {strategy.EventFYear}" : "")}",
-                        Attendees = 0,
-                        Location = "TBD"
-                    });
-                }
-            }
-        }
-        catch
-        {
-            // If the Strategies table/schema is not compatible, keep going with Events + static list.
-        }
-        
-        // Also check the static list for backward compatibility
-        // Note: StrategyController doesn't have a static Strategies property, all strategies are in the database
-        // var staticStrategies = StrategyController.Strategies.Where(s => s.StrategicGoalId == strategicGoalId).ToList();
-        
-        // Since static strategies are no longer used, we'll just return the events from database
-        
-        return events.OrderBy(e => e.DueDate).ToList();
     }
 
-    private sealed class StrategyRow
+    private static Event BuildDashboardEvent(Strategy strategy, Event? linkedEvent)
     {
-        public int Id { get; set; }
-        public string? Name { get; set; }
-        public string? Description { get; set; }
-        public string? ProgramName { get; set; }
-        public string? Date { get; set; }
-        public string? Time { get; set; }
-        public string? EventFYear { get; set; }
-        public string? EventType { get; set; }
+        var strategyDate = ParseStrategyDate(strategy.Date);
+
+        return new Event
+        {
+            Id = linkedEvent?.Id ?? 0,
+            StrategyTemplateId = strategy.Id,
+            StrategyId = strategy.Id,
+            StrategicGoalId = strategy.StrategicGoalId,
+            Title = linkedEvent?.Title ?? strategy.Name,
+            Description = linkedEvent?.Description ?? strategy.Description,
+            Status = !string.IsNullOrWhiteSpace(linkedEvent?.Status) ? linkedEvent.Status : "Planned",
+            Type = !string.IsNullOrWhiteSpace(linkedEvent?.Type) ? linkedEvent.Type : (strategy.ProgramType ?? "Program"),
+            Location = linkedEvent?.Location ?? string.Empty,
+            Attendees = linkedEvent?.Attendees ?? 0,
+            Notes = linkedEvent?.Notes ?? string.Empty,
+            StartDate = linkedEvent?.StartDate,
+            EndDate = linkedEvent?.EndDate,
+            DueDate = linkedEvent?.DueDate ?? strategyDate,
+            OwnerUsername = linkedEvent?.OwnerUsername ?? string.Empty,
+            IsAssignedByAdmin = linkedEvent?.IsAssignedByAdmin ?? false,
+            AssignmentDate = linkedEvent?.AssignmentDate,
+            AdminNotes = linkedEvent?.AdminNotes ?? string.Empty,
+            SatisfactionScore = linkedEvent?.SatisfactionScore,
+            PreAssessmentData = linkedEvent?.PreAssessmentData ?? string.Empty,
+            PostAssessmentData = linkedEvent?.PostAssessmentData ?? string.Empty,
+            IsArchived = false,
+            CompletionDate = linkedEvent?.CompletionDate
+        };
     }
 
-    private List<StrategyRow> LoadStrategiesForGoal(int strategicGoalId)
+    private static DateTime? ParseStrategyDate(string? strategyDate)
     {
-        var results = new List<StrategyRow>();
-
-        using var connection = _context.Database.GetDbConnection();
-        if (connection.State != System.Data.ConnectionState.Open)
+        if (string.IsNullOrWhiteSpace(strategyDate))
         {
-            connection.Open();
+            return null;
         }
 
-        using var cmd = connection.CreateCommand();
-        cmd.CommandText = @"
-SELECT Id, Name, Description, ProgramName, Date, Time, EventFYear, EventType
-FROM Strategies
-WHERE StrategicGoalId = $goalId
-";
-        var p = cmd.CreateParameter();
-        p.ParameterName = "$goalId";
-        p.Value = strategicGoalId;
-        cmd.Parameters.Add(p);
-
-        using var reader = cmd.ExecuteReader();
-        while (reader.Read())
-        {
-            results.Add(new StrategyRow
-            {
-                Id = reader.GetInt32(0),
-                Name = reader.IsDBNull(1) ? null : reader.GetString(1),
-                Description = reader.IsDBNull(2) ? null : reader.GetString(2),
-                ProgramName = reader.IsDBNull(3) ? null : reader.GetString(3),
-                Date = reader.IsDBNull(4) ? null : reader.GetString(4),
-                Time = reader.IsDBNull(5) ? null : reader.GetString(5),
-                EventFYear = reader.IsDBNull(6) ? null : reader.GetString(6),
-                EventType = reader.IsDBNull(7) ? null : reader.GetString(7),
-            });
-        }
-
-        return results;
+        return DateTime.TryParse(strategyDate, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsedDate)
+            ? parsedDate
+            : null;
     }
 
-    private DashboardSummary BuildDashboardSummary()
+    private IReadOnlyDictionary<int, DateTime?> GetStrategyDateLookup()
+    {
+        return _strategyDateLookup ??= _context.Strategies
+            .AsNoTracking()
+            .Select(s => new { s.Id, s.Date })
+            .ToList()
+            .ToDictionary(item => item.Id, item => ParseStrategyDate(item.Date));
+    }
+
+    private DateTime? GetStrategyOccurrenceDate(int strategyId)
+    {
+        var strategyDates = GetStrategyDateLookup();
+        return strategyDates.TryGetValue(strategyId, out var strategyDate)
+            ? strategyDate
+            : null;
+    }
+
+    private DateTime GetStrategyOccurrenceDateOrCreatedDate(int strategyId, DateTime createdDate)
+    {
+        return GetStrategyOccurrenceDate(strategyId) ?? createdDate;
+    }
+
+    private DashboardSummary BuildDashboardSummary(string fiscalYear)
     {
         var summary = new DashboardSummary();
         
         try
         {
             // Staff Surveys
-            var staffSurveys = _context.StaffSurveys_22D.ToList();
+            var staffSurveys = FilterByFiscalYearMonthNameWithCreatedDateFallback(
+                _context.StaffSurveys_22D.ToList(),
+                fiscalYear,
+                s => s.Year,
+                s => s.Month,
+                s => s.CreatedDate);
             summary.TotalStaffSurveys = staffSurveys.Count;
             summary.AverageStaffSatisfaction = staffSurveys.Any() ? 
                 (decimal)staffSurveys.Average(s => s.SatisfactionRate) : 0;
 
             // Professional Development
-            summary.TotalProfessionalDevelopmentPlans = _context.ProfessionalDevelopments.Count();
+            summary.TotalProfessionalDevelopmentPlans = FilterByFiscalYearMonthNameWithCreatedDateFallback(
+                _context.ProfessionalDevelopments.ToList(),
+                fiscalYear,
+                p => p.Year,
+                p => p.Month,
+                p => p.CreatedDate).Count;
 
             // Media Placements
-            summary.TotalMediaPlacements = _context.MediaPlacements_3D.Count();
+            summary.TotalMediaPlacements = FilterByFiscalYearDate(
+                _context.MediaPlacements_3D.ToList(),
+                fiscalYear,
+                m => m.CreatedDate).Count;
 
             // Website Traffic
-            summary.TotalWebsiteTrafficEntries = _context.WebsiteTraffic.Count();
+            summary.TotalWebsiteTrafficEntries = FilterByFiscalYearDate(
+                _context.WebsiteTraffic.ToList(),
+                fiscalYear,
+                w => w.CreatedDate).Count;
 
-            // Events (from all sources: Events table, Strategies table, and static list)
+            // Events (real Events table only)
             try
             {
-                var totalEvents = 0;
-                
-                // Count from Events table
-                totalEvents += _context.Events.Count();
-                
-                // Count from Strategies table (Core Strategies events)
-                totalEvents += _context.Strategies.Count();
-                
-                // Note: Static events from StrategyController no longer exist - all events are in database
-                
-                summary.TotalEvents = totalEvents;
+                var visibleStrategies = GetVisibleDashboardStrategiesQuery().ToList();
+                var fiscalYearRange = GetFiscalYearRangeOrNull(fiscalYear);
+                if (fiscalYearRange != null)
+                {
+                    visibleStrategies = visibleStrategies
+                        .Where(s =>
+                        {
+                            var strategyDate = ParseStrategyDate(s.Date);
+                            return !strategyDate.HasValue
+                                || (strategyDate.Value >= fiscalYearRange.Value.StartDate && strategyDate.Value <= fiscalYearRange.Value.EndDate);
+                        })
+                        .ToList();
+                }
+
+                summary.TotalEvents = visibleStrategies.Count;
             }
             catch
             {
                 // Fallback if database access fails
-                summary.TotalEvents = 0; // Since static strategies no longer exist
+                summary.TotalEvents = 0;
             }
 
             // Calculate total activities
@@ -594,14 +936,19 @@ WHERE StrategicGoalId = $goalId
         return summary;
     }
 
-    private List<RecentActivity> BuildRecentActivities()
+    private List<RecentActivity> BuildRecentActivities(string fiscalYear)
     {
         var activities = new List<RecentActivity>();
 
         try
         {
             // Add recent staff surveys
-            var recentSurveys = _context.StaffSurveys_22D
+            var recentSurveys = FilterByFiscalYearMonthNameWithCreatedDateFallback(
+                    _context.StaffSurveys_22D.ToList(),
+                    fiscalYear,
+                    s => s.Year,
+                    s => s.Month,
+                    s => s.CreatedDate)
                 .OrderByDescending(s => s.CreatedDate)
                 .Take(5)
                 .ToList();
@@ -621,7 +968,12 @@ WHERE StrategicGoalId = $goalId
             }
 
             // Add recent professional development entries
-            var recentProfDev = _context.ProfessionalDevelopments
+            var recentProfDev = FilterByFiscalYearMonthNameWithCreatedDateFallback(
+                    _context.ProfessionalDevelopments.ToList(),
+                    fiscalYear,
+                    p => p.Year,
+                    p => p.Month,
+                    p => p.CreatedDate)
                 .OrderByDescending(p => p.CreatedDate)
                 .Take(5)
                 .ToList();
@@ -641,7 +993,7 @@ WHERE StrategicGoalId = $goalId
             }
 
             // Add recent media placements
-            var recentMedia = _context.MediaPlacements_3D
+            var recentMedia = FilterByFiscalYearDate(_context.MediaPlacements_3D.ToList(), fiscalYear, m => m.CreatedDate)
                 .OrderByDescending(m => m.CreatedDate)
                 .Take(3)
                 .ToList();
@@ -668,7 +1020,7 @@ WHERE StrategicGoalId = $goalId
             }
 
             // Add recent website traffic entries
-            var recentTraffic = _context.WebsiteTraffic
+            var recentTraffic = FilterByFiscalYearDate(_context.WebsiteTraffic.ToList(), fiscalYear, w => w.CreatedDate)
                 .OrderByDescending(w => w.CreatedDate)
                 .Take(3)
                 .ToList();
@@ -687,16 +1039,56 @@ WHERE StrategicGoalId = $goalId
                 });
             }
 
-            // Add recent events from database Events table
+            // Add recent dashboard events from core strategies
             try 
             {
-                var recentEvents = _context.Events
-                    .OrderByDescending(e => e.StartDate ?? e.DueDate ?? DateTime.Now)
+                var recentStrategies = GetVisibleDashboardStrategiesQuery().ToList();
+                var fiscalYearRange = GetFiscalYearRangeOrNull(fiscalYear);
+                if (fiscalYearRange != null)
+                {
+                    recentStrategies = recentStrategies
+                        .Where(s =>
+                        {
+                            var strategyDate = ParseStrategyDate(s.Date);
+                            return !strategyDate.HasValue
+                                || (strategyDate.Value >= fiscalYearRange.Value.StartDate && strategyDate.Value <= fiscalYearRange.Value.EndDate);
+                        })
+                        .ToList();
+                }
+
+                recentStrategies = recentStrategies
+                    .OrderByDescending(s => s.Id)
+                    .Take(3)
+                    .ToList();
+
+                var recentStrategyIds = recentStrategies
+                    .Select(s => s.Id)
+                    .ToList();
+
+                var recentLinkedEvents = _context.Events
+                    .Where(e => !e.IsArchived && e.StrategyId.HasValue && recentStrategyIds.Contains(e.StrategyId.Value))
+                    .ToList();
+
+                var recentLinkedEventsByStrategyId = recentLinkedEvents
+                    .GroupBy(e => e.StrategyId!.Value)
+                    .ToDictionary(
+                        group => group.Key,
+                        group => group
+                            .OrderBy(e => e.IsAssignedByAdmin ? 1 : 0)
+                            .ThenBy(e => string.IsNullOrWhiteSpace(e.OwnerUsername) ? 0 : 1)
+                            .ThenByDescending(e => e.Id)
+                            .First());
+
+                var recentEvents = recentStrategies
+                    .Select(strategy => BuildDashboardEvent(strategy,
+                        recentLinkedEventsByStrategyId.TryGetValue(strategy.Id, out var linkedEvent) ? linkedEvent : null))
+                    .OrderByDescending(e => e.StartDate ?? e.DueDate ?? DateTime.MinValue)
                     .Take(3)
                     .ToList();
 
                 foreach (var evt in recentEvents)
                 {
+                    var goalId = ResolveGoalIdForEvent(evt) ?? 1;
                     activities.Add(new RecentActivity
                     {
                         Type = "Event",
@@ -704,8 +1096,8 @@ WHERE StrategicGoalId = $goalId
                         Description = $"{evt.Type} | Status: {evt.Status} | {(evt.StartDate?.ToString("MMM dd") ?? evt.DueDate?.ToString("MMM dd") ?? "Date TBD")}",
                         Date = evt.StartDate ?? evt.DueDate ?? DateTime.Now,
                         Icon = "fas fa-calendar-check",
-                        Color = GetColorByGoalId(evt.StrategicGoalId ?? 1),
-                        GoalName = GetGoalNameById(evt.StrategicGoalId ?? 1)
+                        Color = GetColorByGoalId(goalId),
+                        GoalName = GetGoalNameById(goalId)
                     });
                 }
             }
@@ -815,41 +1207,19 @@ WHERE StrategicGoalId = $goalId
             TargetDate = DateTime.Now.AddMonths(12)
         });
 
-        // Note: ProfessionalDevelopmentCount field was removed from StaffSurvey_22D in migrations
-        // This metric is no longer tracked via staff surveys but via dedicated professional development records
+        // Generate metrics from professional development data (always create metrics, default to 0 if no data)
+        var totalDevelopmentRecords = profDev.Count();
         goal.Metrics.Add(new GoalMetric
         {
             Id = 2,
-            Name = "Professional Development Activities (Individual Records)",
-            Description = profDev.Any() ? $"Activities tracked via dedicated PD records" : "No individual PD records available - use dedicated PD form",
+            Name = "Professional Development Planning",
+            Description = profDev.Any() ? $"Professional development records submitted" : "No planning data available - showing baseline",
             StrategicGoalId = 1,
             Target = "",
-            CurrentValue = profDev.Count,
+            CurrentValue = totalDevelopmentRecords,
             Unit = "records",
             Status = profDev.Any() ? "In Progress" : "Pending Data",
             TargetDate = DateTime.Now.AddMonths(12)
-        });
-
-        // Note: ProfessionalDevelopmentYear26 and ProfessionalDevelopmentYear27 fields were removed from ProfessionalDevelopment in migrations
-        // Now we count total professional development records/activities instead
-        var totalActivitiesTracked = profDev.Count; // Number of PD records submitted
-        var totalActivitiesDescription = profDev.Any() 
-            ? string.Join(", ", profDev.Take(3).Select(p => $"{p.Name}: {p.Activities.Split(',').Length} activities"))
-            : "No activities tracked yet";
-        
-        goal.Metrics.Add(new GoalMetric
-        {
-            Id = 3,
-            Name = "Professional Development Planning",
-            Description = profDev.Any() ? $"Total PD records: {totalActivitiesTracked}. Examples: {totalActivitiesDescription}" : "No planning data available - showing baseline",
-            StrategicGoalId = 1,
-            Target = "",
-            CurrentValue = totalActivitiesTracked,
-            Unit = "records",
-            Status = profDev.Any() ? "In Progress" : "Pending Data",
-            TargetDate = DateTime.Now.AddMonths(12),
-            Q1Value = profDev.Count(p => p.Month.Contains("Jan") || p.Month.Contains("Feb") || p.Month.Contains("Mar")),
-            Q2Value = profDev.Count(p => p.Month.Contains("Apr") || p.Month.Contains("May") || p.Month.Contains("Jun"))
         });
 
         return goal;
@@ -939,32 +1309,259 @@ WHERE StrategicGoalId = $goalId
 
     private async Task<DashboardViewModel> BuildEnhancedDashboardAsync(string? fiscalYear = null)
     {
+        fiscalYear ??= GetCurrentFiscalYearLabel();
         var dashboard = new DashboardViewModel();
-        
-        // Use current fiscal year if none provided
-        var selectedFiscalYear = fiscalYear ?? GetCurrentFiscalYear();
         
         // Always create all four strategic goals (regardless of data)
         var allGoals = await CreateAllStrategicGoalsAsync();
         
         // Enhance each strategic goal with comprehensive metrics from MetricsService
-        await EnhanceGoalsWithComprehensiveMetricsAsync(allGoals, selectedFiscalYear);
+        await EnhanceGoalsWithComprehensiveMetricsAsync(allGoals, fiscalYear);
         
         // Build summary statistics from real data
-        dashboard.Summary = BuildDashboardSummary();
+        dashboard.Summary = BuildDashboardSummary(fiscalYear);
         
         // Build recent activities from real data
-        dashboard.RecentActivities = BuildRecentActivities();
+        dashboard.RecentActivities = BuildRecentActivities(fiscalYear);
 
         // Build chart data from real metrics
-        dashboard.Charts = BuildChartData(allGoals);
+        dashboard.Charts = BuildChartData(allGoals, fiscalYear);
         
         // Always show all goals with their metrics (even if empty)
         dashboard.StrategicGoals = allGoals;
         dashboard.DataSource = "Comprehensive Metrics + Real Data Integration";
         dashboard.Message = "Dashboard shows all strategic goals with comprehensive metrics. Metrics update in real-time as you submit data through the Data Entry forms.";
+
+        // Identity: ZIP coverage (drives Programs Demographics map)
+        dashboard.ZipCoverage = await BuildZipCoverageAsync(fiscalYear);
+        dashboard.Identity = await BuildIdentityDashboardDataAsync(dashboard.ZipCoverage, fiscalYear);
         
         return dashboard;
+    }
+
+    private static string GetCurrentFiscalYearLabel(DateTime? currentDate = null)
+    {
+        return FiscalYearSelection.GetCurrentDashboardFiscalYearLabel(currentDate);
+    }
+
+    private static List<string> GetFiscalYearOptions(string centerFiscalYear, int yearsBefore, int yearsAfter)
+    {
+        if (!TryParseFiscalYearLabel(centerFiscalYear, out var startYear, out _))
+        {
+            centerFiscalYear = GetCurrentFiscalYearLabel();
+            TryParseFiscalYearLabel(centerFiscalYear, out startYear, out _);
+        }
+
+        return Enumerable.Range(startYear - yearsBefore, yearsBefore + yearsAfter + 1)
+            .Select(year => $"{year}-{year + 1}")
+            .ToList();
+    }
+
+    private static bool TryParseFiscalYearLabel(string? fiscalYear, out int startYear, out int endYear)
+    {
+        startYear = 0;
+        endYear = 0;
+
+        if (string.IsNullOrWhiteSpace(fiscalYear))
+        {
+            return false;
+        }
+
+        var normalized = fiscalYear.Trim();
+        if (normalized.StartsWith("FY ", StringComparison.OrdinalIgnoreCase))
+        {
+            normalized = normalized.Substring(3).Trim();
+        }
+        else if (normalized.StartsWith("FY", StringComparison.OrdinalIgnoreCase))
+        {
+            normalized = normalized.Substring(2).Trim();
+        }
+
+        var parts = normalized.Split(new[] { '-', '/' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (parts.Length != 2
+            || !int.TryParse(parts[0], out startYear)
+            || !int.TryParse(parts[1], out endYear))
+        {
+            return false;
+        }
+
+        return endYear == startYear + 1;
+    }
+
+    private async Task<IdentityDashboardData> BuildIdentityDashboardDataAsync(Dictionary<string, int> zipCoverage, string fiscalYear)
+    {
+        var data = new IdentityDashboardData
+        {
+            ZipCodesServed = zipCoverage?.Count ?? 0
+        };
+
+        // Media Placements
+        try
+        {
+            var all = FilterByFiscalYearDate(await _context.MediaPlacements_3D.ToListAsync(), fiscalYear, m => m.CreatedDate);
+            data.MediaPlacementsTotal = all.Sum(m => m.TotalMentions);
+            data.MediaPlacementsByMonth = new[]
+            {
+                all.Sum(m => m.January ?? 0),
+                all.Sum(m => m.February ?? 0),
+                all.Sum(m => m.March ?? 0),
+                all.Sum(m => m.April ?? 0),
+                all.Sum(m => m.May ?? 0),
+                all.Sum(m => m.June ?? 0),
+                all.Sum(m => m.July ?? 0),
+                all.Sum(m => m.August ?? 0),
+                all.Sum(m => m.September ?? 0),
+                all.Sum(m => m.October ?? 0),
+                all.Sum(m => m.November ?? 0),
+                all.Sum(m => m.December ?? 0)
+            };
+            data.MediaPlacementsLastUpdated = all.Count > 0 ? all.Max(m => m.CreatedDate) : null;
+        }
+        catch { }
+
+        // Website Traffic
+        try
+        {
+            var all = FilterByFiscalYearDate(await _context.WebsiteTraffic.ToListAsync(), fiscalYear, w => w.CreatedDate);
+            data.WebsiteClicksTotal = all.Sum(w => w.TotalClicks);
+            data.WebsiteTrafficLastUpdated = all.Count > 0 ? all.Max(w => w.CreatedDate) : null;
+
+            var latest = all
+                .OrderByDescending(w => w.CreatedDate)
+                .FirstOrDefault();
+            if (latest != null)
+            {
+                data.WebsiteClicksByQuarter = new[]
+                {
+                    latest.Q1_JulySeptember ?? 0,
+                    latest.Q2_OctoberDecember ?? 0,
+                    latest.Q3_JanuaryMarch ?? 0,
+                    latest.Q4_AprilJune ?? 0
+                };
+            }
+        }
+        catch { }
+
+        // Community Perception Survey (Trust)
+        try
+        {
+            var surveys = FilterByFiscalYearYears(await _context.Annual_average_7D.ToListAsync(), fiscalYear, s => s.Year);
+            var latest = surveys
+                .OrderByDescending(s => s.Year)
+                .ThenByDescending(s => s.CreatedDate)
+                .FirstOrDefault();
+            data.TrustPercent = latest?.Percentage ?? 0m;
+            data.TrustRespondents = latest?.TotalRespondents;
+            data.TrustYear = latest?.Year;
+            data.TrustLastUpdated = latest?.CreatedDate;
+
+            var history = surveys
+                .OrderByDescending(s => s.Year)
+                .ThenByDescending(s => s.CreatedDate)
+                .Take(5)
+                .ToList();
+            history = history
+                .GroupBy(h => h.Year)
+                .Select(g => g.OrderByDescending(x => x.CreatedDate).First())
+                .OrderBy(h => h.Year)
+                .ToList();
+
+            data.TrustHistoryYears = history.Select(h => h.Year).ToList();
+            data.TrustHistoryPercents = history.Select(h => h.Percentage).ToList();
+        }
+        catch { }
+
+        // Milestone Achievement
+        try
+        {
+            var latest = FilterByFiscalYearDate(await _context.achieveMile_6D.ToListAsync(), fiscalYear, m => m.CreatedDate)
+                .OrderByDescending(m => m.CreatedDate)
+                .FirstOrDefault();
+            data.MilestonePercent = latest?.Percentage ?? 0m;
+            data.MilestoneReviewActive = latest?.achievedReview ?? false;
+            data.MilestoneLastUpdated = latest?.CreatedDate;
+        }
+        catch { }
+
+        // Social Media Engagement
+        try
+        {
+            var latest = FilterByFiscalYearYears(await _context.socialMedia_5D.ToListAsync(), fiscalYear, s => s.Year)
+                .OrderByDescending(s => s.Year)
+                .ThenByDescending(s => s.CreatedDate)
+                .FirstOrDefault();
+            if (latest != null)
+            {
+                data.SocialYear = latest.Year;
+                data.SocialAvgEngagementRate = latest.AverageEngagementRate;
+                data.SocialQ1 = latest.JulySeptEngagementRate;
+                data.SocialQ2 = latest.OctDecEngagementRate;
+                data.SocialQ3 = latest.JanMarEngagementRate;
+                data.SocialQ4 = latest.AprilJuneEngagementRate;
+                data.SocialGoalMet = latest.GoalMet;
+                data.SocialLastUpdated = latest.CreatedDate;
+            }
+        }
+        catch { }
+
+        // Framework Development Plan
+        try
+        {
+            var latest = FilterByFiscalYearYears(await _context.Plan2026_24D.ToListAsync(), fiscalYear, p => p.Year)
+                .OrderByDescending(p => p.Year)
+                .ThenByDescending(p => p.Quarter)
+                .ThenByDescending(p => p.CreatedDate)
+                .FirstOrDefault();
+            if (latest != null)
+            {
+                data.FrameworkYear = latest.Year;
+                data.FrameworkQuarter = latest.Quarter ?? "";
+                data.FrameworkStatus = latest.FrameworkStatus ?? "";
+                data.FrameworkGoalMet = latest.GoalMet;
+                data.FrameworkLastUpdated = latest.CreatedDate;
+            }
+        }
+        catch { }
+
+        return data;
+    }
+
+    private async Task<Dictionary<string, int>> BuildZipCoverageAsync(string fiscalYear)
+    {
+        var coverage = new Dictionary<string, int>(StringComparer.Ordinal);
+
+        List<demographics_8D> rows;
+        try
+        {
+            rows = FilterByFiscalYearYears(
+                await _context.demographics_8D
+                    .OrderByDescending(d => d.CreatedDate)
+                    .ToListAsync(),
+                fiscalYear,
+                d => d.Year);
+        }
+        catch
+        {
+            return coverage;
+        }
+
+        foreach (var row in rows)
+        {
+            var zipCodes = (row.ZipCodes ?? "")
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+            foreach (var raw in zipCodes)
+            {
+                var digits = new string(raw.Where(char.IsDigit).ToArray());
+                if (digits.Length < 5) continue;
+                var zip = digits.Substring(0, 5);
+
+                if (coverage.TryGetValue(zip, out var c)) coverage[zip] = c + 1;
+                else coverage[zip] = 1;
+            }
+        }
+
+        return coverage;
     }
 
     private async Task<List<StrategicGoal>> CreateAllStrategicGoalsAsync()
@@ -991,9 +1588,8 @@ WHERE StrategicGoalId = $goalId
                 Events = new List<Event>(),
                 Metrics = new List<GoalMetric>()
             };
-            
-            // Add events from Strategy controller's static list
-            goal.Events.AddRange(GetEventsFromStrategyController(template.Id));
+
+            goal.Events = await GetDashboardEventsForGoalAsync(template.Id);
             
             goals.Add(goal);
         }
@@ -1003,167 +1599,55 @@ WHERE StrategicGoalId = $goalId
     
     private async Task EnhanceGoalsWithComprehensiveMetricsAsync(List<StrategicGoal> goals, string fiscalYear)
     {
-        // Initialize metrics if they don't exist
-        await _metricsService.SeedDashboardMetricsAsync();
-        
         foreach (var goal in goals)
         {
-            // Get comprehensive metrics for this goal
-            List<GoalMetric> comprehensiveMetrics;
-            
-            if (goal.Name.Contains("Identity"))
-                comprehensiveMetrics = await _metricsService.GetPublicMetricsAsync("Identity", fiscalYear);
-            else if (goal.Name.Contains("Community"))
-                comprehensiveMetrics = await _metricsService.GetPublicMetricsAsync("Community", fiscalYear);
-            else if (goal.Name.Contains("Financial"))
-                comprehensiveMetrics = await _metricsService.GetPublicMetricsAsync("Financial", fiscalYear);
-            else if (goal.Name.Contains("Organizational"))
-                comprehensiveMetrics = await _metricsService.GetPublicMetricsAsync("Organizational", fiscalYear);
-            else
-                continue;
-            
-            // Add comprehensive metrics to existing ones (avoid duplicates by name or similar functionality)
-            foreach (var metric in comprehensiveMetrics)
-            {
-                // More sophisticated deduplication - check for similar metrics
-                var existingMetric = goal.Metrics.FirstOrDefault(m => 
-                    m.Name == metric.Name || 
-                    (m.Name.Contains("Staff Satisfaction") && metric.Name.Contains("Staff Satisfaction")) ||
-                    (m.Name.Contains("Professional Development") && metric.Name.Contains("Professional Development"))
-                );
-                
-                if (existingMetric == null)
-                {
-                    goal.Metrics.Add(metric);
-                }
-                else
-                {
-                    // Update existing metric with comprehensive data if it has more complete information
-                    if (!string.IsNullOrEmpty(metric.Target) && string.IsNullOrEmpty(existingMetric.Target))
-                    {
-                        existingMetric.Target = metric.Target;
-                    }
-                    if (!string.IsNullOrEmpty(metric.DataSource) && existingMetric.DataSource != metric.DataSource)
-                    {
-                        existingMetric.DataSource = $"{existingMetric.DataSource} + {metric.DataSource}";
-                    }
-                }
-            }
-            
-            // Update metrics with real data from database
-            await UpdateMetricsWithRealDataAsync(goal);
+            await UpdateMetricsWithRealDataAsync(goal, fiscalYear);
         }
     }
     
-    private async Task UpdateMetricsWithRealDataAsync(StrategicGoal goal)
+    private async Task UpdateMetricsWithRealDataAsync(StrategicGoal goal, string fiscalYear)
     {
         try
         {
             // Identity/Value Proposition Goal - Media, Website, Demographics, Planning
             if (goal.Name.Contains("Identity"))
             {
-                await AddIdentityMetricsAsync(goal);
+                await AddIdentityMetricsAsync(goal, fiscalYear);
             }
         
             // Organizational Building Goal - Staff, Professional Development, Board Management
             else if (goal.Name.Contains("Organizational"))
             {
-                await AddOrganizationalMetricsAsync(goal);
+                await AddOrganizationalMetricsAsync(goal, fiscalYear);
             }
         
             // Financial Sustainability Goal - Budget, Revenue, Donors, Fees
             else if (goal.Name.Contains("Financial"))
             {
-                await AddFinancialMetricsAsync(goal);
+                await AddFinancialMetricsAsync(goal, fiscalYear);
             }
 
             // Community Engagement Goal - Collaborations, Communications, Surveys, Programs
             else if (goal.Name.Contains("Community"))
             {
-                await AddCommunityMetricsAsync(goal);
+                await AddCommunityMetricsAsync(goal, fiscalYear);
             }
 
-            // Save all metric updates to the database
-            await _context.SaveChangesAsync();
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error updating metrics: {ex.Message}");
-            if (goal.Name.Contains("Financial"))
-            {
-                EnsureFinancialFallbackMetrics(goal);
-            }
         }
     }
 
-    private void EnsureFinancialFallbackMetrics(StrategicGoal goal)
-    {
-        var nextId = goal.Metrics.Count + 9000;
-
-        AddMetricIfMissing(goal, "Budget Revenue Tracking", "Fallback metric while financial data loads",
-            0, "dollars", "500000", "Planning", "Fallback: no budget tracking data available.", nextId++);
-
-        AddMetricIfMissing(goal, "Fee-for-Service Income", "Fallback metric while earned income data loads",
-            0, "dollars", "75000", "Planning", "Fallback: no fee-for-service data available.", nextId++);
-
-        AddMetricIfMissing(goal, "General Income Streams", "Fallback metric while income data loads",
-            0, "dollars", "100000", "Planning", "Fallback: no income tracking data available.", nextId++);
-
-        AddMetricIfMissing(goal, "Donor Engagement Events", "Fallback metric while donor event data loads",
-            0, "participants", "200", "Planning", "Fallback: no donor engagement data available.", nextId++);
-
-        AddMetricIfMissing(goal, "Donor Communication Satisfaction", "Fallback metric while communication data loads",
-            0, "%", "85", "Planning", "Fallback: no donor communication data available.", nextId++);
-    }
-
-    private void AddMetricIfMissing(StrategicGoal goal, string name, string description, decimal currentValue,
-        string unit, string target, string status, string detailedDescription, int id)
-    {
-        if (goal.Metrics.Any(m => m.Name == name))
-        {
-            return;
-        }
-
-        goal.Metrics.Add(new GoalMetric
-        {
-            Id = id,
-            Name = name,
-            Description = detailedDescription,
-            StrategicGoalId = goal.Id,
-            Target = target,
-            CurrentValue = currentValue,
-            Unit = unit,
-            DataSource = "Form",
-            MetricType = "Count",
-            IsPublic = true,
-            FiscalYear = "2025-2026",
-            Status = status,
-            TargetDate = DateTime.Now.AddMonths(12)
-        });
-    }
-
-    private int? GetIncomeRecordYear(income_27D income)
-    {
-        if (!string.IsNullOrWhiteSpace(income.Month))
-        {
-            var parts = income.Month.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length > 0 && int.TryParse(parts[^1], out var yearFromMonth))
-            {
-                return yearFromMonth;
-            }
-        }
-
-        return income.Year;
-    }
-
-    private async Task AddIdentityMetricsAsync(StrategicGoal goal)
+    private async Task AddIdentityMetricsAsync(StrategicGoal goal, string fiscalYear)
     {
         var nextId = goal.Metrics.Count + 1000;
 
         // IDENTITY/VALUE PROPOSITION - Connect ALL relevant forms
         
         // 1. Media Placements (from MediaPlacements_3D table)
-        var mediaPlacements = await _context.MediaPlacements_3D.ToListAsync();
+        var mediaPlacements = FilterByFiscalYearDate(await _context.MediaPlacements_3D.ToListAsync(), fiscalYear, m => m.CreatedDate);
         var totalPlacements = 0;
         foreach (var placement in mediaPlacements)
         {
@@ -1180,7 +1664,7 @@ WHERE StrategicGoalId = $goalId
             $"📺 Media Placements: {totalPlacements} | Form: Data Entry → Media Placements", nextId++);
 
         // 2. Website Traffic (from WebsiteTraffic table - FIXED table name)
-        var websiteTraffic = await _context.WebsiteTraffic.ToListAsync();
+        var websiteTraffic = FilterByFiscalYearDate(await _context.WebsiteTraffic.ToListAsync(), fiscalYear, w => w.CreatedDate);
         var totalTraffic = websiteTraffic.Sum(w => (w.Q1_JulySeptember ?? 0) + (w.Q2_OctoberDecember ?? 0) + 
                                                   (w.Q3_JanuaryMarch ?? 0) + (w.Q4_AprilJune ?? 0));
         
@@ -1189,7 +1673,7 @@ WHERE StrategicGoalId = $goalId
             $"🌐 Website Traffic: {totalTraffic:N0} clicks | Form: Data Entry → Website Traffic", nextId++);
 
         // 3. Geographic Reach (from demographics_8D)
-        var demographics = await _context.demographics_8D.ToListAsync();
+        var demographics = FilterByFiscalYearYears(await _context.demographics_8D.ToListAsync(), fiscalYear, d => d.Year);
         var uniqueZipCodes = 0;
         if (demographics.Any())
         {
@@ -1206,7 +1690,7 @@ WHERE StrategicGoalId = $goalId
         // to avoid duplication and better align with data source context
 
         // 4. Community Perception Survey (from Annual_average_7D)
-        var annualSurvey = await _context.Annual_average_7D.ToListAsync();
+        var annualSurvey = FilterByFiscalYearYears(await _context.Annual_average_7D.ToListAsync(), fiscalYear, s => s.Year);
         var latestSurvey = annualSurvey.OrderByDescending(s => s.Year).FirstOrDefault();
         var trustRating = latestSurvey?.Percentage ?? 0;
         
@@ -1215,30 +1699,25 @@ WHERE StrategicGoalId = $goalId
             $"🌟 {trustRating}% identify OneJax as trusted leader ({latestSurvey?.TotalRespondents} respondents, {latestSurvey?.Year}) | Form: Data Entry → Annual Survey", nextId++);
 
         // 5. Strategic Planning (from Plan2026_24D)
-        var plan2026 = await _context.Plan2026_24D.ToListAsync();
+        var plan2026 = FilterByFiscalYearYears(await _context.Plan2026_24D.ToListAsync(), fiscalYear, p => p.Year);
         var completedPlans = plan2026.Count(p => p.GoalMet);
         
         AddOrUpdateMetric(goal, "Strategic Plan Completion", "2026 planning progress", 
             completedPlans, "goals met", "20", plan2026.Any() ? "Active" : "Planning",
             $"🎯 Plans Completed: {completedPlans}/{plan2026.Count} | Form: Data Entry → 2026 Planning", nextId++);
-
-        // 5. Issue Resolution (from Plan2026_24D - planIssue_25D table was merged into this table)
-        var planIssues = await _context.Plan2026_24D
-            .Where(p => !string.IsNullOrEmpty(p.IssueName)) // Only plans with issues
-            .ToListAsync();
-        var resolvedIssues = planIssues.Count(i => i.IssueHandled);
-        
-        AddOrUpdateMetric(goal, "Issue Resolution Rate", "Strategic issues addressed", 
-            resolvedIssues, "resolved", "15", planIssues.Any() ? "Active" : "Planning",
-            $"⚡ Issues Resolved: {resolvedIssues}/{planIssues.Count} | Form: Data Entry → 2026 Planning", nextId++);
     }
 
-    private async Task AddOrganizationalMetricsAsync(StrategicGoal goal)
+    private async Task AddOrganizationalMetricsAsync(StrategicGoal goal, string fiscalYear)
     {
         var nextId = goal.Metrics.Count + 2000;
 
         // 1. Staff Satisfaction (from Staff Surveys form)
-        var staffSurveys = await _context.StaffSurveys_22D.ToListAsync();
+        var staffSurveys = FilterByFiscalYearMonthNameWithCreatedDateFallback(
+            await _context.StaffSurveys_22D.ToListAsync(),
+            fiscalYear,
+            s => s.Year,
+            s => s.Month,
+            s => s.CreatedDate);
         var avgSatisfaction = staffSurveys.Any() ? staffSurveys.Average(s => s.SatisfactionRate) : 0;
         
         AddOrUpdateMetric(goal, "Staff Satisfaction Rating", "Annual Team Satisfaction Survey", 
@@ -1248,27 +1727,40 @@ WHERE StrategicGoalId = $goalId
                 : "No staff surveys yet - Go to Data Entry → Staff Surveys", nextId++);
 
         // 2. Professional Development (employee participation + activity totals)
-        var profDevs = await _context.ProfessionalDevelopments.ToListAsync();
+        var profDevs = FilterByFiscalYearMonthNameWithCreatedDateFallback(
+            await _context.ProfessionalDevelopments.ToListAsync(),
+            fiscalYear,
+            p => p.Year,
+            p => p.Month,
+            p => p.CreatedDate);
         var participatingEmployees = profDevs.Count;
-        // Note: ProfessionalDevelopmentYear26/27 fields were removed - now we count total records and activities
-        var totalActivities = profDevs.Sum(p => p.Activities.Split(',', ';').Length); // Approximate activity count
+        var dashboardAccessAccountCount = await _context.Staffauth
+            .CountAsync(staff => !string.IsNullOrWhiteSpace(staff.Username));
         
         AddOrUpdateMetric(goal, "Professional Development Plans", "Staff growth initiatives", 
-            participatingEmployees, "employees", "25", profDevs.Any() ? "Active" : "Planning",
+            participatingEmployees, "employees", dashboardAccessAccountCount.ToString(CultureInfo.InvariantCulture), profDevs.Any() ? "Active" : "Planning",
             profDevs.Any()
-                ? $"{participatingEmployees} employees participating, ~{totalActivities} total activities | Form: Data Entry → Professional Development"
-                : "No professional development yet - Go to Data Entry → Professional Development", nextId++);
+                ? $"{participatingEmployees} employees participating out of {dashboardAccessAccountCount} dashboard accounts | Form: Data Entry → Professional Development"
+                : $"No professional development yet. {dashboardAccessAccountCount} dashboard accounts currently have access | Go to Data Entry → Professional Development", nextId++);
 
         // 3. Board Member Recruitment
-        var boardMembers = await _context.BoardMember_29D.ToListAsync();
-        var totalRecruited = boardMembers.Sum(b => b.NumberRecruited);
+        var boardMembers = FilterByFiscalYearCalendarQuarterWithCreatedDateFallback(
+            await _context.BoardMember_29D.ToListAsync(),
+            fiscalYear,
+            b => b.Year,
+            b => b.Quarter,
+            b => b.CreatedDate);
+        var totalRecruited = boardMembers.Sum(b => b.NumberRecruited ?? 0);
+        var totalProspectOutreach = boardMembers.Sum(b => b.TotalProspectOutreach);
         
         AddOrUpdateMetric(goal, "Board Recruitment", "New board member acquisition", 
-            totalRecruited ?? 0, "members", "10", boardMembers.Any() ? "Active" : "Planning",
-            boardMembers.Any() ? $"Board members recruited: {totalRecruited ?? 0}" : "No board recruitment data yet - Go to Data Entry → Board Management", nextId++);
+            totalRecruited, "members", "6", boardMembers.Any() ? "Active" : "Planning",
+            boardMembers.Any()
+                ? $"Board members recruited: {totalRecruited}, total prospect outreach: {totalProspectOutreach} | Form: Data Entry → Board Management"
+                : "No board recruitment data yet - Go to Data Entry → Board Management", nextId++);
 
         // 4. Board Meeting Attendance
-        var boardAttendance = await _context.BoardMeetingAttendance.ToListAsync();
+        var boardAttendance = FilterByFiscalYearDate(await _context.BoardMeetingAttendance.ToListAsync(), fiscalYear, b => b.MeetingDate);
         decimal avgAttendanceRate = 0;
         if (boardAttendance.Any())
         {
@@ -1284,7 +1776,12 @@ WHERE StrategicGoalId = $goalId
             boardAttendance.Any() ? $"Average attendance rate: {avgAttendanceRate:F1}%" : "No board attendance data yet - Go to Data Entry → Board Management", nextId++);
 
         // 5. Board Self-Assessment
-        var boardSelfAssessments = await _context.selfAssess_31D.ToListAsync();
+        var boardSelfAssessments = FilterByFiscalYearMonthNameWithCreatedDateFallback(
+            await _context.selfAssess_31D.ToListAsync(),
+            fiscalYear,
+            a => a.Year,
+            a => a.Month,
+            a => a.CreatedDate);
         var avgBoardSelfAssessment = boardSelfAssessments.Any()
             ? boardSelfAssessments.Average(a => a.SelfAssessmentScore)
             : 0;
@@ -1296,7 +1793,12 @@ WHERE StrategicGoalId = $goalId
                 : "No board self-assessment data yet - Go to Data Entry → Board Self-Assessment", nextId++);
 
         // 6. Volunteer Program
-        var volunteerPrograms = await _context.volunteerProgram_40D.ToListAsync();
+        var volunteerPrograms = FilterByFiscalYearCalendarQuarterWithCreatedDateFallback(
+            await _context.volunteerProgram_40D.ToListAsync(),
+            fiscalYear,
+            v => v.Year,
+            v => v.Quarter,
+            v => v.CreatedDate);
         var totalVolunteers = volunteerPrograms.Sum(v => v.NumberOfVolunteers);
         var totalVolunteerInitiatives = volunteerPrograms.Sum(v => v.VolunteerLedInitiatives);
 
@@ -1314,12 +1816,21 @@ WHERE StrategicGoalId = $goalId
         }
     }
 
-    private async Task AddFinancialMetricsAsync(StrategicGoal goal)
+    private async Task AddFinancialMetricsAsync(StrategicGoal goal, string fiscalYear)
     {
         var nextId = goal.Metrics.Count + 3000;
+        var hasFiscalYear = TryParseFiscalYearEnd(fiscalYear, out var fiscalYearEnd);
+        var fiscalYearStart = fiscalYearEnd - 1;
 
         // 1. Budget Tracking
         var budgetTracking = await _context.BudgetTracking_28D.ToListAsync();
+        if (hasFiscalYear)
+        {
+            var fiscalYearBudgetTracking = budgetTracking
+                .Where(b => b.Year == fiscalYearStart || b.Year == fiscalYearEnd)
+                .ToList();
+            budgetTracking = fiscalYearBudgetTracking;
+        }
         decimal totalRevenue = 0;
         decimal totalExpenses = 0;
         
@@ -1341,6 +1852,13 @@ WHERE StrategicGoalId = $goalId
 
         // 2. Fee-for-Service Revenue
         var feeServices = await _context.FeeForServices_21D.ToListAsync();
+        if (hasFiscalYear)
+        {
+            var fiscalYearFeeServices = feeServices
+                .Where(f => f.Year == fiscalYearStart || f.Year == fiscalYearEnd)
+                .ToList();
+            feeServices = fiscalYearFeeServices;
+        }
         var totalFeeRevenue = feeServices.Sum(f => f.RevenueReceived);
         var totalFeeExpenses = feeServices.Sum(f => f.ExpenseReceived);
         var totalFeeNetRevenue = totalFeeRevenue - totalFeeExpenses;
@@ -1363,6 +1881,15 @@ WHERE StrategicGoalId = $goalId
 
         // 3. Income Tracking
         var incomeData = await _context.income_27D.ToListAsync();
+        if (hasFiscalYear)
+        {
+            incomeData = FilterByFiscalYearMonthNameWithCreatedDateFallback(
+                incomeData,
+                fiscalYear,
+                i => i.Year,
+                i => i.Month,
+                i => i.CreatedDate);
+        }
         var totalIncome = incomeData.Sum(i => i.Amount);
         
         AddOrUpdateMetric(goal, "General Income Streams", "Diversified income tracking", 
@@ -1376,7 +1903,11 @@ WHERE StrategicGoalId = $goalId
         }
 
         // 4. Donor Events
-        var donorEvents = await _context.DonorEvents_19D.ToListAsync();
+        var donorEvents = FilterByFiscalYearStrategyDateWithCreatedDateFallback(
+            await _context.DonorEvents_19D.ToListAsync(),
+            fiscalYear,
+            d => d.StrategyId,
+            d => d.CreatedDate);
         var totalParticipants = donorEvents.Sum(d => d.NumberOfParticipants);
         var avgSatisfaction = donorEvents.Any() ? donorEvents.Average(d => d.EventSatisfactionRating) : 0;
         
@@ -1393,7 +1924,12 @@ WHERE StrategicGoalId = $goalId
         }
 
         // 5. Donor Communication Satisfaction (from Communication Rate form)
-        var commRate = await _context.CommunicationRate.ToListAsync();
+        var commRate = FilterByFiscalYearMonthNumberWithCreatedDateFallback(
+            await _context.CommunicationRate.ToListAsync(),
+            fiscalYear,
+            c => c.Year,
+            c => c.Month,
+            c => c.CreatedDate);
         var avgCommSatisfaction = commRate.Any() ? commRate.Average(c => c.AverageCommunicationSatisfaction) : 0;
 
         AddOrUpdateMetric(goal, "Donor Communication Satisfaction", "Annual donor satisfaction with communications",
@@ -1401,58 +1937,172 @@ WHERE StrategicGoalId = $goalId
             commRate.Any()
                 ? $"{commRate.Count} communication entries, {avgCommSatisfaction:F1}% average satisfaction | Form: Data Entry → Communication Rate"
                 : "No communication rate data yet - Go to Data Entry → Communication Rate", nextId++);
-
-        // Ensure core financial cards always have backing metrics.
-        EnsureFinancialFallbackMetrics(goal);
     }
 
-    private async Task AddCommunityMetricsAsync(StrategicGoal goal)
+    private async Task AddCommunityMetricsAsync(StrategicGoal goal, string fiscalYear)
     {
         var nextId = goal.Metrics.Count + 4000;
 
-        // 1. Communication Rate
-        var commRate = await _context.CommunicationRate.ToListAsync();
-        var avgCommSatisfaction = commRate.Any() ? commRate.Average(c => c.AverageCommunicationSatisfaction) : 0;
-        
-        AddOrUpdateMetric(goal, "Community Communications", "Outreach and engagement satisfaction", 
-            avgCommSatisfaction, "%", "85", commRate.Any() ? "Active" : "Planning",
-            $"📢 {commRate.Count} communication entries, {avgCommSatisfaction:F1}% satisfaction | Form: Data Entry → Communications", nextId++);
+        var interfaithRows = FilterByFiscalYearStrategyDateWithCreatedDateFallback(
+            await _context.Interfaith_11D.ToListAsync(),
+            fiscalYear,
+            i => i.StrategyId,
+            i => i.CreatedDate);
+        AddOrUpdateMetric(goal, "Interfaith Events Hosted", "Interfaith collaborative events logged",
+            interfaithRows.Count, "events", "12", interfaithRows.Any() ? "Active" : "Planning",
+            interfaithRows.Any()
+                ? $"{interfaithRows.Count} interfaith event entries submitted | Form: Data Entry → Interfaith 11D"
+                : "No interfaith event entries yet - Go to Data Entry → Interfaith 11D", nextId++);
 
-        // 5. Event Satisfaction (from EventSatisfaction_12D)
-        var eventSatisfaction = await _context.EventSatisfaction_12D.ToListAsync();
-        var avgEventSatisfaction = eventSatisfaction.Any() ? eventSatisfaction.Average(e => e.EventAttendeeSatisfactionPercentage) : 0;
-        
-        AddOrUpdateMetric(goal, "Event Quality Score", "Community event satisfaction", 
+        var youthRows = FilterByFiscalYearStrategyDateWithCreatedDateFallback(
+            await _context.YouthAttend_15D
+                .OrderByDescending(y => y.CreatedDate)
+                .ToListAsync(),
+            fiscalYear,
+            y => y.StrategyId,
+            y => y.CreatedDate)
+            .OrderByDescending(y => GetStrategyOccurrenceDateOrCreatedDate(y.StrategyId, y.CreatedDate))
+            .ToList();
+        var youthGrowth = 0m;
+        var hasYouthGrowth = false;
+        if (youthRows.Count >= 2)
+        {
+            var latestYouth = youthRows[0];
+            var previousYouth = youthRows[1];
+            if (previousYouth.NumberOfYouthAttendees > 0)
+            {
+                youthGrowth = Math.Round((decimal)((double)(latestYouth.NumberOfYouthAttendees - previousYouth.NumberOfYouthAttendees)
+                    / previousYouth.NumberOfYouthAttendees * 100), 1);
+                hasYouthGrowth = true;
+            }
+        }
+
+        AddOrUpdateMetric(goal, "Youth Attendance Growth", "Growth between the two most recent youth attendance entries",
+            youthGrowth, "%", "20", hasYouthGrowth ? "Active" : "Planning",
+            hasYouthGrowth
+                ? $"{youthGrowth:F1}% growth based on the two most recent youth attendance records | Form: Data Entry → CommYouth15D"
+                : "Need at least two youth attendance entries to calculate growth - Go to Data Entry → CommYouth15D", nextId++);
+
+        var partnerRows = (await _context.CollabTouch_47D.ToListAsync())
+            .Where(p => FiscalYearMatches(p.FiscalYear, fiscalYear))
+            .ToList();
+        AddOrUpdateMetric(goal, "Cross-Sector Collaborations", "Collaborative partner touchpoints logged",
+            partnerRows.Count, "partners", "10", partnerRows.Any() ? "Active" : "Planning",
+            partnerRows.Any()
+                ? $"{partnerRows.Count} collaborative partner touchpoints logged | Form: Data Entry → CommCollab47D"
+                : "No collaborative partner touchpoints yet - Go to Data Entry → CommCollab47D", nextId++);
+
+        var faithRows = FilterByFiscalYearStrategyDateWithCreatedDateFallback(
+            await _context.FaithCommunity_13D.ToListAsync(),
+            fiscalYear,
+            f => f.StrategyId,
+            f => f.CreatedDate);
+        var faithGoalPercent = 0m;
+        if (faithRows.Any())
+        {
+            faithGoalPercent = Math.Round((decimal)faithRows.Count(f => f.NumberOfFaithsRepresented >= 3) / faithRows.Count * 100, 1);
+        }
+        AddOrUpdateMetric(goal, "Faith Representation", "Percent of community events with three or more faiths represented",
+            faithGoalPercent, "%", "80", faithRows.Any() ? "Active" : "Planning",
+            faithRows.Any()
+                ? $"{faithRows.Count(f => f.NumberOfFaithsRepresented >= 3)} of {faithRows.Count} entries met the 3-faith threshold | Form: Data Entry → CommFaith13D"
+                : "No faith representation entries yet - Go to Data Entry → CommFaith13D", nextId++);
+
+        var eventSatisfaction = FilterByFiscalYearStrategyDateWithCreatedDateFallback(
+            await _context.EventSatisfaction_12D.ToListAsync(),
+            fiscalYear,
+            e => e.StrategyId,
+            e => e.CreatedDate);
+        var avgEventSatisfaction = eventSatisfaction.Any() ? Math.Round((decimal)eventSatisfaction.Average(e => e.EventAttendeeSatisfactionPercentage), 1) : 0m;
+        AddOrUpdateMetric(goal, "Event Satisfaction", "Community event satisfaction",
             avgEventSatisfaction, "%", "90", eventSatisfaction.Any() ? "Active" : "Planning",
-            $"🎉 Event Satisfaction: {avgEventSatisfaction:F1}% from {eventSatisfaction.Count} events | Form: Data Entry → Event Satisfaction", nextId++);
+            eventSatisfaction.Any()
+                ? $"Average event satisfaction is {avgEventSatisfaction:F1}% across {eventSatisfaction.Count} entries | Form: Data Entry → EventSatisfaction12D"
+                : "No event satisfaction entries yet - Go to Data Entry → EventSatisfaction12D", nextId++);
 
-        // 6. Youth Program Satisfaction (Update existing metric - general event satisfaction as proxy)
-        var avgYouthSatisfaction = eventSatisfaction.Any() ? eventSatisfaction.Average(e => e.EventAttendeeSatisfactionPercentage) : 0;
-        
-        AddOrUpdateMetric(goal, "Youth Program Satisfaction", "Average satisfaction across all youth programs", 
-            avgYouthSatisfaction, "%", "85", eventSatisfaction.Any() ? "Active" : "Planning",
-            $"👥 {avgYouthSatisfaction:F1}% satisfaction from community events (youth-specific data via Event Satisfaction form) | Form: Data Entry → Event Satisfaction", nextId++);
+        var contactRows = FilterByFiscalYearYears(
+            await _context.ContactsInterfaith_14D
+                .OrderByDescending(c => c.Year)
+                .ToListAsync(),
+            fiscalYear,
+            c => c.Year)
+            .OrderByDescending(c => c.Year)
+            .ToList();
+        var contactGrowth = 0m;
+        var hasContactGrowth = false;
+        if (contactRows.Count >= 2)
+        {
+            var latestContacts = contactRows[0];
+            var previousContacts = contactRows[1];
+            if (previousContacts.TotalInterfaithContacts > 0)
+            {
+                contactGrowth = Math.Round((decimal)((double)(latestContacts.TotalInterfaithContacts - previousContacts.TotalInterfaithContacts)
+                    / previousContacts.TotalInterfaithContacts * 100), 1);
+                hasContactGrowth = true;
+            }
+        }
+        AddOrUpdateMetric(goal, "Clergy Network Growth", "Growth in clergy and interfaith contacts between the two latest yearly entries",
+            contactGrowth, "%", "25", hasContactGrowth ? "Active" : "Planning",
+            hasContactGrowth
+                ? $"{contactGrowth:F1}% growth between the two most recent interfaith contact entries | Form: Data Entry → CommContact14D"
+                : "Need at least two interfaith contact entries to calculate growth - Go to Data Entry → CommContact14D", nextId++);
 
-        // Note: Community Trust Rating moved to Identity/Value Proposition tab
-        // as "Community Perception Survey" to better match the actual form
+        var diversityRows = (await _context.Diversity_37D
+            .OrderByDescending(d => d.CreatedDate)
+            .ToListAsync())
+            .Where(d => FiscalYearMatches(d.FiscalYear, fiscalYear))
+            .OrderByDescending(d => d.CreatedDate)
+            .ToList();
+        var diversityGrowth = 0m;
+        var hasDiversityGrowth = false;
+        if (diversityRows.Count >= 2)
+        {
+            var latestDiversity = diversityRows[0];
+            var previousDiversity = diversityRows[1];
+            if (previousDiversity.DiversityCount > 0)
+            {
+                diversityGrowth = Math.Round((decimal)((double)(latestDiversity.DiversityCount - previousDiversity.DiversityCount)
+                    / previousDiversity.DiversityCount * 100), 1);
+                hasDiversityGrowth = true;
+            }
+        }
+        AddOrUpdateMetric(goal, "Participant Diversity", "Growth in diverse participation between the latest two entries",
+            diversityGrowth, "%", "10", hasDiversityGrowth ? "Active" : "Planning",
+            hasDiversityGrowth
+                ? $"{diversityGrowth:F1}% diversity growth based on the latest two entries | Form: Data Entry → CommDiversity37D"
+                : "Need at least two diversity entries to calculate growth - Go to Data Entry → CommDiversity37D", nextId++);
+
+        var firstTimeRows = (await _context.FirstTime_38D.ToListAsync())
+            .Where(f => FiscalYearMatches(f.FiscalYear, fiscalYear))
+            .ToList();
+        var avgFirstTimeRate = firstTimeRows.Any() ? Math.Round((decimal)firstTimeRows.Average(f => f.FirstTimeParticipantRate), 1) : 0m;
+        AddOrUpdateMetric(goal, "First-Time Participants", "Average share of first-time participants across logged events",
+            avgFirstTimeRate, "%", "25", firstTimeRows.Any() ? "Active" : "Planning",
+            firstTimeRows.Any()
+                ? $"{avgFirstTimeRate:F1}% average first-time participation across {firstTimeRows.Count} entries | Form: Data Entry → CommFirst38D"
+                : "No first-time participant entries yet - Go to Data Entry → CommFirst38D", nextId++);
     }
 
     private void AddOrUpdateMetric(StrategicGoal goal, string name, string description, decimal currentValue, 
-                                 string unit, string target, string status, string detailedDescription, int id)
+                                 string unit, string target, string status, string detailedDescription, int id, string? fiscalYear = null)
     {
         var existingMetric = goal.Metrics.FirstOrDefault(m => m.Name == name);
+        var hasIncomingData = !string.Equals(status, "Planning", StringComparison.OrdinalIgnoreCase);
+        var resolvedFiscalYear = string.IsNullOrWhiteSpace(fiscalYear) ? GetCurrentFiscalYearLabel() : fiscalYear;
         
         if (existingMetric != null)
         {
-            // Update existing metric
             existingMetric.CurrentValue = currentValue;
-            existingMetric.Status = status;
+            existingMetric.Status = ResolveMetricStatus(existingMetric.Status, currentValue, target, hasIncomingData);
             existingMetric.Description = detailedDescription;
             existingMetric.Target = target;
             existingMetric.Unit = unit;
+            existingMetric.FiscalYear = resolvedFiscalYear;
         }
         else
         {
+            var resolvedStatus = ResolveMetricStatus(status, currentValue, target, hasIncomingData);
+
             // Create new metric
             goal.Metrics.Add(new GoalMetric
             {
@@ -1466,14 +2116,49 @@ WHERE StrategicGoalId = $goalId
                 DataSource = "Form",
                 MetricType = "Count",
                 IsPublic = true,
-                FiscalYear = "2025-2026",
-                Status = status,
+                FiscalYear = resolvedFiscalYear,
+                Status = resolvedStatus,
                 TargetDate = DateTime.Now.AddMonths(12)
             });
         }
     }
 
-    private ChartData BuildChartData(List<StrategicGoal> goals)
+    private string ResolveMetricStatus(string priorStatus, decimal currentValue, string target, bool hasIncomingData)
+    {
+        if (TryParseMetricTarget(target, out var targetValue) && targetValue > 0 && currentValue >= targetValue)
+        {
+            return "Completed";
+        }
+
+        if (currentValue > 0
+            || hasIncomingData
+            || string.Equals(priorStatus, "Active", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(priorStatus, "Completed", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Active";
+        }
+
+        return "Planning";
+    }
+
+    private bool TryParseMetricTarget(string target, out decimal targetValue)
+    {
+        targetValue = 0;
+        if (string.IsNullOrWhiteSpace(target))
+        {
+            return false;
+        }
+
+        var cleaned = new string(target.Where(c => char.IsDigit(c) || c == '.' || c == '-').ToArray());
+        if (string.IsNullOrWhiteSpace(cleaned))
+        {
+            return false;
+        }
+
+        return decimal.TryParse(cleaned, NumberStyles.Number, CultureInfo.InvariantCulture, out targetValue);
+    }
+
+    private ChartData BuildChartData(List<StrategicGoal> goals, string fiscalYear)
     {
         var chartData = new ChartData();
 
@@ -1485,10 +2170,10 @@ WHERE StrategicGoalId = $goalId
 
         chartData.GoalProgress = new GoalProgressData
         {
-            OrganizationalProgress = CalculateGoalProgress(orgGoal),
-            FinancialProgress = CalculateGoalProgress(finGoal),
-            IdentityProgress = CalculateGoalProgress(identityGoal),
-            CommunityProgress = CalculateGoalProgress(communityGoal)
+            OrganizationalProgress = CalculateGoalProgress(orgGoal, fiscalYear),
+            FinancialProgress = CalculateGoalProgress(finGoal, fiscalYear),
+            IdentityProgress = CalculateGoalProgress(identityGoal, fiscalYear),
+            CommunityProgress = CalculateGoalProgress(communityGoal, fiscalYear)
         };
 
         // Monthly Trends - Based on actual data creation dates
@@ -1498,23 +2183,25 @@ WHERE StrategicGoalId = $goalId
         chartData.MetricTypes = BuildMetricTypesData(goals);
 
         // Quarterly Data from website traffic
-        chartData.QuarterlyData = BuildQuarterlyData();
+        chartData.QuarterlyData = BuildQuarterlyData(fiscalYear);
 
         return chartData;
     }
 
-    private decimal CalculateGoalProgress(StrategicGoal? goal)
+    private decimal CalculateGoalProgress(StrategicGoal? goal, string fiscalYear)
     {
         if (goal?.Metrics == null || !goal.Metrics.Any())
             return 0;
 
-        var metricsWithTargets = goal.Metrics.Where(m => 
+        var metricsWithTargets = goal.Metrics.Where(m =>
+            MetricTrackingSchedule.IsScheduledForFiscalYear(m.Name, fiscalYear) &&
+            !string.Equals(m.Status, "Planning", StringComparison.OrdinalIgnoreCase) &&
             !string.IsNullOrEmpty(m.Target) && 
             decimal.TryParse(m.Target, out var target) && 
             target > 0).ToList();
 
         if (!metricsWithTargets.Any())
-            return goal.Metrics.Any() ? 15 : 0; // Lower default progress if we have metrics but no targets
+            return 0;
 
         var progressValues = metricsWithTargets.Select(m =>
         {
@@ -1593,13 +2280,13 @@ WHERE StrategicGoalId = $goalId
         return "Other";
     }
 
-    private List<QuarterlyData> BuildQuarterlyData()
+    private List<QuarterlyData> BuildQuarterlyData(string fiscalYear)
     {
         var quarterlyData = new List<QuarterlyData>();
         
         try
         {
-            var websiteTraffic = _context.WebsiteTraffic.ToList();
+            var websiteTraffic = FilterByFiscalYearDate(_context.WebsiteTraffic.ToList(), fiscalYear, w => w.CreatedDate);
             if (websiteTraffic.Any())
             {
                 quarterlyData.Add(new QuarterlyData { Quarter = "Q1", Value = websiteTraffic.Sum(w => w.Q1_JulySeptember ?? 0) });
@@ -1646,6 +2333,19 @@ WHERE StrategicGoalId = $goalId
             .Replace(" ", "");
 
         return decimal.TryParse(cleaned, out decimal result) ? result : 0m;
+    }
+
+    private int? ResolveGoalIdForEvent(Event evt)
+    {
+        if (!evt.StrategyId.HasValue)
+        {
+            return null;
+        }
+
+        return _context.Strategies
+            .Where(s => s.Id == evt.StrategyId.Value)
+            .Select(s => (int?)s.StrategicGoalId)
+            .FirstOrDefault();
     }
 
     private string GetGoalNameById(int goalId)

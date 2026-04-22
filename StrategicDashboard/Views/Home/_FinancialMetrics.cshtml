@@ -36,8 +36,6 @@
     {
 		                                            var metricIsScheduled = IsScheduledMetric(metric.Name ?? string.Empty);
 		                                            var metricStartFiscalYear = MetricTrackingSchedule.GetStartFiscalYear(metric.Name ?? string.Empty);
-		                                            var metricAtTarget = DashboardMetricRules.IsMetricAtTarget(metric);
-		                                            var metricBuildingSample = metric.HasSampleRequirement && metric.SampleCount.GetValueOrDefault() > 0 && !metric.HasSufficientSample;
 			                                            // Hide redundant/basic financial cards that shouldn't show on the dashboard.
 			                                            if (isFinancialGoal)
 		                                            {
@@ -83,7 +81,7 @@
                                                             <h6 class="card-title" style="color:var(--onejax-navy); font-weight:600;">Community Trust Rating</h6>
                                                             <div class="h2 mb-2" style="color:var(--onejax-navy);">@metric.CurrentValue%</div>
                                                             <small class="text-muted">Trust Rating Score</small>
-                                                            @if (metricAtTarget)
+                                                            @if (metric.CurrentValue >= Convert.ToDecimal(metric.Target))
                                                             {
                                                                 <div class="mt-3">
                                                                     <span class="badge bg-success">Target Achieved</span>
@@ -533,16 +531,10 @@
                                                                             <i class="fas fa-calendar-alt"></i> @ScheduleBadgeText(metricIsScheduled, metricStartFiscalYear, "In Progress")
                                                                         </span>
                                                                     }
-                                                                    else if (metricAtTarget)
+                                                                    else if (metric.ProgressPercentage >= 100)
                                                                     {
                                                                         <span class="badge" style="background: #10b981; font-size: 0.75rem;">
                                                                             <i class="fas fa-check-circle"></i> Target Met
-                                                                        </span>
-                                                                    }
-                                                                    else if (metricBuildingSample)
-                                                                    {
-                                                                        <span class="badge" style="background: #64748b; font-size: 0.75rem;">
-                                                                            <i class="fas fa-chart-line"></i> Building Sample
                                                                         </span>
                                                                     }
 	                                                                    else
@@ -596,17 +588,6 @@
 	                                                                    <div class="progress-bar" style="width: @Math.Min(metric.ProgressPercentage, 100)%; background: linear-gradient(90deg, #312e81, #4338ca); border-radius: 6px;" role="progressbar"></div>
 	                                                                </div>
 	                                                            </div>
-
-                                                            @if (!string.IsNullOrWhiteSpace(metric.SampleCountText))
-                                                            {
-                                                                <div class="mb-3 text-center">
-                                                                    <small style="color: var(--onejax-text-muted); display: block;">@metric.SampleCountText</small>
-                                                                    @if (metricBuildingSample && !string.IsNullOrWhiteSpace(metric.SampleRequirementText))
-                                                                    {
-                                                                        <small style="color: #64748b; display: block;">@metric.SampleRequirementText</small>
-                                                                    }
-                                                                </div>
-                                                            }
 
 	                                                            <div class="row g-2">
 	                                                                <div class="col-6">

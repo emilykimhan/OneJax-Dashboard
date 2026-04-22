@@ -21,7 +21,6 @@
     }
     var mediaScheduled = IsScheduledMetric("Earned Media Placements");
     var trustScheduled = IsScheduledMetric("Community Perception Survey");
-    var trustMetric = goal?.Metrics?.FirstOrDefault(m => string.Equals(m.Name, "Community Perception Survey", StringComparison.OrdinalIgnoreCase));
     var frameworkScheduled = IsScheduledMetric("Strategic Plan Completion");
     var socialScheduled = IsScheduledMetric("Website Traffic");
     var mediaStatusText = mediaScheduled ? "Tracking" : "Starts later";
@@ -32,23 +31,14 @@
     var mediaProgressWidth = mediaScheduled && id.MediaPlacementsTarget > 0
         ? Math.Min(id.MediaPlacementsTotal * 100.0m / id.MediaPlacementsTarget, 100)
         : 0;
-    var trustBuildingSample = trustMetric?.HasSampleRequirement == true && trustMetric.SampleCount.GetValueOrDefault() > 0 && !trustMetric.HasSufficientSample;
-    var trustStatusClass = trustScheduled && trustMetric != null && DashboardMetricRules.IsMetricAtTarget(trustMetric) ? "ok" : trustScheduled ? "warn" : string.Empty;
-    var trustStatusText = !trustScheduled
-        ? "Starts later"
-        : trustBuildingSample
-            ? "Building sample"
-            : trustMetric != null && DashboardMetricRules.IsMetricAtTarget(trustMetric)
-                ? "Target achieved"
-                : "In progress";
+    var trustStatusClass = trustScheduled && id.TrustPercent >= id.TrustTargetPercent ? "ok" : trustScheduled ? "warn" : string.Empty;
+    var trustStatusText = !trustScheduled ? "Starts later" : id.TrustPercent >= id.TrustTargetPercent ? "Target achieved" : "In progress";
     var trustDisplayText = trustScheduled ? $"{id.TrustPercent:N1}%" : "--";
     var trustSubtext = trustScheduled
-        ? $"Target: {id.TrustTargetPercent:N0}%{(id.TrustRespondents.HasValue ? $" | {id.TrustRespondents} respondents" : string.Empty)}{(!string.IsNullOrWhiteSpace(trustMetric?.SampleCountText) ? $" | {trustMetric.SampleCountText}" : string.Empty)}"
+        ? $"Target: {id.TrustTargetPercent:N0}%{(id.TrustRespondents.HasValue ? $" | {id.TrustRespondents} respondents" : string.Empty)}"
         : UnscheduledMetricText("Community Perception Survey", "This survey");
-    var trustProgressWidth = trustScheduled && trustMetric != null
-        ? Math.Min(trustMetric.ProgressPercentage, 100)
-        : trustScheduled && id.TrustTargetPercent > 0
-            ? Math.Min(id.TrustPercent * 100.0m / id.TrustTargetPercent, 100)
+    var trustProgressWidth = trustScheduled && id.TrustTargetPercent > 0
+        ? Math.Min(id.TrustPercent * 100.0m / id.TrustTargetPercent, 100)
         : 0;
     var frameworkStatusClass = frameworkScheduled && !string.IsNullOrWhiteSpace(id.FrameworkStatus) && id.FrameworkStatus.Contains("track", StringComparison.OrdinalIgnoreCase)
         ? "ok"

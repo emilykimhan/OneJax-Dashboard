@@ -1,0 +1,21 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "servers_dekt_name": {
+      "value": "onejaxsqlserver"
+    },
+    "sites_OneJaxStrategicDashboard_name": {
+      "value": "OneJaxStrategicDashboard"
+    },
+    "serverfarms_ASP_DEKTInnovations_9588_name": {
+      "value": "ASP-DEKTInnovations-9588"
+    },
+    "userAssignedIdentities_oidc_msi_b784_name": {
+      "value": "oidc-msi-b784"
+    },
+    "sqlAdministratorPassword": {
+      "value": "REPLACE_WITH_A_SECRET_AT_DEPLOY_TIME"
+    }
+  }
+}

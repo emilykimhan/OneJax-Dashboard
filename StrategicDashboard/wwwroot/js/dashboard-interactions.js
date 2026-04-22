@@ -41,6 +41,51 @@ function buildDashboardFilterUrl(fiscalYearValue) {
     return query ? `${window.location.pathname}?${query}` : window.location.pathname;
 }
 
+function getSelectedDashboardFiscalYear() {
+    const fiscalYearFilter = document.getElementById('fiscalYearFilter');
+    if (fiscalYearFilter && typeof fiscalYearFilter.value === 'string') {
+        return fiscalYearFilter.value.trim();
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    return (params.get('fiscalYear') || '').trim();
+}
+
+function toEventsFiscalYearFormat(fiscalYearValue) {
+    const trimmedValue = (fiscalYearValue || '').trim();
+    if (!trimmedValue) {
+        return '';
+    }
+
+    const normalizedValue = trimmedValue.replace(/^FY\s*/i, '');
+    const parts = normalizedValue.split(/[-/]/).map((part) => part.trim()).filter(Boolean);
+    if (parts.length !== 2) {
+        return trimmedValue;
+    }
+
+    const normalizedParts = parts.map((part) => {
+        if (/^\d{2}$/.test(part)) {
+            return `20${part}`;
+        }
+
+        return part;
+    });
+
+    if (!normalizedParts.every((part) => /^\d{4}$/.test(part))) {
+        return trimmedValue;
+    }
+
+    return `${normalizedParts[0]}/${normalizedParts[1]}`;
+}
+
+function buildViewEventsUrl() {
+    const selectedFiscalYear = getSelectedDashboardFiscalYear();
+    const eventFiscalYear = toEventsFiscalYearFormat(selectedFiscalYear);
+    return eventFiscalYear
+        ? `/Strategy/ViewEvents?fy=${encodeURIComponent(eventFiscalYear)}`
+        : '/Strategy/ViewEvents';
+}
+
 function applyFilters() {
     const fiscalYearFilter = document.getElementById('fiscalYearFilter');
     const fiscalYearValue = fiscalYearFilter ? (fiscalYearFilter.value || '') : '';
@@ -56,20 +101,13 @@ function applyFilters() {
 
 function resetFilters() {
     const fiscalYearFilter = document.getElementById('fiscalYearFilter');
-    const defaultFiscalYear = fiscalYearFilter?.dataset.defaultFiscalYear || '';
     if (fiscalYearFilter) {
-        fiscalYearFilter.value = defaultFiscalYear;
+        fiscalYearFilter.value = '';
     }
 
     persistDashboardViewState();
-    showNotification(
-        'Filters Reset',
-        defaultFiscalYear
-            ? `Fiscal year filter has been reset to FY ${defaultFiscalYear}.`
-            : 'Fiscal year filter has been reset.',
-        'info'
-    );
-    window.location.href = buildDashboardFilterUrl(defaultFiscalYear);
+    showNotification('Filters Reset', 'Fiscal year filter has been cleared. Showing all years.', 'info');
+    window.location.href = buildDashboardFilterUrl('');
 }
 
 function showComingSoon(feature) {
@@ -515,14 +553,15 @@ function initializeManageLinks() {
         link.removeAttribute('target');
         link.removeAttribute('rel');
         link.target = '_self';
+        link.href = buildViewEventsUrl();
         link.onclick = function (e) {
             e.preventDefault();
             e.stopPropagation();
             e.stopImmediatePropagation();
-            window.location.href = '/Strategy/ViewEvents';
+            window.location.href = buildViewEventsUrl();
             return false;
         };
-        link.setAttribute('onclick', 'event.preventDefault(); window.location.href="/Strategy/ViewEvents"; return false;');
+        link.setAttribute('onclick', 'event.preventDefault(); window.location.href=window.buildViewEventsUrl(); return false;');
     });
 }
 

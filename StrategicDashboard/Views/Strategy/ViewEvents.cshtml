@@ -27,8 +27,8 @@
             .Select(id => new SelectListItem { Value = id.ToString(), Text = $"Goal {id}" })
             .ToList();
 
-    // Fiscal year filter (via query string) — default to first fiscal year
-    var selectedFY = Context?.Request?.Query["fy"].FirstOrDefault();
+    // Fiscal year filter is resolved in the controller so it stays in sync with the dashboard.
+    var selectedFY = ViewBag.SelectedFY as string;
     if (string.IsNullOrWhiteSpace(selectedFY))
     {
         selectedFY = fiscalYears.FirstOrDefault();
