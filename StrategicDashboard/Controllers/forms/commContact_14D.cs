@@ -31,6 +31,9 @@ namespace OneJaxDashboard.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Index(ContactsInterfaith_14D model)
         {
+            if (!model.Month.HasValue)
+                ModelState.AddModelError("Month", "Please select a month.");
+
             if (ModelState.IsValid)
             {
                 try

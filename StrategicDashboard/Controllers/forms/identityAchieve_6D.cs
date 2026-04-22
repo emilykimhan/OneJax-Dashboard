@@ -41,6 +41,9 @@ namespace OneJaxDashboard.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Index(achieveMile_6D model)
         {
+            if (!model.Month.HasValue)
+                ModelState.AddModelError("Month", "Please select a month.");
+
             if (ModelState.IsValid)
             {
                 try
