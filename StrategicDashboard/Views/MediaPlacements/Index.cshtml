@@ -67,6 +67,14 @@
 
                 <!-- Monthly Input Form -->
                 <form asp-controller="MediaPlacements" asp-action="Index" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="row mb-4">
+                        <div class="col-md-6 mx-auto">
+                            <label asp-for="Year" class="form-label fw-bold">Year</label>
+                            <input asp-for="Year" type="number" class="form-control" min="2000" max="2100" />
+                            <span asp-validation-for="Year" class="text-danger"></span>
+                        </div>
+                    </div>
                     <div class="row">
                         <!-- January -->
                         <div class="col-md-6 mb-3">
