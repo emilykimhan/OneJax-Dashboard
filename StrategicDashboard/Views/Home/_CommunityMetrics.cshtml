@@ -48,10 +48,15 @@
 	                                                return parsed > 0 ? parsed : null;
 	                                            }
 
-                                            string metricStatus(bool isScheduled, bool hasValue, decimal current, decimal? target, string? fallbackStatus)
+                                            string metricStatus(bool isScheduled, bool hasValue, decimal current, decimal? target, GoalMetric? metric, string? fallbackStatus)
                                             {
                                                 if (!isScheduled) return "Starts later";
                                                 if (!hasValue) return "No entries yet";
+                                                if (metric != null && metric.HasSampleRequirement && !metric.HasSufficientSample)
+                                                {
+                                                    return metric.SampleCount.GetValueOrDefault() > 0 ? "Building sample" : "No entries yet";
+                                                }
+                                                if (metric != null && DashboardMetricRules.IsMetricAtTarget(metric)) return "Target met";
                                                 if (target.HasValue && target.Value > 0 && current >= target.Value) return "Target met";
                                                 return string.IsNullOrWhiteSpace(fallbackStatus) ? "Tracking" : fallbackStatus!;
                                             }
@@ -75,8 +80,12 @@
 	                                                return bagNullable(key) ?? 0;
 	                                            }
 
-	                                            decimal progressValue(decimal current, decimal? target)
+	                                            decimal progressValue(decimal current, decimal? target, GoalMetric? metric = null)
 	                                            {
+	                                                if (metric != null && metric.HasSampleRequirement)
+	                                                {
+	                                                    return Math.Round(Math.Min(metric.ProgressPercentage, 100), 1);
+	                                                }
 	                                                if (!target.HasValue || target.Value <= 0) return 0;
 	                                                return Math.Round(current / target.Value * 100, 1);
 	                                            }
@@ -164,21 +173,21 @@
 	                                            var clergyLatestTotal = clergyScheduled ? bagNumber("CommunityClergyLatestTotal") : 0;
 	                                            var diversityLatestCount = diversityScheduled ? bagNumber("CommunityDiversityLatestCount") : 0;
 	                                            var firstTimeTotalParticipants = firstTimeScheduled ? bagNumber("CommunityFirstTimeTotalParticipants") : 0;
-	                                            var youthProgress = progressValue(youthValue, youthTarget);
-	                                            var partnersProgress = progressValue(partnersValue, partnersTarget);
-	                                            var interfaithProgress = progressValue(interfaithValue, interfaithTarget);
-	                                            var faithProgress = progressValue(faithValue, faithTarget);
-	                                            var satisfactionProgress = progressValue(satisfactionValue, satisfactionTarget);
-	                                            var diversityProgress = progressValue(diversityValue, diversityTarget);
-	                                            var firstTimeProgress = progressValue(firstTimeValue, firstTimeTarget);
-                                            var youthStatusText = metricStatus(youthScheduled, youthHasValue, youthValue, youthTarget, mYouth?.Status);
-                                            var interfaithStatusText = metricStatus(interfaithScheduled, interfaithHasValue, interfaithValue, interfaithTarget, mInterfaith?.Status);
-                                            var partnersStatusText = metricStatus(partnersScheduled, partnersHasValue, partnersValue, partnersTarget, mPartners?.Status);
-                                            var faithStatusText = metricStatus(faithScheduled, faithHasValue, faithValue, faithTarget, mFaith?.Status);
-                                            var satisfactionStatusText = metricStatus(satisfactionScheduled, satisfactionHasValue, satisfactionValue, satisfactionTarget, mSatisfaction?.Status);
-                                            var clergyStatusText = metricStatus(clergyScheduled, clergyValueRaw.HasValue, clergyValue, clergyTarget, mClergy?.Status);
-                                            var diversityStatusText = metricStatus(diversityScheduled, diversityValueRaw.HasValue, diversityValue, diversityTarget, mDiversity?.Status);
-                                            var firstTimeStatusText = metricStatus(firstTimeScheduled, firstTimeHasValue, firstTimeValue, firstTimeTarget, mFirstTime?.Status);
+	                                            var youthProgress = progressValue(youthValue, youthTarget, mYouth);
+	                                            var partnersProgress = progressValue(partnersValue, partnersTarget, mPartners);
+	                                            var interfaithProgress = progressValue(interfaithValue, interfaithTarget, mInterfaith);
+	                                            var faithProgress = progressValue(faithValue, faithTarget, mFaith);
+	                                            var satisfactionProgress = progressValue(satisfactionValue, satisfactionTarget, mSatisfaction);
+	                                            var diversityProgress = progressValue(diversityValue, diversityTarget, mDiversity);
+	                                            var firstTimeProgress = progressValue(firstTimeValue, firstTimeTarget, mFirstTime);
+                                            var youthStatusText = metricStatus(youthScheduled, youthHasValue, youthValue, youthTarget, mYouth, mYouth?.Status);
+                                            var interfaithStatusText = metricStatus(interfaithScheduled, interfaithHasValue, interfaithValue, interfaithTarget, mInterfaith, mInterfaith?.Status);
+                                            var partnersStatusText = metricStatus(partnersScheduled, partnersHasValue, partnersValue, partnersTarget, mPartners, mPartners?.Status);
+                                            var faithStatusText = metricStatus(faithScheduled, faithHasValue, faithValue, faithTarget, mFaith, mFaith?.Status);
+                                            var satisfactionStatusText = metricStatus(satisfactionScheduled, satisfactionHasValue, satisfactionValue, satisfactionTarget, mSatisfaction, mSatisfaction?.Status);
+                                            var clergyStatusText = metricStatus(clergyScheduled, clergyValueRaw.HasValue, clergyValue, clergyTarget, mClergy, mClergy?.Status);
+                                            var diversityStatusText = metricStatus(diversityScheduled, diversityValueRaw.HasValue, diversityValue, diversityTarget, mDiversity, mDiversity?.Status);
+                                            var firstTimeStatusText = metricStatus(firstTimeScheduled, firstTimeHasValue, firstTimeValue, firstTimeTarget, mFirstTime, mFirstTime?.Status);
 
                                             var latestPartners = partnersScheduled ? ViewBag.CommunityPartnersLatest as IEnumerable<dynamic> : null;
                                             var anyLatestPartners = latestPartners != null && latestPartners.Any();
@@ -862,7 +871,7 @@
                                                                                     <span class="community-rail-value">@scheduledValueLabel(satisfactionScheduled, satisfactionValueRaw, "0.#", "%")</span>
 	                                                                                </div>
 	                                                                                <div class="community-rail-track"><div class="community-rail-fill" style="width:@Math.Min((double)satisfactionProgress, 100)%"></div></div>
-	                                                                                <div class="community-rail-meta"><span>Target: @targetLabel(satisfactionTarget, "0.#", "", "%")</span><span>@satisfactionStatusText</span></div>
+	                                                                                <div class="community-rail-meta"><span>Target: @targetLabel(satisfactionTarget, "0.#", "", "%")</span><span>@(!string.IsNullOrWhiteSpace(mSatisfaction?.SampleCountText) ? $"{satisfactionStatusText} | {mSatisfaction.SampleCountText}" : satisfactionStatusText)</span></div>
 	                                                                            </div>
 
 	                                                                            <div class="community-rail-card">

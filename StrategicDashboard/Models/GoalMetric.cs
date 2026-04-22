@@ -2,6 +2,8 @@
 // Usage: Tracks progress against targets with quarterly data support
 
 //Emily
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace OneJaxDashboard.Models
 {
     public class GoalMetric
@@ -31,8 +33,26 @@ namespace OneJaxDashboard.Models
         public decimal Q2Value { get; set; }
         public decimal Q3Value { get; set; }
         public decimal Q4Value { get; set; }
-        
+
+        // Evidence/sample tracking is derived at runtime for dashboard display only.
+        [NotMapped]
+        public int? SampleCount { get; set; }
+        [NotMapped]
+        public int? MinimumSampleSize { get; set; }
+        [NotMapped]
+        public string SampleCountText { get; set; } = "";
+        [NotMapped]
+        public string SampleRequirementText { get; set; } = "";
+
+        [NotMapped]
+        public bool HasSampleRequirement => MinimumSampleSize.GetValueOrDefault() > 0;
+
+        [NotMapped]
+        public bool HasSufficientSample =>
+            !HasSampleRequirement || SampleCount.GetValueOrDefault() >= MinimumSampleSize.GetValueOrDefault();
+
         // Calculate progress percentage
+        [NotMapped]
         public decimal ProgressPercentage
         {
             get
@@ -62,6 +82,14 @@ namespace OneJaxDashboard.Models
                     return 0;
 
                 var progressPercent = Math.Round((CurrentValue / targetValue) * 100, 1);
+
+                if (HasSampleRequirement && !HasSufficientSample)
+                {
+                    var sampleRatio = MinimumSampleSize.GetValueOrDefault() > 0
+                        ? (decimal)SampleCount.GetValueOrDefault() / MinimumSampleSize.GetValueOrDefault()
+                        : 0;
+                    progressPercent = Math.Round(progressPercent * Math.Clamp(sampleRatio, 0m, 1m), 1);
+                }
                 
                 // Cap at 150% to prevent extremely high values from skewing averages
                 return Math.Min(progressPercent, 150);

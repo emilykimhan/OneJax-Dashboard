@@ -184,7 +184,7 @@ function initializeDashboardCharts() {
         });
     }
     
-    // Metrics Type Distribution Chart (Pie)
+    // Metric Category Distribution Chart (Pie)
     const metricsTypeCtx = document.getElementById('metricsTypeChart');
     if (metricsTypeCtx) {
         const metricsTypeChart = new Chart(metricsTypeCtx, {
