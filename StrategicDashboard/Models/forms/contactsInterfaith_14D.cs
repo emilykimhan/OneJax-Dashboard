@@ -13,6 +13,10 @@ namespace OneJaxDashboard.Models
         [Display(Name = "Year")]
         public int Year { get; set; }
 
+        [Range(1, 12, ErrorMessage = "Please select a valid month.")]
+        [Display(Name = "Month")]
+        public int? Month { get; set; }
+
         [Required(ErrorMessage = "Please enter the total number of interfaith contacts.")]
         [Range(0, 100000, ErrorMessage = "Total interfaith contacts must be between 0 and 100,000.")]
         [Display(Name = "Total Interfaith Contacts")]

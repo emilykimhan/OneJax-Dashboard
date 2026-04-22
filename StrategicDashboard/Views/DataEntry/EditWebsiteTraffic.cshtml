@@ -19,6 +19,12 @@
 
             <p class="mb-4">Enter the number of website clicks for each quarter.</p>
 
+            <div class="mb-4">
+                <label asp-for="Year" class="form-label fw-bold">Year</label>
+                <input asp-for="Year" type="number" class="form-control" min="2000" max="2100" />
+                <span asp-validation-for="Year" class="text-danger"></span>
+            </div>
+
             <div class="mb-3">
                 <label asp-for="Q1_JulySeptember" class="form-label fw-bold">Q1 (July - September)</label>
                 <input asp-for="Q1_JulySeptember" type="number" class="form-control" min="0" />
