@@ -38,6 +38,9 @@ namespace OneJaxDashboard.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Index(Annual_average_7D model)
         {
+            if (!model.Month.HasValue)
+                ModelState.AddModelError("Month", "Please select a month.");
+
             if (ModelState.IsValid)
             {
                 try
