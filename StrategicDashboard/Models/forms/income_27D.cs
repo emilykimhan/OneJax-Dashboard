@@ -23,6 +23,7 @@ namespace OneJaxDashboard.Models
         [Display(Name = "Month")]
         public string Month { get; set; } = string.Empty; 
 
+        [Required(ErrorMessage = "Please enter the year.")]
         [Range(2020, 2100, ErrorMessage = "Year must be between 2020 and 2100.")]
         [Display(Name = "Year")]
         public int? Year { get; set; }

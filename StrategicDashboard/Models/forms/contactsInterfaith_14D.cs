@@ -13,6 +13,7 @@ namespace OneJaxDashboard.Models
         [Display(Name = "Year")]
         public int Year { get; set; }
 
+        [Required(ErrorMessage = "Please select a month.")]
         [Range(1, 12, ErrorMessage = "Please select a valid month.")]
         [Display(Name = "Month")]
         public int? Month { get; set; }
