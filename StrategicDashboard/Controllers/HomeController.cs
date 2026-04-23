@@ -1860,6 +1860,43 @@ public class HomeController : Controller
         AddOrUpdateMetric(goal, "Strategic Plan Completion", "2026 planning progress", 
             completedPlans, "goals met", "20", plan2026.Any() ? "Active" : "Planning",
             $"🎯 Plans Completed: {completedPlans}/{plan2026.Count} | Form: Data Entry → 2026 Planning", nextId++);
+
+        // 6. Milestone Achievement (from achieveMile_6D)
+        var milestoneEntries = FilterByFiscalYearMonthNumberWithCreatedDateFallback(
+            await _context.achieveMile_6D.ToListAsync(),
+            fiscalYear,
+            m => m.Year,
+            m => m.Month,
+            m => m.CreatedDate);
+        var latestMilestone = milestoneEntries
+            .OrderByDescending(m => m.Year)
+            .ThenByDescending(m => m.Month ?? 0)
+            .ThenByDescending(m => m.CreatedDate)
+            .FirstOrDefault();
+        var milestonePercent = latestMilestone?.Percentage ?? 0m;
+
+        AddOrUpdateMetric(goal, "Milestone Achievement", "Key plan milestone completion at the six-month review",
+            milestonePercent, "%", "75", latestMilestone != null ? "Active" : "Planning",
+            latestMilestone != null
+                ? $"Milestones achieved: {milestonePercent:N1}% | Six-month review {(latestMilestone.achievedReview ? "completed" : "not completed")} | Form: Data Entry → Milestone Achievement"
+                : "No milestone achievement data yet - Go to Data Entry → Milestone Achievement", nextId++);
+
+        // 7. Social Media Engagement (from socialMedia_5D)
+        var socialMediaEntries = FilterByFiscalYearEndYear(
+            await _context.socialMedia_5D.ToListAsync(),
+            fiscalYear,
+            s => s.Year);
+        var latestSocialMedia = socialMediaEntries
+            .OrderByDescending(s => s.Year)
+            .ThenByDescending(s => s.CreatedDate)
+            .FirstOrDefault();
+        var socialGoalProgress = latestSocialMedia?.GoalMet == true ? 1m : 0m;
+
+        AddOrUpdateMetric(goal, "Social Media Engagement", "Thirty percent social engagement growth target",
+            socialGoalProgress, "goal met", "1", latestSocialMedia != null ? "Active" : "Planning",
+            latestSocialMedia != null
+                ? $"Average engagement: {latestSocialMedia.AverageEngagementRate:N1}%{(latestSocialMedia.GoalMet ? " | Goal met" : string.Empty)} | Form: Data Entry → Social Media Engagement"
+                : "No social media engagement data yet - Go to Data Entry → Social Media Engagement", nextId++);
     }
 
     private async Task AddOrganizationalMetricsAsync(StrategicGoal goal, string fiscalYear)
@@ -2327,11 +2364,11 @@ public class HomeController : Controller
             CommunityProgress = CalculateGoalProgress(communityGoal, fiscalYear)
         };
 
-        // Monthly Trends - Based on actual data creation dates
-        chartData.MonthlyTrends = BuildMonthlyTrends(goals);
+        // Monthly Trends - scoped to the selected fiscal year schedule
+        chartData.MonthlyTrends = BuildMonthlyTrends(goals, fiscalYear);
 
         // Metric Types Distribution
-        chartData.MetricTypes = BuildMetricTypesData(goals);
+        chartData.MetricTypes = BuildMetricTypesData(goals, fiscalYear);
 
         // Quarterly Data from website traffic
         chartData.QuarterlyData = BuildQuarterlyData(fiscalYear);
@@ -2344,30 +2381,18 @@ public class HomeController : Controller
         if (goal?.Metrics == null || !goal.Metrics.Any())
             return 0;
 
-        var metricsWithTargets = goal.Metrics.Where(m =>
-            MetricTrackingSchedule.IsScheduledForFiscalYear(m.Name, fiscalYear) &&
-            !string.Equals(m.Status, "Planning", StringComparison.OrdinalIgnoreCase) &&
-            !string.IsNullOrEmpty(m.Target) && 
-            decimal.TryParse(m.Target, out var target) && 
-            target > 0).ToList();
+        var metricsWithTargets = DashboardMetricRules.ReportingMetrics(goal.Metrics, fiscalYear).ToList();
 
         if (!metricsWithTargets.Any())
             return 0;
 
-        var progressValues = metricsWithTargets.Select(m =>
-        {
-            if (decimal.TryParse(m.Target, out var target) && target > 0)
-            {
-                var progress = (m.CurrentValue / target) * 100;
-                return Math.Min(progress, 100); // Cap at 100%
-            }
-            return 0m;
-        });
+        var progressValues = metricsWithTargets
+            .Select(metric => DashboardMetricRules.GetMetricProgressPercentage(metric, 100m));
 
         return Math.Round(progressValues.Average(), 1);
     }
 
-    private List<MonthlyTrendData> BuildMonthlyTrends(List<StrategicGoal> goals)
+    private List<MonthlyTrendData> BuildMonthlyTrends(List<StrategicGoal> goals, string fiscalYear)
     {
         var trends = new List<MonthlyTrendData>();
         var months = new[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
@@ -2377,10 +2402,10 @@ public class HomeController : Controller
             var trend = new MonthlyTrendData
             {
                 Month = months[i],
-                OrganizationalValue = GetMonthlyValue("Organizational", i + 1, goals),
-                FinancialValue = GetMonthlyValue("Financial", i + 1, goals),
-                IdentityValue = GetMonthlyValue("Identity", i + 1, goals),
-                CommunityValue = GetMonthlyValue("Community", i + 1, goals)
+                OrganizationalValue = GetMonthlyValue("Organizational", i + 1, goals, fiscalYear),
+                FinancialValue = GetMonthlyValue("Financial", i + 1, goals, fiscalYear),
+                IdentityValue = GetMonthlyValue("Identity", i + 1, goals, fiscalYear),
+                CommunityValue = GetMonthlyValue("Community", i + 1, goals, fiscalYear)
             };
             trends.Add(trend);
         }
@@ -2388,25 +2413,29 @@ public class HomeController : Controller
         return trends;
     }
 
-    private decimal GetMonthlyValue(string goalType, int month, List<StrategicGoal> goals)
+    private decimal GetMonthlyValue(string goalType, int month, List<StrategicGoal> goals, string fiscalYear)
     {
         var goal = goals.FirstOrDefault(g => g.Name.Contains(goalType));
         if (goal?.Metrics == null || !goal.Metrics.Any())
             return 0;
 
-        // For demonstration, we'll simulate growth over time based on current metrics
-        var baseValue = goal.Metrics.Sum(m => m.CurrentValue) / 12; // Average monthly value
+        var inScopeMetrics = DashboardMetricRules.ScheduledMetrics(goal.Metrics, fiscalYear).ToList();
+        if (!inScopeMetrics.Any())
+            return 0;
+
+        // For demonstration, simulate movement only from the metrics in scope for this fiscal year.
+        var baseValue = inScopeMetrics.Sum(m => m.CurrentValue) / 12;
         var growth = month * 0.1m; // 10% growth per month
         return Math.Round(Math.Max(0, baseValue + (baseValue * growth)), 1);
     }
 
-    private List<MetricTypeData> BuildMetricTypesData(List<StrategicGoal> goals)
+    private List<MetricTypeData> BuildMetricTypesData(List<StrategicGoal> goals, string fiscalYear)
     {
         var metricTypes = new Dictionary<string, int>();
 
         foreach (var goal in goals.Where(g => g.Metrics != null))
         {
-            foreach (var metric in goal.Metrics)
+            foreach (var metric in DashboardMetricRules.ScheduledMetrics(goal.Metrics, fiscalYear))
             {
                 // Categorize metrics by type
                 var category = CategorizeMetric(metric);

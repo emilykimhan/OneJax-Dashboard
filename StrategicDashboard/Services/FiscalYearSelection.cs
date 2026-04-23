@@ -47,12 +47,17 @@ public static class FiscalYearSelection
     {
         if (request.Query.ContainsKey("fy"))
         {
-            return NormalizeEventsLabel(requestedFiscalYear) ?? GetCurrentEventsFiscalYearLabel();
+            return NormalizeEventsLabel(requestedFiscalYear) ?? string.Empty;
         }
 
         if (request.Cookies.TryGetValue(FiscalYearCookieName, out var cookieValue))
         {
-            if (!string.Equals(cookieValue, AllYearsSentinel, StringComparison.Ordinal))
+            if (string.Equals(cookieValue, AllYearsSentinel, StringComparison.Ordinal))
+            {
+                return string.Empty;
+            }
+
+            if (!string.IsNullOrWhiteSpace(cookieValue))
             {
                 var normalizedCookieValue = NormalizeEventsLabel(cookieValue);
                 if (!string.IsNullOrWhiteSpace(normalizedCookieValue))

@@ -33,17 +33,7 @@
 
     decimal LiveGoalProgress(IEnumerable<GoalMetric>? metrics)
     {
-        var liveMetrics = (metrics ?? Enumerable.Empty<GoalMetric>())
-            .Where(IsReportingMetric)
-            .Select(m =>
-            {
-                var clean = (m.Target ?? string.Empty).Replace("$", "").Replace(",", "").Replace("%", "").Trim();
-                decimal.TryParse(clean, out var target);
-                return target > 0 ? Math.Min((m.CurrentValue / target) * 100, 100) : 0;
-            })
-            .ToList();
-
-        return liveMetrics.Any() ? Math.Round(liveMetrics.Average(), 1) : 0;
+        return DashboardMetricRules.CalculateGoalProgress(metrics, activeFiscalYear);
     }
 }
 
@@ -161,7 +151,7 @@
                                         var goalProgress = LiveGoalProgress(goalMetrics);
                                     }
                                     <div class="goal-panel-progress">
-                                        <div class="goal-panel-progress-value">@(reportingMetricCount > 0 ? $"{Math.Round(goalProgress, 1)}%" : scheduledMetricCount > 0 ? "Awaiting data" : "Starts later")</div>
+                                        <div class="goal-panel-progress-value">@(reportingMetricCount > 0 ? $"{Math.Round(goalProgress, 1)}%" : scheduledMetricCount > 0 ? "Awaiting data" : "No metrics")</div>
                                         <small>Overall Progress</small>
                                     </div>
                                 </div>
@@ -175,7 +165,7 @@
                                     </div>
                                     <div class="d-flex justify-content-between mt-2">
                                         <small class="goal-panel-progress-label-muted">Project Start</small>
-                                        <small class="goal-panel-progress-label-active">@(reportingMetricCount > 0 ? $"{Math.Round(goalProgress, 1)}% Complete" : scheduledMetricCount > 0 ? "Awaiting data" : "Starts later")</small>
+                                        <small class="goal-panel-progress-label-active">@(reportingMetricCount > 0 ? $"{Math.Round(goalProgress, 1)}% Complete" : scheduledMetricCount > 0 ? "Awaiting data" : "No metrics")</small>
                                         <small class="goal-panel-progress-label-muted">Target Completion</small>
                                     </div>
                                 </div>
@@ -224,7 +214,7 @@
                             <partial name="_IdentitySection" model="Model" view-data='new ViewDataDictionary(ViewData) { ["Goal"] = goal, ["CanManageData"] = canManageData }' />
 
                             
-                            <partial name="_GoalFooterSection" model="Model" view-data='new ViewDataDictionary(ViewData) { ["Goal"] = goal, ["CanManageData"] = canManageData, ["UserAuthenticated"] = (User?.Identity?.IsAuthenticated ?? false), ["SelectedStatus"] = selectedStatus }' />
+                            <partial name="_GoalFooterSection" model="Model" view-data='new ViewDataDictionary(ViewData) { ["Goal"] = goal, ["CanManageData"] = canManageData, ["UserAuthenticated"] = (User?.Identity?.IsAuthenticated ?? false), ["SelectedStatus"] = selectedStatus, ["ActiveFiscalYear"] = activeFiscalYear }' />
                         </div>
                     </div>
                 </div>
@@ -238,4 +228,4 @@
 
 <partial name="_EventDetailsModal" view-data='new ViewDataDictionary(ViewData) { ["CanManageData"] = canManageData }' />
 
-<partial name="_DashboardScripts" model="Model" view-data='new ViewDataDictionary(ViewData) { ["CanManageData"] = canManageData }' />
+<partial name="_DashboardScripts" model="Model" view-data='new ViewDataDictionary(ViewData) { ["CanManageData"] = canManageData, ["ActiveFiscalYear"] = activeFiscalYear }' />

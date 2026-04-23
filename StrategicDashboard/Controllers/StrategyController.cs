@@ -463,7 +463,8 @@ public class StrategyController : Controller
         }
 
         var selectedFiscalYear = FiscalYearSelection.ResolveEventsFiscalYear(Request, fy);
-        if (!fiscalYears.Contains(selectedFiscalYear, StringComparer.OrdinalIgnoreCase))
+        if (!string.IsNullOrWhiteSpace(selectedFiscalYear)
+            && !fiscalYears.Contains(selectedFiscalYear, StringComparer.OrdinalIgnoreCase))
         {
             fiscalYears.Add(selectedFiscalYear);
             fiscalYears = fiscalYears

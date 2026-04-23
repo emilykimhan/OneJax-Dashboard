@@ -18,12 +18,7 @@
 
     decimal LiveGoalProgress(IEnumerable<GoalMetric>? metrics)
     {
-        var liveMetrics = (metrics ?? Enumerable.Empty<GoalMetric>())
-            .Where(IsReportingMetric)
-            .Select(m => Math.Min(m.ProgressPercentage, 100))
-            .ToList();
-
-        return liveMetrics.Any() ? Math.Round(liveMetrics.Average(), 1) : 0;
+        return DashboardMetricRules.CalculateGoalProgress(metrics, activeFiscalYear);
     }
 
     var allMetrics = Model.StrategicGoals?.SelectMany(g => g.Metrics ?? new List<GoalMetric>()).ToList() ?? new List<GoalMetric>();

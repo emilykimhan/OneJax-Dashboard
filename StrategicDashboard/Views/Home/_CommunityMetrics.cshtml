@@ -186,10 +186,28 @@
                                             var pulseAllScheduled = youthScheduled && satisfactionScheduled && firstTimeScheduled && faithScheduled;
                                             var relationshipAnyScheduled = partnersScheduled;
                                             var relationshipAllScheduled = partnersScheduled;
-                                            var representationAnyScheduled = interfaithScheduled || faithScheduled || satisfactionScheduled || diversityScheduled || firstTimeScheduled;
-                                            var representationAllScheduled = interfaithScheduled && faithScheduled && satisfactionScheduled && diversityScheduled && firstTimeScheduled;
-                                            var networkAnyScheduled = interfaithScheduled || clergyScheduled || diversityScheduled || firstTimeScheduled;
-                                            var networkAllScheduled = interfaithScheduled && clergyScheduled && diversityScheduled && firstTimeScheduled;
+                                            var representationAnyScheduled = faithScheduled || diversityScheduled || firstTimeScheduled;
+                                            var representationAllScheduled = faithScheduled && diversityScheduled && firstTimeScheduled;
+                                            var networkAnyScheduled = interfaithScheduled || clergyScheduled;
+                                            var networkAllScheduled = interfaithScheduled && clergyScheduled;
+                                            var inclusionScheduledCount = new[] { faithScheduled, diversityScheduled, firstTimeScheduled }.Count(flag => flag);
+                                            var inclusionRadarLabels = new List<string>();
+                                            var inclusionRadarValues = new List<decimal>();
+                                            if (faithScheduled)
+                                            {
+                                                inclusionRadarLabels.Add("Faith mix");
+                                                inclusionRadarValues.Add(Math.Min(faithProgress, 140));
+                                            }
+                                            if (diversityScheduled)
+                                            {
+                                                inclusionRadarLabels.Add("Diversity");
+                                                inclusionRadarValues.Add(Math.Min(diversityProgress, 140));
+                                            }
+                                            if (firstTimeScheduled)
+                                            {
+                                                inclusionRadarLabels.Add("First-time");
+                                                inclusionRadarValues.Add(Math.Min(firstTimeProgress, 140));
+                                            }
 
 	                                            <style>
 	                                                .community-pulse-shell {
@@ -649,7 +667,7 @@
                                                                 <div class="community-panel-header">
                                                                     <div>
                                                                         <span class="community-kicker">Community Pulse</span>
-                                                                        <h4>Participation and community reach</h4>
+                                                                        <h4>Participation, learning, and event reach</h4>
                                                                     </div>
                                                                     <span class="community-state-badge">@panelBadgeText(pulseAnyScheduled, pulseAllScheduled, "Youth Attendance Growth", "Event Satisfaction", "First-Time Participants", "Faith Representation")</span>
                                                                 </div>
@@ -676,9 +694,9 @@
 	                                                                        <span class="community-chip-meta">Target: @targetLabel(satisfactionTarget, "0.#", "", "%") | @satisfactionStatusText</span>
 	                                                                    </div>
 	                                                                    <div class="community-chip">
-	                                                                        <span class="community-chip-label">First-Time Audience</span>
-                                                                        <span class="community-chip-value">@scheduledValueLabel(firstTimeScheduled, firstTimeValueRaw, "0.#", "%")</span>
-	                                                                        <span class="community-chip-meta">Target: @targetLabel(firstTimeTarget, "0.#", "", "%") | @firstTimeStatusText</span>
+	                                                                        <span class="community-chip-label">Interfaith Events</span>
+                                                                        <span class="community-chip-value">@(interfaithScheduled ? interfaithValue.ToString("0") : "--")</span>
+	                                                                        <span class="community-chip-meta">Target: @targetLabel(interfaithTarget) | @interfaithStatusText</span>
 	                                                                    </div>
 	                                                                    <div class="community-chip">
 	                                                                        <span class="community-chip-label">Faith Representation</span>
@@ -802,21 +820,19 @@
                                                                 <div class="community-panel-header">
                                                                     <div>
                                                                         <span class="community-kicker">Representation and Belonging</span>
-                                                                        <h4>Progress mix across inclusion goals</h4>
+                                                                        <h4>Inclusion and belonging snapshot</h4>
                                                                     </div>
-                                                                    <span class="community-state-badge">@panelBadgeText(representationAnyScheduled, representationAllScheduled, "Interfaith Events Hosted", "Faith Representation", "Event Satisfaction", "Participant Diversity", "First-Time Participants")</span>
+                                                                    <span class="community-state-badge">@panelBadgeText(representationAnyScheduled, representationAllScheduled, "Faith Representation", "Participant Diversity", "First-Time Participants")</span>
                                                                 </div>
                                                                 @if (!representationAllScheduled)
                                                                 {
-                                                                    <div class="community-state-note">@panelNoteText(representationAnyScheduled, representationAllScheduled, "Interfaith Events Hosted", "Faith Representation", "Event Satisfaction", "Participant Diversity", "First-Time Participants")</div>
+                                                                    <div class="community-state-note">@panelNoteText(representationAnyScheduled, representationAllScheduled, "Faith Representation", "Participant Diversity", "First-Time Participants")</div>
                                                                 }
                                                                 <div class="community-panel-header">
                                                                     @if (canManageData)
                                                                     {
                                                                         <div class="community-link-cluster">
-	                                                                            <a asp-controller="Interfaith11D" asp-action="Index" class="btn btn-sm btn-outline-dark">Interfaith</a>
 	                                                                            <a asp-controller="CommFaith13D" asp-action="Index" class="btn btn-sm btn-outline-dark">Faith mix</a>
-	                                                                            <a asp-controller="EventSatisfaction12D" asp-action="Index" class="btn btn-sm btn-outline-dark">Satisfaction</a>
 	                                                                            <a asp-controller="CommDiversity37D" asp-action="Index" class="btn btn-sm btn-outline-dark">Diversity</a>
 	                                                                            <a asp-controller="CommFirst38D" asp-action="Index" class="btn btn-sm btn-outline-dark">First-time</a>
 	                                                                        </div>
@@ -827,24 +843,41 @@
 	                                                                    <div class="col-lg-7">
 	                                                                        <div class="community-chart-card">
 	                                                                            <div class="community-chart-label">Goal balance</div>
-	                                                                            <div class="community-chart-title">Community representation radar</div>
-	                                                                            <div class="community-chart-stage radar">
-	                                                                                <canvas id="commRepresentationRadar"></canvas>
-	                                                                            </div>
+	                                                                            <div class="community-chart-title">Inclusion progress snapshot</div>
+                                                                            @if (inclusionScheduledCount >= 2)
+                                                                            {
+	                                                                                <div class="community-chart-stage radar">
+	                                                                                    <canvas id="commRepresentationRadar"></canvas>
+	                                                                                </div>
+                                                                            }
+                                                                            else if (faithScheduled)
+                                                                            {
+                                                                                <div class="community-insight-card full-height" style="margin-top: 0.85rem;">
+                                                                                    <div>
+                                                                                        <div class="community-chart-subtitle" style="margin-bottom: 0.5rem;">Only one inclusion metric is in scope for @activeFiscalYearLabel right now.</div>
+                                                                                        <div class="community-kpi-big">@scheduledValueLabel(faithScheduled, faithValueRaw, "0.#", "%")</div>
+                                                                                        <div class="community-kpi-caption">Faith representation currently leads this section.</div>
+                                                                                    </div>
+                                                                                    <div class="community-inline-meta">
+                                                                                        <span>Target: @targetLabel(faithTarget, "0.#", "", "%")</span>
+                                                                                        <span>@faithStatusText</span>
+                                                                                    </div>
+                                                                                </div>
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                <div class="community-insight-card full-height" style="margin-top: 0.85rem;">
+                                                                                    <div class="community-kpi-big">No data</div>
+                                                                                    <div class="community-kpi-caption">Inclusion metrics will appear here once data is entered for metrics in scope.</div>
+                                                                                </div>
+                                                                            }
 	                                                                        </div>
 	                                                                    </div>
 	                                                                    <div class="col-lg-5">
 	                                                                        <div class="community-metric-rails">
-	                                                                            <div class="community-rail-card">
-	                                                                                <div class="community-rail-header">
-	                                                                                    <span class="community-rail-title">Interfaith events</span>
-                                                                                    <span class="community-rail-value">@(interfaithScheduled ? interfaithValue.ToString("0") : "--")</span>
-	                                                                                </div>
-	                                                                                <div class="community-rail-track"><div class="community-rail-fill" style="width:@Math.Min((double)interfaithProgress, 100)%"></div></div>
-                                                                                <div class="community-rail-meta"><span>Target: @targetLabel(interfaithTarget)</span><span>@(!interfaithScheduled ? interfaithStatusText : interfaithHasValue && interfaithTarget.HasValue ? $"{interfaithProgress:0.#}% complete" : "No entries yet")</span></div>
-	                                                                            </div>
-
-	                                                                            <div class="community-rail-card">
+                                                                            @if (faithScheduled)
+                                                                            {
+	                                                                                <div class="community-rail-card">
 	                                                                                <div class="community-rail-header">
 	                                                                                    <span class="community-rail-title">Faith representation</span>
                                                                                     <span class="community-rail-value">@scheduledValueLabel(faithScheduled, faithValueRaw, "0.#", "%")</span>
@@ -855,17 +888,10 @@
 	                                                                                    <span>@(faithTotalEvents > 0 ? $"{faithEventsMeetingGoal:0} of {faithTotalEvents:0} entries met the 3-faith goal" : faithStatusText)</span>
 	                                                                                </div>
 	                                                                            </div>
-
-	                                                                            <div class="community-rail-card">
-	                                                                                <div class="community-rail-header">
-	                                                                                    <span class="community-rail-title">Event satisfaction</span>
-                                                                                    <span class="community-rail-value">@scheduledValueLabel(satisfactionScheduled, satisfactionValueRaw, "0.#", "%")</span>
-	                                                                                </div>
-	                                                                                <div class="community-rail-track"><div class="community-rail-fill" style="width:@Math.Min((double)satisfactionProgress, 100)%"></div></div>
-	                                                                                <div class="community-rail-meta"><span>Target: @targetLabel(satisfactionTarget, "0.#", "", "%")</span><span>@satisfactionStatusText</span></div>
-	                                                                            </div>
-
-	                                                                            <div class="community-rail-card">
+                                                                            }
+                                                                            @if (diversityScheduled)
+                                                                            {
+	                                                                                <div class="community-rail-card">
 	                                                                                <div class="community-rail-header">
 	                                                                                    <span class="community-rail-title">Participant diversity</span>
                                                                                     <span class="community-rail-value">@scheduledValueLabel(diversityScheduled, diversityValueRaw, "0.#", "%", true)</span>
@@ -873,8 +899,10 @@
 	                                                                                <div class="community-rail-track"><div class="community-rail-fill" style="width:@Math.Min((double)diversityProgress, 100)%"></div></div>
 	                                                                                <div class="community-rail-meta"><span>Target: @targetLabel(diversityTarget, "0.#", "+", "%")</span><span>@diversityStatusText</span></div>
 	                                                                            </div>
-
-	                                                                            <div class="community-rail-card">
+                                                                            }
+                                                                            @if (firstTimeScheduled)
+                                                                            {
+	                                                                                <div class="community-rail-card">
 	                                                                                <div class="community-rail-header">
 	                                                                                    <span class="community-rail-title">First-time participation</span>
                                                                                     <span class="community-rail-value">@scheduledValueLabel(firstTimeScheduled, firstTimeValueRaw, "0.#", "%")</span>
@@ -882,6 +910,7 @@
 	                                                                                <div class="community-rail-track"><div class="community-rail-fill" style="width:@Math.Min((double)firstTimeProgress, 100)%"></div></div>
 	                                                                                <div class="community-rail-meta"><span>Target: @targetLabel(firstTimeTarget, "0.#", "", "%")</span><span>@firstTimeStatusText</span></div>
 	                                                                            </div>
+                                                                            }
 	                                                                        </div>
 	                                                                    </div>
 	                                                                </div>
@@ -893,13 +922,13 @@
                                                                 <div class="community-panel-header">
                                                                     <div>
                                                                         <span class="community-kicker">Field Signals</span>
-                                                                        <h4>Quick reads for relationship-building work</h4>
+                                                                        <h4>Interfaith and outreach signals</h4>
                                                                     </div>
-                                                                    <span class="community-state-badge">@panelBadgeText(networkAnyScheduled, networkAllScheduled, "Interfaith Events Hosted", "Clergy Network Growth", "Participant Diversity", "First-Time Participants")</span>
+                                                                    <span class="community-state-badge">@panelBadgeText(networkAnyScheduled, networkAllScheduled, "Interfaith Events Hosted", "Clergy Network Growth")</span>
                                                                 </div>
                                                                 @if (!networkAllScheduled)
                                                                 {
-                                                                    <div class="community-state-note">@panelNoteText(networkAnyScheduled, networkAllScheduled, "Interfaith Events Hosted", "Clergy Network Growth", "Participant Diversity", "First-Time Participants")</div>
+                                                                    <div class="community-state-note">@panelNoteText(networkAnyScheduled, networkAllScheduled, "Interfaith Events Hosted", "Clergy Network Growth")</div>
                                                                 }
                                                                 <div class="community-panel-header">
                                                                     @if (canManageData)
@@ -909,26 +938,22 @@
                                                                 </div>
 
 	                                                                <div class="community-network-grid">
+                                                                        @if (interfaithScheduled)
+                                                                        {
 	                                                                    <div class="community-stat-card accent-teal">
 	                                                                        <div class="community-stat-label">Interfaith events</div>
                                                                         <div class="community-stat-value">@(interfaithScheduled ? interfaithValue.ToString("0") : "--")</div>
                                                                         <div class="community-stat-meta">@(interfaithScheduled ? $"Target: {targetLabel(interfaithTarget)} events hosted" : interfaithStatusText)</div>
 	                                                                    </div>
+                                                                        }
+                                                                        @if (clergyScheduled)
+                                                                        {
 	                                                                    <div class="community-stat-card accent-coral">
 	                                                                        <div class="community-stat-label">Network growth</div>
                                                                         <div class="community-stat-value">@scheduledValueLabel(clergyScheduled, clergyValueRaw, "0.#", "%", true)</div>
                                                                         <div class="community-stat-meta">@(clergyScheduled ? $"Latest logged contacts: {clergyLatestTotal:0} | Target: {targetLabel(clergyTarget, "0.#", "+", "%")}" : clergyStatusText)</div>
 	                                                                    </div>
-	                                                                    <div class="community-stat-card accent-sand">
-	                                                                        <div class="community-stat-label">Diversity increase</div>
-                                                                        <div class="community-stat-value">@scheduledValueLabel(diversityScheduled, diversityValueRaw, "0.#", "%", true)</div>
-                                                                        <div class="community-stat-meta">@(diversityScheduled ? $"Latest logged diversity count: {diversityLatestCount:0}" : diversityStatusText)</div>
-	                                                                    </div>
-	                                                                    <div class="community-stat-card accent-sea">
-	                                                                        <div class="community-stat-label">First-time participants</div>
-                                                                        <div class="community-stat-value">@scheduledValueLabel(firstTimeScheduled, firstTimeValueRaw, "0.#", "%")</div>
-                                                                        <div class="community-stat-meta">@(firstTimeScheduled ? $"Logged first-time participants: {firstTimeTotalParticipants:0} | Target: {targetLabel(firstTimeTarget, "0.#", "", "%")}" : firstTimeStatusText)</div>
-	                                                                    </div>
+                                                                        }
 	                                                                </div>
 	                                                            </section>
 	                                                        </div>
@@ -1050,23 +1075,19 @@
 
 	                                                        const representationRadarEl = document.getElementById('commRepresentationRadar');
 	                                                        if (representationRadarEl) {
+                                                                const inclusionLabels = @Html.Raw(Json.Serialize(inclusionRadarLabels));
+                                                                const inclusionValues = @Html.Raw(Json.Serialize(inclusionRadarValues));
 	                                                            new Chart(representationRadarEl, {
 	                                                                type: 'radar',
 	                                                                data: {
-	                                                                    labels: ['Interfaith', 'Faith Mix', 'Satisfaction', 'Diversity', 'First-Time'],
+	                                                                    labels: inclusionLabels,
 	                                                                    datasets: [{
 	                                                                        label: 'Progress to goal',
-	                                                                        data: [
-	                                                                            @Math.Min((double)interfaithProgress, 140).ToString(System.Globalization.CultureInfo.InvariantCulture),
-	                                                                            @Math.Min((double)faithProgress, 140).ToString(System.Globalization.CultureInfo.InvariantCulture),
-	                                                                            @Math.Min((double)satisfactionProgress, 140).ToString(System.Globalization.CultureInfo.InvariantCulture),
-	                                                                            @Math.Min((double)diversityProgress, 140).ToString(System.Globalization.CultureInfo.InvariantCulture),
-	                                                                            @Math.Min((double)firstTimeProgress, 140).ToString(System.Globalization.CultureInfo.InvariantCulture)
-	                                                                        ],
+	                                                                        data: inclusionValues,
 	                                                                        backgroundColor: 'rgba(42, 166, 164, 0.18)',
 	                                                                        borderColor: '#17838c',
 	                                                                        borderWidth: 2.5,
-	                                                                        pointBackgroundColor: ['#17838c', '#2aa6a4', '#ef7d57', '#f4c98a', '#17324d'],
+	                                                                        pointBackgroundColor: ['#17838c', '#f4c98a', '#17324d'],
 	                                                                        pointBorderColor: '#ffffff',
 	                                                                        pointRadius: 4
 	                                                                    }]
