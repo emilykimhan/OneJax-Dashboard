@@ -127,6 +127,17 @@
                                                     : $"This section starts in FY {start} and does not count toward {activeFiscalYearLabel} yet.";
                                             }
 
+                                            /*string startsLaterText(string metricName)
+                                            {
+                                                var start = MetricTrackingSchedule.GetStartFiscalYear(metricName);
+                                                return string.IsNullOrWhiteSpace(start) ? "Starts later" : $"Starts in FY {start}";
+                                            }
+
+                                            string countLabel(decimal count, string singular, string plural)
+                                            {
+                                                return $"{count:0} {(count == 1 ? singular : plural)}";
+                                            }*/
+
 	                                            var youthTarget = targetOrNull(mYouth);
 	                                            var partnersTarget = targetOrNull(mPartners);
 	                                            var interfaithTarget = targetOrNull(mInterfaith);
@@ -151,6 +162,12 @@
 	                                            var partnersValue = partnersValueRaw ?? 0;
 	                                            var clergyValue = clergyValueRaw ?? 0;
 	                                            var diversityValue = diversityValueRaw ?? 0;
+	                                            var youthEntryCount = youthScheduled ? bagNumber("CommunityYouthEntryCount") : 0;
+	                                            var faithEntryCount = faithScheduled ? bagNumber("CommunityFaithEntryCount") : 0;
+	                                            var satisfactionEntryCount = satisfactionScheduled ? bagNumber("CommunitySatisfactionEntryCount") : 0;
+	                                            var contactEntryCount = clergyScheduled ? bagNumber("CommunityContactEntryCount") : 0;
+	                                            var diversityEntryCount = diversityScheduled ? bagNumber("CommunityDiversityEntryCount") : 0;
+	                                            var firstTimeEntryCount = firstTimeScheduled ? bagNumber("CommunityFirstTimeEntryCount") : 0;
 	                                            var youthHasValue = youthValueRaw.HasValue;
 	                                            var satisfactionHasValue = satisfactionValueRaw.HasValue;
 	                                            var firstTimeHasValue = firstTimeValueRaw.HasValue;
