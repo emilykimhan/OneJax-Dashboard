@@ -24,14 +24,16 @@
 
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <label asp-for="Quarter" class="form-label fw-bold">Quarter (1–4)</label>
+                    <label asp-for="Quarter" class="form-label fw-bold">Quarter (calendar quarter)</label>
                     <input asp-for="Quarter" type="number" class="form-control" min="1" max="4" placeholder="Enter 1, 2, 3, or 4" />
+                    <div class="form-text">Use calendar quarters: Q1 = Jan-Mar, Q2 = Apr-Jun, Q3 = Jul-Sep, Q4 = Oct-Dec.</div>
                     <span asp-validation-for="Quarter" class="text-danger"></span>
                 </div>
 
                 <div class="col-md-6 mb-3">
-                    <label asp-for="Year" class="form-label fw-bold">Year</label>
+                    <label asp-for="Year" class="form-label fw-bold">Year (calendar year for that quarter)</label>
                     <input asp-for="Year" type="number" class="form-control" min="2020" max="2100" />
+                    <div class="form-text">Example: Q3 2026 means Jul-Sep 2026.</div>
                     <span asp-validation-for="Year" class="text-danger"></span>
                 </div>
 

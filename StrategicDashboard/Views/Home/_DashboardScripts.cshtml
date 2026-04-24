@@ -2,26 +2,11 @@
 @using OneJaxDashboard.Models
 @{
     var canManageData = ViewData["CanManageData"] as bool? ?? false;
+    var activeFiscalYear = ViewData["ActiveFiscalYear"]?.ToString() ?? string.Empty;
 
     decimal LiveGoalProgress(IEnumerable<GoalMetric>? metrics)
     {
-        var liveMetrics = (metrics ?? Enumerable.Empty<GoalMetric>())
-            .Where(m => !string.Equals(m.Status, "Planning", StringComparison.OrdinalIgnoreCase))
-            .Where(m => !string.IsNullOrWhiteSpace(m.Target))
-            .Where(m =>
-            {
-                var clean = (m.Target ?? string.Empty).Replace("$", "").Replace(",", "").Replace("%", "").Trim();
-                return decimal.TryParse(clean, out var target) && target > 0;
-            })
-            .Select(m =>
-            {
-                var clean = (m.Target ?? string.Empty).Replace("$", "").Replace(",", "").Replace("%", "").Trim();
-                decimal.TryParse(clean, out var target);
-                return target > 0 ? Math.Min((m.CurrentValue / target) * 100, 100) : 0;
-            })
-            .ToList();
-
-        return liveMetrics.Any() ? Math.Round(liveMetrics.Average(), 1) : 0;
+        return DashboardMetricRules.CalculateGoalProgress(metrics, activeFiscalYear);
     }
 
     var dashboardChartEvents = Model.StrategicGoals?.SelectMany(g => g.Events ?? new List<Event>()) ?? new List<Event>();

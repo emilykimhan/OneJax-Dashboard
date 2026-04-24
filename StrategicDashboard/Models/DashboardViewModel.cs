@@ -29,6 +29,19 @@ public class DashboardViewModel
     public string Message { get; set; } = "";
     public bool HasError { get; set; } = false;
     public string ErrorMessage { get; set; } = "";
+
+    // Precomputed dashboard summary values to keep Razor views simple and strongly typed.
+    public int TotalMetricsMeetingGoal { get; set; }
+    public int TotalEligibleMetrics { get; set; }
+    public decimal OverallDashboardProgress { get; set; }
+    public int PublicEventsCount { get; set; }
+    public int InScopeMetricsCount { get; set; }
+    public int ReportingMetricsCount { get; set; }
+    public int ActiveMetricsCount { get; set; }
+    public int MetricsAtTargetCount { get; set; }
+    public double ReportingMetricsPercentage { get; set; }
+    public double ActiveMetricsPercentage { get; set; }
+    public double MetricsAtTargetPercentage { get; set; }
 }
 
 public class IdentityDashboardData

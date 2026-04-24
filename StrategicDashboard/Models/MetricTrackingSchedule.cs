@@ -14,7 +14,8 @@ namespace OneJaxDashboard.Models
                 ["Website Traffic"] = "2025-2026",
                 ["Geographic Reach"] = "2025-2026",
                 ["Community Perception Survey"] = "2025-2026",
-                ["Strategic Plan Completion"] = "2025-2026",
+                ["Milestone Achievement"] = "2025-2026",
+                ["Social Media Engagement"] = "2025-2026",
                 ["Interfaith Events Hosted"] = "2025-2026",
                 ["Youth Attendance Growth"] = "2025-2026",
                 ["Cross-Sector Collaborations"] = "2025-2026",
@@ -23,17 +24,19 @@ namespace OneJaxDashboard.Models
                 ["Clergy Network Growth"] = "2025-2026",
                 ["Donor Engagement Events"] = "2025-2026",
                 ["Donor Communication Satisfaction"] = "2025-2026",
-                ["Staff Satisfaction Rating"] = "2026-2027",
-                ["Professional Development Plans"] = "2026-2027",
-                ["Board Recruitment"] = "2026-2027",
-                ["Board Meeting Participation"] = "2026-2027",
-                ["Board Self-Assessment"] = "2026-2027",
+                ["Staff Satisfaction Rating"] = "2025-2026",
+                ["Professional Development Plans"] = "2025-2026",
+                ["Strategic Plan Completion"] = "2026-2027",
                 ["Budget Revenue Tracking"] = "2026-2027",
                 ["Fee-for-Service Income"] = "2026-2027",
                 ["General Income Streams"] = "2026-2027",
+                ["BoardRecruitment"] = "2025-2026",
+                ["Board Recruitment"] = "2025-2026",
+                ["Board Meeting Participation"] = "2025-2026",
+                ["Board Self-Assessment"] = "2025-2026",
                 ["Participant Diversity"] = "2027-2028",
                 ["First-Time Participants"] = "2027-2028",
-                ["Volunteer Program Participation"] = "2027-2028"
+                ["Volunteer Program Participation"] = "2025-2026"
             };
 
         public static string? GetStartFiscalYear(string metricName)

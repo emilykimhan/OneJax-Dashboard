@@ -27,12 +27,8 @@
             .Select(id => new SelectListItem { Value = id.ToString(), Text = $"Goal {id}" })
             .ToList();
 
-    // Fiscal year filter (via query string) — default to first fiscal year
-    var selectedFY = Context?.Request?.Query["fy"].FirstOrDefault();
-    if (string.IsNullOrWhiteSpace(selectedFY))
-    {
-        selectedFY = fiscalYears.FirstOrDefault();
-    }
+    // Fiscal year filter is resolved in the controller so it stays in sync with the dashboard.
+    var selectedFY = ViewBag.SelectedFY as string ?? string.Empty;
 
     // Normalize FY formats (supports "2025/2026" <-> "25/26")
     Func<string?, string?> NormalizeFY = (fy) =>
@@ -64,6 +60,7 @@
     };
 
     var selectedFYAlt = NormalizeFY(selectedFY);
+    var allYearsActive = string.IsNullOrWhiteSpace(selectedFY);
 
     // Filter events by fiscal year (falls back to all if no FY is available)
     var filteredEvents = allEvents.AsEnumerable();
@@ -503,6 +500,11 @@
 
     <!-- Fiscal Year Tabs (server-side filter via query string) -->
     <ul class="nav nav-pills justify-content-center mb-4" id="fyTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <a class="nav-link @(allYearsActive ? "active" : "")" href="@Url.Action("ViewEvents", "Strategy", new { fy = "" })">
+                All Years
+            </a>
+        </li>
         @foreach (var fy in fiscalYears)
         {
             var isActive = (fy == selectedFY) || (fy == selectedFYAlt);
@@ -545,7 +547,11 @@
             {
                 <div class="empty-state">
                     <i class="bi bi-inbox"></i>
-                    <p class="mb-0">No events have been created for fiscal year @(selectedFYAlt ?? selectedFY) yet.</p>
+                    <p class="mb-0">
+                        @(string.IsNullOrWhiteSpace(selectedFY)
+                            ? "No events have been created yet."
+                            : $"No events have been created for fiscal year {selectedFYAlt ?? selectedFY} yet.")
+                    </p>
                 </div>
             }
             else

@@ -243,7 +243,7 @@ namespace OneJaxDashboard.Services
                         Name = "Cross-Sector Collaborations",
                         Description = "Number of unique cross-sector collaborations",
                         StrategicGoalId = communityGoal.Id,
-                        Target = "10",
+                        Target = "3",
                         CurrentValue = 3,
                         Unit = "collaborations",
                         DataSource = "Manual",

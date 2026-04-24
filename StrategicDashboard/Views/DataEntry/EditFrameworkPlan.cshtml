@@ -28,20 +28,22 @@
             </div>
 
             <div class="mb-3">
-                <label asp-for="Year" class="form-label fw-bold">Year</label>
+                <label asp-for="Year" class="form-label fw-bold">Year (calendar year for the selected fiscal quarter)</label>
                 <input asp-for="Year" type="number" class="form-control" min="2020" max="2100" placeholder="e.g. 2026" required />
+                <div class="form-text">Use the calendar year the quarter occurs in, not the fiscal-year label.</div>
                 <span asp-validation-for="Year" class="text-danger"></span>
             </div>
 
             <div class="mb-3">
-                <label asp-for="Quarter" class="form-label fw-bold">Quarter</label>
+                <label asp-for="Quarter" class="form-label fw-bold">Fiscal quarter</label>
                 <select asp-for="Quarter" class="form-select" required>
                     <option value="">-- Select Quarter --</option>
-                    <option value="Q1">Q1</option>
-                    <option value="Q2">Q2</option>
-                    <option value="Q3">Q3</option>
-                    <option value="Q4">Q4</option>
+                    <option value="Q1">Q1 (Jul-Sep)</option>
+                    <option value="Q2">Q2 (Oct-Dec)</option>
+                    <option value="Q3">Q3 (Jan-Mar)</option>
+                    <option value="Q4">Q4 (Apr-Jun)</option>
                 </select>
+                <div class="form-text">Example: Q1 2025 means Jul-Sep 2025, which belongs to FY 2025-2026.</div>
                 <span asp-validation-for="Quarter" class="text-danger"></span>
             </div>
 

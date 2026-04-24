@@ -410,7 +410,7 @@ public class StrategyController : Controller
         return RedirectToAction("Archive", "Programs");
     }
 
-    public IActionResult ViewEvents() 
+    public IActionResult ViewEvents(string? fy = null) 
     {
         // Fetch all events from the database
         var events = _context.Strategies
@@ -444,9 +444,9 @@ public class StrategyController : Controller
             .ToList();
 
         var fiscalYears = events
-            .Select(e => e.EventFYear)
+            .Select(e => FiscalYearSelection.ToEventsFormat(e.EventFYear))
             .Where(fy => !string.IsNullOrWhiteSpace(fy))
-            .Distinct()
+            .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(fy => fy)
             .ToList();
 
@@ -462,7 +462,20 @@ public class StrategyController : Controller
             };
         }
 
+        var selectedFiscalYear = FiscalYearSelection.ResolveEventsFiscalYear(Request, fy);
+        if (!string.IsNullOrWhiteSpace(selectedFiscalYear)
+            && !fiscalYears.Contains(selectedFiscalYear, StringComparer.OrdinalIgnoreCase))
+        {
+            fiscalYears.Add(selectedFiscalYear);
+            fiscalYears = fiscalYears
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(value => value)
+                .ToList();
+        }
+
         ViewBag.FiscalYears = fiscalYears;
+        ViewBag.SelectedFY = selectedFiscalYear;
+        FiscalYearSelection.PersistSelection(Response, selectedFiscalYear);
 
         // Pass the events to the view
         return View(events);

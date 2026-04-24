@@ -42,6 +42,7 @@ public sealed class AppDataResetter
         "Diversity_37D",
         "FirstTime_38D"
     ];
+    private static readonly HashSet<string> SupportedTables = TablesToClearInOrder.ToHashSet(StringComparer.Ordinal);
 
     public AppDataResetter(ApplicationDbContext db, Action<string>? log = null)
     {
@@ -73,7 +74,7 @@ public sealed class AppDataResetter
         foreach (var tableName in TablesToClearInOrder)
         {
             _log($"Clearing {tableName}...");
-            await _db.Database.ExecuteSqlRawAsync($"DELETE FROM [{tableName}];", cancellationToken);
+            await _db.Database.ExecuteSqlRawAsync(BuildSqlServerDeleteSql(tableName), cancellationToken);
             await ResetSqlServerIdentityIfNeededAsync(tableName, cancellationToken);
         }
 
@@ -87,15 +88,15 @@ public sealed class AppDataResetter
         foreach (var tableName in TablesToClearInOrder)
         {
             _log($"Clearing {tableName}...");
-            await _db.Database.ExecuteSqlRawAsync($"DELETE FROM \"{tableName}\";", cancellationToken);
+            await _db.Database.ExecuteSqlRawAsync(BuildSqliteDeleteSql(tableName), cancellationToken);
         }
 
         var sqliteIdentityTables = string.Join(
             ", ",
-            TablesToClearInOrder.Select(tableName => $"'{tableName}'"));
+            TablesToClearInOrder.Select(BuildSqliteStringLiteral));
 
         await _db.Database.ExecuteSqlRawAsync(
-            $"DELETE FROM sqlite_sequence WHERE name IN ({sqliteIdentityTables});",
+            "DELETE FROM sqlite_sequence WHERE name IN (" + sqliteIdentityTables + ");",
             cancellationToken);
 
         await transaction.CommitAsync(cancellationToken);
@@ -103,10 +104,12 @@ public sealed class AppDataResetter
 
     private async Task ResetSqlServerIdentityIfNeededAsync(string tableName, CancellationToken cancellationToken)
     {
-        var shouldReseed = await _db.Database.SqlQueryRaw<int>($"""
+        var validatedTableName = ValidateSupportedTableName(tableName);
+
+        var shouldReseed = await _db.Database.SqlQuery<int>($"""
             SELECT COUNT(1)
             FROM sys.identity_columns
-            WHERE object_id = OBJECT_ID('{tableName}');
+            WHERE object_id = OBJECT_ID({validatedTableName});
             """).SingleAsync(cancellationToken) > 0;
 
         if (!shouldReseed)
@@ -114,6 +117,49 @@ public sealed class AppDataResetter
             return;
         }
 
-        await _db.Database.ExecuteSqlRawAsync($"DBCC CHECKIDENT ('[{tableName}]', RESEED, 0);", cancellationToken);
+        await _db.Database.ExecuteSqlRawAsync(BuildSqlServerReseedSql(validatedTableName), cancellationToken);
+    }
+
+    private static string BuildSqlServerDeleteSql(string tableName)
+    {
+        return "DELETE FROM " + QuoteSqlServerIdentifier(tableName) + ";";
+    }
+
+    private static string BuildSqliteDeleteSql(string tableName)
+    {
+        return "DELETE FROM " + QuoteSqliteIdentifier(tableName) + ";";
+    }
+
+    private static string BuildSqlServerReseedSql(string tableName)
+    {
+        return "DBCC CHECKIDENT ('" + QuoteSqlServerIdentifier(tableName) + "', RESEED, 0);";
+    }
+
+    private static string QuoteSqlServerIdentifier(string tableName)
+    {
+        var validatedTableName = ValidateSupportedTableName(tableName);
+        return "[" + validatedTableName.Replace("]", "]]", StringComparison.Ordinal) + "]";
+    }
+
+    private static string QuoteSqliteIdentifier(string tableName)
+    {
+        var validatedTableName = ValidateSupportedTableName(tableName);
+        return "\"" + validatedTableName.Replace("\"", "\"\"", StringComparison.Ordinal) + "\"";
+    }
+
+    private static string BuildSqliteStringLiteral(string tableName)
+    {
+        var validatedTableName = ValidateSupportedTableName(tableName);
+        return "'" + validatedTableName.Replace("'", "''", StringComparison.Ordinal) + "'";
+    }
+
+    private static string ValidateSupportedTableName(string tableName)
+    {
+        if (string.IsNullOrWhiteSpace(tableName) || !SupportedTables.Contains(tableName))
+        {
+            throw new InvalidOperationException($"Unsupported table name '{tableName}'.");
+        }
+
+        return tableName;
     }
 }

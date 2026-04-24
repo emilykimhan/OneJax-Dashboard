@@ -20,8 +20,9 @@
             <p class="mb-4">Enter the number of website clicks for each quarter.</p>
 
             <div class="mb-4">
-                <label asp-for="Year" class="form-label fw-bold">Year</label>
+                <label asp-for="Year" class="form-label fw-bold">Fiscal year end year</label>
                 <input asp-for="Year" type="number" class="form-control" min="2000" max="2100" />
+                <small class="text-muted d-block mt-2">Use the ending year for the July-June cycle. Example: enter `2026` for July 2025 through June 2026.</small>
                 <span asp-validation-for="Year" class="text-danger"></span>
             </div>
 
