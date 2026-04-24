@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using OneJaxDashboard.Models;
 using OneJaxDashboard.Data;
 using OneJaxDashboard.Services;
@@ -12,11 +13,16 @@ namespace OneJaxDashboard.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly ActivityLogService _activityLog;
+        private readonly ILogger<ProfessionalDevelopmentController> _logger;
 
-        public ProfessionalDevelopmentController(ApplicationDbContext context, ActivityLogService activityLog)
+        public ProfessionalDevelopmentController(
+            ApplicationDbContext context,
+            ActivityLogService activityLog,
+            ILogger<ProfessionalDevelopmentController> logger)
         {
             _context = context;
             _activityLog = activityLog;
+            _logger = logger;
         }
 
         
@@ -44,8 +50,17 @@ namespace OneJaxDashboard.Controllers
                     TempData["Success"] = "Professional development record submitted successfully!";
                     return RedirectToAction(nameof(Index));
                 }
+                catch (DbUpdateException ex)
+                {
+                    var rootCause = ex.GetBaseException().Message;
+                    _logger.LogError(ex, "Failed to save professional development record for {Name} ({Year}/{Month}).",
+                        model.Name, model.Year, model.Month);
+                    TempData["Error"] = $"Error saving record: {rootCause}";
+                }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, "Unexpected error while saving professional development record for {Name} ({Year}/{Month}).",
+                        model.Name, model.Year, model.Month);
                     TempData["Error"] = $"Error saving record: {ex.Message}";
                 }
             }
