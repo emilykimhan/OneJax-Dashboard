@@ -103,17 +103,25 @@
                     <input class="form-check-input" type="checkbox" id="selectAllCheckbox" />
                     <label class="form-check-label fw-bold" for="selectAllCheckbox">Select All</label>
                 </div>
-                <button type="button" id="exportSelectedBtn" class="btn btn-success" disabled>
-                    Export Selected (<span id="selectedCount">0</span>)
-                </button>
-                <span class="text-muted small" id="exportHint">Check records below, then click Export Selected.</span>
-            </div>
-        </div>
+	                <button type="button" id="exportSelectedBtn" class="btn btn-success" disabled>
+	                    Export Selected (<span id="selectedCount">0</span>)
+	                </button>
+                    <button type="button" id="deleteSelectedBtn" class="btn btn-danger" disabled>
+                        Delete Selected
+                    </button>
+	                <span class="text-muted small" id="exportHint">Check records below, then export or delete selected records.</span>
+	            </div>
+	        </div>
 
         <!-- Hidden export form (submitted by JS) -->
-        <form id="exportForm" method="post" action="/Export/ExportSelected">
+	        <form id="exportForm" method="post" action="/Export/ExportSelected">
+	            @Html.AntiForgeryToken()
+	            <input type="hidden" name="format" value="excel" />
+	        </form>
+
+        <form id="bulkDeleteForm" method="post" asp-controller="DataEntry" asp-action="DeleteSelectedRecords">
             @Html.AntiForgeryToken()
-            <input type="hidden" name="format" value="excel" />
+            <input type="hidden" name="returnUrl" value="@(Context.Request.Path + Context.Request.QueryString)" />
         </form>
 
         <div class="container">
@@ -157,7 +165,7 @@
                                 <a asp-controller="DataEntry" asp-action="EditStaffSurvey" asp-route-id="@survey.Id" class="btn btn-primary btn-sm">
                                     Edit
                                 </a>
-                                <form asp-controller="DataEntry" asp-action="DeleteStaffSurvey" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                <form asp-controller="DataEntry" asp-action="DeleteStaffSurvey" method="post" style="display:inline;" onsubmit="return confirmTypedDelete('delete this record');">
                                     <input type="hidden" name="id" value="@survey.Id" />
                                     <button type="submit" class="btn btn-danger btn-sm">
                                         Delete
@@ -214,7 +222,7 @@
                                 <a asp-controller="DataEntry" asp-action="EditProfessionalDevelopment" asp-route-id="@profDev.Id" class="btn btn-primary btn-sm">
                                     Edit
                                 </a>
-                                <form asp-controller="DataEntry" asp-action="DeleteProfessionalDevelopment" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                <form asp-controller="DataEntry" asp-action="DeleteProfessionalDevelopment" method="post" style="display:inline;" onsubmit="return confirmTypedDelete('delete this record');">
                                     <input type="hidden" name="id" value="@profDev.Id" />
                                     <button type="submit" class="btn btn-danger btn-sm">
                                         Delete
@@ -318,7 +326,7 @@
                                 <a asp-controller="DataEntry" asp-action="EditMediaPlacement" asp-route-id="@media.Id" class="btn btn-primary btn-sm">
                                     Edit
                                 </a>
-                                <form asp-controller="DataEntry" asp-action="DeleteMediaPlacement" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                <form asp-controller="DataEntry" asp-action="DeleteMediaPlacement" method="post" style="display:inline;" onsubmit="return confirmTypedDelete('delete this record');">
                                     <input type="hidden" name="id" value="@media.Id" />
                                     <button type="submit" class="btn btn-danger btn-sm">
                                         Delete
@@ -390,7 +398,7 @@
                                 <a asp-controller="DataEntry" asp-action="EditWebsiteTraffic" asp-route-id="@traffic.Id" class="btn btn-primary btn-sm">
                                     Edit
                                 </a>
-                                <form asp-controller="DataEntry" asp-action="DeleteWebsiteTraffic" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                <form asp-controller="DataEntry" asp-action="DeleteWebsiteTraffic" method="post" style="display:inline;" onsubmit="return confirmTypedDelete('delete this record');">
                                     <input type="hidden" name="id" value="@traffic.Id" />
                                     <button type="submit" class="btn btn-danger btn-sm">
                                         Delete
@@ -442,7 +450,7 @@
                             </div>
                             <div class="record-actions mt-3">
                                 <a asp-controller="DataEntry" asp-action="EditDonorEvent" asp-route-id="@donor.Id" class="btn btn-primary btn-sm">Edit</a>
-                                <form asp-controller="DataEntry" asp-action="DeleteDonorEvent" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                <form asp-controller="DataEntry" asp-action="DeleteDonorEvent" method="post" style="display:inline;" onsubmit="return confirmTypedDelete('delete this record');">
                                     <input type="hidden" name="id" value="@donor.Id" />
                                     @Html.AntiForgeryToken()
                                     <button type="submit" class="btn btn-danger btn-sm">Delete</button>
@@ -493,7 +501,7 @@
                             </div>
                             <div class="record-actions mt-3">
                                 <a asp-controller="DataEntry" asp-action="EditCommRate" asp-route-id="@rate.Id" class="btn btn-primary btn-sm">Edit</a>
-                                <form asp-controller="DataEntry" asp-action="DeleteCommRate" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                <form asp-controller="DataEntry" asp-action="DeleteCommRate" method="post" style="display:inline;" onsubmit="return confirmTypedDelete('delete this record');">
                                     <input type="hidden" name="id" value="@rate.Id" />
                                     @Html.AntiForgeryToken()
                                     <button type="submit" class="btn btn-danger btn-sm">Delete</button>
@@ -571,7 +579,7 @@
                             </div>
                             <div class="record-actions mt-3">
                                 <a asp-controller="DataEntry" asp-action="EditFeeForService" asp-route-id="@fee.Id" class="btn btn-primary btn-sm">Edit</a>
-                                <form asp-controller="DataEntry" asp-action="DeleteFeeForService" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                <form asp-controller="DataEntry" asp-action="DeleteFeeForService" method="post" style="display:inline;" onsubmit="return confirmTypedDelete('delete this record');">
                                     <input type="hidden" name="id" value="@fee.Id" />
                                     @Html.AntiForgeryToken()
                                     <button type="submit" class="btn btn-danger btn-sm">Delete</button>
@@ -628,7 +636,7 @@
                             </div>
                             <div class="record-actions mt-3">
                                 <a asp-controller="DataEntry" asp-action="EditIncomeRecord" asp-route-id="@income.Id" class="btn btn-primary btn-sm">Edit</a>
-                                <form asp-controller="DataEntry" asp-action="DeleteIncomeRecord" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                <form asp-controller="DataEntry" asp-action="DeleteIncomeRecord" method="post" style="display:inline;" onsubmit="return confirmTypedDelete('delete this record');">
                                     <input type="hidden" name="id" value="@income.Id" />
                                     @Html.AntiForgeryToken()
                                     <button type="submit" class="btn btn-danger btn-sm">Delete</button>
@@ -688,7 +696,7 @@
                             </div>
                             <div class="record-actions mt-3">
                                 <a asp-controller="DataEntry" asp-action="EditBudgetRecord" asp-route-id="@budget.Id" class="btn btn-primary btn-sm">Edit</a>
-                                <form asp-controller="DataEntry" asp-action="DeleteBudgetRecord" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                <form asp-controller="DataEntry" asp-action="DeleteBudgetRecord" method="post" style="display:inline;" onsubmit="return confirmTypedDelete('delete this record');">
                                     <input type="hidden" name="id" value="@budget.Id" />
                                     @Html.AntiForgeryToken()
                                     <button type="submit" class="btn btn-danger btn-sm">Delete</button>
@@ -760,7 +768,7 @@
                             </div>
                             <div class="record-actions mt-3">
                                 <a asp-controller="DataEntry" asp-action="EditSocialMedia" asp-route-id="@sm.Id" class="btn btn-primary btn-sm">Edit</a>
-                                <form asp-controller="DataEntry" asp-action="DeleteSocialMedia" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                <form asp-controller="DataEntry" asp-action="DeleteSocialMedia" method="post" style="display:inline;" onsubmit="return confirmTypedDelete('delete this record');">
                                     <input type="hidden" name="id" value="@sm.Id" />
                                     @Html.AntiForgeryToken()
                                     <button type="submit" class="btn btn-danger btn-sm">Delete</button>
@@ -820,7 +828,7 @@
                             </div>
                             <div class="record-actions mt-3">
                                 <a asp-controller="DataEntry" asp-action="EditMilestone" asp-route-id="@milestone.Id" class="btn btn-primary btn-sm">Edit</a>
-                                <form asp-controller="DataEntry" asp-action="DeleteMilestone" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                <form asp-controller="DataEntry" asp-action="DeleteMilestone" method="post" style="display:inline;" onsubmit="return confirmTypedDelete('delete this record');">
                                     <input type="hidden" name="id" value="@milestone.Id" />
                                     @Html.AntiForgeryToken()
                                     <button type="submit" class="btn btn-danger btn-sm">Delete</button>
@@ -895,7 +903,7 @@
                             </div>
                             <div class="record-actions mt-3">
                                 <a asp-controller="DataEntry" asp-action="EditCommunityPerception" asp-route-id="@cp.Id" class="btn btn-primary btn-sm">Edit</a>
-                                <form asp-controller="DataEntry" asp-action="DeleteCommunityPerception" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                <form asp-controller="DataEntry" asp-action="DeleteCommunityPerception" method="post" style="display:inline;" onsubmit="return confirmTypedDelete('delete this record');">
                                     <input type="hidden" name="id" value="@cp.Id" />
                                     @Html.AntiForgeryToken()
                                     <button type="submit" class="btn btn-danger btn-sm">Delete</button>
@@ -952,7 +960,7 @@
                             </div>
                             <div class="record-actions mt-3">
                                 <a asp-controller="DataEntry" asp-action="EditDemographics" asp-route-id="@demo.Id" class="btn btn-primary btn-sm">Edit</a>
-                                <form asp-controller="DataEntry" asp-action="DeleteDemographics" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                <form asp-controller="DataEntry" asp-action="DeleteDemographics" method="post" style="display:inline;" onsubmit="return confirmTypedDelete('delete this record');">
                                     <input type="hidden" name="id" value="@demo.Id" />
                                     @Html.AntiForgeryToken()
                                     <button type="submit" class="btn btn-danger btn-sm">Delete</button>
@@ -1030,7 +1038,7 @@
                             </div>
                             <div class="record-actions mt-3">
                                 <a asp-controller="DataEntry" asp-action="EditFrameworkPlan" asp-route-id="@plan.Id" class="btn btn-primary btn-sm">Edit</a>
-                                <form asp-controller="DataEntry" asp-action="DeleteFrameworkPlan" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                <form asp-controller="DataEntry" asp-action="DeleteFrameworkPlan" method="post" style="display:inline;" onsubmit="return confirmTypedDelete('delete this record');">
                                     <input type="hidden" name="id" value="@plan.Id" />
                                     @Html.AntiForgeryToken()
                                     <button type="submit" class="btn btn-danger btn-sm">Delete</button>
@@ -1096,7 +1104,7 @@
                             </div>
                             <div class="record-actions mt-3">
                                 <a asp-controller="DataEntry" asp-action="EditBoardMember" asp-route-id="@bm.Id" class="btn btn-primary btn-sm">Edit</a>
-                                <form asp-controller="DataEntry" asp-action="DeleteBoardMember" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                <form asp-controller="DataEntry" asp-action="DeleteBoardMember" method="post" style="display:inline;" onsubmit="return confirmTypedDelete('delete this record');">
                                     <input type="hidden" name="id" value="@bm.Id" />
                                     @Html.AntiForgeryToken()
                                     <button type="submit" class="btn btn-danger btn-sm">Delete</button>
@@ -1153,7 +1161,7 @@
                             </div>
                             <div class="record-actions mt-3">
                                 <a asp-controller="DataEntry" asp-action="EditBoardMeetingAttendance" asp-route-id="@bma.Id" class="btn btn-primary btn-sm">Edit</a>
-                                <form asp-controller="DataEntry" asp-action="DeleteBoardMeetingAttendance" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                <form asp-controller="DataEntry" asp-action="DeleteBoardMeetingAttendance" method="post" style="display:inline;" onsubmit="return confirmTypedDelete('delete this record');">
                                     <input type="hidden" name="id" value="@bma.Id" />
                                     @Html.AntiForgeryToken()
                                     <button type="submit" class="btn btn-danger btn-sm">Delete</button>
@@ -1204,7 +1212,7 @@
                             </div>
                             <div class="record-actions mt-3">
                                 <a asp-controller="DataEntry" asp-action="EditSelfAssessment" asp-route-id="@sa.Id" class="btn btn-primary btn-sm">Edit</a>
-                                <form asp-controller="DataEntry" asp-action="DeleteSelfAssessment" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                <form asp-controller="DataEntry" asp-action="DeleteSelfAssessment" method="post" style="display:inline;" onsubmit="return confirmTypedDelete('delete this record');">
                                     <input type="hidden" name="id" value="@sa.Id" />
                                     @Html.AntiForgeryToken()
                                     <button type="submit" class="btn btn-danger btn-sm">Delete</button>
@@ -1267,7 +1275,7 @@
                             </div>
                             <div class="record-actions mt-3">
                                 <a asp-controller="DataEntry" asp-action="EditVolunteerProgram" asp-route-id="@vp.Id" class="btn btn-primary btn-sm">Edit</a>
-                                <form asp-controller="DataEntry" asp-action="DeleteVolunteerProgram" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                <form asp-controller="DataEntry" asp-action="DeleteVolunteerProgram" method="post" style="display:inline;" onsubmit="return confirmTypedDelete('delete this record');">
                                     <input type="hidden" name="id" value="@vp.Id" />
                                     @Html.AntiForgeryToken()
                                     <button type="submit" class="btn btn-danger btn-sm">Delete</button>
@@ -1321,7 +1329,7 @@
                             </div>
                             <div class="record-actions mt-3">
                                 <a asp-controller="DataEntry" asp-action="EditInterfaithEvent" asp-route-id="@ie.Id" class="btn btn-primary btn-sm">Edit</a>
-                                <form asp-controller="DataEntry" asp-action="DeleteInterfaithEvent" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                <form asp-controller="DataEntry" asp-action="DeleteInterfaithEvent" method="post" style="display:inline;" onsubmit="return confirmTypedDelete('delete this record');">
                                     <input type="hidden" name="id" value="@ie.Id" />
                                     @Html.AntiForgeryToken()
                                     <button type="submit" class="btn btn-danger btn-sm">Delete</button>
@@ -1369,7 +1377,7 @@
                             </div>
                             <div class="record-actions mt-3">
                                 <a asp-controller="DataEntry" asp-action="EditEventSatisfaction" asp-route-id="@es.Id" class="btn btn-primary btn-sm">Edit</a>
-                                <form asp-controller="DataEntry" asp-action="DeleteEventSatisfaction" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                <form asp-controller="DataEntry" asp-action="DeleteEventSatisfaction" method="post" style="display:inline;" onsubmit="return confirmTypedDelete('delete this record');">
                                     <input type="hidden" name="id" value="@es.Id" />
                                     @Html.AntiForgeryToken()
                                     <button type="submit" class="btn btn-danger btn-sm">Delete</button>
@@ -1417,7 +1425,7 @@
                             </div>
                             <div class="record-actions mt-3">
                                 <a asp-controller="DataEntry" asp-action="EditFaithCommunity" asp-route-id="@fc.Id" class="btn btn-primary btn-sm">Edit</a>
-                                <form asp-controller="DataEntry" asp-action="DeleteFaithCommunity" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                <form asp-controller="DataEntry" asp-action="DeleteFaithCommunity" method="post" style="display:inline;" onsubmit="return confirmTypedDelete('delete this record');">
                                     <input type="hidden" name="id" value="@fc.Id" />
                                     @Html.AntiForgeryToken()
                                     <button type="submit" class="btn btn-danger btn-sm">Delete</button>
@@ -1471,7 +1479,7 @@
                             </div>
                             <div class="record-actions mt-3">
                                 <a asp-controller="DataEntry" asp-action="EditNetworkContacts" asp-route-id="@nc.Id" class="btn btn-primary btn-sm">Edit</a>
-                                <form asp-controller="DataEntry" asp-action="DeleteNetworkContacts" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                <form asp-controller="DataEntry" asp-action="DeleteNetworkContacts" method="post" style="display:inline;" onsubmit="return confirmTypedDelete('delete this record');">
                                     <input type="hidden" name="id" value="@nc.Id" />
                                     @Html.AntiForgeryToken()
                                     <button type="submit" class="btn btn-danger btn-sm">Delete</button>
@@ -1528,7 +1536,7 @@
                             </div>
                             <div class="record-actions mt-3">
                                 <a asp-controller="DataEntry" asp-action="EditYouthAttendance" asp-route-id="@ya.Id" class="btn btn-primary btn-sm">Edit</a>
-                                <form asp-controller="DataEntry" asp-action="DeleteYouthAttendance" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                <form asp-controller="DataEntry" asp-action="DeleteYouthAttendance" method="post" style="display:inline;" onsubmit="return confirmTypedDelete('delete this record');">
                                     <input type="hidden" name="id" value="@ya.Id" />
                                     @Html.AntiForgeryToken()
                                     <button type="submit" class="btn btn-danger btn-sm">Delete</button>
@@ -1579,7 +1587,7 @@
                             </div>
                             <div class="record-actions mt-3">
                                 <a asp-controller="DataEntry" asp-action="EditParticipantDiversity" asp-route-id="@pd.Id" class="btn btn-primary btn-sm">Edit</a>
-                                <form asp-controller="DataEntry" asp-action="DeleteParticipantDiversity" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                <form asp-controller="DataEntry" asp-action="DeleteParticipantDiversity" method="post" style="display:inline;" onsubmit="return confirmTypedDelete('delete this record');">
                                     <input type="hidden" name="id" value="@pd.Id" />
                                     @Html.AntiForgeryToken()
                                     <button type="submit" class="btn btn-danger btn-sm">Delete</button>
@@ -1639,7 +1647,7 @@
                             </div>
                             <div class="record-actions mt-3">
                                 <a asp-controller="DataEntry" asp-action="EditFirstTimeParticipant" asp-route-id="@ftp.Id" class="btn btn-primary btn-sm">Edit</a>
-                                <form asp-controller="DataEntry" asp-action="DeleteFirstTimeParticipant" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                <form asp-controller="DataEntry" asp-action="DeleteFirstTimeParticipant" method="post" style="display:inline;" onsubmit="return confirmTypedDelete('delete this record');">
                                     <input type="hidden" name="id" value="@ftp.Id" />
                                     @Html.AntiForgeryToken()
                                     <button type="submit" class="btn btn-danger btn-sm">Delete</button>
@@ -1708,7 +1716,7 @@
                             </div>
                             <div class="record-actions mt-3">
                                 <a asp-controller="DataEntry" asp-action="EditCollabPartner" asp-route-id="@cp.Id" class="btn btn-primary btn-sm">Edit</a>
-                                <form asp-controller="DataEntry" asp-action="DeleteCollabPartner" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                <form asp-controller="DataEntry" asp-action="DeleteCollabPartner" method="post" style="display:inline;" onsubmit="return confirmTypedDelete('delete this record');">
                                     <input type="hidden" name="id" value="@cp.Id" />
                                     @Html.AntiForgeryToken()
                                     <button type="submit" class="btn btn-danger btn-sm">Delete</button>
@@ -1961,17 +1969,24 @@
     }
 </style>
 
-<script>
-    (function () {
-        const selectAllCb = document.getElementById('selectAllCheckbox');
-        const exportBtn = document.getElementById('exportSelectedBtn');
-        const countSpan = document.getElementById('selectedCount');
+	<script>
+        function confirmTypedDelete(subject) {
+            const response = prompt(`Type "delete" to confirm you want to ${subject}.`);
+            return response === 'delete';
+        }
+
+	    (function () {
+	        const selectAllCb = document.getElementById('selectAllCheckbox');
+	        const exportBtn = document.getElementById('exportSelectedBtn');
+            const deleteBtn = document.getElementById('deleteSelectedBtn');
+	        const countSpan = document.getElementById('selectedCount');
 
         function updateCount() {
             const checked = document.querySelectorAll('.record-checkbox:checked');
-            const n = checked.length;
-            countSpan.textContent = n;
-            exportBtn.disabled = n === 0;
+	            const n = checked.length;
+	            countSpan.textContent = n;
+	            exportBtn.disabled = n === 0;
+                deleteBtn.disabled = n === 0;
 
             // Highlight selected cards
             document.querySelectorAll('.record-checkbox').forEach(cb => {
@@ -1997,8 +2012,8 @@
             updateCount();
         });
 
-        exportBtn.addEventListener('click', function () {
-            const form = document.getElementById('exportForm');
+	        exportBtn.addEventListener('click', function () {
+	            const form = document.getElementById('exportForm');
 
             // Remove any previously added items
             form.querySelectorAll('input[name="selectedItems"]').forEach(el => el.remove());
@@ -2012,7 +2027,31 @@
                 form.appendChild(input);
             });
 
-            form.submit();
-        });
-    })();
-</script>
+	            form.submit();
+	        });
+
+            deleteBtn.addEventListener('click', function () {
+                const checked = document.querySelectorAll('.record-checkbox:checked');
+                if (checked.length === 0) return;
+
+                    const subject = checked.length === 1
+                        ? 'delete the selected record'
+                        : `delete ${checked.length} selected records`;
+
+                    if (!confirmTypedDelete(subject)) return;
+
+                const form = document.getElementById('bulkDeleteForm');
+                form.querySelectorAll('input[name="selectedItems"]').forEach(el => el.remove());
+
+                checked.forEach(cb => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'selectedItems';
+                    input.value = cb.dataset.type + ':' + cb.dataset.id;
+                    form.appendChild(input);
+                });
+
+                form.submit();
+            });
+	    })();
+	</script>

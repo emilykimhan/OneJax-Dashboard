@@ -88,10 +88,33 @@
             });
     }
 
-    IEnumerable<GoalMetric> ScheduledMetrics(IEnumerable<GoalMetric>? metrics)
+	IEnumerable<GoalMetric> ScheduledMetrics(IEnumerable<GoalMetric>? metrics)
+	{
+	    return (metrics ?? Enumerable.Empty<GoalMetric>())
+	        .Where(m => MetricTrackingSchedule.IsScheduledForFiscalYear(m.Name, activeFiscalYear));
+	}
+
+    decimal ViewBagNumber(string key)
     {
-        return (metrics ?? Enumerable.Empty<GoalMetric>())
-            .Where(m => MetricTrackingSchedule.IsScheduledForFiscalYear(m.Name, activeFiscalYear));
+        var raw = ViewData[key];
+        if (raw == null) return 0;
+        if (raw is decimal dec) return dec;
+        if (raw is double dbl) return Convert.ToDecimal(dbl);
+        if (raw is float flt) return Convert.ToDecimal(flt);
+        if (raw is int i) return i;
+        if (raw is long l) return l;
+        if (raw is short s) return s;
+        if (raw is string text && decimal.TryParse(text, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var parsed)) return parsed;
+        return 0;
+    }
+
+    bool HasEarlyCommunityData(GoalMetric metric)
+    {
+        var name = metric.Name ?? string.Empty;
+        if (MetricTrackingSchedule.IsScheduledForFiscalYear(name, activeFiscalYear)) return false;
+
+        return (name.Contains("Diversity", StringComparison.OrdinalIgnoreCase) && ViewBagNumber("CommunityDiversityEntryCount") > 0)
+            || (name.Contains("First-Time", StringComparison.OrdinalIgnoreCase) && ViewBagNumber("CommunityFirstTimeEntryCount") > 0);
     }
 
     string GetMetricCategory(GoalMetric metric)
@@ -155,12 +178,13 @@
 
     var goalSummaries = (Model.StrategicGoals ?? new List<StrategicGoal>())
         .Select(g => new
-        {
-            Goal = g,
-            ScheduledMetricCount = ScheduledMetrics(g.Metrics).Count(),
-            ReportingMetricCount = ReportingMetrics(g.Metrics).Count(),
-            Progress = LiveGoalProgress(g.Metrics)
-        })
+	        {
+	            Goal = g,
+	            ScheduledMetricCount = ScheduledMetrics(g.Metrics).Count(),
+	            ReportingMetricCount = ReportingMetrics(g.Metrics).Count(),
+                EarlyDataMetricCount = (g.Metrics ?? new List<GoalMetric>()).Count(HasEarlyCommunityData),
+	            Progress = LiveGoalProgress(g.Metrics)
+	        })
         .ToList();
 
     var goalsWithReporting = goalSummaries.Where(g => g.ReportingMetricCount > 0).ToList();
@@ -244,23 +268,30 @@
                 {
                     @foreach (var summaryGoal in goalSummaries)
                     {
-                        var goalProgress = summaryGoal.Progress;
-                        var hasReportingMetrics = summaryGoal.ReportingMetricCount > 0;
-                        var hasScheduledMetrics = summaryGoal.ScheduledMetricCount > 0;
-                        <div class="col-md-6 col-lg-3 mb-3">
+	                        var goalProgress = summaryGoal.Progress;
+	                        var hasReportingMetrics = summaryGoal.ReportingMetricCount > 0;
+	                        var hasScheduledMetrics = summaryGoal.ScheduledMetricCount > 0;
+                            var hasEarlyData = summaryGoal.EarlyDataMetricCount > 0;
+                            var summaryValueText = hasReportingMetrics
+                                ? $"{Math.Round(goalProgress, 1)}%"
+                                : hasEarlyData ? "0%" : hasScheduledMetrics ? "Awaiting data" : "No metrics";
+                            var reportingText = hasReportingMetrics
+                                ? $"{summaryGoal.ReportingMetricCount} of {summaryGoal.ScheduledMetricCount} metrics reporting"
+                                : hasEarlyData
+                                    ? $"0 of {summaryGoal.ScheduledMetricCount} reporting; {summaryGoal.EarlyDataMetricCount} future metric{(summaryGoal.EarlyDataMetricCount == 1 ? "" : "s")} logged"
+                                    : hasScheduledMetrics
+                                        ? $"0 of {summaryGoal.ScheduledMetricCount} metrics reporting"
+                                        : $"No metrics scheduled in {(string.IsNullOrWhiteSpace(activeFiscalYear) ? "this view" : activeFiscalYear)}";
+	                        <div class="col-md-6 col-lg-3 mb-3">
                             <div class="card hover-card" style="background: var(--onejax-white); border: 1px solid var(--onejax-border); border-radius: 12px; cursor: pointer; transition: all 0.3s ease;" onclick="switchTab('@summaryGoal.Goal.Name.Replace(" ", "_")', null, event)">
                                 <div class="card-body text-center" style="padding: 1.5rem;">
                                     <h6 style="color: var(--onejax-navy); margin-bottom: 1rem; font-weight: 600;">@summaryGoal.Goal.Name</h6>
-                                    <div style="font-size: 1.8rem; font-weight: 700; color: var(--onejax-navy); margin-bottom: 1rem;">@(hasReportingMetrics ? $"{Math.Round(goalProgress, 1)}%" : hasScheduledMetrics ? "Awaiting data" : "No metrics")</div>
+	                                    <div style="font-size: 1.8rem; font-weight: 700; color: var(--onejax-navy); margin-bottom: 1rem;">@summaryValueText</div>
                                     <div class="progress" style="height: 8px; border-radius: 4px; background: rgba(59, 130, 246, 0.1);">
                                         <div class="progress-bar" style="width: @Math.Min(goalProgress, 100)%; background: var(--gradient-secondary); border-radius: 4px;"></div>
                                     </div>
                                     <small style="color: var(--onejax-text-muted); margin-top: 0.5rem; display: block;">
-                                        @(hasReportingMetrics
-                                            ? $"{summaryGoal.ReportingMetricCount} of {summaryGoal.ScheduledMetricCount} metrics reporting"
-                                            : hasScheduledMetrics
-                                                ? $"0 of {summaryGoal.ScheduledMetricCount} metrics reporting"
-                                                : $"No metrics scheduled in {(string.IsNullOrWhiteSpace(activeFiscalYear) ? "this view" : activeFiscalYear)}")
+	                                        @reportingText
                                     </small>
                                     <small style="color: var(--onejax-text-muted); margin-top: 0.15rem; display: block;">
                                         @(summaryGoal.Goal.Events?.Count() ?? 0) Events

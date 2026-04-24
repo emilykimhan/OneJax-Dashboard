@@ -2134,7 +2134,7 @@ public class HomeController : Controller
             i => i.StrategyId,
             i => i.CreatedDate);
         AddOrUpdateMetric(goal, "Interfaith Events Hosted", "Interfaith collaborative events logged",
-            interfaithRows.Count, "events", "12", interfaithRows.Any() ? "Active" : "Planning",
+            interfaithRows.Count, "events", "4", interfaithRows.Any() ? "Active" : "Planning",
             interfaithRows.Any()
                 ? $"{interfaithRows.Count} interfaith event entries submitted | Form: Data Entry → Interfaith 11D"
                 : "No interfaith event entries yet - Go to Data Entry → Interfaith 11D", nextId++);
@@ -2172,7 +2172,7 @@ public class HomeController : Controller
             .Where(p => FiscalYearMatches(p.FiscalYear, fiscalYear))
             .ToList();
         AddOrUpdateMetric(goal, "Cross-Sector Collaborations", "Collaborative partner touchpoints logged",
-            partnerRows.Count, "partners", "10", partnerRows.Any() ? "Active" : "Planning",
+            partnerRows.Count, "partners", "3", partnerRows.Any() ? "Active" : "Planning",
             partnerRows.Any()
                 ? $"{partnerRows.Count} collaborative partner touchpoints logged | Form: Data Entry → CommCollab47D"
                 : "No collaborative partner touchpoints yet - Go to Data Entry → CommCollab47D", nextId++);

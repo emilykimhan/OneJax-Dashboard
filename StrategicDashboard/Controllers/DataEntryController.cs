@@ -814,7 +814,7 @@ namespace OneJaxDashboard.Controllers
             {
                 TempData["Error"] = "Record not found.";
             }
-            return RedirectToAction("RecordHistory");
+            return RedirectToRecordHistory();
         }
 
         // Edit Collaborative Partner Touchpoints - GET
@@ -825,7 +825,7 @@ namespace OneJaxDashboard.Controllers
             if (record == null)
             {
                 TempData["Error"] = "Record not found.";
-                return RedirectToAction("RecordHistory");
+                return RedirectToRecordHistory();
             }
             ViewBag.Strategies = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(_context.Strategies.OrderBy(s => s.Name), "Id", "Name", record.StrategyId);
             return View(record);
@@ -849,7 +849,7 @@ namespace OneJaxDashboard.Controllers
                     existing.Touchpoint = model.Touchpoint;
                     _context.SaveChanges();
                     TempData["Success"] = "Collaborative Partner record updated successfully!";
-                    return RedirectToAction("RecordHistory");
+                    return RedirectToRecordHistory();
                 }
                 else
                 {
@@ -875,7 +875,7 @@ namespace OneJaxDashboard.Controllers
             {
                 TempData["Error"] = "Record not found.";
             }
-            return RedirectToAction("RecordHistory");
+            return RedirectToRecordHistory();
         }
 
         // Edit First-Time Participants - GET
@@ -886,7 +886,7 @@ namespace OneJaxDashboard.Controllers
             if (record == null)
             {
                 TempData["Error"] = "Record not found.";
-                return RedirectToAction("RecordHistory");
+                return RedirectToRecordHistory();
             }
             ViewBag.Strategies = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(_context.Strategies.OrderBy(s => s.Name), "Id", "Name", record.StrategyId);
             return View(record);
@@ -907,7 +907,7 @@ namespace OneJaxDashboard.Controllers
                     existing.NumberOfFirstTimeParticipants = model.NumberOfFirstTimeParticipants;
                     _context.SaveChanges();
                     TempData["Success"] = "First-Time Participant record updated successfully!";
-                    return RedirectToAction("RecordHistory");
+                    return RedirectToRecordHistory();
                 }
                 else
                 {
@@ -933,7 +933,7 @@ namespace OneJaxDashboard.Controllers
             {
                 TempData["Error"] = "Record not found.";
             }
-            return RedirectToAction("RecordHistory");
+            return RedirectToRecordHistory();
         }
 
         // Edit Programs Demographics - GET
@@ -944,7 +944,7 @@ namespace OneJaxDashboard.Controllers
             if (record == null)
             {
                 TempData["Error"] = "Record not found.";
-                return RedirectToAction("RecordHistory");
+                return RedirectToRecordHistory();
             }
             ViewBag.Strategies = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(_context.Strategies.OrderBy(s => s.Name), "Id", "Name", record.StrategyId);
             return View(record);
@@ -965,12 +965,12 @@ namespace OneJaxDashboard.Controllers
                     existing.Notes = model.Notes;
                     _context.SaveChanges();
                     TempData["Success"] = "Programs Demographics record updated successfully!";
-                    return RedirectToAction("RecordHistory");
+                    return RedirectToRecordHistory();
                 }
                 else
                 {
                     TempData["Error"] = "Record not found.";
-                    return RedirectToAction("RecordHistory");
+                    return RedirectToRecordHistory();
                 }
             }
             ViewBag.Strategies = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(_context.Strategies.OrderBy(s => s.Name), "Id", "Name", model.StrategyId);
@@ -992,7 +992,7 @@ namespace OneJaxDashboard.Controllers
             {
                 TempData["Error"] = "Record not found.";
             }
-            return RedirectToAction("RecordHistory");
+            return RedirectToRecordHistory();
         }
 
         // Edit Community Perception Survey - GET
@@ -1003,7 +1003,7 @@ namespace OneJaxDashboard.Controllers
             if (record == null)
             {
                 TempData["Error"] = "Record not found.";
-                return RedirectToAction("RecordHistory");
+                return RedirectToRecordHistory();
             }
             return View(record);
         }
@@ -1025,12 +1025,12 @@ namespace OneJaxDashboard.Controllers
                     existing.Notes = model.Notes;
                     _context.SaveChanges();
                     TempData["Success"] = "Community Perception Survey record updated successfully!";  
-                    return RedirectToAction("RecordHistory");
+                    return RedirectToRecordHistory();
                 }
                 else
                 {
                     TempData["Error"] = "Record not found.";
-                    return RedirectToAction("RecordHistory");
+                    return RedirectToRecordHistory();
                 }
             }
             return View(model);
@@ -1051,7 +1051,7 @@ namespace OneJaxDashboard.Controllers
             {
                 TempData["Error"] = "Record not found.";
             }
-            return RedirectToAction("RecordHistory");
+            return RedirectToRecordHistory();
         }
 
         // Edit Milestone Achievement - GET
@@ -1062,7 +1062,7 @@ namespace OneJaxDashboard.Controllers
             if (record == null)
             {
                 TempData["Error"] = "Record not found.";
-                return RedirectToAction("RecordHistory");
+                return RedirectToRecordHistory();
             }
             return View(record);
         }
@@ -1082,12 +1082,12 @@ namespace OneJaxDashboard.Controllers
                     existing.achievedReview = model.achievedReview;
                     _context.SaveChanges();
                     TempData["Success"] = "Milestone Achievement record updated successfully!";
-                    return RedirectToAction("RecordHistory");
+                    return RedirectToRecordHistory();
                 }
                 else
                 {
                     TempData["Error"] = "Record not found.";
-                    return RedirectToAction("RecordHistory");
+                    return RedirectToRecordHistory();
                 }
             }
             return View(model);
@@ -1108,7 +1108,7 @@ namespace OneJaxDashboard.Controllers
             {
                 TempData["Error"] = "Record not found.";
             }
-            return RedirectToAction("RecordHistory");
+            return RedirectToRecordHistory();
         }
 
         // Edit Annual Budget Tracking - GET
@@ -1119,7 +1119,7 @@ namespace OneJaxDashboard.Controllers
             if (record == null)
             {
                 TempData["Error"] = "Record not found.";
-                return RedirectToAction("RecordHistory");
+                return RedirectToRecordHistory();
             }
             return View(record);
         }
@@ -1149,12 +1149,12 @@ namespace OneJaxDashboard.Controllers
                     existing.Notes = model.Notes;
                     _context.SaveChanges();
                     TempData["Success"] = "Annual Budget Tracking record updated successfully!";
-                    return RedirectToAction("RecordHistory");
+                    return RedirectToRecordHistory();
                 }
                 else
                 {
                     TempData["Error"] = "Record not found.";
-                    return RedirectToAction("RecordHistory");
+                    return RedirectToRecordHistory();
                 }
             }
             return View(model);
@@ -1175,7 +1175,7 @@ namespace OneJaxDashboard.Controllers
             {
                 TempData["Error"] = "Record not found.";
             }
-            return RedirectToAction("RecordHistory");
+            return RedirectToRecordHistory();
         }
 
         // Edit Social Media Engagement - GET
@@ -1186,7 +1186,7 @@ namespace OneJaxDashboard.Controllers
             if (record == null)
             {
                 TempData["Error"] = "Record not found.";
-                return RedirectToAction("RecordHistory");
+                return RedirectToRecordHistory();
             }
             return View(record);
         }
@@ -1208,12 +1208,12 @@ namespace OneJaxDashboard.Controllers
                     existing.GoalMet = model.GoalMet;
                     _context.SaveChanges();
                     TempData["Success"] = "Social Media Engagement record updated successfully!";
-                    return RedirectToAction("RecordHistory");
+                    return RedirectToRecordHistory();
                 }
                 else
                 {
                     TempData["Error"] = "Record not found.";
-                    return RedirectToAction("RecordHistory");
+                    return RedirectToRecordHistory();
                 }
             }
             return View(model);
@@ -1234,7 +1234,7 @@ namespace OneJaxDashboard.Controllers
             {
                 TempData["Error"] = "Record not found.";
             }
-            return RedirectToAction("RecordHistory");
+            return RedirectToRecordHistory();
         }
 
         // Delete Professional Development
@@ -1252,7 +1252,7 @@ namespace OneJaxDashboard.Controllers
             {
                 TempData["Error"] = "Record not found.";
             }
-            return RedirectToAction("RecordHistory");
+            return RedirectToRecordHistory();
         }
 
         // Delete Media Placement
@@ -1270,7 +1270,7 @@ namespace OneJaxDashboard.Controllers
             {
                 TempData["Error"] = "Record not found.";
             }
-            return RedirectToAction("RecordHistory");
+            return RedirectToRecordHistory();
         }
 
         // Delete Fee-For-Service Revenue
@@ -1288,7 +1288,7 @@ namespace OneJaxDashboard.Controllers
             {
                 TempData["Error"] = "Record not found.";
             }
-            return RedirectToAction("RecordHistory");
+            return RedirectToRecordHistory();
         }
 
         // Edit Fee-For-Service Revenue - GET
@@ -1299,7 +1299,7 @@ namespace OneJaxDashboard.Controllers
             if (record == null)
             {
                 TempData["Error"] = "Record not found.";
-                return RedirectToAction("RecordHistory");
+                return RedirectToRecordHistory();
             }
             ViewBag.Strategies = _context.Strategies
                 .Select(s => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem { Value = s.Id.ToString(), Text = s.Name })
@@ -1332,12 +1332,12 @@ namespace OneJaxDashboard.Controllers
                     existing.Year = model.Year;
                     _context.SaveChanges();
                     TempData["Success"] = "Fee-For-Service Revenue record updated successfully!";
-                    return RedirectToAction("RecordHistory");
+                    return RedirectToRecordHistory();
                 }
                 else
                 {
                     TempData["Error"] = "Record not found.";
-                    return RedirectToAction("RecordHistory");
+                    return RedirectToRecordHistory();
                 }
             }
             ViewBag.Strategies = _context.Strategies
@@ -1361,7 +1361,7 @@ namespace OneJaxDashboard.Controllers
             {
                 TempData["Error"] = "Record not found.";
             }
-            return RedirectToAction("RecordHistory");
+            return RedirectToRecordHistory();
         }
 
         // Edit Earned Income - GET
@@ -1372,7 +1372,7 @@ namespace OneJaxDashboard.Controllers
             if (record == null)
             {
                 TempData["Error"] = "Record not found.";
-                return RedirectToAction("RecordHistory");
+                return RedirectToRecordHistory();
             }
 
             if (!record.Year.HasValue && !string.IsNullOrWhiteSpace(record.Month))
@@ -1411,12 +1411,12 @@ namespace OneJaxDashboard.Controllers
                     existing.Notes = model.Notes;
                     _context.SaveChanges();
                     TempData["Success"] = "Earned Income record updated successfully!";
-                    return RedirectToAction("RecordHistory");
+                    return RedirectToRecordHistory();
                 }
                 else
                 {
                     TempData["Error"] = "Record not found.";
-                    return RedirectToAction("RecordHistory");
+                    return RedirectToRecordHistory();
                 }
             }
             return View(model);
@@ -1437,7 +1437,7 @@ namespace OneJaxDashboard.Controllers
             {
                 TempData["Error"] = "Record not found.";
             }
-            return RedirectToAction("RecordHistory");
+            return RedirectToRecordHistory();
         }
 
         // Edit Communication Satisfaction - GET
@@ -1448,7 +1448,7 @@ namespace OneJaxDashboard.Controllers
             if (record == null)
             {
                 TempData["Error"] = "Record not found.";
-                return RedirectToAction("RecordHistory");
+                return RedirectToRecordHistory();
             }
             return View(record);
         }
@@ -1466,7 +1466,7 @@ namespace OneJaxDashboard.Controllers
                     existing.AverageCommunicationSatisfaction = model.AverageCommunicationSatisfaction;
                     _context.SaveChanges();
                     TempData["Success"] = "Communication Satisfaction record updated successfully!";
-                    return RedirectToAction("RecordHistory");
+                    return RedirectToRecordHistory();
                 }
                 else
                 {
@@ -1491,7 +1491,7 @@ namespace OneJaxDashboard.Controllers
             {
                 TempData["Error"] = "Record not found.";
             }
-            return RedirectToAction("RecordHistory");
+            return RedirectToRecordHistory();
         }
 
         // Edit Donor Event - GET
@@ -1502,7 +1502,7 @@ namespace OneJaxDashboard.Controllers
             if (donorEvent == null)
             {
                 TempData["Error"] = "Record not found.";
-                return RedirectToAction("RecordHistory");
+                return RedirectToRecordHistory();
             }
             ViewBag.Strategies = _context.Strategies
                 .Select(s => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
@@ -1528,7 +1528,7 @@ namespace OneJaxDashboard.Controllers
                     existing.EventSatisfactionRating = model.EventSatisfactionRating;
                     _context.SaveChanges();
                     TempData["Success"] = "Donor Event record updated successfully!";
-                    return RedirectToAction("RecordHistory");
+                    return RedirectToRecordHistory();
                 }
                 else
                 {
@@ -1560,7 +1560,7 @@ namespace OneJaxDashboard.Controllers
             {
                 TempData["Error"] = "Record not found.";
             }
-            return RedirectToAction("RecordHistory");
+            return RedirectToRecordHistory();
         }
 
         // Edit Staff Survey - GET
@@ -1571,7 +1571,7 @@ namespace OneJaxDashboard.Controllers
             if (survey == null)
             {
                 TempData["Error"] = "Record not found.";
-                return RedirectToAction("RecordHistory");
+                return RedirectToRecordHistory();
             }
             return View(survey);
         }
@@ -1591,7 +1591,7 @@ namespace OneJaxDashboard.Controllers
                     
                     _context.SaveChanges();
                     TempData["Success"] = "Staff Survey record updated successfully!";
-                    return RedirectToAction("RecordHistory");
+                    return RedirectToRecordHistory();
                 }
                 else
                 {
@@ -1609,7 +1609,7 @@ namespace OneJaxDashboard.Controllers
             if (profDev == null)
             {
                 TempData["Error"] = "Record not found.";
-                return RedirectToAction("RecordHistory");
+                return RedirectToRecordHistory();
             }
             return View(profDev);
         }
@@ -1630,7 +1630,7 @@ namespace OneJaxDashboard.Controllers
                     
                     _context.SaveChanges();
                     TempData["Success"] = "Professional Development record updated successfully!";
-                    return RedirectToAction("RecordHistory");
+                    return RedirectToRecordHistory();
                 }
                 else
                 {
@@ -1648,7 +1648,7 @@ namespace OneJaxDashboard.Controllers
             if (media == null)
             {
                 TempData["Error"] = "Record not found.";
-                return RedirectToAction("RecordHistory");
+                return RedirectToRecordHistory();
             }
             return View(media);
         }
@@ -1678,7 +1678,7 @@ namespace OneJaxDashboard.Controllers
                     
                     _context.SaveChanges();
                     TempData["Success"] = "Media Placement record updated successfully!";
-                    return RedirectToAction("RecordHistory");
+                    return RedirectToRecordHistory();
                 }
                 else
                 {
@@ -1696,7 +1696,7 @@ namespace OneJaxDashboard.Controllers
             if (traffic == null)
             {
                 TempData["Error"] = "Record not found.";
-                return RedirectToAction("RecordHistory");
+                return RedirectToRecordHistory();
             }
             return View(traffic);
         }
@@ -1718,7 +1718,7 @@ namespace OneJaxDashboard.Controllers
                     
                     _context.SaveChanges();
                     TempData["Success"] = "Website Traffic record updated successfully!";
-                    return RedirectToAction("RecordHistory");
+                    return RedirectToRecordHistory();
                 }
                 else
                 {
@@ -1743,7 +1743,7 @@ namespace OneJaxDashboard.Controllers
             {
                 TempData["Error"] = "Record not found.";
             }
-            return RedirectToAction("RecordHistory");
+            return RedirectToRecordHistory();
         }
 
         // Edit Framework Development Plan - GET
@@ -1754,7 +1754,7 @@ namespace OneJaxDashboard.Controllers
             if (record == null)
             {
                 TempData["Error"] = "Record not found.";
-                return RedirectToAction("RecordHistory");
+                return RedirectToRecordHistory();
             }
             return View(record);
         }
@@ -1779,12 +1779,12 @@ namespace OneJaxDashboard.Controllers
                     existing.IssueHandled = model.IssueHandled;
                     _context.SaveChanges();
                     TempData["Success"] = "Framework Development Plan record updated successfully!";
-                    return RedirectToAction("RecordHistory");
+                    return RedirectToRecordHistory();
                 }
                 else
                 {
                     TempData["Error"] = "Record not found.";
-                    return RedirectToAction("RecordHistory");
+                    return RedirectToRecordHistory();
                 }
             }
             return View(model);
@@ -1805,7 +1805,7 @@ namespace OneJaxDashboard.Controllers
             {
                 TempData["Error"] = "Record not found.";
             }
-            return RedirectToAction("RecordHistory");
+            return RedirectToRecordHistory();
         }
 
         // Edit Board Member Recruitment - GET
@@ -1816,7 +1816,7 @@ namespace OneJaxDashboard.Controllers
             if (record == null)
             {
                 TempData["Error"] = "Record not found.";
-                return RedirectToAction("RecordHistory");
+                return RedirectToRecordHistory();
             }
             return View(record);
         }
@@ -1838,7 +1838,7 @@ namespace OneJaxDashboard.Controllers
                     existing.ProspectNames = model.ProspectNames;
                     _context.SaveChanges();
                     TempData["Success"] = "Board Member Recruitment record updated successfully!";
-                    return RedirectToAction("RecordHistory");
+                    return RedirectToRecordHistory();
                 }
                 else
                 {
@@ -1862,7 +1862,7 @@ namespace OneJaxDashboard.Controllers
             {
                 TempData["Error"] = "Record not found.";
             }
-            return RedirectToAction("RecordHistory");
+            return RedirectToRecordHistory();
         }
 
         [HttpGet]
@@ -1872,7 +1872,7 @@ namespace OneJaxDashboard.Controllers
             if (record == null)
             {
                 TempData["Error"] = "Record not found.";
-                return RedirectToAction("RecordHistory");
+                return RedirectToRecordHistory();
             }
             return View(record);
         }
@@ -1890,7 +1890,7 @@ namespace OneJaxDashboard.Controllers
                     existing.TotalBoardMembers = model.TotalBoardMembers;
                     _context.SaveChanges();
                     TempData["Success"] = "Board Meeting Attendance record updated successfully!";
-                    return RedirectToAction("RecordHistory");
+                    return RedirectToRecordHistory();
                 }
                 else
                 {
@@ -1914,7 +1914,7 @@ namespace OneJaxDashboard.Controllers
             {
                 TempData["Error"] = "Record not found.";
             }
-            return RedirectToAction("RecordHistory");
+            return RedirectToRecordHistory();
         }
 
         [HttpGet]
@@ -1924,7 +1924,7 @@ namespace OneJaxDashboard.Controllers
             if (record == null)
             {
                 TempData["Error"] = "Record not found.";
-                return RedirectToAction("RecordHistory");
+                return RedirectToRecordHistory();
             }
             return View(record);
         }
@@ -1942,7 +1942,7 @@ namespace OneJaxDashboard.Controllers
                     existing.SelfAssessmentScore = model.SelfAssessmentScore;
                     _context.SaveChanges();
                     TempData["Success"] = "Board Self-Assessment record updated successfully!";
-                    return RedirectToAction("RecordHistory");
+                    return RedirectToRecordHistory();
                 }
                 else
                 {
@@ -1966,7 +1966,7 @@ namespace OneJaxDashboard.Controllers
             {
                 TempData["Error"] = "Record not found.";
             }
-            return RedirectToAction("RecordHistory");
+            return RedirectToRecordHistory();
         }
 
         [HttpGet]
@@ -1976,7 +1976,7 @@ namespace OneJaxDashboard.Controllers
             if (record == null)
             {
                 TempData["Error"] = "Record not found.";
-                return RedirectToAction("RecordHistory");
+                return RedirectToRecordHistory();
             }
             return View(record);
         }
@@ -1998,7 +1998,7 @@ namespace OneJaxDashboard.Controllers
                     existing.InitiativeDescriptions = model.InitiativeDescriptions;
                     _context.SaveChanges();
                     TempData["Success"] = "Volunteer Program record updated successfully!";
-                    return RedirectToAction("RecordHistory");
+                    return RedirectToRecordHistory();
                 }
                 else
                 {
@@ -2022,7 +2022,7 @@ namespace OneJaxDashboard.Controllers
             {
                 TempData["Error"] = "Record not found.";
             }
-            return RedirectToAction("RecordHistory");
+            return RedirectToRecordHistory();
         }
 
         [HttpGet]
@@ -2032,7 +2032,7 @@ namespace OneJaxDashboard.Controllers
             if (record == null)
             {
                 TempData["Error"] = "Record not found.";
-                return RedirectToAction("RecordHistory");
+                return RedirectToRecordHistory();
             }
             ViewBag.Strategies = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(_context.Strategies.OrderBy(s => s.Name), "Id", "Name", record.StrategyId);
             return View(record);
@@ -2052,7 +2052,7 @@ namespace OneJaxDashboard.Controllers
                     existing.TotalAttendance = model.TotalAttendance;
                     _context.SaveChanges();
                     TempData["Success"] = "Interfaith Collaboration Event record updated successfully!";
-                    return RedirectToAction("RecordHistory");
+                    return RedirectToRecordHistory();
                 }
                 else
                 {
@@ -2078,7 +2078,7 @@ namespace OneJaxDashboard.Controllers
             {
                 TempData["Error"] = "Record not found.";
             }
-            return RedirectToAction("RecordHistory");
+            return RedirectToRecordHistory();
         }
 
         // Edit Event Satisfaction - GET
@@ -2089,7 +2089,7 @@ namespace OneJaxDashboard.Controllers
             if (record == null)
             {
                 TempData["Error"] = "Record not found.";
-                return RedirectToAction("RecordHistory");
+                return RedirectToRecordHistory();
             }
             ViewBag.Strategies = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(_context.Strategies.OrderBy(s => s.Name), "Id", "Name", record.StrategyId);
             return View(record);
@@ -2108,7 +2108,7 @@ namespace OneJaxDashboard.Controllers
                     existing.EventAttendeeSatisfactionPercentage = model.EventAttendeeSatisfactionPercentage;
                     _context.SaveChanges();
                     TempData["Success"] = "Event Satisfaction record updated successfully!";
-                    return RedirectToAction("RecordHistory");
+                    return RedirectToRecordHistory();
                 }
                 else
                 {
@@ -2134,7 +2134,7 @@ namespace OneJaxDashboard.Controllers
             {
                 TempData["Error"] = "Record not found.";
             }
-            return RedirectToAction("RecordHistory");
+            return RedirectToRecordHistory();
         }
 
         // Edit Faith Community Representation - GET
@@ -2145,7 +2145,7 @@ namespace OneJaxDashboard.Controllers
             if (record == null)
             {
                 TempData["Error"] = "Record not found.";
-                return RedirectToAction("RecordHistory");
+                return RedirectToRecordHistory();
             }
             ViewBag.Strategies = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(_context.Strategies.OrderBy(s => s.Name), "Id", "Name", record.StrategyId);
             return View(record);
@@ -2164,7 +2164,7 @@ namespace OneJaxDashboard.Controllers
                     existing.NumberOfFaithsRepresented = model.NumberOfFaithsRepresented;
                     _context.SaveChanges();
                     TempData["Success"] = "Faith Community Representation record updated successfully!";
-                    return RedirectToAction("RecordHistory");
+                    return RedirectToRecordHistory();
                 }
                 else
                 {
@@ -2190,7 +2190,7 @@ namespace OneJaxDashboard.Controllers
             {
                 TempData["Error"] = "Record not found.";
             }
-            return RedirectToAction("RecordHistory");
+            return RedirectToRecordHistory();
         }
 
         // Edit Network Contacts - GET
@@ -2201,7 +2201,7 @@ namespace OneJaxDashboard.Controllers
             if (record == null)
             {
                 TempData["Error"] = "Record not found.";
-                return RedirectToAction("RecordHistory");
+                return RedirectToRecordHistory();
             }
             return View(record);
         }
@@ -2220,7 +2220,7 @@ namespace OneJaxDashboard.Controllers
                     existing.TotalInterfaithContacts = model.TotalInterfaithContacts;
                     _context.SaveChanges();
                     TempData["Success"] = "Network Contacts record updated successfully!";
-                    return RedirectToAction("RecordHistory");
+                    return RedirectToRecordHistory();
                 }
                 else
                 {
@@ -2245,7 +2245,7 @@ namespace OneJaxDashboard.Controllers
             {
                 TempData["Error"] = "Record not found.";
             }
-            return RedirectToAction("RecordHistory");
+            return RedirectToRecordHistory();
         }
 
         // Edit Youth Attendance - GET
@@ -2256,7 +2256,7 @@ namespace OneJaxDashboard.Controllers
             if (record == null)
             {
                 TempData["Error"] = "Record not found.";
-                return RedirectToAction("RecordHistory");
+                return RedirectToRecordHistory();
             }
             ViewBag.Strategies = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(_context.Strategies.OrderBy(s => s.Name), "Id", "Name", record.StrategyId);
             return View(record);
@@ -2278,7 +2278,7 @@ namespace OneJaxDashboard.Controllers
                     existing.AveragePostAssessment = model.AveragePostAssessment;
                     _context.SaveChanges();
                     TempData["Success"] = "Youth Attendance record updated successfully!";
-                    return RedirectToAction("RecordHistory");
+                    return RedirectToRecordHistory();
                 }
                 else
                 {
@@ -2304,6 +2304,133 @@ namespace OneJaxDashboard.Controllers
             {
                 TempData["Error"] = "Record not found.";
             }
+            return RedirectToRecordHistory();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult DeleteSelectedRecords(List<string> selectedItems, string? returnUrl = null)
+        {
+            if (selectedItems == null || !selectedItems.Any())
+            {
+                TempData["Error"] = "Please select at least one record to delete.";
+                return RedirectToRecordHistory(returnUrl);
+            }
+
+            var deletedCount = 0;
+            foreach (var selectedItem in selectedItems)
+            {
+                var parts = selectedItem.Split(':', 2);
+                if (parts.Length != 2 || !int.TryParse(parts[1], out var id))
+                {
+                    continue;
+                }
+
+                deletedCount += DeleteRecordByType(parts[0], id) ? 1 : 0;
+            }
+
+            if (deletedCount > 0)
+            {
+                _context.SaveChanges();
+                TempData["Success"] = $"{deletedCount} record{(deletedCount == 1 ? "" : "s")} deleted successfully!";
+            }
+            else
+            {
+                TempData["Error"] = "No matching records were found to delete.";
+            }
+
+            return RedirectToRecordHistory(returnUrl);
+        }
+
+        private bool DeleteRecordByType(string recordType, int id)
+        {
+            switch (recordType)
+            {
+                case "staff-survey":
+                    return RemoveIfFound(_context.StaffSurveys_22D.Find(id));
+                case "professional-development":
+                    return RemoveIfFound(_context.ProfessionalDevelopments.Find(id));
+                case "media-placements":
+                    return RemoveIfFound(_context.MediaPlacements_3D.Find(id));
+                case "website-traffic":
+                    return RemoveIfFound(_context.WebsiteTraffic.Find(id));
+                case "donor-events":
+                    return RemoveIfFound(_context.DonorEvents_19D.Find(id));
+                case "comm-rate":
+                    return RemoveIfFound(_context.CommunicationRate.Find(id));
+                case "fee-for-service":
+                    return RemoveIfFound(_context.FeeForServices_21D.Find(id));
+                case "earned-income":
+                    return RemoveIfFound(_context.income_27D.Find(id));
+                case "budget-tracking":
+                    return RemoveIfFound(_context.BudgetTracking_28D.Find(id));
+                case "social-media":
+                    return RemoveIfFound(_context.socialMedia_5D.Find(id));
+                case "milestone":
+                    return RemoveIfFound(_context.achieveMile_6D.Find(id));
+                case "community-perception":
+                    return RemoveIfFound(_context.Annual_average_7D.Find(id));
+                case "programs-demographics":
+                    return RemoveIfFound(_context.demographics_8D.Find(id));
+                case "framework-plan":
+                    return RemoveIfFound(_context.Plan2026_24D.Find(id));
+                case "board-member":
+                    return RemoveIfFound(_context.BoardMember_29D.Find(id));
+                case "board-meeting":
+                    return RemoveIfFound(_context.BoardMeetingAttendance.Find(id));
+                case "self-assessment":
+                    return RemoveIfFound(_context.selfAssess_31D.Find(id));
+                case "volunteer-program":
+                    return RemoveIfFound(_context.volunteerProgram_40D.Find(id));
+                case "interfaith-event":
+                    return RemoveIfFound(_context.Interfaith_11D.Find(id));
+                case "event-satisfaction":
+                    return RemoveIfFound(_context.EventSatisfaction_12D.Find(id));
+                case "faith-community":
+                    return RemoveIfFound(_context.FaithCommunity_13D.Find(id));
+                case "network-contacts":
+                    return RemoveIfFound(_context.ContactsInterfaith_14D.Find(id));
+                case "youth-attendance":
+                    return RemoveIfFound(_context.YouthAttend_15D.Find(id));
+                case "participant-diversity":
+                    return RemoveIfFound(_context.Diversity_37D.Find(id));
+                case "first-time-participants":
+                    return RemoveIfFound(_context.FirstTime_38D.Find(id));
+                case "collab-partners":
+                    return RemoveIfFound(_context.CollabTouch_47D.Find(id));
+                default:
+                    return false;
+            }
+        }
+
+        private bool RemoveIfFound(object? record)
+        {
+            if (record == null)
+            {
+                return false;
+            }
+
+            _context.Remove(record);
+            return true;
+        }
+
+        private IActionResult RedirectToRecordHistory(string? returnUrl = null)
+        {
+            if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+            {
+                return Redirect(returnUrl);
+            }
+
+            var referer = Request.Headers.Referer.ToString();
+            if (!string.IsNullOrWhiteSpace(referer) && Uri.TryCreate(referer, UriKind.Absolute, out var refererUri))
+            {
+                var localUrl = refererUri.PathAndQuery;
+                if (localUrl.StartsWith("/DataEntry/RecordHistory", StringComparison.OrdinalIgnoreCase))
+                {
+                    return Redirect(localUrl);
+                }
+            }
+
             return RedirectToAction("RecordHistory");
         }
 
@@ -2315,7 +2442,7 @@ namespace OneJaxDashboard.Controllers
             if (record == null)
             {
                 TempData["Error"] = "Record not found.";
-                return RedirectToAction("RecordHistory");
+                return RedirectToRecordHistory();
             }
             ViewBag.Strategies = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(_context.Strategies.OrderBy(s => s.Name), "Id", "Name", record.StrategyId);
             return View(record);
@@ -2335,7 +2462,7 @@ namespace OneJaxDashboard.Controllers
                     existing.DiversityCount = model.DiversityCount;
                     _context.SaveChanges();
                     TempData["Success"] = "Participant Diversity record updated successfully!";
-                    return RedirectToAction("RecordHistory");
+                    return RedirectToRecordHistory();
                 }
                 else
                 {
