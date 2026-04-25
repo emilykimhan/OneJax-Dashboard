@@ -12,7 +12,8 @@ public enum DatabaseProvider
 public sealed record DatabaseSettings(
     DatabaseProvider Provider,
     string ConnectionString,
-    bool InitializeSchemaOnStartup);
+    bool InitializeSchemaOnStartup,
+    bool ApplyMigrationsOnStartup);
 
 public static class DatabaseConfiguration
 {
@@ -22,6 +23,8 @@ public static class DatabaseConfiguration
         var provider = ResolveProvider(providerSetting, environmentName);
         var initializeSchemaOnStartup =
             configuration.GetValue<bool?>("Database:InitializeSchemaOnStartup") ?? false;
+        var applyMigrationsOnStartup =
+            configuration.GetValue<bool?>("Database:ApplyMigrationsOnStartup") ?? true;
 
         return provider switch
         {
@@ -31,12 +34,14 @@ public static class DatabaseConfiguration
                     configuration,
                     "AzureSqlConnection",
                     "DatabaseProvider is set to SqlServer, but AzureSqlConnection is missing or still contains placeholder values."),
-                initializeSchemaOnStartup),
+                initializeSchemaOnStartup,
+                applyMigrationsOnStartup),
 
             _ => new DatabaseSettings(
                 provider,
                 configuration.GetConnectionString("DefaultConnection") ?? "Data Source=StrategicDashboardDB.db",
-                initializeSchemaOnStartup)
+                initializeSchemaOnStartup,
+                applyMigrationsOnStartup)
         };
     }
 

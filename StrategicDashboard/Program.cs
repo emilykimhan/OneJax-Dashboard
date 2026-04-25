@@ -99,8 +99,15 @@ using (var scope = app.Services.CreateScope())
         db.Database.EnsureCreated();
     }
 
-    // Apply any pending migrations automatically on startup
-    db.Database.Migrate();
+    if (databaseSettings.ApplyMigrationsOnStartup)
+    {
+        Console.WriteLine("[startup] Applying pending database migrations...");
+        db.Database.Migrate();
+    }
+    else
+    {
+        Console.WriteLine("[startup] Skipping automatic database migrations.");
+    }
 
     EnsureStaffAdminSupport(db);
     EnsureStrategyProgramSupport(db);

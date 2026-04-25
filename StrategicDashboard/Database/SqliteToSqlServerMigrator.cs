@@ -27,12 +27,20 @@ public sealed class SqliteToSqlServerMigrator
         var sourceOptionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
         DatabaseConfiguration.Configure(
             sourceOptionsBuilder,
-            new DatabaseSettings(DatabaseProvider.Sqlite, _sourceConnectionString, InitializeSchemaOnStartup: false));
+            new DatabaseSettings(
+                DatabaseProvider.Sqlite,
+                _sourceConnectionString,
+                InitializeSchemaOnStartup: false,
+                ApplyMigrationsOnStartup: false));
 
         var targetOptionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
         DatabaseConfiguration.Configure(
             targetOptionsBuilder,
-            new DatabaseSettings(DatabaseProvider.SqlServer, _targetConnectionString, InitializeSchemaOnStartup: false));
+            new DatabaseSettings(
+                DatabaseProvider.SqlServer,
+                _targetConnectionString,
+                InitializeSchemaOnStartup: false,
+                ApplyMigrationsOnStartup: false));
 
         await using var sourceContext = new ApplicationDbContext(sourceOptionsBuilder.Options);
         await using var targetContext = new ApplicationDbContext(targetOptionsBuilder.Options);
