@@ -17,7 +17,7 @@ on:
 
 env:
   PROJECT_PATH: StrategicDashboard/StrategicDashboard.csproj
-  APP_NAME: OneJaxStrategicDashboard
+  APP_NAME: OneJaxDashboard
   DOTNET_VERSION: 9.x
 
 jobs:
