@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace OneJaxDashboard.Data;
 
@@ -44,9 +45,12 @@ public static class DatabaseConfiguration
         switch (settings.Provider)
         {
             case DatabaseProvider.SqlServer:
-                options.UseSqlServer(
-                    settings.ConnectionString,
-                    sqlServerOptions => sqlServerOptions.EnableRetryOnFailure());
+                options
+                    .ConfigureWarnings(warnings =>
+                        warnings.Ignore(RelationalEventId.PendingModelChangesWarning))
+                    .UseSqlServer(
+                        settings.ConnectionString,
+                        sqlServerOptions => sqlServerOptions.EnableRetryOnFailure());
                 break;
 
             default:
