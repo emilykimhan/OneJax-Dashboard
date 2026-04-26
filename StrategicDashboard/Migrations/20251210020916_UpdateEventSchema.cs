@@ -41,8 +41,7 @@ namespace StrategicDashboard.Migrations
                 table: "Events",
                 column: "StrategyTemplateId",
                 principalTable: "Strategies",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+                principalColumn: "Id");
         }
 
         /// <inheritdoc />

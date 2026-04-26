@@ -11,6 +11,10 @@ namespace StrategicDashboard.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            var usernameColumnType = ActiveProvider == "Microsoft.EntityFrameworkCore.SqlServer"
+                ? "nvarchar(256)"
+                : "TEXT";
+
             migrationBuilder.CreateTable(
                 name: "ProfessionalDevelopments",
                 columns: table => new
@@ -33,7 +37,7 @@ namespace StrategicDashboard.Migrations
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     Name = table.Column<string>(type: "TEXT", nullable: false),
-                    Username = table.Column<string>(type: "TEXT", nullable: true),
+                    Username = table.Column<string>(type: usernameColumnType, maxLength: 256, nullable: true),
                     Password = table.Column<string>(type: "TEXT", nullable: true),
                     Email = table.Column<string>(type: "TEXT", nullable: false)
                 },
@@ -145,7 +149,7 @@ namespace StrategicDashboard.Migrations
                     EndDate = table.Column<DateTime>(type: "TEXT", nullable: true),
                     StrategicGoalId = table.Column<int>(type: "INTEGER", nullable: true),
                     StrategyId = table.Column<int>(type: "INTEGER", nullable: true),
-                    OwnerUsername = table.Column<string>(type: "TEXT", nullable: false),
+                    OwnerUsername = table.Column<string>(type: usernameColumnType, maxLength: 256, nullable: false),
                     IsAssignedByAdmin = table.Column<bool>(type: "INTEGER", nullable: false),
                     AdminNotes = table.Column<string>(type: "TEXT", nullable: false),
                     AssignmentDate = table.Column<DateTime>(type: "TEXT", nullable: true),
