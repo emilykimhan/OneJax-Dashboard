@@ -64,6 +64,14 @@ namespace OneJaxDashboard.Data
 
             // Add unique index for username on Staffauth table
             modelBuilder.Entity<Staffauth>()
+                .Property(s => s.Username)
+                .HasMaxLength(256);
+
+            modelBuilder.Entity<Event>()
+                .Property(e => e.OwnerUsername)
+                .HasMaxLength(256);
+
+            modelBuilder.Entity<Staffauth>()
                 .HasIndex(s => s.Username)
                 .IsUnique();
 
