@@ -85,7 +85,7 @@ namespace OneJaxDashboard.Data
                 .HasOne(e => e.Strategy)
                 .WithMany()
                 .HasForeignKey(e => e.StrategyId)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Event>()
                 .HasOne(e => e.AssignedStaff)

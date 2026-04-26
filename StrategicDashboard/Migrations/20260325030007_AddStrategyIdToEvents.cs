@@ -26,8 +26,7 @@ namespace StrategicDashboard.Migrations
                 table: "Events",
                 column: "StrategyId",
                 principalTable: "Strategies",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.SetNull);
+                principalColumn: "Id");
         }
 
         /// <inheritdoc />

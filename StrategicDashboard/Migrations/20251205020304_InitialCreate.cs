@@ -170,8 +170,7 @@ namespace StrategicDashboard.Migrations
                         name: "FK_Events_Strategies_StrategyId",
                         column: x => x.StrategyId,
                         principalTable: "Strategies",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
