@@ -244,6 +244,121 @@ static void EnsureStaffAdminSupport(ApplicationDbContext db)
 {
     if (db.Database.IsSqlServer())
     {
+        // Ensure Staffauth.Id is an IDENTITY column. The table was originally created
+        // without IDENTITY (e.g. via SqliteToSqlServerMigrator), which causes EF Core
+        // INSERTs to fail because they omit Id and expect the database to generate it.
+        var ssConn = db.Database.GetDbConnection();
+        var ssConnShouldClose = ssConn.State != ConnectionState.Open;
+        if (ssConnShouldClose) ssConn.Open();
+
+        try
+        {
+            using var checkCmd = ssConn.CreateCommand();
+            checkCmd.CommandText = "SELECT ISNULL(COLUMNPROPERTY(OBJECT_ID(N'Staffauth'), N'Id', 'IsIdentity'), -1)";
+            var identityFlag = Convert.ToInt32(checkCmd.ExecuteScalar() ?? -1);
+
+            if (identityFlag == 0)
+            {
+                // Staffauth.Id exists but has no IDENTITY — recreate the table.
+
+                // 1. Drop all FK constraints on other tables that reference Staffauth.
+                using (var cmd = ssConn.CreateCommand())
+                {
+                    cmd.CommandText = """
+                        DECLARE @sql NVARCHAR(MAX) = N'';
+                        SELECT @sql += N'ALTER TABLE ' + QUOTENAME(OBJECT_SCHEMA_NAME(fk.parent_object_id)) +
+                            '.' + QUOTENAME(OBJECT_NAME(fk.parent_object_id)) +
+                            ' DROP CONSTRAINT ' + QUOTENAME(fk.name) + '; '
+                        FROM sys.foreign_keys fk
+                        WHERE fk.referenced_object_id = OBJECT_ID(N'Staffauth');
+                        IF LEN(@sql) > 0 EXEC sp_executesql @sql;
+                        """;
+                    cmd.ExecuteNonQuery();
+                }
+
+                // 2. Drop non-PK indexes on Staffauth.
+                using (var cmd = ssConn.CreateCommand())
+                {
+                    cmd.CommandText = """
+                        DECLARE @sql NVARCHAR(MAX) = N'';
+                        SELECT @sql += N'DROP INDEX ' + QUOTENAME(i.name) + ' ON [Staffauth]; '
+                        FROM sys.indexes i
+                        WHERE i.object_id = OBJECT_ID(N'Staffauth')
+                            AND i.type > 0
+                            AND i.is_primary_key = 0;
+                        IF LEN(@sql) > 0 EXEC sp_executesql @sql;
+                        """;
+                    cmd.ExecuteNonQuery();
+                }
+
+                // 3. Remove any leftover backup table from a previous failed attempt.
+                using (var cmd = ssConn.CreateCommand())
+                {
+                    cmd.CommandText = "IF OBJECT_ID(N'Staffauth_Bak', N'U') IS NOT NULL DROP TABLE [Staffauth_Bak];";
+                    cmd.ExecuteNonQuery();
+                }
+
+                // 4. Rename old table.
+                using (var cmd = ssConn.CreateCommand())
+                {
+                    cmd.CommandText = "EXEC sp_rename N'Staffauth', N'Staffauth_Bak';";
+                    cmd.ExecuteNonQuery();
+                }
+
+                // 5. Create new table with IDENTITY on Id.
+                using (var cmd = ssConn.CreateCommand())
+                {
+                    cmd.CommandText = """
+                        CREATE TABLE [Staffauth] (
+                            [Id]       INT           IDENTITY(1,1) NOT NULL CONSTRAINT [PK_Staffauth] PRIMARY KEY,
+                            [Name]     NVARCHAR(MAX) NOT NULL DEFAULT (N''),
+                            [Username] NVARCHAR(450) NULL,
+                            [Password] NVARCHAR(MAX) NULL,
+                            [Email]    NVARCHAR(MAX) NOT NULL DEFAULT (N''),
+                            [IsAdmin]  BIT           NOT NULL DEFAULT (0)
+                        );
+                        """;
+                    cmd.ExecuteNonQuery();
+                }
+
+                // 6. Copy all existing rows, preserving their original Ids.
+                using (var cmd = ssConn.CreateCommand())
+                {
+                    cmd.CommandText = """
+                        SET IDENTITY_INSERT [Staffauth] ON;
+                        INSERT INTO [Staffauth] ([Id], [Name], [Username], [Password], [Email], [IsAdmin])
+                        SELECT [Id],
+                               ISNULL([Name], N''),
+                               [Username],
+                               [Password],
+                               ISNULL([Email], N''),
+                               ISNULL([IsAdmin], 0)
+                        FROM [Staffauth_Bak];
+                        SET IDENTITY_INSERT [Staffauth] OFF;
+                        """;
+                    cmd.ExecuteNonQuery();
+                }
+
+                // 7. Drop the backup.
+                using (var cmd = ssConn.CreateCommand())
+                {
+                    cmd.CommandText = "DROP TABLE [Staffauth_Bak];";
+                    cmd.ExecuteNonQuery();
+                }
+
+                // 8. Recreate the unique index (doubles as the FK principal key for Events.OwnerUsername).
+                using (var cmd = ssConn.CreateCommand())
+                {
+                    cmd.CommandText = "CREATE UNIQUE INDEX [IX_Staffauth_Username] ON [Staffauth] ([Username]) WHERE [Username] IS NOT NULL;";
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+        finally
+        {
+            if (ssConnShouldClose) ssConn.Close();
+        }
+
         db.Database.ExecuteSqlRaw("""
             IF COL_LENGTH('Staffauth', 'IsAdmin') IS NULL
             BEGIN

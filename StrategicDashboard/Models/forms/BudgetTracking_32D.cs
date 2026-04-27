@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OneJaxDashboard.Models
 {
@@ -21,26 +22,31 @@ namespace OneJaxDashboard.Models
         [Range(0, double.MaxValue, ErrorMessage = "Value cannot be negative")]
         [DataType(DataType.Currency)]
         [Display(Name = "Community Programs")]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal? CommunityPrograms { get; set; }
 
         [Range(0, double.MaxValue, ErrorMessage = "Value cannot be negative")]
         [DataType(DataType.Currency)]
         [Display(Name = "OneYouth Programs")]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal? OneYouthPrograms { get; set; }
 
         [Range(0, double.MaxValue, ErrorMessage = "Value cannot be negative")]
         [DataType(DataType.Currency)]
         [Display(Name = "Interfaith Programs")]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal? InterfaithPrograms { get; set; }
 
         [Range(0, double.MaxValue, ErrorMessage = "Value cannot be negative")]
         [DataType(DataType.Currency)]
         [Display(Name = "Humanitarian Event")]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal? HumanitarianEvent { get; set; }
 
         [Range(0, double.MaxValue, ErrorMessage = "Value cannot be negative")]
         [DataType(DataType.Currency)]
         [Display(Name = "Miscellaneous Expenses")]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal? MiscellaneousExpenses { get; set; }
 
         
@@ -48,31 +54,37 @@ namespace OneJaxDashboard.Models
         [Range(0, double.MaxValue, ErrorMessage = "Value cannot be negative")]
         [DataType(DataType.Currency)]
         [Display(Name = "Corporate Giving")]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal? CorporateGiving { get; set; }
 
         [Range(0, double.MaxValue, ErrorMessage = "Value cannot be negative")]
         [DataType(DataType.Currency)]
         [Display(Name = "Individual Giving")]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal? IndividualGiving { get; set; }
 
         [Range(0, double.MaxValue, ErrorMessage = "Value cannot be negative")]
         [DataType(DataType.Currency)]
         [Display(Name = "Grants & Foundations")]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal? GrantsFoundations { get; set; }
 
         [Range(0, double.MaxValue, ErrorMessage = "Value cannot be negative")]
         [DataType(DataType.Currency)]
         [Display(Name = "Community Events")]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal? CommunityEvents { get; set; }
 
         [Range(0, double.MaxValue, ErrorMessage = "Value cannot be negative")]
         [DataType(DataType.Currency)]
         [Display(Name = "People and Culture Workshops")]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal? PeopleCultureWorkshops { get; set; }
 
         [Range(0, double.MaxValue, ErrorMessage = "Value cannot be negative")]
         [DataType(DataType.Currency)]
         [Display(Name = "Miscellaneous Revenue")]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal? MiscellaneousRevenue { get; set; }
 
         [StringLength(1000)]

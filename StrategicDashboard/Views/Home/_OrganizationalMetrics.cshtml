@@ -117,6 +117,11 @@
 	                                                                           style="border-radius: 999px; white-space: nowrap;">
 	                                                                            Enter data
 	                                                                        </a>
+	                                                                        <a asp-controller="DataEntry" asp-action="RecordHistory" asp-route-recordType="staff-survey"
+	                                                                           class="btn btn-sm btn-outline-light"
+	                                                                           style="border-radius: 999px; white-space: nowrap;">
+	                                                                            View data
+	                                                                        </a>
 	                                                                    }
 	                                                                </div>
 	                                                            </div>
@@ -276,6 +281,11 @@
                                                                            class="btn btn-sm btn-outline-secondary"
                                                                            style="border-radius: 999px; background: white;">
                                                                             Enter data
+                                                                        </a>
+                                                                        <a asp-controller="DataEntry" asp-action="RecordHistory" asp-route-recordType="board-meeting"
+                                                                           class="btn btn-sm btn-outline-secondary"
+                                                                           style="border-radius: 999px; background: white;">
+                                                                            View data
                                                                         </a>
                                                                     }
                                                                 </div>
@@ -440,6 +450,11 @@
 	                                                                           style="border-radius: 999px; white-space: nowrap;">
 	                                                                            Enter data
 	                                                                        </a>
+	                                                                        <a asp-controller="DataEntry" asp-action="RecordHistory" asp-route-recordType="self-assessment"
+	                                                                           class="btn btn-sm btn-outline-light"
+	                                                                           style="border-radius: 999px; white-space: nowrap;">
+	                                                                            View data
+	                                                                        </a>
 	                                                                    }
 	                                                                </div>
 	                                                            </div>
@@ -502,6 +517,11 @@
 	                                                                           class="btn btn-sm btn-outline-light"
 	                                                                           style="border-radius: 999px; white-space: nowrap;">
 	                                                                            Enter data
+	                                                                        </a>
+	                                                                        <a asp-controller="DataEntry" asp-action="RecordHistory" asp-route-recordType="volunteer-program"
+	                                                                           class="btn btn-sm btn-outline-light"
+	                                                                           style="border-radius: 999px; white-space: nowrap;">
+	                                                                            View data
 	                                                                        </a>
 	                                                                    }
 	                                                                </div>
@@ -642,11 +662,16 @@
 
                                                                     @if (canManageData)
                                                                     {
-                                                                        <div class="mt-2">
+                                                                        <div class="mt-2 d-flex gap-1 flex-wrap">
                                                                             <a asp-controller="ProfessionalDevelopment" asp-action="Index"
                                                                                class="btn btn-sm btn-outline-light"
                                                                                style="border-radius: 999px;">
                                                                                 Enter data
+                                                                            </a>
+                                                                            <a asp-controller="DataEntry" asp-action="RecordHistory" asp-route-recordType="professional-development"
+                                                                               class="btn btn-sm btn-outline-light"
+                                                                               style="border-radius: 999px;">
+                                                                                View data
                                                                             </a>
                                                                         </div>
                                                                     }
@@ -789,11 +814,16 @@
 
                                                                     @if (canManageData)
                                                                     {
-                                                                        <div class="mt-2">
+                                                                        <div class="mt-2 d-flex gap-1 flex-wrap">
                                                                             <a asp-controller="BoardMemberRecruitment" asp-action="Index"
                                                                                class="btn btn-sm btn-outline-light"
                                                                                style="border-radius: 999px;">
                                                                                 Enter data
+                                                                            </a>
+                                                                            <a asp-controller="DataEntry" asp-action="RecordHistory" asp-route-recordType="board-member"
+                                                                               class="btn btn-sm btn-outline-light"
+                                                                               style="border-radius: 999px;">
+                                                                                View data
                                                                             </a>
                                                                         </div>
                                                                     }

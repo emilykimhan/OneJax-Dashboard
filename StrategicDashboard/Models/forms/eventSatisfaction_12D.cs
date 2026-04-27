@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OneJaxDashboard.Models
 {
@@ -14,6 +15,7 @@ namespace OneJaxDashboard.Models
 
         [Required(ErrorMessage = "Please enter the event attendee satisfaction percentage.")]
         [Range(0, 100, ErrorMessage = "Satisfaction percentage must be between 0 and 100.")]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal EventAttendeeSatisfactionPercentage { get; set; }
 
         public DateTime CreatedDate { get; set; } = DateTime.Now;

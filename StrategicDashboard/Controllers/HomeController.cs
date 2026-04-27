@@ -603,6 +603,18 @@ public class HomeController : Controller
             .ToList();
     }
 
+    private List<T> FilterByFiscalYearMonthNameOnly<T>(
+        IEnumerable<T> source,
+        string fiscalYear,
+        Func<T, int?> yearSelector,
+        Func<T, string?> monthSelector)
+    {
+        return FilterByResolvedFiscalYear(
+            source,
+            fiscalYear,
+            item => GetFiscalYearEndFromYearAndMonth(yearSelector(item), monthSelector(item)));
+    }
+
     private List<T> FilterByFiscalYearMonthNameWithCreatedDateFallback<T>(
         IEnumerable<T> source,
         string fiscalYear,
@@ -1007,12 +1019,11 @@ public class HomeController : Controller
         try
         {
             // Staff Surveys
-            var staffSurveys = FilterByFiscalYearMonthNameWithCreatedDateFallback(
+            var staffSurveys = FilterByFiscalYearMonthNameOnly(
                 _context.StaffSurveys_22D.ToList(),
                 fiscalYear,
                 s => s.Year,
-                s => s.Month,
-                s => s.CreatedDate);
+                s => s.Month);
             summary.TotalStaffSurveys = staffSurveys.Count;
             summary.AverageStaffSatisfaction = staffSurveys.Any() ? 
                 (decimal)staffSurveys.Average(s => s.SatisfactionRate) : 0;
@@ -1926,12 +1937,11 @@ public class HomeController : Controller
         var nextId = goal.Metrics.Count + 2000;
 
         // 1. Staff Satisfaction (from Staff Surveys form)
-        var staffSurveys = FilterByFiscalYearMonthNameWithCreatedDateFallback(
+        var staffSurveys = FilterByFiscalYearMonthNameOnly(
             await _context.StaffSurveys_22D.ToListAsync(),
             fiscalYear,
             s => s.Year,
-            s => s.Month,
-            s => s.CreatedDate);
+            s => s.Month);
         var avgSatisfaction = staffSurveys.Any() ? staffSurveys.Average(s => s.SatisfactionRate) : 0;
         
         AddOrUpdateMetric(goal, "Staff Satisfaction Rating", "Annual Team Satisfaction Survey", 
