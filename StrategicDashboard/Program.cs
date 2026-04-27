@@ -149,6 +149,47 @@ app.Run();
 
 static void EnsureCanonicalStrategicGoals(ApplicationDbContext db)
 {
+    if (db.Database.IsSqlServer())
+    {
+        db.Database.ExecuteSqlRaw("""
+            IF EXISTS (
+                SELECT 1
+                FROM (VALUES (1), (2), (3), (4)) AS required_goals(Id)
+                WHERE NOT EXISTS (
+                    SELECT 1
+                    FROM [StrategicGoals]
+                    WHERE [StrategicGoals].[Id] = required_goals.Id
+                )
+            )
+            BEGIN
+                SET IDENTITY_INSERT [StrategicGoals] ON;
+
+                IF NOT EXISTS (SELECT 1 FROM [StrategicGoals] WHERE [Id] = 1)
+                    INSERT INTO [StrategicGoals] ([Id], [Name], [Description], [Color])
+                    VALUES (1, N'Organizational Building', N'', N'');
+
+                IF NOT EXISTS (SELECT 1 FROM [StrategicGoals] WHERE [Id] = 2)
+                    INSERT INTO [StrategicGoals] ([Id], [Name], [Description], [Color])
+                    VALUES (2, N'Financial Sustainability', N'', N'');
+
+                IF NOT EXISTS (SELECT 1 FROM [StrategicGoals] WHERE [Id] = 3)
+                    INSERT INTO [StrategicGoals] ([Id], [Name], [Description], [Color])
+                    VALUES (3, N'Identity/Value Proposition', N'', N'');
+
+                IF NOT EXISTS (SELECT 1 FROM [StrategicGoals] WHERE [Id] = 4)
+                    INSERT INTO [StrategicGoals] ([Id], [Name], [Description], [Color])
+                    VALUES (4, N'Community Engagement', N'', N'');
+
+                SET IDENTITY_INSERT [StrategicGoals] OFF;
+            END
+
+            UPDATE [StrategicGoals] SET [Name] = N'Organizational Building' WHERE [Id] = 1;
+            UPDATE [StrategicGoals] SET [Name] = N'Financial Sustainability' WHERE [Id] = 2;
+            UPDATE [StrategicGoals] SET [Name] = N'Identity/Value Proposition' WHERE [Id] = 3;
+            UPDATE [StrategicGoals] SET [Name] = N'Community Engagement' WHERE [Id] = 4;
+            """);
+    }
+
     var defaultGoals = new[]
     {
         new { Id = 1, Name = "Organizational Building" },
