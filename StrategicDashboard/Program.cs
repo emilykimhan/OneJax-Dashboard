@@ -274,7 +274,7 @@ static void EnsureStaffAdminSupport(ApplicationDbContext db)
             {
                 // Staffauth does not exist — this can happen when a previous startup renamed
                 // Staffauth → Staffauth_Bak but then failed before creating the new table.
-                // If a backup exists, complete the recovery now.
+                // If a backup exists, complete the recovery now; otherwise create the table.
                 using var bakCheckCmd = ssConn.CreateCommand();
                 bakCheckCmd.CommandText = "SELECT ISNULL(OBJECT_ID(N'Staffauth_Bak', N'U'), 0)";
                 var bakExists = Convert.ToInt32(bakCheckCmd.ExecuteScalar() ?? 0) != 0;
@@ -338,6 +338,21 @@ static void EnsureStaffAdminSupport(ApplicationDbContext db)
                         cmd.CommandText = "CREATE UNIQUE INDEX [IX_Staffauth_Username] ON [Staffauth] ([Username]) WHERE [Username] IS NOT NULL;";
                         cmd.ExecuteNonQuery();
                     }
+                }
+                else
+                {
+                    using var cmd = ssConn.CreateCommand();
+                    cmd.CommandText = """
+                        CREATE TABLE [Staffauth] (
+                            [Id]       INT           IDENTITY(1,1) NOT NULL CONSTRAINT [PK_Staffauth] PRIMARY KEY,
+                            [Name]     NVARCHAR(MAX) NOT NULL DEFAULT (N''),
+                            [Username] NVARCHAR(450) NULL,
+                            [Password] NVARCHAR(MAX) NULL,
+                            [Email]    NVARCHAR(MAX) NOT NULL DEFAULT (N''),
+                            [IsAdmin]  BIT           NOT NULL DEFAULT (0)
+                        );
+                        """;
+                    cmd.ExecuteNonQuery();
                 }
             }
             else if (identityFlag == 0)
@@ -460,6 +475,21 @@ static void EnsureStaffAdminSupport(ApplicationDbContext db)
         }
 
         db.Database.ExecuteSqlRaw("""
+            IF OBJECT_ID(N'dbo.Staffauth', N'U') IS NOT NULL
+               AND NOT EXISTS (
+                   SELECT 1
+                   FROM sys.indexes
+                   WHERE object_id = OBJECT_ID(N'dbo.Staffauth')
+                     AND name = N'IX_Staffauth_Username'
+               )
+            BEGIN
+                CREATE UNIQUE INDEX [IX_Staffauth_Username]
+                ON [dbo].[Staffauth] ([Username])
+                WHERE [Username] IS NOT NULL;
+            END
+            """);
+
+        db.Database.ExecuteSqlRaw("""
             IF COL_LENGTH('Staffauth', 'IsAdmin') IS NULL
             BEGIN
                 ALTER TABLE [Staffauth]
@@ -484,23 +514,42 @@ static void EnsureStaffAdminSupport(ApplicationDbContext db)
 
     try
     {
-        using var command = connection.CreateCommand();
-        command.CommandText = "PRAGMA table_info('Staffauth');";
-
+        var tableExists = false;
         var hasIsAdminColumn = false;
-        using (var reader = command.ExecuteReader())
+
+        using (var command = connection.CreateCommand())
         {
+            command.CommandText = "PRAGMA table_info('Staffauth');";
+
+            using var reader = command.ExecuteReader();
             while (reader.Read())
             {
+                tableExists = true;
                 if (string.Equals(reader["name"]?.ToString(), "IsAdmin", StringComparison.OrdinalIgnoreCase))
                 {
                     hasIsAdminColumn = true;
-                    break;
                 }
             }
         }
 
-        if (!hasIsAdminColumn)
+        if (!tableExists)
+        {
+            using (var createCommand = connection.CreateCommand())
+            {
+                createCommand.CommandText = """
+                    CREATE TABLE "Staffauth" (
+                        "Id" INTEGER NOT NULL CONSTRAINT "PK_Staffauth" PRIMARY KEY AUTOINCREMENT,
+                        "Name" TEXT NOT NULL DEFAULT '',
+                        "Username" TEXT NULL,
+                        "Password" TEXT NULL,
+                        "Email" TEXT NOT NULL DEFAULT '',
+                        "IsAdmin" INTEGER NOT NULL DEFAULT 0
+                    );
+                    """;
+                createCommand.ExecuteNonQuery();
+            }
+        }
+        else if (!hasIsAdminColumn)
         {
             using var alterCommand = connection.CreateCommand();
             alterCommand.CommandText = """
@@ -509,6 +558,14 @@ static void EnsureStaffAdminSupport(ApplicationDbContext db)
                 """;
             alterCommand.ExecuteNonQuery();
         }
+
+        using var indexCommand = connection.CreateCommand();
+        indexCommand.CommandText = """
+            CREATE UNIQUE INDEX IF NOT EXISTS "IX_Staffauth_Username"
+            ON "Staffauth" ("Username")
+            WHERE "Username" IS NOT NULL;
+            """;
+        indexCommand.ExecuteNonQuery();
     }
     finally
     {
