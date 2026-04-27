@@ -246,7 +246,7 @@ public class StrategyController : Controller
             details: $"Id={dbEvent.Id}; Created strategy event '{eventName}' under {goalName}");
         TempData["SuccessMessage"] = $"Successfully added event under “{goalName}”";
 
-        return RedirectToAction(nameof(ViewEvents), new { fy = dbEvent.EventFYear });
+        return RedirectToAction(nameof(Index), new { goalId });
     }
     // POST: /Strategy/Edit
 
