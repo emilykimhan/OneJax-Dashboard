@@ -4,6 +4,7 @@ using OneJaxDashboard.Data;
 using OneJaxDashboard.Models;
 using OneJaxDashboard.Services;
 using System.Security.Claims;
+using System.Data;
 
 namespace OneJaxDashboard.Controllers;
 
@@ -58,8 +59,17 @@ public class ProgramsController : Controller
             Description = (description ?? string.Empty).Trim()
         };
 
-        _context.Programs.Add(program);
-        _context.SaveChanges();
+        try
+        {
+            PersistProgram(program);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[program-add] Failed to create program '{program.ProgramName}': {ex}");
+            TempData["ProgramsError"] = "We couldn't save that program right now. Please try again.";
+            return RedirectToAction(nameof(Index));
+        }
+
         _activityLog.Log(GetActorName(), "Created Program", "Program",
             details: $"Id={program.Id}; Created '{program.ProgramName}' ({program.ProgramType})");
 
@@ -219,7 +229,7 @@ public class ProgramsController : Controller
                     Description = archivedProgram.Description
                 };
 
-                _context.Programs.Add(restoredProgram);
+                PersistProgram(restoredProgram);
                 _context.ArchivedPrograms.Remove(archivedProgram);
                 _context.SaveChanges();
 
@@ -308,4 +318,75 @@ public class ProgramsController : Controller
     private static string Normalize(string? value) => (value ?? string.Empty).Trim();
 
     private static string Display(string value) => string.IsNullOrEmpty(value) ? "(empty)" : value;
+
+    private void PersistProgram(Programs program)
+    {
+        if (!RequiresExplicitIdInsert("Programs"))
+        {
+            _context.Programs.Add(program);
+            _context.SaveChanges();
+            return;
+        }
+
+        program.Id = GetNextSqlServerId("Programs");
+
+        _context.Database.ExecuteSqlInterpolated($"""
+            INSERT INTO [Programs] ([Id], [ProgramName], [Description], [ProgramType])
+            VALUES ({program.Id}, {program.ProgramName}, {program.Description}, {program.ProgramType});
+            """);
+    }
+
+    private bool RequiresExplicitIdInsert(string tableName)
+    {
+        if (!_context.Database.IsSqlServer())
+        {
+            return false;
+        }
+
+        var connection = _context.Database.GetDbConnection();
+        var shouldClose = connection.State != ConnectionState.Open;
+        if (shouldClose)
+        {
+            connection.Open();
+        }
+
+        try
+        {
+            using var command = connection.CreateCommand();
+            command.CommandText = $"SELECT ISNULL(COLUMNPROPERTY(OBJECT_ID(N'{tableName}'), N'Id', 'IsIdentity'), -1)";
+            var identityFlag = Convert.ToInt32(command.ExecuteScalar() ?? -1);
+            return identityFlag == 0;
+        }
+        finally
+        {
+            if (shouldClose)
+            {
+                connection.Close();
+            }
+        }
+    }
+
+    private int GetNextSqlServerId(string tableName)
+    {
+        var connection = _context.Database.GetDbConnection();
+        var shouldClose = connection.State != ConnectionState.Open;
+        if (shouldClose)
+        {
+            connection.Open();
+        }
+
+        try
+        {
+            using var command = connection.CreateCommand();
+            command.CommandText = $"SELECT ISNULL(MAX([Id]), 0) + 1 FROM [{tableName}]";
+            return Convert.ToInt32(command.ExecuteScalar() ?? 1);
+        }
+        finally
+        {
+            if (shouldClose)
+            {
+                connection.Close();
+            }
+        }
+    }
 }

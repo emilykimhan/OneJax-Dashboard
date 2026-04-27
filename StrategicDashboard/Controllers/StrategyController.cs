@@ -1,12 +1,14 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 using OneJaxDashboard.Models;
 using OneJaxDashboard.Data;
 using OneJaxDashboard.Services;
 using System.Security.Claims;
 using System.Collections.Generic;
 using System.Linq;
+using System.Data;
 //dina
 [Authorize(Roles = "Admin,Staff")]
 public class StrategyController : Controller
@@ -225,9 +227,17 @@ public class StrategyController : Controller
             EventFYear = ComputeFiscalYear(eventDate)
         };
 
-        _context.Strategies.Add(dbEvent);
-        _context.SaveChanges();
-        TrySyncLinkedDashboardEvent(dbEvent);
+        try
+        {
+            PersistStrategy(dbEvent);
+            TrySyncLinkedDashboardEvent(dbEvent);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[strategy-add] Failed to create strategy event '{resolvedEventName}': {ex}");
+            formErrors["general"] = "We couldn't save that event right now. Please try again.";
+            return RenderIndex(null, formValues, formErrors);
+        }
 
 
         string goalName = selectedGoal.Name;
@@ -619,5 +629,78 @@ public class StrategyController : Controller
 
         var fallback = Goals.FirstOrDefault(g => g.Value == goalId.Value.ToString())?.Text;
         return string.IsNullOrWhiteSpace(fallback) ? $"Goal {goalId.Value}" : fallback;
+    }
+
+    private void PersistStrategy(Strategy strategy)
+    {
+        if (!RequiresExplicitIdInsert("Strategies"))
+        {
+            _context.Strategies.Add(strategy);
+            _context.SaveChanges();
+            return;
+        }
+
+        strategy.Id = GetNextSqlServerId("Strategies");
+
+        _context.Database.ExecuteSqlInterpolated($"""
+            INSERT INTO [Strategies]
+                ([Id], [Name], [ProgramId], [ProgramName], [ProgramType], [StrategicGoalId], [Description], [Date], [Time], [CrossCollaboration], [Partners], [EventFYear], [IsArchived], [ArchivedAtUtc])
+            VALUES
+                ({strategy.Id}, {strategy.Name}, {strategy.ProgramId}, {strategy.ProgramName}, {strategy.ProgramType}, {strategy.StrategicGoalId}, {strategy.Description}, {strategy.Date}, {strategy.Time}, {strategy.CrossCollaboration}, {strategy.Partners}, {strategy.EventFYear}, {strategy.IsArchived}, {strategy.ArchivedAtUtc});
+            """);
+    }
+
+    private bool RequiresExplicitIdInsert(string tableName)
+    {
+        if (!_context.Database.IsSqlServer())
+        {
+            return false;
+        }
+
+        var connection = _context.Database.GetDbConnection();
+        var shouldClose = connection.State != ConnectionState.Open;
+        if (shouldClose)
+        {
+            connection.Open();
+        }
+
+        try
+        {
+            using var command = connection.CreateCommand();
+            command.CommandText = $"SELECT ISNULL(COLUMNPROPERTY(OBJECT_ID(N'{tableName}'), N'Id', 'IsIdentity'), -1)";
+            var identityFlag = Convert.ToInt32(command.ExecuteScalar() ?? -1);
+            return identityFlag == 0;
+        }
+        finally
+        {
+            if (shouldClose)
+            {
+                connection.Close();
+            }
+        }
+    }
+
+    private int GetNextSqlServerId(string tableName)
+    {
+        var connection = _context.Database.GetDbConnection();
+        var shouldClose = connection.State != ConnectionState.Open;
+        if (shouldClose)
+        {
+            connection.Open();
+        }
+
+        try
+        {
+            using var command = connection.CreateCommand();
+            command.CommandText = $"SELECT ISNULL(MAX([Id]), 0) + 1 FROM [{tableName}]";
+            return Convert.ToInt32(command.ExecuteScalar() ?? 1);
+        }
+        finally
+        {
+            if (shouldClose)
+            {
+                connection.Close();
+            }
+        }
     }
 }
