@@ -6,6 +6,7 @@ using OneJaxDashboard.Models;
 using OneJaxDashboard.Data;
 using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml.Drawing.Chart;
+using Microsoft.Extensions.Logging;
 
 
 namespace OneJaxDashboard.Controllers
@@ -20,16 +21,24 @@ namespace OneJaxDashboard.Controllers
         private readonly StrategyService _strategyService;
         private readonly ActivityLogService _activityLog;
         private readonly TimeZoneInfo _easternTimeZone;
+        private readonly ILogger<AdminController> _logger;
 
         private DateTime NowEastern => TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _easternTimeZone);
 
-        public AdminController(ApplicationDbContext db, EventsService eventsService, StrategyService strategyService, ActivityLogService activityLog, TimeZoneInfo easternTimeZone)
+        public AdminController(
+            ApplicationDbContext db,
+            EventsService eventsService,
+            StrategyService strategyService,
+            ActivityLogService activityLog,
+            TimeZoneInfo easternTimeZone,
+            ILogger<AdminController> logger)
         {
             _db = db;
             _eventsService = eventsService;
             _strategyService = strategyService;
             _activityLog = activityLog;
             _easternTimeZone = easternTimeZone;
+            _logger = logger;
         }
 
         // GET: /Admin
@@ -152,7 +161,8 @@ namespace OneJaxDashboard.Controllers
 
             return entry.Action.StartsWith("Created", StringComparison.OrdinalIgnoreCase)
                 || entry.Action.StartsWith("Updated", StringComparison.OrdinalIgnoreCase)
-                || entry.Action.StartsWith("Submitted", StringComparison.OrdinalIgnoreCase);
+                || entry.Action.StartsWith("Submitted", StringComparison.OrdinalIgnoreCase)
+                || entry.Action.StartsWith("Deleted", StringComparison.OrdinalIgnoreCase);
         }
 
         // GET: /Admin/ArchivedEvents
@@ -223,6 +233,14 @@ namespace OneJaxDashboard.Controllers
             }
 
             var staffMember = _db.Staffauth.FirstOrDefault(s => s.Username == selectedStaffUsername);
+            if (staffMember == null)
+            {
+                ModelState.AddModelError(nameof(selectedStaffUsername), "Please select a valid staff member.");
+                PopulateStaffDropdown();
+                PopulateStrategyDropdown(eventModel.StrategyId);
+                return View(eventModel);
+            }
+
             var staffName = staffMember?.Name ?? selectedStaffUsername;
 
             eventModel.Title = strategy.Name;
@@ -233,7 +251,26 @@ namespace OneJaxDashboard.Controllers
             eventModel.IsAssignedByAdmin = true;
             eventModel.AssignmentDate = NowEastern;
 
-            var addedEvent = _eventsService.Add(eventModel);
+            Event addedEvent;
+            try
+            {
+                addedEvent = _eventsService.Add(eventModel);
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Failed to assign event in Admin/AssignEvent. StrategyId={StrategyId}, StaffUsername={StaffUsername}",
+                    eventModel.StrategyId,
+                    selectedStaffUsername);
+
+                ModelState.AddModelError(
+                    string.Empty,
+                    "Unable to assign event right now. Please refresh the page and try again.");
+                PopulateStaffDropdown();
+                PopulateStrategyDropdown(eventModel.StrategyId);
+                return View(eventModel);
+            }
             
             // Log the assignment
             _activityLog.Log("Admin", "Assigned Event", "Event",
@@ -357,18 +394,42 @@ namespace OneJaxDashboard.Controllers
 
         private void PopulateStaffDropdown()
         {
-            // Get all staff members
-            var staffMembers = _db.Staffauth.ToList();
-            ViewBag.StaffMembers = new SelectList(staffMembers, "Username", "Name");
+            var staffMembers = _db.Staffauth
+                .Where(s => !string.IsNullOrWhiteSpace(s.Username))
+                .OrderBy(s => s.Name)
+                .ThenBy(s => s.Username)
+                .Select(s => new
+                {
+                    s.Username,
+                    DisplayName = string.IsNullOrWhiteSpace(s.Name) ? s.Username : s.Name
+                })
+                .ToList();
+
+            ViewBag.StaffMembers = new SelectList(staffMembers, "Username", "DisplayName");
         }
 
         private void PopulateStrategyDropdown(int? selectedStrategyId)
         {
-            var strategies = _db.Strategies
-                .OrderBy(s => s.Name)
-                .ToList();
+            try
+            {
+                var strategies = _db.Strategies
+                    .AsNoTracking()
+                    .Select(s => new
+                    {
+                        s.Id,
+                        Name = string.IsNullOrWhiteSpace(s.Name) ? $"Untitled Event #{s.Id}" : s.Name
+                    })
+                    .OrderBy(s => s.Name)
+                    .ToList();
 
-            ViewBag.StrategyTemplates = new SelectList(strategies, "Id", "Name", selectedStrategyId);
+                ViewBag.StrategyTemplates = new SelectList(strategies, "Id", "Name", selectedStrategyId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to load strategies for Admin/AssignEvent dropdown.");
+                ViewBag.StrategyTemplates = new SelectList(Enumerable.Empty<object>(), "Id", "Name", selectedStrategyId);
+                TempData["ErrorMessage"] = "Unable to load events list. Please contact support if this persists.";
+            }
         }
 
         private int? ResolveStrategyIdByEventTitle(string? title)
