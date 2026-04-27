@@ -548,8 +548,18 @@ function initializeManageLinks() {
         return;
     }
 
+    const currentPath = window.location.pathname.toLowerCase();
+    if (currentPath === '/strategy/viewevents') {
+        return;
+    }
+
     const manageLinks = document.querySelectorAll('a[href*="/Strategy/ViewEvents"], a[href*="Strategy/ViewEvents"]');
     manageLinks.forEach((link) => {
+        const href = link.getAttribute('href') || '';
+        if (href.includes('?fy=') || link.closest('#fyTabs')) {
+            return;
+        }
+
         link.removeAttribute('target');
         link.removeAttribute('rel');
         link.target = '_self';

@@ -6,6 +6,7 @@ using OneJaxDashboard.Services;
 using System.Security.Claims;
 using System.Data;
 using System.Data.Common;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace OneJaxDashboard.Controllers;
 
@@ -220,7 +221,7 @@ public class ProgramsController : Controller
     [ValidateAntiForgeryToken]
     public IActionResult Restore(int id)
     {
-        var archivedProgram = _context.ArchivedPrograms.FirstOrDefault(p => p.Id == id);
+        var archivedProgram = GetArchivedProgramForMutation(id);
         if (archivedProgram != null)
         {
             try
@@ -233,8 +234,7 @@ public class ProgramsController : Controller
                 };
 
                 PersistProgram(restoredProgram);
-                _context.ArchivedPrograms.Remove(archivedProgram);
-                _context.SaveChanges();
+                DeleteArchivedProgramById(archivedProgram.Id);
 
                 _activityLog.Log(
                     GetActorName(),
@@ -368,6 +368,7 @@ public class ProgramsController : Controller
             var existingColumns = GetSqlServerColumns(connection, "Programs");
             using var command = connection.CreateCommand();
             command.CommandText = BuildProgramsSelectByIdSql(existingColumns);
+            EnlistInCurrentTransaction(command);
 
             var parameter = command.CreateParameter();
             parameter.ParameterName = "@id";
@@ -405,6 +406,14 @@ public class ProgramsController : Controller
             """);
     }
 
+    private void DeleteArchivedProgramById(int id)
+    {
+        _context.Database.ExecuteSqlInterpolated($"""
+            DELETE FROM [ArchivedPrograms]
+            WHERE [Id] = {id};
+            """);
+    }
+
     private void PersistProgram(Programs program)
     {
         if (!RequiresExplicitIdInsert("Programs"))
@@ -433,10 +442,36 @@ public class ProgramsController : Controller
 
         archivedProgram.Id = GetNextSqlServerId("ArchivedPrograms");
 
-        _context.Database.ExecuteSqlInterpolated($"""
-            INSERT INTO [ArchivedPrograms] ([Id], [OriginalProgramId], [ProgramName], [ProgramType], [Description], [ArchivedAtUtc])
-            VALUES ({archivedProgram.Id}, {archivedProgram.OriginalProgramId}, {archivedProgram.ProgramName}, {archivedProgram.ProgramType}, {archivedProgram.Description}, {archivedProgram.ArchivedAtUtc});
-            """);
+        var connection = _context.Database.GetDbConnection();
+        var shouldClose = connection.State != ConnectionState.Open;
+        if (shouldClose)
+        {
+            connection.Open();
+        }
+
+        try
+        {
+            var existingColumns = GetSqlServerColumns(connection, "ArchivedPrograms");
+            using var command = connection.CreateCommand();
+            EnlistInCurrentTransaction(command);
+
+            AddInsertParameter(command, "@id", archivedProgram.Id);
+            AddInsertParameter(command, "@originalProgramId", archivedProgram.OriginalProgramId);
+            AddInsertParameter(command, "@programName", archivedProgram.ProgramName);
+            AddInsertParameter(command, "@programType", archivedProgram.ProgramType);
+            AddInsertParameter(command, "@description", archivedProgram.Description);
+            AddInsertParameter(command, "@archivedAtUtc", archivedProgram.ArchivedAtUtc);
+
+            command.CommandText = BuildArchivedProgramInsertSql(existingColumns);
+            command.ExecuteNonQuery();
+        }
+        finally
+        {
+            if (shouldClose)
+            {
+                connection.Close();
+            }
+        }
     }
 
     private bool RequiresExplicitIdInsert(string tableName)
@@ -457,6 +492,7 @@ public class ProgramsController : Controller
         {
             using var command = connection.CreateCommand();
             command.CommandText = $"SELECT ISNULL(COLUMNPROPERTY(OBJECT_ID(N'{tableName}'), N'Id', 'IsIdentity'), -1)";
+            EnlistInCurrentTransaction(command);
             var identityFlag = Convert.ToInt32(command.ExecuteScalar() ?? -1);
             return identityFlag == 0;
         }
@@ -482,6 +518,7 @@ public class ProgramsController : Controller
         {
             using var command = connection.CreateCommand();
             command.CommandText = $"SELECT ISNULL(MAX([Id]), 0) + 1 FROM [{tableName}]";
+            EnlistInCurrentTransaction(command);
             return Convert.ToInt32(command.ExecuteScalar() ?? 1);
         }
         finally
@@ -525,6 +562,7 @@ public class ProgramsController : Controller
             var existingColumns = GetSqlServerColumns(connection, "ArchivedPrograms");
             using var command = connection.CreateCommand();
             command.CommandText = BuildArchivedProgramsSelectSql(existingColumns);
+            EnlistInCurrentTransaction(command);
 
             using var reader = command.ExecuteReader();
             var results = new List<ArchivedProgram>();
@@ -542,6 +580,57 @@ public class ProgramsController : Controller
             }
 
             return results;
+        }
+        finally
+        {
+            if (shouldClose)
+            {
+                connection.Close();
+            }
+        }
+    }
+
+    private ArchivedProgram? GetArchivedProgramForMutation(int id)
+    {
+        if (!_context.Database.IsSqlServer())
+        {
+            return _context.ArchivedPrograms.FirstOrDefault(p => p.Id == id);
+        }
+
+        var connection = _context.Database.GetDbConnection();
+        var shouldClose = connection.State != ConnectionState.Open;
+        if (shouldClose)
+        {
+            connection.Open();
+        }
+
+        try
+        {
+            var existingColumns = GetSqlServerColumns(connection, "ArchivedPrograms");
+            using var command = connection.CreateCommand();
+            command.CommandText = BuildArchivedProgramSelectByIdSql(existingColumns);
+            EnlistInCurrentTransaction(command);
+
+            var parameter = command.CreateParameter();
+            parameter.ParameterName = "@id";
+            parameter.Value = id;
+            command.Parameters.Add(parameter);
+
+            using var reader = command.ExecuteReader();
+            if (!reader.Read())
+            {
+                return null;
+            }
+
+            return new ArchivedProgram
+            {
+                Id = SafeGetInt(reader, "Id"),
+                OriginalProgramId = SafeGetInt(reader, "OriginalProgramId"),
+                ProgramName = SafeGetString(reader, "ProgramName"),
+                ProgramType = SafeGetString(reader, "ProgramType"),
+                Description = SafeGetString(reader, "Description"),
+                ArchivedAtUtc = SafeGetNullableDateTime(reader, "ArchivedAtUtc") ?? DateTime.UtcNow
+            };
         }
         finally
         {
@@ -575,6 +664,7 @@ public class ProgramsController : Controller
             var existingColumns = GetSqlServerColumns(connection, "Strategies");
             using var command = connection.CreateCommand();
             command.CommandText = BuildArchivedStrategiesSelectSql(existingColumns);
+            EnlistInCurrentTransaction(command);
 
             using var reader = command.ExecuteReader();
             var results = new List<Strategy>();
@@ -603,7 +693,7 @@ public class ProgramsController : Controller
         }
     }
 
-    private static HashSet<string> GetSqlServerColumns(DbConnection connection, string tableName)
+    private HashSet<string> GetSqlServerColumns(DbConnection connection, string tableName)
     {
         using var command = connection.CreateCommand();
         command.CommandText = """
@@ -611,6 +701,7 @@ public class ProgramsController : Controller
             FROM sys.columns
             WHERE [object_id] = OBJECT_ID(@tableName);
             """;
+        EnlistInCurrentTransaction(command);
 
         var parameter = command.CreateParameter();
         parameter.ParameterName = "@tableName";
@@ -629,6 +720,42 @@ public class ProgramsController : Controller
         }
 
         return columns;
+    }
+
+    private void EnlistInCurrentTransaction(DbCommand command)
+    {
+        var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
+        if (transaction != null)
+        {
+            command.Transaction = transaction;
+        }
+    }
+
+    private static void AddInsertParameter(DbCommand command, string name, object? value)
+    {
+        var parameter = command.CreateParameter();
+        parameter.ParameterName = name;
+        parameter.Value = value ?? DBNull.Value;
+        command.Parameters.Add(parameter);
+    }
+
+    private static string BuildArchivedProgramInsertSql(HashSet<string> existingColumns)
+    {
+        var inserts = new List<(string Column, string Parameter)>
+        {
+            ("Id", "@id"),
+            ("OriginalProgramId", "@originalProgramId"),
+            ("ProgramName", "@programName"),
+            ("ProgramType", "@programType"),
+            ("Description", "@description"),
+            ("ArchivedAtUtc", "@archivedAtUtc")
+        }
+        .Where(insert => existingColumns.Contains(insert.Column))
+        .ToList();
+
+        var columnList = string.Join(", ", inserts.Select(insert => $"[{insert.Column}]"));
+        var parameterList = string.Join(", ", inserts.Select(insert => insert.Parameter));
+        return $"INSERT INTO [dbo].[ArchivedPrograms] ({columnList}) VALUES ({parameterList});";
     }
 
     private static string BuildArchivedProgramsSelectSql(HashSet<string> existingColumns)
@@ -667,6 +794,24 @@ public class ProgramsController : Controller
         });
 
         return $"SELECT TOP (1) {selectList} FROM [dbo].[Programs] WHERE [Id] = @id;";
+    }
+
+    private static string BuildArchivedProgramSelectByIdSql(HashSet<string> existingColumns)
+    {
+        string SelectColumn(string name, string fallbackSql)
+            => existingColumns.Contains(name) ? $"[{name}] AS [{name}]" : $"{fallbackSql} AS [{name}]";
+
+        var selectList = string.Join(", ", new[]
+        {
+            SelectColumn("Id", "0"),
+            SelectColumn("OriginalProgramId", "0"),
+            SelectColumn("ProgramName", "N''"),
+            SelectColumn("ProgramType", "N''"),
+            SelectColumn("Description", "N''"),
+            SelectColumn("ArchivedAtUtc", "CAST(NULL AS datetime2)")
+        });
+
+        return $"SELECT TOP (1) {selectList} FROM [dbo].[ArchivedPrograms] WHERE [Id] = @id;";
     }
 
     private static string BuildArchivedStrategiesSelectSql(HashSet<string> existingColumns)

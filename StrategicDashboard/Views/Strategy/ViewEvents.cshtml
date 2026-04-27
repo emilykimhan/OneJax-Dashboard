@@ -511,7 +511,7 @@
     <!-- Fiscal Year Tabs (server-side filter via query string) -->
     <ul class="nav nav-pills justify-content-center mb-4" id="fyTabs" role="tablist">
         <li class="nav-item" role="presentation">
-            <a class="nav-link @(allYearsActive ? "active" : "")" href="@Url.Action("ViewEvents", "Strategy", new { fy = "" })">
+            <a class="nav-link @(allYearsActive ? "active" : "")" href="/Strategy/ViewEvents?fy=">
                 All Years
             </a>
         </li>
