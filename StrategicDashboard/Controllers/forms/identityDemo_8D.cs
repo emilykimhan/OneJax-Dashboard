@@ -15,15 +15,18 @@ namespace OneJaxDashboard.Controllers
         private readonly ApplicationDbContext _context;
         private readonly ActivityLogService _activityLog;
         private readonly ILogger<identityDemo_8DController> _logger;
+        private readonly SqlServerInsertCompatibilityService _sqlServerInsertCompatibility;
 
         public identityDemo_8DController(
             ApplicationDbContext context,
             ActivityLogService activityLog,
-            ILogger<identityDemo_8DController> logger)
+            ILogger<identityDemo_8DController> logger,
+            SqlServerInsertCompatibilityService sqlServerInsertCompatibility)
         {
             _context = context;
             _activityLog = activityLog;
             _logger = logger;
+            _sqlServerInsertCompatibility = sqlServerInsertCompatibility;
         }
 
         // GET: identityDemo_8D/Index
@@ -72,6 +75,7 @@ namespace OneJaxDashboard.Controllers
                 try
                 {
                     model.CreatedDate = DateTime.Now;
+                    _sqlServerInsertCompatibility.PrepareForInsert(model, "demographics_8D");
                     _context.demographics_8D.Add(model);
                     _context.SaveChanges();
                     var actor = User?.Identity?.Name ?? "Unknown";
@@ -94,7 +98,7 @@ namespace OneJaxDashboard.Controllers
                 {
                     _logger.LogError(ex, "Failed to save Program Demographics record for strategy {StrategyId} year {Year}.",
                         model.StrategyId, model.Year);
-                    TempData["Error"] = $"Error saving record: {ex.Message}";
+                    TempData["Error"] = $"Error saving record: {ex.GetBaseException().Message}";
                 }
             }
 

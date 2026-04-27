@@ -13,15 +13,18 @@ namespace OneJaxDashboard.Controllers
         private readonly ApplicationDbContext _context;
         private readonly ActivityLogService _activityLog;
         private readonly ILogger<identityAchieve_6DController> _logger;
+        private readonly SqlServerInsertCompatibilityService _sqlServerInsertCompatibility;
 
         public identityAchieve_6DController(
             ApplicationDbContext context,
             ActivityLogService activityLog,
-            ILogger<identityAchieve_6DController> logger)
+            ILogger<identityAchieve_6DController> logger,
+            SqlServerInsertCompatibilityService sqlServerInsertCompatibility)
         {
             _context = context;
             _activityLog = activityLog;
             _logger = logger;
+            _sqlServerInsertCompatibility = sqlServerInsertCompatibility;
         }
 
         // GET: identityAchieve_6D/Index
@@ -54,6 +57,7 @@ namespace OneJaxDashboard.Controllers
                 try
                 {
                     model.CreatedDate = DateTime.Now;
+                    _sqlServerInsertCompatibility.PrepareForInsert(model, "achieveMile_6D");
                     _context.achieveMile_6D.Add(model);
                     _context.SaveChanges();
                     var actor = User?.Identity?.Name ?? "Unknown";
@@ -75,7 +79,7 @@ namespace OneJaxDashboard.Controllers
                 {
                     _logger.LogError(ex, "Failed to save Milestone Achievement record for year {Year} month {Month}.",
                         model.Year, model.Month);
-                    TempData["Error"] = $"Error saving record: {ex.Message}";
+                    TempData["Error"] = $"Error saving record: {ex.GetBaseException().Message}";
                 }
             }
 
