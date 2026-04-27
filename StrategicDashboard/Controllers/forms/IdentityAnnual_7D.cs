@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using OneJaxDashboard.Data;
 using OneJaxDashboard.Models;
 using OneJaxDashboard.Services;
@@ -12,28 +13,34 @@ namespace OneJaxDashboard.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly ActivityLogService _activityLog;
+        private readonly ILogger<IdentityAnnual_7DController> _logger;
 
-        public IdentityAnnual_7DController(ApplicationDbContext context, ActivityLogService activityLog)
+        public IdentityAnnual_7DController(
+            ApplicationDbContext context,
+            ActivityLogService activityLog,
+            ILogger<IdentityAnnual_7DController> logger)
         {
             _context = context;
             _activityLog = activityLog;
+            _logger = logger;
         }
+
         [HttpGet]
         public IActionResult Index()
         {
-            // Calculate statistics
-            var allEntries = _context.Annual_average_7D.ToList();
-            ViewBag.TotalEntries = allEntries.Count;
-            
-            if (allEntries.Any())
+            try
             {
-                ViewBag.LatestYear = allEntries.Max(e => e.Year);
-                ViewBag.AveragePercentage = allEntries.Average(e => e.Percentage);
-                ViewBag.GoalMetCount = allEntries.Count(e => e.GoalMet);
+                LoadStats();
             }
-            
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to load Community Perception Survey form data.");
+                TempData["Error"] = BuildLoadErrorMessage("Community Perception Survey", ex);
+            }
+
             return View(new Annual_average_7D());
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Index(Annual_average_7D model)
@@ -65,11 +72,53 @@ namespace OneJaxDashboard.Controllers
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, "Failed to save Community Perception Survey record for year {Year} month {Month}.",
+                        model.Year, model.Month);
                     TempData["Error"] = $"Error saving record: {ex.Message}";
                 }
             }
 
+            TryLoadStats();
             return View(model);
+        }
+
+        private void LoadStats()
+        {
+            var allEntries = _context.Annual_average_7D.ToList();
+            ViewBag.TotalEntries = allEntries.Count;
+
+            if (allEntries.Any())
+            {
+                ViewBag.LatestYear = allEntries.Max(e => e.Year);
+                ViewBag.AveragePercentage = allEntries.Average(e => e.Percentage);
+                ViewBag.GoalMetCount = allEntries.Count(e => e.GoalMet);
+            }
+        }
+
+        private void TryLoadStats()
+        {
+            try
+            {
+                LoadStats();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to refresh Community Perception Survey stats.");
+                TempData["Error"] ??= BuildLoadErrorMessage("Community Perception Survey", ex);
+            }
+        }
+
+        private static string BuildLoadErrorMessage(string formName, Exception ex)
+        {
+            var message = ex.GetBaseException().Message;
+            var schemaProblem =
+                message.Contains("Invalid object name", StringComparison.OrdinalIgnoreCase) ||
+                message.Contains("Invalid column name", StringComparison.OrdinalIgnoreCase) ||
+                message.Contains("no such table", StringComparison.OrdinalIgnoreCase);
+
+            return schemaProblem
+                ? $"{formName} could not load because the Azure database schema is out of date."
+                : $"{formName} could not load right now. Please try again.";
         }
     }
 }

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Logging;
 using OneJaxDashboard.Data;
 using OneJaxDashboard.Models;
 using OneJaxDashboard.Services;
@@ -11,27 +12,32 @@ namespace OneJaxDashboard.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly ActivityLogService _activityLog;
+        private readonly ILogger<identityPlan_24DController> _logger;
 
-        public identityPlan_24DController(ApplicationDbContext context, ActivityLogService activityLog)
+        public identityPlan_24DController(
+            ApplicationDbContext context,
+            ActivityLogService activityLog,
+            ILogger<identityPlan_24DController> logger)
         {
             _context = context;
             _activityLog = activityLog;
+            _logger = logger;
         }
 
         // GET: identityPlan_24D/Index
         [HttpGet]
         public IActionResult Index()
         {
-            // Calculate statistics
-            var allEntries = _context.Plan2026_24D.ToList();
-            ViewBag.TotalEntries = allEntries.Count;
-            
-            if (allEntries.Any())
+            try
             {
-                ViewBag.LatestYear = allEntries.Max(e => e.Year);
-                ViewBag.GoalMetCount = allEntries.Count(e => e.GoalMet);
+                LoadStats();
             }
-            
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to load Framework Development Plan form data.");
+                TempData["Error"] = BuildLoadErrorMessage("Framework Development Plan", ex);
+            }
+
             return View(new Plan2026_24D());
         }
 
@@ -56,11 +62,52 @@ namespace OneJaxDashboard.Controllers
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, "Failed to save Framework Development Plan record for {Name} ({Year}/{Quarter}).",
+                        model.Name, model.Year, model.Quarter);
                     TempData["Error"] = $"Error saving record: {ex.Message}";
                 }
             }
 
+            TryLoadStats();
             return View(model);
+        }
+
+        private void LoadStats()
+        {
+            var allEntries = _context.Plan2026_24D.ToList();
+            ViewBag.TotalEntries = allEntries.Count;
+
+            if (allEntries.Any())
+            {
+                ViewBag.LatestYear = allEntries.Max(e => e.Year);
+                ViewBag.GoalMetCount = allEntries.Count(e => e.GoalMet);
+            }
+        }
+
+        private void TryLoadStats()
+        {
+            try
+            {
+                LoadStats();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to refresh Framework Development Plan stats.");
+                TempData["Error"] ??= BuildLoadErrorMessage("Framework Development Plan", ex);
+            }
+        }
+
+        private static string BuildLoadErrorMessage(string formName, Exception ex)
+        {
+            var message = ex.GetBaseException().Message;
+            var schemaProblem =
+                message.Contains("Invalid object name", StringComparison.OrdinalIgnoreCase) ||
+                message.Contains("Invalid column name", StringComparison.OrdinalIgnoreCase) ||
+                message.Contains("no such table", StringComparison.OrdinalIgnoreCase);
+
+            return schemaProblem
+                ? $"{formName} could not load because the Azure database schema is out of date."
+                : $"{formName} could not load right now. Please try again.";
         }
     }
 }

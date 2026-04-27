@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Logging;
 using OneJaxDashboard.Data;
 using OneJaxDashboard.Models;
 using OneJaxDashboard.Services;
@@ -11,24 +12,23 @@ namespace OneJaxDashboard.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly ActivityLogService _activityLog;
+        private readonly ILogger<MediaPlacementsController> _logger;
 
-        public MediaPlacementsController(ApplicationDbContext context, ActivityLogService activityLog)
+        public MediaPlacementsController(
+            ApplicationDbContext context,
+            ActivityLogService activityLog,
+            ILogger<MediaPlacementsController> logger)
         {
             _context = context;
             _activityLog = activityLog;
+            _logger = logger;
         }
 
         // GET: MediaPlacements/Index
         [HttpGet]
         public IActionResult Index()
         {
-            // Calculate grand total across all entries
-            var allEntries = _context.MediaPlacements_3D.ToList();
-            var grandTotal = allEntries.Sum(e => e.TotalMentions);
-            
-            ViewBag.GrandTotal = grandTotal;
-            ViewBag.TotalEntries = allEntries.Count;
-            
+            TryLoadStats();
             return View(new MediaPlacements_3D());
         }
 
@@ -61,11 +61,46 @@ namespace OneJaxDashboard.Controllers
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, "Failed to save Media Placements record.");
                     TempData["Error"] = $"Error saving record: {ex.Message}";
                 }
             }
 
+            TryLoadStats();
             return View(model);
+        }
+
+        private void LoadStats()
+        {
+            var allEntries = _context.MediaPlacements_3D.ToList();
+            ViewBag.GrandTotal = allEntries.Sum(e => e.TotalMentions);
+            ViewBag.TotalEntries = allEntries.Count;
+        }
+
+        private void TryLoadStats()
+        {
+            try
+            {
+                LoadStats();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to load Media Placements form data.");
+                TempData["Error"] ??= BuildLoadErrorMessage("Media Placements", ex);
+            }
+        }
+
+        private static string BuildLoadErrorMessage(string formName, Exception ex)
+        {
+            var message = ex.GetBaseException().Message;
+            var schemaProblem =
+                message.Contains("Invalid object name", StringComparison.OrdinalIgnoreCase) ||
+                message.Contains("Invalid column name", StringComparison.OrdinalIgnoreCase) ||
+                message.Contains("no such table", StringComparison.OrdinalIgnoreCase);
+
+            return schemaProblem
+                ? $"{formName} could not load because the Azure database schema is out of date."
+                : $"{formName} could not load right now. Please try again.";
         }
     }
 }
