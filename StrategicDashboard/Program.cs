@@ -666,24 +666,6 @@ static void EnsureProgramArchiveSupport(ApplicationDbContext db)
                 );
             END
 
-            IF COL_LENGTH('dbo.ArchivedPrograms', 'OriginalProgramId') IS NULL
-            BEGIN
-                ALTER TABLE [dbo].[ArchivedPrograms]
-                ADD [OriginalProgramId] INT NOT NULL CONSTRAINT [DF_ArchivedPrograms_OriginalProgramId] DEFAULT(0);
-            END
-
-            IF COL_LENGTH('dbo.ArchivedPrograms', 'ProgramName') IS NULL
-            BEGIN
-                ALTER TABLE [dbo].[ArchivedPrograms]
-                ADD [ProgramName] NVARCHAR(MAX) NOT NULL CONSTRAINT [DF_ArchivedPrograms_ProgramName] DEFAULT(N'');
-            END
-
-            IF COL_LENGTH('dbo.ArchivedPrograms', 'ProgramType') IS NULL
-            BEGIN
-                ALTER TABLE [dbo].[ArchivedPrograms]
-                ADD [ProgramType] NVARCHAR(MAX) NOT NULL CONSTRAINT [DF_ArchivedPrograms_ProgramType] DEFAULT(N'');
-            END
-
             IF COL_LENGTH('dbo.ArchivedPrograms', 'Description') IS NULL
             BEGIN
                 ALTER TABLE [dbo].[ArchivedPrograms]
