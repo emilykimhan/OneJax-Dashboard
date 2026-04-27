@@ -109,6 +109,7 @@ using (var scope = app.Services.CreateScope())
         Console.WriteLine("[startup] Skipping automatic database migrations.");
     }
 
+    RunStartupStep("Fixing legacy SQL Server text columns", () => EnsureSqlServerTextColumnsFixed(db));
     RunStartupStep("Ensuring staff admin schema support", () => EnsureStaffAdminSupport(db));
     RunStartupStep("Ensuring strategy program schema support", () => EnsureStrategyProgramSupport(db));
     RunStartupStep("Ensuring strategy archive schema support", () => EnsureStrategyArchiveSupport(db));
@@ -736,6 +737,58 @@ static void EnsureRequiredColumn(
             connection.Close();
         }
     }
+}
+
+static void EnsureSqlServerTextColumnsFixed(ApplicationDbContext db)
+{
+    if (!db.Database.IsSqlServer())
+    {
+        return;
+    }
+
+    // Columns created via EnsureCreated from a SQLite model snapshot have type 'text'
+    // (SQL Server's legacy large-object type). Convert them all to nvarchar(max) so that
+    // EF Core's generated SQL (which uses nvarchar parameters) works correctly.
+    //
+    // Steps:
+    //   1. Drop any DEFAULT constraints on 'text' columns (required before ALTER COLUMN).
+    //   2. ALTER each 'text' column to NVARCHAR(MAX), preserving nullability.
+    //
+    // STRING_AGG is used instead of SELECT @var += ... because the concatenation pattern
+    // is unofficial and not guaranteed to work correctly on Azure SQL with multiple rows.
+    db.Database.ExecuteSqlRaw("""
+        DECLARE @dropDefaults NVARCHAR(MAX);
+        SELECT @dropDefaults = STRING_AGG(
+            CONVERT(NVARCHAR(MAX),
+                N'ALTER TABLE ' + QUOTENAME(OBJECT_SCHEMA_NAME(d.parent_object_id))
+                + N'.' + QUOTENAME(OBJECT_NAME(d.parent_object_id))
+                + N' DROP CONSTRAINT ' + QUOTENAME(d.name) + N';'),
+            N' '
+        )
+        FROM sys.default_constraints d
+        INNER JOIN sys.columns c
+            ON d.parent_object_id = c.object_id AND d.parent_column_id = c.column_id
+        INNER JOIN sys.types t ON c.user_type_id = t.user_type_id
+        WHERE t.name IN ('text', 'ntext')
+          AND OBJECTPROPERTY(c.object_id, 'IsUserTable') = 1;
+        IF @dropDefaults IS NOT NULL EXEC sp_executesql @dropDefaults;
+
+        DECLARE @alterCols NVARCHAR(MAX);
+        SELECT @alterCols = STRING_AGG(
+            CONVERT(NVARCHAR(MAX),
+                N'ALTER TABLE ' + QUOTENAME(OBJECT_SCHEMA_NAME(c.object_id))
+                + N'.' + QUOTENAME(OBJECT_NAME(c.object_id))
+                + N' ALTER COLUMN ' + QUOTENAME(c.name)
+                + N' NVARCHAR(MAX) '
+                + CASE WHEN c.is_nullable = 1 THEN N'NULL' ELSE N'NOT NULL' END + N';'),
+            N' '
+        )
+        FROM sys.columns c
+        INNER JOIN sys.types t ON c.user_type_id = t.user_type_id
+        WHERE t.name IN ('text', 'ntext')
+          AND OBJECTPROPERTY(c.object_id, 'IsUserTable') = 1;
+        IF @alterCols IS NOT NULL EXEC sp_executesql @alterCols;
+        """);
 }
 
 static string DelimitSqlServerIdentifier(string identifier)
