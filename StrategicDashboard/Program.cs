@@ -270,7 +270,77 @@ static void EnsureStaffAdminSupport(ApplicationDbContext db)
             checkCmd.CommandText = "SELECT ISNULL(COLUMNPROPERTY(OBJECT_ID(N'Staffauth'), N'Id', 'IsIdentity'), -1)";
             var identityFlag = Convert.ToInt32(checkCmd.ExecuteScalar() ?? -1);
 
-            if (identityFlag == 0)
+            if (identityFlag == -1)
+            {
+                // Staffauth does not exist — this can happen when a previous startup renamed
+                // Staffauth → Staffauth_Bak but then failed before creating the new table.
+                // If a backup exists, complete the recovery now.
+                using var bakCheckCmd = ssConn.CreateCommand();
+                bakCheckCmd.CommandText = "SELECT ISNULL(OBJECT_ID(N'Staffauth_Bak', N'U'), 0)";
+                var bakExists = Convert.ToInt32(bakCheckCmd.ExecuteScalar() ?? 0) != 0;
+
+                if (bakExists)
+                {
+                    // Rename any PK constraint on the backup that would block new table creation.
+                    using (var cmd = ssConn.CreateCommand())
+                    {
+                        cmd.CommandText = """
+                            DECLARE @pkBak sysname;
+                            SELECT @pkBak = kc.name
+                            FROM sys.key_constraints kc
+                            WHERE kc.parent_object_id = OBJECT_ID(N'Staffauth_Bak') AND kc.type = 'PK';
+                            IF @pkBak IS NOT NULL
+                                EXEC sp_rename @pkBak, N'PK_Staffauth_Bak', N'OBJECT';
+                            """;
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    using (var cmd = ssConn.CreateCommand())
+                    {
+                        cmd.CommandText = """
+                            CREATE TABLE [Staffauth] (
+                                [Id]       INT           IDENTITY(1,1) NOT NULL CONSTRAINT [PK_Staffauth] PRIMARY KEY,
+                                [Name]     NVARCHAR(MAX) NOT NULL DEFAULT (N''),
+                                [Username] NVARCHAR(450) NULL,
+                                [Password] NVARCHAR(MAX) NULL,
+                                [Email]    NVARCHAR(MAX) NOT NULL DEFAULT (N''),
+                                [IsAdmin]  BIT           NOT NULL DEFAULT (0)
+                            );
+                            """;
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    using (var cmd = ssConn.CreateCommand())
+                    {
+                        cmd.CommandText = """
+                            SET IDENTITY_INSERT [Staffauth] ON;
+                            INSERT INTO [Staffauth] ([Id], [Name], [Username], [Password], [Email], [IsAdmin])
+                            SELECT [Id],
+                                   ISNULL([Name], N''),
+                                   [Username],
+                                   [Password],
+                                   ISNULL([Email], N''),
+                                   ISNULL([IsAdmin], 0)
+                            FROM [Staffauth_Bak];
+                            SET IDENTITY_INSERT [Staffauth] OFF;
+                            """;
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    using (var cmd = ssConn.CreateCommand())
+                    {
+                        cmd.CommandText = "DROP TABLE [Staffauth_Bak];";
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    using (var cmd = ssConn.CreateCommand())
+                    {
+                        cmd.CommandText = "CREATE UNIQUE INDEX [IX_Staffauth_Username] ON [Staffauth] ([Username]) WHERE [Username] IS NOT NULL;";
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+            }
+            else if (identityFlag == 0)
             {
                 // Staffauth.Id exists but has no IDENTITY — recreate the table.
 
@@ -315,6 +385,23 @@ static void EnsureStaffAdminSupport(ApplicationDbContext db)
                 using (var cmd = ssConn.CreateCommand())
                 {
                     cmd.CommandText = "EXEC sp_rename N'Staffauth', N'Staffauth_Bak';";
+                    cmd.ExecuteNonQuery();
+                }
+
+                // 4b. Rename the PK constraint that was carried over to Staffauth_Bak.
+                //     sp_rename on a table does NOT rename its constraints, so PK_Staffauth
+                //     would remain on Staffauth_Bak and block creation of the same-named
+                //     constraint on the new table.
+                using (var cmd = ssConn.CreateCommand())
+                {
+                    cmd.CommandText = """
+                        DECLARE @pkBak sysname;
+                        SELECT @pkBak = kc.name
+                        FROM sys.key_constraints kc
+                        WHERE kc.parent_object_id = OBJECT_ID(N'Staffauth_Bak') AND kc.type = 'PK';
+                        IF @pkBak IS NOT NULL
+                            EXEC sp_rename @pkBak, N'PK_Staffauth_Bak', N'OBJECT';
+                        """;
                     cmd.ExecuteNonQuery();
                 }
 
