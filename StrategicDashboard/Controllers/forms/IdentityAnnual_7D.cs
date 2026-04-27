@@ -14,15 +14,18 @@ namespace OneJaxDashboard.Controllers
         private readonly ApplicationDbContext _context;
         private readonly ActivityLogService _activityLog;
         private readonly ILogger<IdentityAnnual_7DController> _logger;
+        private readonly SqlServerInsertCompatibilityService _sqlServerInsertCompatibility;
 
         public IdentityAnnual_7DController(
             ApplicationDbContext context,
             ActivityLogService activityLog,
-            ILogger<IdentityAnnual_7DController> logger)
+            ILogger<IdentityAnnual_7DController> logger,
+            SqlServerInsertCompatibilityService sqlServerInsertCompatibility)
         {
             _context = context;
             _activityLog = activityLog;
             _logger = logger;
+            _sqlServerInsertCompatibility = sqlServerInsertCompatibility;
         }
 
         [HttpGet]
@@ -53,6 +56,7 @@ namespace OneJaxDashboard.Controllers
                 try
                 {
                     model.CreatedDate = DateTime.Now;
+                    _sqlServerInsertCompatibility.PrepareForInsert(model, "Annual_average_7D");
                     _context.Annual_average_7D.Add(model);
                     _context.SaveChanges();
                     var actor = User?.Identity?.Name ?? "Unknown";
@@ -74,7 +78,7 @@ namespace OneJaxDashboard.Controllers
                 {
                     _logger.LogError(ex, "Failed to save Community Perception Survey record for year {Year} month {Month}.",
                         model.Year, model.Month);
-                    TempData["Error"] = $"Error saving record: {ex.Message}";
+                    TempData["Error"] = $"Error saving record: {ex.GetBaseException().Message}";
                 }
             }
 
