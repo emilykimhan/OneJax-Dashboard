@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 //Talijah's
 
 namespace OneJaxDashboard.Models
@@ -6,6 +7,7 @@ namespace OneJaxDashboard.Models
     public class Staffauth
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
         public string Name { get; set; } = string.Empty;
