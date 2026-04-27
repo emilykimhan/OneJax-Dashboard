@@ -15,6 +15,7 @@ namespace OneJaxDashboard.Models
         
         // Target and progress tracking
         public string Target { get; set; } = "";
+        [Column(TypeName = "decimal(18,2)")]
         public decimal CurrentValue { get; set; }
         public string Unit { get; set; } = ""; // e.g., "placements", "%", "visitors"
         
@@ -29,9 +30,13 @@ namespace OneJaxDashboard.Models
         public string FiscalYear { get; set; } = "2025-2026"; // Which fiscal year this applies to
         
         // Quarterly data (for metrics like website traffic)
+        [Column(TypeName = "decimal(18,2)")]
         public decimal Q1Value { get; set; }
+        [Column(TypeName = "decimal(18,2)")]
         public decimal Q2Value { get; set; }
+        [Column(TypeName = "decimal(18,2)")]
         public decimal Q3Value { get; set; }
+        [Column(TypeName = "decimal(18,2)")]
         public decimal Q4Value { get; set; }
 
         // Evidence/sample tracking is derived at runtime for dashboard display only.

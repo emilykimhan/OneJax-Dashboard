@@ -9,6 +9,7 @@
     var goals = ViewBag.Goals as List<SelectListItem> ?? new List<SelectListItem>();
     var formValues = ViewBag.FormValues as Dictionary<string, string> ?? new Dictionary<string, string>();
     var formErrors = ViewBag.FormErrors as Dictionary<string, string> ?? new Dictionary<string, string>();
+    var pageErrorMessage = ViewBag.PageErrorMessage as string;
 }
 
 <!-- OneJax Color Theme -->
@@ -487,6 +488,14 @@
     @if (!string.IsNullOrWhiteSpace(errorMessage))
     {
         <div class="alert alert-danger text-center mb-3">@errorMessage</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(pageErrorMessage))
+    {
+        <div class="alert alert-warning text-center mb-3">@pageErrorMessage</div>
+    }
+    @if (formErrors.TryGetValue("general", out var generalError))
+    {
+        <div class="alert alert-danger text-center mb-3">@generalError</div>
     }
     <!-- Add New Event -->
     <div class="card shadow-lg border-0 rounded-4 mb-5">

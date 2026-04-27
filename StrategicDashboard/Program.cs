@@ -109,6 +109,7 @@ using (var scope = app.Services.CreateScope())
         Console.WriteLine("[startup] Skipping automatic database migrations.");
     }
 
+    RunStartupStep("Fixing legacy SQL Server text columns", () => EnsureSqlServerTextColumnsFixed(db));
     RunStartupStep("Ensuring staff admin schema support", () => EnsureStaffAdminSupport(db));
     RunStartupStep("Ensuring strategy program schema support", () => EnsureStrategyProgramSupport(db));
     RunStartupStep("Ensuring strategy archive schema support", () => EnsureStrategyArchiveSupport(db));
@@ -256,6 +257,238 @@ static void EnsureStaffAdminSupport(ApplicationDbContext db)
 {
     if (db.Database.IsSqlServer())
     {
+        // Ensure Staffauth.Id is an IDENTITY column. The table was originally created
+        // without IDENTITY (e.g. via SqliteToSqlServerMigrator), which causes EF Core
+        // INSERTs to fail because they omit Id and expect the database to generate it.
+        var ssConn = db.Database.GetDbConnection();
+        var ssConnShouldClose = ssConn.State != ConnectionState.Open;
+        if (ssConnShouldClose) ssConn.Open();
+
+        try
+        {
+            using var checkCmd = ssConn.CreateCommand();
+            checkCmd.CommandText = "SELECT ISNULL(COLUMNPROPERTY(OBJECT_ID(N'Staffauth'), N'Id', 'IsIdentity'), -1)";
+            var identityFlag = Convert.ToInt32(checkCmd.ExecuteScalar() ?? -1);
+
+            if (identityFlag == -1)
+            {
+                // Staffauth does not exist — this can happen when a previous startup renamed
+                // Staffauth → Staffauth_Bak but then failed before creating the new table.
+                // If a backup exists, complete the recovery now; otherwise create the table.
+                using var bakCheckCmd = ssConn.CreateCommand();
+                bakCheckCmd.CommandText = "SELECT ISNULL(OBJECT_ID(N'Staffauth_Bak', N'U'), 0)";
+                var bakExists = Convert.ToInt32(bakCheckCmd.ExecuteScalar() ?? 0) != 0;
+
+                if (bakExists)
+                {
+                    // Rename any PK constraint on the backup that would block new table creation.
+                    using (var cmd = ssConn.CreateCommand())
+                    {
+                        cmd.CommandText = """
+                            DECLARE @pkBak sysname;
+                            SELECT @pkBak = kc.name
+                            FROM sys.key_constraints kc
+                            WHERE kc.parent_object_id = OBJECT_ID(N'Staffauth_Bak') AND kc.type = 'PK';
+                            IF @pkBak IS NOT NULL
+                                EXEC sp_rename @pkBak, N'PK_Staffauth_Bak', N'OBJECT';
+                            """;
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    using (var cmd = ssConn.CreateCommand())
+                    {
+                        cmd.CommandText = """
+                            CREATE TABLE [Staffauth] (
+                                [Id]       INT           IDENTITY(1,1) NOT NULL CONSTRAINT [PK_Staffauth] PRIMARY KEY,
+                                [Name]     NVARCHAR(MAX) NOT NULL DEFAULT (N''),
+                                [Username] NVARCHAR(450) NULL,
+                                [Password] NVARCHAR(MAX) NULL,
+                                [Email]    NVARCHAR(MAX) NOT NULL DEFAULT (N''),
+                                [IsAdmin]  BIT           NOT NULL DEFAULT (0)
+                            );
+                            """;
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    using (var cmd = ssConn.CreateCommand())
+                    {
+                        cmd.CommandText = """
+                            SET IDENTITY_INSERT [Staffauth] ON;
+                            INSERT INTO [Staffauth] ([Id], [Name], [Username], [Password], [Email], [IsAdmin])
+                            SELECT [Id],
+                                   ISNULL([Name], N''),
+                                   [Username],
+                                   [Password],
+                                   ISNULL([Email], N''),
+                                   ISNULL([IsAdmin], 0)
+                            FROM [Staffauth_Bak];
+                            SET IDENTITY_INSERT [Staffauth] OFF;
+                            """;
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    using (var cmd = ssConn.CreateCommand())
+                    {
+                        cmd.CommandText = "DROP TABLE [Staffauth_Bak];";
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    using (var cmd = ssConn.CreateCommand())
+                    {
+                        cmd.CommandText = "CREATE UNIQUE INDEX [IX_Staffauth_Username] ON [Staffauth] ([Username]) WHERE [Username] IS NOT NULL;";
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+                else
+                {
+                    using var cmd = ssConn.CreateCommand();
+                    cmd.CommandText = """
+                        CREATE TABLE [Staffauth] (
+                            [Id]       INT           IDENTITY(1,1) NOT NULL CONSTRAINT [PK_Staffauth] PRIMARY KEY,
+                            [Name]     NVARCHAR(MAX) NOT NULL DEFAULT (N''),
+                            [Username] NVARCHAR(450) NULL,
+                            [Password] NVARCHAR(MAX) NULL,
+                            [Email]    NVARCHAR(MAX) NOT NULL DEFAULT (N''),
+                            [IsAdmin]  BIT           NOT NULL DEFAULT (0)
+                        );
+                        """;
+                    cmd.ExecuteNonQuery();
+                }
+            }
+            else if (identityFlag == 0)
+            {
+                // Staffauth.Id exists but has no IDENTITY — recreate the table.
+
+                // 1. Drop all FK constraints on other tables that reference Staffauth.
+                using (var cmd = ssConn.CreateCommand())
+                {
+                    cmd.CommandText = """
+                        DECLARE @sql NVARCHAR(MAX) = N'';
+                        SELECT @sql += N'ALTER TABLE ' + QUOTENAME(OBJECT_SCHEMA_NAME(fk.parent_object_id)) +
+                            '.' + QUOTENAME(OBJECT_NAME(fk.parent_object_id)) +
+                            ' DROP CONSTRAINT ' + QUOTENAME(fk.name) + '; '
+                        FROM sys.foreign_keys fk
+                        WHERE fk.referenced_object_id = OBJECT_ID(N'Staffauth');
+                        IF LEN(@sql) > 0 EXEC sp_executesql @sql;
+                        """;
+                    cmd.ExecuteNonQuery();
+                }
+
+                // 2. Drop non-PK indexes on Staffauth.
+                using (var cmd = ssConn.CreateCommand())
+                {
+                    cmd.CommandText = """
+                        DECLARE @sql NVARCHAR(MAX) = N'';
+                        SELECT @sql += N'DROP INDEX ' + QUOTENAME(i.name) + ' ON [Staffauth]; '
+                        FROM sys.indexes i
+                        WHERE i.object_id = OBJECT_ID(N'Staffauth')
+                            AND i.type > 0
+                            AND i.is_primary_key = 0;
+                        IF LEN(@sql) > 0 EXEC sp_executesql @sql;
+                        """;
+                    cmd.ExecuteNonQuery();
+                }
+
+                // 3. Remove any leftover backup table from a previous failed attempt.
+                using (var cmd = ssConn.CreateCommand())
+                {
+                    cmd.CommandText = "IF OBJECT_ID(N'Staffauth_Bak', N'U') IS NOT NULL DROP TABLE [Staffauth_Bak];";
+                    cmd.ExecuteNonQuery();
+                }
+
+                // 4. Rename old table.
+                using (var cmd = ssConn.CreateCommand())
+                {
+                    cmd.CommandText = "EXEC sp_rename N'Staffauth', N'Staffauth_Bak';";
+                    cmd.ExecuteNonQuery();
+                }
+
+                // 4b. Rename the PK constraint that was carried over to Staffauth_Bak.
+                //     sp_rename on a table does NOT rename its constraints, so PK_Staffauth
+                //     would remain on Staffauth_Bak and block creation of the same-named
+                //     constraint on the new table.
+                using (var cmd = ssConn.CreateCommand())
+                {
+                    cmd.CommandText = """
+                        DECLARE @pkBak sysname;
+                        SELECT @pkBak = kc.name
+                        FROM sys.key_constraints kc
+                        WHERE kc.parent_object_id = OBJECT_ID(N'Staffauth_Bak') AND kc.type = 'PK';
+                        IF @pkBak IS NOT NULL
+                            EXEC sp_rename @pkBak, N'PK_Staffauth_Bak', N'OBJECT';
+                        """;
+                    cmd.ExecuteNonQuery();
+                }
+
+                // 5. Create new table with IDENTITY on Id.
+                using (var cmd = ssConn.CreateCommand())
+                {
+                    cmd.CommandText = """
+                        CREATE TABLE [Staffauth] (
+                            [Id]       INT           IDENTITY(1,1) NOT NULL CONSTRAINT [PK_Staffauth] PRIMARY KEY,
+                            [Name]     NVARCHAR(MAX) NOT NULL DEFAULT (N''),
+                            [Username] NVARCHAR(450) NULL,
+                            [Password] NVARCHAR(MAX) NULL,
+                            [Email]    NVARCHAR(MAX) NOT NULL DEFAULT (N''),
+                            [IsAdmin]  BIT           NOT NULL DEFAULT (0)
+                        );
+                        """;
+                    cmd.ExecuteNonQuery();
+                }
+
+                // 6. Copy all existing rows, preserving their original Ids.
+                using (var cmd = ssConn.CreateCommand())
+                {
+                    cmd.CommandText = """
+                        SET IDENTITY_INSERT [Staffauth] ON;
+                        INSERT INTO [Staffauth] ([Id], [Name], [Username], [Password], [Email], [IsAdmin])
+                        SELECT [Id],
+                               ISNULL([Name], N''),
+                               [Username],
+                               [Password],
+                               ISNULL([Email], N''),
+                               ISNULL([IsAdmin], 0)
+                        FROM [Staffauth_Bak];
+                        SET IDENTITY_INSERT [Staffauth] OFF;
+                        """;
+                    cmd.ExecuteNonQuery();
+                }
+
+                // 7. Drop the backup.
+                using (var cmd = ssConn.CreateCommand())
+                {
+                    cmd.CommandText = "DROP TABLE [Staffauth_Bak];";
+                    cmd.ExecuteNonQuery();
+                }
+
+                // 8. Recreate the unique index (doubles as the FK principal key for Events.OwnerUsername).
+                using (var cmd = ssConn.CreateCommand())
+                {
+                    cmd.CommandText = "CREATE UNIQUE INDEX [IX_Staffauth_Username] ON [Staffauth] ([Username]) WHERE [Username] IS NOT NULL;";
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+        finally
+        {
+            if (ssConnShouldClose) ssConn.Close();
+        }
+
+        db.Database.ExecuteSqlRaw("""
+            IF OBJECT_ID(N'dbo.Staffauth', N'U') IS NOT NULL
+               AND NOT EXISTS (
+                   SELECT 1
+                   FROM sys.indexes
+                   WHERE object_id = OBJECT_ID(N'dbo.Staffauth')
+                     AND name = N'IX_Staffauth_Username'
+               )
+            BEGIN
+                CREATE UNIQUE INDEX [IX_Staffauth_Username]
+                ON [dbo].[Staffauth] ([Username])
+                WHERE [Username] IS NOT NULL;
+            END
+            """);
+
         db.Database.ExecuteSqlRaw("""
             IF COL_LENGTH('Staffauth', 'IsAdmin') IS NULL
             BEGIN
@@ -281,23 +514,42 @@ static void EnsureStaffAdminSupport(ApplicationDbContext db)
 
     try
     {
-        using var command = connection.CreateCommand();
-        command.CommandText = "PRAGMA table_info('Staffauth');";
-
+        var tableExists = false;
         var hasIsAdminColumn = false;
-        using (var reader = command.ExecuteReader())
+
+        using (var command = connection.CreateCommand())
         {
+            command.CommandText = "PRAGMA table_info('Staffauth');";
+
+            using var reader = command.ExecuteReader();
             while (reader.Read())
             {
+                tableExists = true;
                 if (string.Equals(reader["name"]?.ToString(), "IsAdmin", StringComparison.OrdinalIgnoreCase))
                 {
                     hasIsAdminColumn = true;
-                    break;
                 }
             }
         }
 
-        if (!hasIsAdminColumn)
+        if (!tableExists)
+        {
+            using (var createCommand = connection.CreateCommand())
+            {
+                createCommand.CommandText = """
+                    CREATE TABLE "Staffauth" (
+                        "Id" INTEGER NOT NULL CONSTRAINT "PK_Staffauth" PRIMARY KEY AUTOINCREMENT,
+                        "Name" TEXT NOT NULL DEFAULT '',
+                        "Username" TEXT NULL,
+                        "Password" TEXT NULL,
+                        "Email" TEXT NOT NULL DEFAULT '',
+                        "IsAdmin" INTEGER NOT NULL DEFAULT 0
+                    );
+                    """;
+                createCommand.ExecuteNonQuery();
+            }
+        }
+        else if (!hasIsAdminColumn)
         {
             using var alterCommand = connection.CreateCommand();
             alterCommand.CommandText = """
@@ -306,6 +558,14 @@ static void EnsureStaffAdminSupport(ApplicationDbContext db)
                 """;
             alterCommand.ExecuteNonQuery();
         }
+
+        using var indexCommand = connection.CreateCommand();
+        indexCommand.CommandText = """
+            CREATE UNIQUE INDEX IF NOT EXISTS "IX_Staffauth_Username"
+            ON "Staffauth" ("Username")
+            WHERE "Username" IS NOT NULL;
+            """;
+        indexCommand.ExecuteNonQuery();
     }
     finally
     {
@@ -621,6 +881,58 @@ static void EnsureRequiredColumn(
             connection.Close();
         }
     }
+}
+
+static void EnsureSqlServerTextColumnsFixed(ApplicationDbContext db)
+{
+    if (!db.Database.IsSqlServer())
+    {
+        return;
+    }
+
+    // Columns created via EnsureCreated from a SQLite model snapshot have type 'text'
+    // (SQL Server's legacy large-object type). Convert them all to nvarchar(max) so that
+    // EF Core's generated SQL (which uses nvarchar parameters) works correctly.
+    //
+    // Steps:
+    //   1. Drop any DEFAULT constraints on 'text' columns (required before ALTER COLUMN).
+    //   2. ALTER each 'text' column to NVARCHAR(MAX), preserving nullability.
+    //
+    // STRING_AGG is used instead of SELECT @var += ... because the concatenation pattern
+    // is unofficial and not guaranteed to work correctly on Azure SQL with multiple rows.
+    db.Database.ExecuteSqlRaw("""
+        DECLARE @dropDefaults NVARCHAR(MAX);
+        SELECT @dropDefaults = STRING_AGG(
+            CONVERT(NVARCHAR(MAX),
+                N'ALTER TABLE ' + QUOTENAME(OBJECT_SCHEMA_NAME(d.parent_object_id))
+                + N'.' + QUOTENAME(OBJECT_NAME(d.parent_object_id))
+                + N' DROP CONSTRAINT ' + QUOTENAME(d.name) + N';'),
+            N' '
+        )
+        FROM sys.default_constraints d
+        INNER JOIN sys.columns c
+            ON d.parent_object_id = c.object_id AND d.parent_column_id = c.column_id
+        INNER JOIN sys.types t ON c.user_type_id = t.user_type_id
+        WHERE t.name IN ('text', 'ntext')
+          AND OBJECTPROPERTY(c.object_id, 'IsUserTable') = 1;
+        IF @dropDefaults IS NOT NULL EXEC sp_executesql @dropDefaults;
+
+        DECLARE @alterCols NVARCHAR(MAX);
+        SELECT @alterCols = STRING_AGG(
+            CONVERT(NVARCHAR(MAX),
+                N'ALTER TABLE ' + QUOTENAME(OBJECT_SCHEMA_NAME(c.object_id))
+                + N'.' + QUOTENAME(OBJECT_NAME(c.object_id))
+                + N' ALTER COLUMN ' + QUOTENAME(c.name)
+                + N' NVARCHAR(MAX) '
+                + CASE WHEN c.is_nullable = 1 THEN N'NULL' ELSE N'NOT NULL' END + N';'),
+            N' '
+        )
+        FROM sys.columns c
+        INNER JOIN sys.types t ON c.user_type_id = t.user_type_id
+        WHERE t.name IN ('text', 'ntext')
+          AND OBJECTPROPERTY(c.object_id, 'IsUserTable') = 1;
+        IF @alterCols IS NOT NULL EXEC sp_executesql @alterCols;
+        """);
 }
 
 static string DelimitSqlServerIdentifier(string identifier)

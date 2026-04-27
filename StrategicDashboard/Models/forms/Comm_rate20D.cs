@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 //Karrie's 
 namespace OneJaxDashboard.Models
 {
@@ -17,6 +18,7 @@ namespace OneJaxDashboard.Models
 
         [Required(ErrorMessage = "Please enter the average communication satisfaction.")]
         [Range(0, 100, ErrorMessage = "Average communication satisfaction must be between 0 and 100.")]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal AverageCommunicationSatisfaction { get; set; }
 
         public DateTime CreatedDate { get; set; } = DateTime.Now;

@@ -14,6 +14,7 @@ namespace OneJaxDashboard.Models
         public string Type { get; set; } = ""; // Workshop, Meeting, Training, etc.
         public string Location { get; set; } = "";
 
+        [Column(TypeName = "decimal(18,2)")]
         public decimal? SatisfactionScore { get; set; }
 
         public int Attendees { get; set; }

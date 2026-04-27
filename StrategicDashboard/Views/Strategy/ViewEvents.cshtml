@@ -5,6 +5,8 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "View Events";
     var successMessage = TempData["SuccessMessage"] as string;
+    var errorMessage = TempData["ErrorMessage"] as string;
+    var pageErrorMessage = ViewBag.PageErrorMessage as string;
 
     // Prefer Goals provided by the controller (best: comes from a Goals table)
     var goals = ViewBag.Goals as List<SelectListItem>;
@@ -497,6 +499,14 @@
             <span class="success-text">@successMessage</span>
         </div>
     }
+    @if (!string.IsNullOrWhiteSpace(errorMessage))
+    {
+        <div class="alert alert-danger text-center mb-3">@errorMessage</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(pageErrorMessage))
+    {
+        <div class="alert alert-warning text-center mb-3">@pageErrorMessage</div>
+    }
 
     <!-- Fiscal Year Tabs (server-side filter via query string) -->
     <ul class="nav nav-pills justify-content-center mb-4" id="fyTabs" role="tablist">
@@ -719,7 +729,10 @@
         {
             foreach (var goal in goalTabs)
             {
-                var goalId = int.Parse(goal.Value);
+                if (!int.TryParse(goal.Value, out var goalId))
+                {
+                    continue;
+                }
                 var eventsForGoal = filteredEvents.Where(e => e.StrategicGoalId == goalId).ToList();
 
                 <div class="tab-pane fade" id="goal-@goal.Value" role="tabpanel" aria-labelledby="goal-@goal.Value-tab">

@@ -1,12 +1,15 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 using OneJaxDashboard.Models;
 using OneJaxDashboard.Data;
 using OneJaxDashboard.Services;
 using System.Security.Claims;
 using System.Collections.Generic;
 using System.Linq;
+using System.Data;
+using System.Data.Common;
 //dina
 [Authorize(Roles = "Admin,Staff")]
 public class StrategyController : Controller
@@ -43,17 +46,31 @@ public class StrategyController : Controller
 
     private List<SelectListItem> GetGoalOptions()
     {
-        var dbGoals = _context.StrategicGoals
-            .Where(g => g.Id >= 1 && g.Id <= 4)
-            .OrderBy(g => g.Id)
-            .Select(g => new SelectListItem
-            {
-                Value = g.Id.ToString(),
-                Text = g.Name
-            })
-            .ToList();
+        try
+        {
+            var dbGoals = _context.StrategicGoals
+                .Where(g => g.Id >= 1 && g.Id <= 4)
+                .OrderBy(g => g.Id)
+                .Select(g => new SelectListItem
+                {
+                    Value = g.Id.ToString(),
+                    Text = g.Name
+                })
+                .ToList();
 
-        return dbGoals.Count > 0 ? dbGoals : Goals;
+            return dbGoals.Count > 0 ? dbGoals : Goals;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[strategy-index] Failed to load strategic goals: {ex}");
+            return Goals
+                .Select(goal => new SelectListItem
+                {
+                    Value = goal.Value,
+                    Text = goal.Text
+                })
+                .ToList();
+        }
     }
 
     private StrategicGoal? EnsureGoalExists(int goalId)
@@ -99,9 +116,20 @@ public class StrategyController : Controller
 
     private IActionResult RenderIndex(int? goalId, Dictionary<string, string>? formValues = null, Dictionary<string, string>? formErrors = null)
     {
-        var programOptions = _context.Programs
-            .OrderBy(p => p.ProgramName)
-            .ToList();
+        var pageErrors = new List<string>();
+        List<Programs> programOptions;
+        try
+        {
+            programOptions = _context.Programs
+                .OrderBy(p => p.ProgramName)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[strategy-index] Failed to load programs: {ex}");
+            programOptions = new List<Programs>();
+            pageErrors.Add("Programs couldn't be loaded right now.");
+        }
 
         var goalOptions = GetGoalOptions();
         ViewBag.Goals = goalOptions;
@@ -114,14 +142,23 @@ public class StrategyController : Controller
             .OrderBy(t => t)
             .ToList();
 
-        var goalStrategies = goalId.HasValue
-            ? _context.Strategies.Where(s => !s.IsArchived && s.StrategicGoalId == goalId.Value).ToList()
-            : _context.Strategies.Where(s => !s.IsArchived).ToList();
+        List<Strategy> goalStrategies;
+        try
+        {
+            goalStrategies = LoadStrategiesForDisplay(goalId, includeArchived: false);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[strategy-index] Failed to load strategies: {ex}");
+            goalStrategies = new List<Strategy>();
+            pageErrors.Add("Events couldn't be loaded right now.");
+        }
 
         goalStrategies = goalStrategies.OrderByDescending(s => s.Id).ToList();
 
         ViewBag.GoalId = goalId;
         ViewBag.SuccessMessage = TempData["SuccessMessage"];
+        ViewBag.PageErrorMessage = pageErrors.Count > 0 ? string.Join(" ", pageErrors) : null;
         ViewBag.FormValues = formValues ?? new Dictionary<string, string>();
         ViewBag.FormErrors = formErrors ?? new Dictionary<string, string>();
 
@@ -225,10 +262,17 @@ public class StrategyController : Controller
             EventFYear = ComputeFiscalYear(eventDate)
         };
 
-        _context.Strategies.Add(dbEvent);
-        _context.SaveChanges();
-        SyncLinkedDashboardEvent(dbEvent);
-        _context.SaveChanges();
+        try
+        {
+            PersistStrategy(dbEvent);
+            TrySyncLinkedDashboardEvent(dbEvent);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[strategy-add] Failed to create strategy event '{resolvedEventName}': {ex}");
+            formErrors["general"] = "We couldn't save that event right now. Please try again.";
+            return RenderIndex(null, formValues, formErrors);
+        }
 
 
         string goalName = selectedGoal.Name;
@@ -237,7 +281,7 @@ public class StrategyController : Controller
             details: $"Id={dbEvent.Id}; Created strategy event '{eventName}' under {goalName}");
         TempData["SuccessMessage"] = $"Successfully added event under “{goalName}”";
 
-        return RedirectToAction(nameof(ViewEvents), new { fy = dbEvent.EventFYear });
+        return RedirectToAction(nameof(Index), new { goalId });
     }
     // POST: /Strategy/Edit
 
@@ -344,8 +388,7 @@ public class StrategyController : Controller
         evt.EventFYear = ComputeFiscalYear(eventDate);
 
         // Save changes to the database
-        SyncLinkedDashboardEvent(evt);
-        _context.SaveChanges();
+        TrySyncLinkedDashboardEvent(evt);
         var previousGoalName = ResolveGoalName(previousGoalId);
         var updatedGoalName = ResolveGoalName(evt.StrategicGoalId);
 
@@ -372,39 +415,57 @@ public class StrategyController : Controller
     [HttpPost]
     public IActionResult Delete(int id)
     {
-        // Fetch the strategy from the database
-        var strategy = _context.Strategies.FirstOrDefault(s => s.Id == id);
-        if (strategy == null)
+        var deletedEventName = GetStrategyNameForMutation(id);
+        if (deletedEventName == null)
         {
-            return NotFound(); // Return 404 if the strategy doesn't exist
+            return NotFound();
         }
 
-        // Remove the strategy from the database
-        var deletedEventName = strategy.Name;
-        _events.RemoveByStrategyTemplate(id);
-        _context.Strategies.Remove(strategy);
-        _context.SaveChanges();
+        try
+        {
+            using var transaction = _context.Database.BeginTransaction();
+            DeleteEventsByStrategyTemplate(id);
+            DeleteStrategyById(id);
+            transaction.Commit();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[strategy-delete] Failed to delete strategy event '{deletedEventName}' (Id={id}): {ex}");
+            TempData["ErrorMessage"] = "We couldn't delete that event right now. Please try again.";
+            return RedirectToAction(nameof(ViewEvents));
+        }
+
         _activityLog.Log(GetActorName(), "Deleted Core Strategy Event", "Strategy",
             details: $"Id={id}; Deleted '{deletedEventName}'");
 
         TempData["SuccessMessage"] = "Event deleted successfully!";
-        return RedirectToAction("ViewEvents");
+        return RedirectToAction(nameof(ViewEvents));
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     public IActionResult Archive(int id)
     {
-        var strategy = _context.Strategies.FirstOrDefault(s => s.Id == id);
-        if (strategy == null)
+        var archivedEventName = GetStrategyNameForMutation(id);
+        if (archivedEventName == null)
         {
             return NotFound();
         }
 
-        strategy.IsArchived = true;
-        strategy.ArchivedAtUtc = DateTime.UtcNow;
-        _events.ArchiveByStrategyTemplate(id);
-        _context.SaveChanges();
+        try
+        {
+            using var transaction = _context.Database.BeginTransaction();
+            var archivedAtUtc = DateTime.UtcNow;
+            ArchiveEventsByStrategyTemplate(id, archivedAtUtc);
+            ArchiveStrategyById(id, archivedAtUtc);
+            transaction.Commit();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[strategy-archive] Failed to archive strategy event '{archivedEventName}' (Id={id}): {ex}");
+            TempData["ErrorMessage"] = "We couldn't archive that event right now. Please try again.";
+            return RedirectToAction(nameof(ViewEvents));
+        }
 
         TempData["ProgramsSuccess"] = "Event archived.";
         return RedirectToAction("Archive", "Programs");
@@ -412,10 +473,19 @@ public class StrategyController : Controller
 
     public IActionResult ViewEvents(string? fy = null) 
     {
-        // Fetch all events from the database
-        var events = _context.Strategies
-            .Where(s => !s.IsArchived)
-            .ToList();
+        var pageErrors = new List<string>();
+        List<Strategy> events;
+        try
+        {
+            events = LoadStrategiesForDisplay(goalId: null, includeArchived: false);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[strategy-view-events] Failed to load strategies: {ex}");
+            events = new List<Strategy>();
+            pageErrors.Add("Events couldn't be loaded right now.");
+        }
+
         var hasUpdates = false;
         foreach (var evt in events)
         {
@@ -433,15 +503,30 @@ public class StrategyController : Controller
         }
 
         // ViewEvents should only show the four strategic goals as goal filter tabs.
-        ViewBag.Goals = _context.StrategicGoals
-            .Where(g => g.Id >= 1 && g.Id <= 4)
-            .OrderBy(g => g.Id)
-            .Select(g => new SelectListItem
-            {
-                Value = g.Id.ToString(),
-                Text = g.Name
-            })
-            .ToList();
+        try
+        {
+            ViewBag.Goals = _context.StrategicGoals
+                .Where(g => g.Id >= 1 && g.Id <= 4)
+                .OrderBy(g => g.Id)
+                .Select(g => new SelectListItem
+                {
+                    Value = g.Id.ToString(),
+                    Text = g.Name
+                })
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[strategy-view-events] Failed to load strategic goals: {ex}");
+            ViewBag.Goals = Goals
+                .Select(goal => new SelectListItem
+                {
+                    Value = goal.Value,
+                    Text = goal.Text
+                })
+                .ToList();
+            pageErrors.Add("Goals couldn't be loaded right now.");
+        }
 
         var fiscalYears = events
             .Select(e => FiscalYearSelection.ToEventsFormat(e.EventFYear))
@@ -475,6 +560,7 @@ public class StrategyController : Controller
 
         ViewBag.FiscalYears = fiscalYears;
         ViewBag.SelectedFY = selectedFiscalYear;
+        ViewBag.PageErrorMessage = pageErrors.Count > 0 ? string.Join(" ", pageErrors) : null;
         FiscalYearSelection.PersistSelection(Response, selectedFiscalYear);
 
         // Pass the events to the view
@@ -513,6 +599,19 @@ public class StrategyController : Controller
     private static string Normalize(string? value) => (value ?? string.Empty).Trim();
     private static string Display(string value) => string.IsNullOrEmpty(value) ? "(empty)" : value;
 
+    private void TrySyncLinkedDashboardEvent(Strategy strategy)
+    {
+        try
+        {
+            SyncLinkedDashboardEvent(strategy);
+            _context.SaveChanges();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[strategy-sync] Failed to sync dashboard event for strategy {strategy.Id}: {ex}");
+        }
+    }
+
     private void SyncLinkedDashboardEvent(Strategy strategy)
     {
         var canonicalEvent = _context.Events
@@ -550,23 +649,31 @@ public class StrategyController : Controller
 
     private string? ResolveDashboardSyncOwnerUsername()
     {
-        if (_context.Staffauth.Any(s => s.Username == DashboardSyncOwnerUsername))
+        try
         {
-            return DashboardSyncOwnerUsername;
-        }
+            if (_context.Staffauth.Any(s => s.Username == DashboardSyncOwnerUsername))
+            {
+                return DashboardSyncOwnerUsername;
+            }
 
-        var currentUsername = User.Identity?.Name?.Trim();
-        if (!string.IsNullOrWhiteSpace(currentUsername)
-            && _context.Staffauth.Any(s => s.Username == currentUsername))
+            var currentUsername = User.Identity?.Name?.Trim();
+            if (!string.IsNullOrWhiteSpace(currentUsername)
+                && _context.Staffauth.Any(s => s.Username == currentUsername))
+            {
+                return currentUsername;
+            }
+
+            return _context.Staffauth
+                .OrderByDescending(s => s.IsAdmin)
+                .ThenBy(s => s.Username)
+                .Select(s => s.Username)
+                .FirstOrDefault();
+        }
+        catch (Exception ex)
         {
-            return currentUsername;
+            Console.WriteLine($"[strategy-sync] Failed to resolve dashboard sync owner: {ex}");
+            return null;
         }
-
-        return _context.Staffauth
-            .OrderByDescending(s => s.IsAdmin)
-            .ThenBy(s => s.Username)
-            .Select(s => s.Username)
-            .FirstOrDefault();
     }
 
     private static DateTime? ParseStrategyDate(string? eventDate)
@@ -600,5 +707,385 @@ public class StrategyController : Controller
 
         var fallback = Goals.FirstOrDefault(g => g.Value == goalId.Value.ToString())?.Text;
         return string.IsNullOrWhiteSpace(fallback) ? $"Goal {goalId.Value}" : fallback;
+    }
+
+    private void PersistStrategy(Strategy strategy)
+    {
+        if (!RequiresExplicitIdInsert("Strategies"))
+        {
+            _context.Strategies.Add(strategy);
+            _context.SaveChanges();
+            return;
+        }
+
+        strategy.Id = GetNextSqlServerId("Strategies");
+
+        _context.Database.ExecuteSqlInterpolated($"""
+            INSERT INTO [Strategies]
+                ([Id], [Name], [ProgramId], [ProgramName], [ProgramType], [StrategicGoalId], [Description], [Date], [Time], [CrossCollaboration], [Partners], [EventFYear], [IsArchived], [ArchivedAtUtc])
+            VALUES
+                ({strategy.Id}, {strategy.Name}, {strategy.ProgramId}, {strategy.ProgramName}, {strategy.ProgramType}, {strategy.StrategicGoalId}, {strategy.Description}, {strategy.Date}, {strategy.Time}, {strategy.CrossCollaboration}, {strategy.Partners}, {strategy.EventFYear}, {strategy.IsArchived}, {strategy.ArchivedAtUtc});
+            """);
+    }
+
+    private bool RequiresExplicitIdInsert(string tableName)
+    {
+        if (!_context.Database.IsSqlServer())
+        {
+            return false;
+        }
+
+        var connection = _context.Database.GetDbConnection();
+        var shouldClose = connection.State != ConnectionState.Open;
+        if (shouldClose)
+        {
+            connection.Open();
+        }
+
+        try
+        {
+            using var command = connection.CreateCommand();
+            command.CommandText = $"SELECT ISNULL(COLUMNPROPERTY(OBJECT_ID(N'{tableName}'), N'Id', 'IsIdentity'), -1)";
+            var identityFlag = Convert.ToInt32(command.ExecuteScalar() ?? -1);
+            return identityFlag == 0;
+        }
+        finally
+        {
+            if (shouldClose)
+            {
+                connection.Close();
+            }
+        }
+    }
+
+    private int GetNextSqlServerId(string tableName)
+    {
+        var connection = _context.Database.GetDbConnection();
+        var shouldClose = connection.State != ConnectionState.Open;
+        if (shouldClose)
+        {
+            connection.Open();
+        }
+
+        try
+        {
+            using var command = connection.CreateCommand();
+            command.CommandText = $"SELECT ISNULL(MAX([Id]), 0) + 1 FROM [{tableName}]";
+            return Convert.ToInt32(command.ExecuteScalar() ?? 1);
+        }
+        finally
+        {
+            if (shouldClose)
+            {
+                connection.Close();
+            }
+        }
+    }
+
+    private string? GetStrategyNameForMutation(int id)
+    {
+        if (!_context.Database.IsSqlServer())
+        {
+            return _context.Strategies
+                .Where(s => s.Id == id)
+                .Select(s => s.Name)
+                .FirstOrDefault();
+        }
+
+        var connection = _context.Database.GetDbConnection();
+        var shouldClose = connection.State != ConnectionState.Open;
+        if (shouldClose)
+        {
+            connection.Open();
+        }
+
+        try
+        {
+            using var command = connection.CreateCommand();
+            command.CommandText = """
+                SELECT TOP (1) [Name]
+                FROM [dbo].[Strategies]
+                WHERE [Id] = @id;
+                """;
+
+            var parameter = command.CreateParameter();
+            parameter.ParameterName = "@id";
+            parameter.Value = id;
+            command.Parameters.Add(parameter);
+
+            var result = command.ExecuteScalar();
+            return result == null || result == DBNull.Value ? null : result.ToString();
+        }
+        finally
+        {
+            if (shouldClose)
+            {
+                connection.Close();
+            }
+        }
+    }
+
+    private void DeleteEventsByStrategyTemplate(int strategyId)
+    {
+        _context.Database.ExecuteSqlInterpolated($"""
+            DELETE FROM [Events]
+            WHERE [StrategyId] = {strategyId};
+            """);
+    }
+
+    private void DeleteStrategyById(int strategyId)
+    {
+        _context.Database.ExecuteSqlInterpolated($"""
+            DELETE FROM [Strategies]
+            WHERE [Id] = {strategyId};
+            """);
+    }
+
+    private void ArchiveEventsByStrategyTemplate(int strategyId, DateTime completionDateUtc)
+    {
+        _context.Database.ExecuteSqlInterpolated($"""
+            UPDATE [Events]
+            SET [IsArchived] = 1,
+                [CompletionDate] = COALESCE([CompletionDate], {completionDateUtc})
+            WHERE [StrategyId] = {strategyId};
+            """);
+    }
+
+    private void ArchiveStrategyById(int strategyId, DateTime archivedAtUtc)
+    {
+        _context.Database.ExecuteSqlInterpolated($"""
+            UPDATE [Strategies]
+            SET [IsArchived] = 1,
+                [ArchivedAtUtc] = {archivedAtUtc}
+            WHERE [Id] = {strategyId};
+            """);
+    }
+
+    private List<Strategy> LoadStrategiesForDisplay(int? goalId, bool includeArchived)
+    {
+        if (!_context.Database.IsSqlServer())
+        {
+            var query = _context.Strategies.AsQueryable();
+            if (!includeArchived)
+            {
+                query = query.Where(s => !s.IsArchived);
+            }
+
+            if (goalId.HasValue)
+            {
+                query = query.Where(s => s.StrategicGoalId == goalId.Value);
+            }
+
+            return query.ToList();
+        }
+
+        var connection = _context.Database.GetDbConnection();
+        var shouldClose = connection.State != ConnectionState.Open;
+        if (shouldClose)
+        {
+            connection.Open();
+        }
+
+        try
+        {
+            var existingColumns = GetSqlServerColumns(connection, "Strategies");
+            using var command = connection.CreateCommand();
+            command.CommandText = BuildStrategiesSelectSql(existingColumns, goalId, includeArchived);
+
+            if (goalId.HasValue && existingColumns.Contains("StrategicGoalId"))
+            {
+                var parameter = command.CreateParameter();
+                parameter.ParameterName = "@goalId";
+                parameter.Value = goalId.Value;
+                command.Parameters.Add(parameter);
+            }
+
+            using var reader = command.ExecuteReader();
+            var results = new List<Strategy>();
+            while (reader.Read())
+            {
+                results.Add(new Strategy
+                {
+                    Id = SafeGetInt(reader, "Id"),
+                    Name = SafeGetString(reader, "Name"),
+                    ProgramId = SafeGetNullableInt(reader, "ProgramId"),
+                    ProgramName = SafeGetNullableString(reader, "ProgramName"),
+                    ProgramType = SafeGetNullableString(reader, "ProgramType"),
+                    StrategicGoalId = SafeGetInt(reader, "StrategicGoalId"),
+                    Description = SafeGetString(reader, "Description"),
+                    Date = SafeGetNullableString(reader, "Date"),
+                    Time = SafeGetNullableString(reader, "Time"),
+                    CrossCollaboration = SafeGetString(reader, "CrossCollaboration"),
+                    Partners = SafeGetString(reader, "Partners"),
+                    EventFYear = SafeGetString(reader, "EventFYear"),
+                    IsArchived = SafeGetBool(reader, "IsArchived"),
+                    ArchivedAtUtc = SafeGetNullableDateTime(reader, "ArchivedAtUtc")
+                });
+            }
+
+            return results;
+        }
+        finally
+        {
+            if (shouldClose)
+            {
+                connection.Close();
+            }
+        }
+    }
+
+    private static HashSet<string> GetSqlServerColumns(DbConnection connection, string tableName)
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT [name]
+            FROM sys.columns
+            WHERE [object_id] = OBJECT_ID(@tableName);
+            """;
+
+        var parameter = command.CreateParameter();
+        parameter.ParameterName = "@tableName";
+        parameter.Value = $"dbo.{tableName}";
+        command.Parameters.Add(parameter);
+
+        var columns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            var name = reader["name"]?.ToString();
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                columns.Add(name);
+            }
+        }
+
+        return columns;
+    }
+
+    private static string BuildStrategiesSelectSql(HashSet<string> existingColumns, int? goalId, bool includeArchived)
+    {
+        string SelectColumn(string name, string fallbackSql)
+            => existingColumns.Contains(name) ? $"[{name}] AS [{name}]" : $"{fallbackSql} AS [{name}]";
+
+        var selectList = string.Join(", ", new[]
+        {
+            SelectColumn("Id", "0"),
+            SelectColumn("Name", "N''"),
+            SelectColumn("ProgramId", "NULL"),
+            SelectColumn("ProgramName", "NULL"),
+            SelectColumn("ProgramType", "NULL"),
+            SelectColumn("StrategicGoalId", "0"),
+            SelectColumn("Description", "N''"),
+            SelectColumn("Date", "NULL"),
+            SelectColumn("Time", "NULL"),
+            SelectColumn("CrossCollaboration", "N''"),
+            SelectColumn("Partners", "N''"),
+            SelectColumn("EventFYear", "N''"),
+            SelectColumn("IsArchived", "CAST(0 AS bit)"),
+            SelectColumn("ArchivedAtUtc", "CAST(NULL AS datetime2)")
+        });
+
+        var whereClauses = new List<string>();
+        if (!includeArchived && existingColumns.Contains("IsArchived"))
+        {
+            whereClauses.Add("ISNULL([IsArchived], 0) = 0");
+        }
+
+        if (goalId.HasValue && existingColumns.Contains("StrategicGoalId"))
+        {
+            whereClauses.Add("[StrategicGoalId] = @goalId");
+        }
+
+        var whereSql = whereClauses.Count > 0
+            ? $" WHERE {string.Join(" AND ", whereClauses)}"
+            : string.Empty;
+
+        return $"SELECT {selectList} FROM [dbo].[Strategies]{whereSql};";
+    }
+
+    private static string SafeGetString(DbDataReader reader, string name)
+        => SafeGetNullableString(reader, name) ?? string.Empty;
+
+    private static string? SafeGetNullableString(DbDataReader reader, string name)
+    {
+        var value = reader[name];
+        return value == DBNull.Value ? null : value.ToString();
+    }
+
+    private static int SafeGetInt(DbDataReader reader, string name)
+    {
+        var value = reader[name];
+        if (value == DBNull.Value)
+        {
+            return 0;
+        }
+
+        return value switch
+        {
+            int intValue => intValue,
+            long longValue => Convert.ToInt32(longValue),
+            short shortValue => shortValue,
+            byte byteValue => byteValue,
+            bool boolValue => boolValue ? 1 : 0,
+            _ when int.TryParse(value.ToString(), out var parsed) => parsed,
+            _ => 0
+        };
+    }
+
+    private static int? SafeGetNullableInt(DbDataReader reader, string name)
+    {
+        var value = reader[name];
+        if (value == DBNull.Value)
+        {
+            return null;
+        }
+
+        return value switch
+        {
+            int intValue => intValue,
+            long longValue => Convert.ToInt32(longValue),
+            short shortValue => shortValue,
+            byte byteValue => byteValue,
+            _ when int.TryParse(value.ToString(), out var parsed) => parsed,
+            _ => null
+        };
+    }
+
+    private static bool SafeGetBool(DbDataReader reader, string name)
+    {
+        var value = reader[name];
+        if (value == DBNull.Value)
+        {
+            return false;
+        }
+
+        return value switch
+        {
+            bool boolValue => boolValue,
+            byte byteValue => byteValue != 0,
+            short shortValue => shortValue != 0,
+            int intValue => intValue != 0,
+            long longValue => longValue != 0,
+            string stringValue when bool.TryParse(stringValue, out var parsedBool) => parsedBool,
+            string stringValue when int.TryParse(stringValue, out var parsedInt) => parsedInt != 0,
+            _ => false
+        };
+    }
+
+    private static DateTime? SafeGetNullableDateTime(DbDataReader reader, string name)
+    {
+        var value = reader[name];
+        if (value == DBNull.Value)
+        {
+            return null;
+        }
+
+        return value switch
+        {
+            DateTime dateTimeValue => dateTimeValue,
+            DateTimeOffset dateTimeOffsetValue => dateTimeOffsetValue.UtcDateTime,
+            string stringValue when DateTime.TryParse(stringValue, out var parsedDate) => parsedDate,
+            _ => null
+        };
     }
 }
