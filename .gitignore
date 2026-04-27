@@ -1,3 +1,4 @@
 StrategicDashboard/StrategicDashboard.csproj.lscache
 infra/azure/*.parameters.json
 !infra/azure/*.example.parameters.json
+StrategicDashboard/StrategicDashboard.csproj.lscache
