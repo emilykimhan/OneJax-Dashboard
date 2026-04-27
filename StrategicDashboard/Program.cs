@@ -109,17 +109,14 @@ using (var scope = app.Services.CreateScope())
         Console.WriteLine("[startup] Skipping automatic database migrations.");
     }
 
-    EnsureStaffAdminSupport(db);
-    EnsureStrategyProgramSupport(db);
-    EnsureStrategyArchiveSupport(db);
-    EnsureProgramArchiveSupport(db);
-    EnsureActivityLogSupport(db);
-    Console.WriteLine("[startup] Ensuring fallback admin access...");
-    EnsureFallbackAdminAccess(db, builder.Configuration);
-    EnsureProfessionalDevelopmentSchemaSupport(db);
-
-    Console.WriteLine("[startup] Ensuring canonical strategic goals...");
-    EnsureCanonicalStrategicGoals(db);
+    RunStartupStep("Ensuring staff admin schema support", () => EnsureStaffAdminSupport(db));
+    RunStartupStep("Ensuring strategy program schema support", () => EnsureStrategyProgramSupport(db));
+    RunStartupStep("Ensuring strategy archive schema support", () => EnsureStrategyArchiveSupport(db));
+    RunStartupStep("Ensuring program archive schema support", () => EnsureProgramArchiveSupport(db));
+    RunStartupStep("Ensuring activity log schema support", () => EnsureActivityLogSupport(db));
+    RunStartupStep("Ensuring fallback admin access", () => EnsureFallbackAdminAccess(db, builder.Configuration));
+    RunStartupStep("Ensuring professional development schema support", () => EnsureProfessionalDevelopmentSchemaSupport(db));
+    RunStartupStep("Ensuring canonical strategic goals", () => EnsureCanonicalStrategicGoals(db));
     Console.WriteLine("[startup] Database bootstrap complete.");
 }
 
@@ -146,6 +143,21 @@ app.MapControllerRoute(
 
 Console.WriteLine("[startup] Starting web host...");
 app.Run();
+
+static void RunStartupStep(string stepName, Action action)
+{
+    Console.WriteLine($"[startup] {stepName}...");
+
+    try
+    {
+        action();
+        Console.WriteLine($"[startup] {stepName} complete.");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[startup] {stepName} failed: {ex}");
+    }
+}
 
 static void EnsureCanonicalStrategicGoals(ApplicationDbContext db)
 {
