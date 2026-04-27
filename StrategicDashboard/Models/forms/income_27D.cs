@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OneJaxDashboard.Models
 {
@@ -16,6 +17,7 @@ namespace OneJaxDashboard.Models
         [Range(0.01, double.MaxValue, ErrorMessage = "Amount must be greater than zero.")]
         [DataType(DataType.Currency)]
         [Display(Name = "Amount")]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal Amount { get; set; }
 
         [Required(ErrorMessage = "Please select the month.")]
