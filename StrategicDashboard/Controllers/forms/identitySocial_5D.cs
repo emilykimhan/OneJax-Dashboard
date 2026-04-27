@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Logging;
 using OneJaxDashboard.Data;
 using OneJaxDashboard.Models;
 using OneJaxDashboard.Services;
@@ -11,28 +12,32 @@ namespace OneJaxDashboard.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly ActivityLogService _activityLog;
+        private readonly ILogger<identitySocial_5DController> _logger;
 
-        public identitySocial_5DController(ApplicationDbContext context, ActivityLogService activityLog)
+        public identitySocial_5DController(
+            ApplicationDbContext context,
+            ActivityLogService activityLog,
+            ILogger<identitySocial_5DController> logger)
         {
             _context = context;
             _activityLog = activityLog;
+            _logger = logger;
         }
 
         // GET: identitySocial_5D/Index
         [HttpGet]
         public IActionResult Index()
         {
-            // Calculate statistics
-            var allEntries = _context.socialMedia_5D.ToList();
-            ViewBag.TotalEntries = allEntries.Count;
-            
-            if (allEntries.Any())
+            try
             {
-                ViewBag.AverageEngagement = allEntries.Average(e => e.AverageEngagementRate);
-                ViewBag.GoalMetCount = allEntries.Count(e => e.GoalMet);
-                ViewBag.LatestYear = allEntries.Max(e => e.Year);
+                LoadStats();
             }
-            
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to load Social Media Engagement form data.");
+                TempData["Error"] = BuildLoadErrorMessage("Social Media Engagement", ex);
+            }
+
             return View(new socialMedia_5D());
         }
 
@@ -57,11 +62,52 @@ namespace OneJaxDashboard.Controllers
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, "Failed to save Social Media Engagement record for year {Year}.", model.Year);
                     TempData["Error"] = $"Error saving record: {ex.Message}";
                 }
             }
 
+            TryLoadStats();
             return View(model);
+        }
+
+        private void LoadStats()
+        {
+            var allEntries = _context.socialMedia_5D.ToList();
+            ViewBag.TotalEntries = allEntries.Count;
+
+            if (allEntries.Any())
+            {
+                ViewBag.AverageEngagement = allEntries.Average(e => e.AverageEngagementRate);
+                ViewBag.GoalMetCount = allEntries.Count(e => e.GoalMet);
+                ViewBag.LatestYear = allEntries.Max(e => e.Year);
+            }
+        }
+
+        private void TryLoadStats()
+        {
+            try
+            {
+                LoadStats();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to refresh Social Media Engagement stats.");
+                TempData["Error"] ??= BuildLoadErrorMessage("Social Media Engagement", ex);
+            }
+        }
+
+        private static string BuildLoadErrorMessage(string formName, Exception ex)
+        {
+            var message = ex.GetBaseException().Message;
+            var schemaProblem =
+                message.Contains("Invalid object name", StringComparison.OrdinalIgnoreCase) ||
+                message.Contains("Invalid column name", StringComparison.OrdinalIgnoreCase) ||
+                message.Contains("no such table", StringComparison.OrdinalIgnoreCase);
+
+            return schemaProblem
+                ? $"{formName} could not load because the Azure database schema is out of date."
+                : $"{formName} could not load right now. Please try again.";
         }
     }
 }

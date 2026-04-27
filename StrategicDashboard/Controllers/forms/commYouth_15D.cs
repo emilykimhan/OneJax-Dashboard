@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using OneJaxDashboard.Data;
 using OneJaxDashboard.Models;
 using OneJaxDashboard.Services;
@@ -13,11 +14,16 @@ namespace OneJaxDashboard.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly ActivityLogService _activityLog;
+        private readonly ILogger<CommYouth15DController> _logger;
 
-        public CommYouth15DController(ApplicationDbContext context, ActivityLogService activityLog)
+        public CommYouth15DController(
+            ApplicationDbContext context,
+            ActivityLogService activityLog,
+            ILogger<CommYouth15DController> logger)
         {
             _context = context;
             _activityLog = activityLog;
+            _logger = logger;
         }
 
         // GET: CommYouth15D/Index
@@ -25,7 +31,7 @@ namespace OneJaxDashboard.Controllers
         public IActionResult Index()
         {
             LoadStrategiesDropdown();
-            LoadStats();
+            TryLoadStats();
             return View(new YouthAttend_15D());
         }
 
@@ -50,21 +56,31 @@ namespace OneJaxDashboard.Controllers
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, "Failed to save Youth Attendance record for strategy {StrategyId}.", model.StrategyId);
                     TempData["Error"] = $"Error saving record: {ex.Message}";
                 }
             }
 
             LoadStrategiesDropdown(model.StrategyId);
-            LoadStats();
+            TryLoadStats();
             return View(model);
         }
 
         // ── Helpers ──────────────────────────────────────────────────
         private void LoadStrategiesDropdown(int? selectedId = null)
         {
-            ViewBag.Strategies = new SelectList(
-                _context.Strategies.OrderBy(s => s.Name),
-                "Id", "Name", selectedId);
+            try
+            {
+                ViewBag.Strategies = new SelectList(
+                    _context.Strategies.OrderBy(s => s.Name),
+                    "Id", "Name", selectedId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to load strategies for Youth Attendance.");
+                TempData["Error"] ??= BuildLoadErrorMessage("Youth Attendance", ex);
+                ViewBag.Strategies = new SelectList(Array.Empty<SelectListItem>(), "Value", "Text", selectedId);
+            }
         }
 
         private void LoadStats()
@@ -97,6 +113,32 @@ namespace OneJaxDashboard.Controllers
                     }
                 }
             }
+        }
+
+        private void TryLoadStats()
+        {
+            try
+            {
+                LoadStats();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to load Youth Attendance stats.");
+                TempData["Error"] ??= BuildLoadErrorMessage("Youth Attendance", ex);
+            }
+        }
+
+        private static string BuildLoadErrorMessage(string formName, Exception ex)
+        {
+            var message = ex.GetBaseException().Message;
+            var schemaProblem =
+                message.Contains("Invalid object name", StringComparison.OrdinalIgnoreCase) ||
+                message.Contains("Invalid column name", StringComparison.OrdinalIgnoreCase) ||
+                message.Contains("no such table", StringComparison.OrdinalIgnoreCase);
+
+            return schemaProblem
+                ? $"{formName} could not load because the Azure database schema is out of date."
+                : $"{formName} could not load right now. Please try again.";
         }
     }
 }

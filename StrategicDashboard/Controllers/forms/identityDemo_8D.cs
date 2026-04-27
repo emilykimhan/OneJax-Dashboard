@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using OneJaxDashboard.Data;
 using OneJaxDashboard.Models;
 using OneJaxDashboard.Services;
@@ -13,29 +14,34 @@ namespace OneJaxDashboard.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly ActivityLogService _activityLog;
+        private readonly ILogger<identityDemo_8DController> _logger;
 
-        public identityDemo_8DController(ApplicationDbContext context, ActivityLogService activityLog)
+        public identityDemo_8DController(
+            ApplicationDbContext context,
+            ActivityLogService activityLog,
+            ILogger<identityDemo_8DController> logger)
         {
             _context = context;
             _activityLog = activityLog;
+            _logger = logger;
         }
 
         // GET: identityDemo_8D/Index
         [HttpGet]
         public IActionResult Index()
         {
-            // Load strategies for dropdown
-            ViewBag.Strategies = new SelectList(_context.Strategies.OrderBy(s => s.Name), "Id", "Name");
-
-            // Calculate statistics
-            var allEntries = _context.demographics_8D.Include(d => d.Strategy).ToList();
-            ViewBag.TotalEntries = allEntries.Count;
-            
-            if (allEntries.Any())
+            try
             {
-                ViewBag.LatestYear = allEntries.Max(e => e.Year);
+                LoadStrategiesDropdown();
+                LoadStats();
             }
-            
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to load Program Demographics form data.");
+                TempData["Error"] = BuildLoadErrorMessage("Program Demographics", ex);
+                ViewBag.Strategies = EmptyStrategies();
+            }
+
             return View(new demographics_8D());
         }
 
@@ -59,7 +65,7 @@ namespace OneJaxDashboard.Controllers
                 if (duplicates.Any())
                 {
                     ModelState.AddModelError("ZipCodes", $"Duplicate zip codes found: {string.Join(", ", duplicates)}");
-                    ViewBag.Strategies = new SelectList(_context.Strategies.OrderBy(s => s.Name), "Id", "Name");
+                    LoadStrategiesDropdown(model.StrategyId);
                     return View(model);
                 }
 
@@ -80,20 +86,77 @@ namespace OneJaxDashboard.Controllers
                     TempData["Success"] = "Submitted successfully!";
                     ViewBag.ShowNewEntryButton = true;
                     
-                    // Reload strategies for dropdown
-                    ViewBag.Strategies = new SelectList(_context.Strategies.OrderBy(s => s.Name), "Id", "Name");
+                    LoadStrategiesDropdown(model.StrategyId);
                     
                     return View(model);
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, "Failed to save Program Demographics record for strategy {StrategyId} year {Year}.",
+                        model.StrategyId, model.Year);
                     TempData["Error"] = $"Error saving record: {ex.Message}";
                 }
             }
 
-            // Reload strategies for dropdown in case of validation error
-            ViewBag.Strategies = new SelectList(_context.Strategies.OrderBy(s => s.Name), "Id", "Name");
+            LoadStrategiesDropdown(model.StrategyId);
+            TryLoadStats();
             return View(model);
+        }
+
+        private void LoadStrategiesDropdown(int? selectedId = null)
+        {
+            try
+            {
+                ViewBag.Strategies = new SelectList(_context.Strategies.OrderBy(s => s.Name), "Id", "Name", selectedId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to load strategies for Program Demographics.");
+                TempData["Error"] ??= BuildLoadErrorMessage("Program Demographics", ex);
+                ViewBag.Strategies = EmptyStrategies(selectedId);
+            }
+        }
+
+        private void LoadStats()
+        {
+            var allEntries = _context.demographics_8D.Include(d => d.Strategy).ToList();
+            ViewBag.TotalEntries = allEntries.Count;
+
+            if (allEntries.Any())
+            {
+                ViewBag.LatestYear = allEntries.Max(e => e.Year);
+            }
+        }
+
+        private void TryLoadStats()
+        {
+            try
+            {
+                LoadStats();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to refresh Program Demographics stats.");
+                TempData["Error"] ??= BuildLoadErrorMessage("Program Demographics", ex);
+            }
+        }
+
+        private static SelectList EmptyStrategies(int? selectedId = null)
+        {
+            return new SelectList(Array.Empty<SelectListItem>(), "Value", "Text", selectedId);
+        }
+
+        private static string BuildLoadErrorMessage(string formName, Exception ex)
+        {
+            var message = ex.GetBaseException().Message;
+            var schemaProblem =
+                message.Contains("Invalid object name", StringComparison.OrdinalIgnoreCase) ||
+                message.Contains("Invalid column name", StringComparison.OrdinalIgnoreCase) ||
+                message.Contains("no such table", StringComparison.OrdinalIgnoreCase);
+
+            return schemaProblem
+                ? $"{formName} could not load because the Azure database schema is out of date."
+                : $"{formName} could not load right now. Please try again.";
         }
     }
 }
