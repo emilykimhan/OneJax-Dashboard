@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
 using OneJaxDashboard.Models;
 using OneJaxDashboard.Data;
+using OneJaxDashboard.Services;
 //Karrie
 namespace OneJaxDashboard.Controllers
 {
@@ -10,15 +12,140 @@ namespace OneJaxDashboard.Controllers
     public class DataEntryController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ActivityLogService _activityLog;
 
-        public DataEntryController(ApplicationDbContext context)
+        private static readonly Dictionary<string, (string Entity, string Label)> RecordActionMap = new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["CollabPartner"] = ("CollabTouch", "Collaborative Partner Touchpoint"),
+            ["FirstTimeParticipant"] = ("FirstTimeParticipant", "First-Time Participant"),
+            ["Demographics"] = ("Demographics", "Demographics Tracking"),
+            ["CommunityPerception"] = ("IdentityAnnualAverage", "Community Perception"),
+            ["Milestone"] = ("MilestoneAchievement", "Milestone Achievement"),
+            ["BudgetRecord"] = ("BudgetTracking", "Annual Budget Tracking"),
+            ["SocialMedia"] = ("SocialMediaEngagement", "Social Media Engagement"),
+            ["StaffSurvey"] = ("StaffSurvey", "Staff Survey"),
+            ["ProfessionalDevelopment"] = ("ProfessionalDevelopment", "Professional Development"),
+            ["MediaPlacement"] = ("MediaPlacements", "Media Placement"),
+            ["FeeForService"] = ("FeeForService", "Fee-for-Service Revenue"),
+            ["IncomeRecord"] = ("Income", "Earned Income"),
+            ["CommRate"] = ("CommunicationRate", "Communication Satisfaction"),
+            ["DonorEvent"] = ("DonorEvent", "Donor/Honoree Engagement"),
+            ["WebsiteTraffic"] = ("WebsiteTraffic", "Website Traffic"),
+            ["FrameworkPlan"] = ("FrameworkPlan2026", "Framework Development Plan"),
+            ["BoardMember"] = ("BoardMemberRecruitment", "Board Member Recruitment"),
+            ["BoardMeetingAttendance"] = ("BoardMeetingAttendance", "Board Meeting Attendance"),
+            ["SelfAssessment"] = ("SelfAssessment", "Self-Assessment"),
+            ["VolunteerProgram"] = ("VolunteerProgram", "Volunteer Program"),
+            ["InterfaithEvent"] = ("InterfaithEvent", "Interfaith Event"),
+            ["EventSatisfaction"] = ("EventSatisfaction", "Event Satisfaction"),
+            ["FaithCommunity"] = ("FaithCommunity", "Faith Community Representation"),
+            ["NetworkContacts"] = ("InterfaithContacts", "Interfaith Contacts"),
+            ["YouthAttendance"] = ("YouthAttendance", "Youth Attendance"),
+            ["ParticipantDiversity"] = ("Diversity", "Participant Diversity")
+        };
+
+        public DataEntryController(ApplicationDbContext context, ActivityLogService activityLog)
         {
             _context = context;
+            _activityLog = activityLog;
+        }
+
+        public override void OnActionExecuted(ActionExecutedContext context)
+        {
+            base.OnActionExecuted(context);
+            LogSuccessfulEditOrDelete(context);
         }
 
         public IActionResult Index()
         {
             return View();
+        }
+
+        private void LogSuccessfulEditOrDelete(ActionExecutedContext context)
+        {
+            if (!string.Equals(Request.Method, "POST", StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            if (context.Exception != null)
+            {
+                return;
+            }
+
+            if (context.Result is not RedirectToActionResult and not RedirectToRouteResult and not RedirectResult)
+            {
+                return;
+            }
+
+            var successMessage = TempData.Peek("Success") as string;
+            if (string.IsNullOrWhiteSpace(successMessage))
+            {
+                return;
+            }
+
+            var actionName = context.ActionDescriptor.RouteValues.TryGetValue("action", out var routeAction)
+                ? routeAction ?? string.Empty
+                : string.Empty;
+
+            string actionVerb;
+            string actionKey;
+            if (actionName.StartsWith("Edit", StringComparison.OrdinalIgnoreCase))
+            {
+                actionVerb = "Updated";
+                actionKey = actionName["Edit".Length..];
+            }
+            else if (actionName.StartsWith("Delete", StringComparison.OrdinalIgnoreCase))
+            {
+                actionVerb = "Deleted";
+                actionKey = actionName["Delete".Length..];
+            }
+            else
+            {
+                return;
+            }
+
+            if (!RecordActionMap.TryGetValue(actionKey, out var recordInfo))
+            {
+                return;
+            }
+
+            var actor = User.Identity?.Name ?? "Unknown";
+            var recordId = ResolveRecordId();
+            var details = recordId.HasValue ? $"Id={recordId.Value}" : null;
+
+            _activityLog.Log(
+                actor,
+                $"{actionVerb} {recordInfo.Label} Record",
+                recordInfo.Entity,
+                details);
+        }
+
+        private int? ResolveRecordId()
+        {
+            if (RouteData.Values.TryGetValue("id", out var routeId))
+            {
+                if (routeId is int idValue)
+                {
+                    return idValue;
+                }
+
+                if (int.TryParse(routeId?.ToString(), out var parsedRouteId))
+                {
+                    return parsedRouteId;
+                }
+            }
+
+            if (Request.HasFormContentType)
+            {
+                var formId = Request.Form["Id"].FirstOrDefault();
+                if (int.TryParse(formId, out var parsedId))
+                {
+                    return parsedId;
+                }
+            }
+
+            return null;
         }
 
         public IActionResult RecordHistory(string recordType, string dateFilter, DateTime? startDate, DateTime? endDate)
