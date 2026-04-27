@@ -150,6 +150,8 @@ namespace OneJaxDashboard.Controllers
 
         public IActionResult RecordHistory(string recordType, string dateFilter, DateTime? startDate, DateTime? endDate)
         {
+            try
+            {
             // Load all records
             var allStaffSurveys = _context.StaffSurveys_22D.ToList();
             var allProfDev = _context.ProfessionalDevelopments.ToList();
@@ -924,6 +926,12 @@ namespace OneJaxDashboard.Controllers
             ViewBag.VisibleCount = filteredStaffSurveys.Count + filteredProfDev.Count + filteredMediaPlacements.Count + filteredWebsiteTraffic.Count + filteredDonorEvents.Count + filteredCommRates.Count + filteredFeeForServices.Count + filteredIncomeRecords.Count + filteredBudgetRecords.Count + filteredSocialMedia.Count + filteredMilestones.Count + filteredCommunityPerception.Count + filteredDemographics.Count + filteredFrameworkPlans.Count + filteredBoardMembers.Count + filteredBoardMeetings.Count + filteredSelfAssessments.Count + filteredVolunteerPrograms.Count + filteredInterfaithEvents.Count + filteredEventSatisfactions.Count + filteredFaithCommunity.Count + filteredNetworkContacts.Count + filteredYouthAttendance.Count + filteredParticipantDiversity.Count + filteredFirstTimeParticipants.Count + filteredCollabPartners.Count;
             
             return View();
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Record history could not load: {ex.GetBaseException().Message}";
+                return RedirectToAction("Index");
+            }
         }
 
         // Delete Collaborative Partner Touchpoints
