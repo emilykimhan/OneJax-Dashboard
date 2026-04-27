@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 //Karrie's 
 namespace OneJaxDashboard.Models
 {
@@ -19,6 +20,7 @@ namespace OneJaxDashboard.Models
         [Required(ErrorMessage = "Percentage is required")]
         [Range(0, 100, ErrorMessage = "Percentage must be between 0 and 100")]
         [Display(Name = "Percentage of Respondents Identifying OneJax as Trusted Leader")]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal Percentage { get; set; }
  
         [Display(Name = "Total Respondents")]
