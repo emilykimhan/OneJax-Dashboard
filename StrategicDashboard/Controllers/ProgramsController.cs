@@ -424,19 +424,55 @@ public class ProgramsController : Controller
 
     private void PersistArchivedProgram(ArchivedProgram archivedProgram)
     {
-        if (!RequiresExplicitIdInsert("ArchivedPrograms"))
+        if (!_context.Database.IsSqlServer())
         {
             _context.ArchivedPrograms.Add(archivedProgram);
             _context.SaveChanges();
             return;
         }
 
-        archivedProgram.Id = GetNextSqlServerId("ArchivedPrograms");
+        var existingColumns = GetSqlServerColumns(_context.Database.GetDbConnection(), "ArchivedPrograms");
+        var useExplicitId = RequiresExplicitIdInsert("ArchivedPrograms");
 
-        _context.Database.ExecuteSqlInterpolated($"""
-            INSERT INTO [ArchivedPrograms] ([Id], [OriginalProgramId], [ProgramName], [ProgramType], [Description], [ArchivedAtUtc])
-            VALUES ({archivedProgram.Id}, {archivedProgram.OriginalProgramId}, {archivedProgram.ProgramName}, {archivedProgram.ProgramType}, {archivedProgram.Description}, {archivedProgram.ArchivedAtUtc});
-            """);
+        if (useExplicitId)
+        {
+            archivedProgram.Id = GetNextSqlServerId("ArchivedPrograms");
+        }
+
+        var insertColumns = new List<string>();
+        var valuePlaceholders = new List<string>();
+        var parameters = new List<object?>();
+
+        void AddValue(string columnName, object? value)
+        {
+            if (!existingColumns.Contains(columnName))
+            {
+                return;
+            }
+
+            insertColumns.Add($"[{columnName}]");
+            valuePlaceholders.Add("{" + parameters.Count + "}");
+            parameters.Add(value);
+        }
+
+        if (useExplicitId)
+        {
+            AddValue("Id", archivedProgram.Id);
+        }
+
+        AddValue("OriginalProgramId", archivedProgram.OriginalProgramId);
+        AddValue("ProgramName", archivedProgram.ProgramName);
+        AddValue("ProgramType", archivedProgram.ProgramType);
+        AddValue("Description", archivedProgram.Description);
+        AddValue("ArchivedAtUtc", archivedProgram.ArchivedAtUtc);
+
+        if (insertColumns.Count == 0)
+        {
+            throw new InvalidOperationException("ArchivedPrograms does not have any writable columns.");
+        }
+
+        var sql = $"INSERT INTO [ArchivedPrograms] ({string.Join(", ", insertColumns)}) VALUES ({string.Join(", ", valuePlaceholders)});";
+        _context.Database.ExecuteSqlRaw(sql, parameters.ToArray());
     }
 
     private bool RequiresExplicitIdInsert(string tableName)
@@ -605,30 +641,46 @@ public class ProgramsController : Controller
 
     private static HashSet<string> GetSqlServerColumns(DbConnection connection, string tableName)
     {
-        using var command = connection.CreateCommand();
-        command.CommandText = """
-            SELECT [name]
-            FROM sys.columns
-            WHERE [object_id] = OBJECT_ID(@tableName);
-            """;
-
-        var parameter = command.CreateParameter();
-        parameter.ParameterName = "@tableName";
-        parameter.Value = $"dbo.{tableName}";
-        command.Parameters.Add(parameter);
-
-        var columns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        using var reader = command.ExecuteReader();
-        while (reader.Read())
+        var shouldClose = connection.State != ConnectionState.Open;
+        if (shouldClose)
         {
-            var name = reader["name"]?.ToString();
-            if (!string.IsNullOrWhiteSpace(name))
-            {
-                columns.Add(name);
-            }
+            connection.Open();
         }
 
-        return columns;
+        try
+        {
+            using var command = connection.CreateCommand();
+            command.CommandText = """
+                SELECT [name]
+                FROM sys.columns
+                WHERE [object_id] = OBJECT_ID(@tableName);
+                """;
+
+            var parameter = command.CreateParameter();
+            parameter.ParameterName = "@tableName";
+            parameter.Value = $"dbo.{tableName}";
+            command.Parameters.Add(parameter);
+
+            var columns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                var name = reader["name"]?.ToString();
+                if (!string.IsNullOrWhiteSpace(name))
+                {
+                    columns.Add(name);
+                }
+            }
+
+            return columns;
+        }
+        finally
+        {
+            if (shouldClose)
+            {
+                connection.Close();
+            }
+        }
     }
 
     private static string BuildArchivedProgramsSelectSql(HashSet<string> existingColumns)
