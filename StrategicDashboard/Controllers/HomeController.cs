@@ -319,7 +319,7 @@ public class HomeController : Controller
             // Show error message but with empty data structure
             var errorData = new DashboardViewModel 
             { 
-                StrategicGoals = new List<StrategicGoal>(),
+                StrategicGoals = CreateStrategicGoalShells(),
                 HasError = true,
                 ErrorMessage = ex.InnerException?.Message ?? ex.Message,
                 DataSource = "Database Connection Error"
@@ -1715,35 +1715,57 @@ public class HomeController : Controller
 
     private async Task<List<StrategicGoal>> CreateAllStrategicGoalsAsync()
     {
-        var goals = new List<StrategicGoal>();
-        
-        // Define the four strategic goals structure
-        var goalTemplates = new List<(int Id, string Name, string Description, string Color)>
-        {
-            (1, "Organizational Building", "Strengthening organizational structure and capacity", "var(--onejax-navy)"),
-            (2, "Financial Sustainability", "Ensuring sustainable financial health and growth", "var(--onejax-green)"),
-            (3, "Identity/Value Proposition", "Establishing and communicating OneJax's unique identity and value", "var(--onejax-orange)"),
-            (4, "Community Engagement", "Building partnerships and community connections", "var(--onejax-blue)")
-        };
+        var goals = CreateStrategicGoalShells();
 
-        foreach (var template in goalTemplates)
+        foreach (var goal in goals)
         {
-            var goal = new StrategicGoal
-            {
-                Id = template.Id,
-                Name = template.Name,
-                Description = template.Description,
-                Color = template.Color,
-                Events = new List<Event>(),
-                Metrics = new List<GoalMetric>()
-            };
-
-            goal.Events = await GetDashboardEventsForGoalAsync(template.Id);
-            
-            goals.Add(goal);
+            goal.Events = await GetDashboardEventsForGoalAsync(goal.Id);
         }
 
         return goals;
+    }
+
+    private static List<StrategicGoal> CreateStrategicGoalShells()
+    {
+        return new List<StrategicGoal>
+        {
+            new StrategicGoal
+            {
+                Id = 1,
+                Name = "Organizational Building",
+                Description = "Strengthening organizational structure and capacity",
+                Color = "var(--onejax-navy)",
+                Events = new List<Event>(),
+                Metrics = new List<GoalMetric>()
+            },
+            new StrategicGoal
+            {
+                Id = 2,
+                Name = "Financial Sustainability",
+                Description = "Ensuring sustainable financial health and growth",
+                Color = "var(--onejax-green)",
+                Events = new List<Event>(),
+                Metrics = new List<GoalMetric>()
+            },
+            new StrategicGoal
+            {
+                Id = 3,
+                Name = "Identity/Value Proposition",
+                Description = "Establishing and communicating OneJax's unique identity and value",
+                Color = "var(--onejax-orange)",
+                Events = new List<Event>(),
+                Metrics = new List<GoalMetric>()
+            },
+            new StrategicGoal
+            {
+                Id = 4,
+                Name = "Community Engagement",
+                Description = "Building partnerships and community connections",
+                Color = "var(--onejax-blue)",
+                Events = new List<Event>(),
+                Metrics = new List<GoalMetric>()
+            }
+        };
     }
     
     private async Task EnhanceGoalsWithComprehensiveMetricsAsync(List<StrategicGoal> goals, string fiscalYear)

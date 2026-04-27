@@ -133,6 +133,13 @@
 <div class="container mt-4">
     <div class="card p-4 dashboard-content-shell">
 
+        @if (Model.HasError && canManageData)
+        {
+            <div class="alert alert-warning" role="alert">
+                Dashboard data loaded in fallback mode: @Model.ErrorMessage
+            </div>
+        }
+
 
 
         <!-- Modern Navigation Tabs -->
