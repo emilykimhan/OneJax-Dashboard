@@ -227,8 +227,7 @@ public class StrategyController : Controller
 
         _context.Strategies.Add(dbEvent);
         _context.SaveChanges();
-        SyncLinkedDashboardEvent(dbEvent);
-        _context.SaveChanges();
+        TrySyncLinkedDashboardEvent(dbEvent);
 
 
         string goalName = selectedGoal.Name;
@@ -344,8 +343,7 @@ public class StrategyController : Controller
         evt.EventFYear = ComputeFiscalYear(eventDate);
 
         // Save changes to the database
-        SyncLinkedDashboardEvent(evt);
-        _context.SaveChanges();
+        TrySyncLinkedDashboardEvent(evt);
         var previousGoalName = ResolveGoalName(previousGoalId);
         var updatedGoalName = ResolveGoalName(evt.StrategicGoalId);
 
@@ -513,6 +511,19 @@ public class StrategyController : Controller
     private static string Normalize(string? value) => (value ?? string.Empty).Trim();
     private static string Display(string value) => string.IsNullOrEmpty(value) ? "(empty)" : value;
 
+    private void TrySyncLinkedDashboardEvent(Strategy strategy)
+    {
+        try
+        {
+            SyncLinkedDashboardEvent(strategy);
+            _context.SaveChanges();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[strategy-sync] Failed to sync dashboard event for strategy {strategy.Id}: {ex}");
+        }
+    }
+
     private void SyncLinkedDashboardEvent(Strategy strategy)
     {
         var canonicalEvent = _context.Events
@@ -550,23 +561,31 @@ public class StrategyController : Controller
 
     private string? ResolveDashboardSyncOwnerUsername()
     {
-        if (_context.Staffauth.Any(s => s.Username == DashboardSyncOwnerUsername))
+        try
         {
-            return DashboardSyncOwnerUsername;
-        }
+            if (_context.Staffauth.Any(s => s.Username == DashboardSyncOwnerUsername))
+            {
+                return DashboardSyncOwnerUsername;
+            }
 
-        var currentUsername = User.Identity?.Name?.Trim();
-        if (!string.IsNullOrWhiteSpace(currentUsername)
-            && _context.Staffauth.Any(s => s.Username == currentUsername))
+            var currentUsername = User.Identity?.Name?.Trim();
+            if (!string.IsNullOrWhiteSpace(currentUsername)
+                && _context.Staffauth.Any(s => s.Username == currentUsername))
+            {
+                return currentUsername;
+            }
+
+            return _context.Staffauth
+                .OrderByDescending(s => s.IsAdmin)
+                .ThenBy(s => s.Username)
+                .Select(s => s.Username)
+                .FirstOrDefault();
+        }
+        catch (Exception ex)
         {
-            return currentUsername;
+            Console.WriteLine($"[strategy-sync] Failed to resolve dashboard sync owner: {ex}");
+            return null;
         }
-
-        return _context.Staffauth
-            .OrderByDescending(s => s.IsAdmin)
-            .ThenBy(s => s.Username)
-            .Select(s => s.Username)
-            .FirstOrDefault();
     }
 
     private static DateTime? ParseStrategyDate(string? eventDate)
