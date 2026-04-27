@@ -268,6 +268,10 @@ Migrations/
  20260422142715_AddYearMonthToMilestone.Designer.cs
  20260422145035_AddMonthToNetworkContacts.cs
  20260422145035_AddMonthToNetworkContacts.Designer.cs
+ 20260427044952_FixDecimalPrecisionAnnotations.cs
+ 20260427044952_FixDecimalPrecisionAnnotations.Designer.cs
+ 20260427142828_FixPendingModelChanges.cs
+ 20260427142828_FixPendingModelChanges.Designer.cs
  20260427145634_SyncPendingModelChanges.cs
  20260427145634_SyncPendingModelChanges.Designer.cs
  20260427152856_FixStaffauthIdentity.cs
