@@ -15,15 +15,18 @@ namespace OneJaxDashboard.Controllers
         private readonly ApplicationDbContext _context;
         private readonly ActivityLogService _activityLog;
         private readonly ILogger<CommYouth15DController> _logger;
+        private readonly SqlServerInsertCompatibilityService _sqlServerInsertCompatibility;
 
         public CommYouth15DController(
             ApplicationDbContext context,
             ActivityLogService activityLog,
-            ILogger<CommYouth15DController> logger)
+            ILogger<CommYouth15DController> logger,
+            SqlServerInsertCompatibilityService sqlServerInsertCompatibility)
         {
             _context = context;
             _activityLog = activityLog;
             _logger = logger;
+            _sqlServerInsertCompatibility = sqlServerInsertCompatibility;
         }
 
         // GET: CommYouth15D/Index
@@ -45,6 +48,7 @@ namespace OneJaxDashboard.Controllers
                 try
                 {
                     model.CreatedDate = DateTime.Now;
+                    _sqlServerInsertCompatibility.PrepareForInsert(model, "YouthAttend_15D");
                     _context.YouthAttend_15D.Add(model);
                     _context.SaveChanges();
                     var actor = User?.Identity?.Name ?? "Unknown";
@@ -57,7 +61,7 @@ namespace OneJaxDashboard.Controllers
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Failed to save Youth Attendance record for strategy {StrategyId}.", model.StrategyId);
-                    TempData["Error"] = $"Error saving record: {ex.Message}";
+                    TempData["Error"] = $"Error saving record: {ex.GetBaseException().Message}";
                 }
             }
 

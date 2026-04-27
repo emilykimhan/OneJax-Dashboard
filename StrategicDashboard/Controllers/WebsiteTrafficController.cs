@@ -13,15 +13,18 @@ namespace OneJaxDashboard.Controllers
         private readonly ApplicationDbContext _context;
         private readonly ActivityLogService _activityLog;
         private readonly ILogger<WebsiteTrafficController> _logger;
+        private readonly SqlServerInsertCompatibilityService _sqlServerInsertCompatibility;
 
         public WebsiteTrafficController(
             ApplicationDbContext context,
             ActivityLogService activityLog,
-            ILogger<WebsiteTrafficController> logger)
+            ILogger<WebsiteTrafficController> logger,
+            SqlServerInsertCompatibilityService sqlServerInsertCompatibility)
         {
             _context = context;
             _activityLog = activityLog;
             _logger = logger;
+            _sqlServerInsertCompatibility = sqlServerInsertCompatibility;
         }
 
         // GET: WebsiteTraffic/Index
@@ -41,6 +44,7 @@ namespace OneJaxDashboard.Controllers
             {
                 try
                 {
+                    _sqlServerInsertCompatibility.PrepareForInsert(model, "WebsiteTraffic");
                     _context.WebsiteTraffic.Add(model);
                     _context.SaveChanges();
 
@@ -61,7 +65,7 @@ namespace OneJaxDashboard.Controllers
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Failed to save Website Traffic record.");
-                    TempData["Error"] = $"Error saving record: {ex.Message}";
+                    TempData["Error"] = $"Error saving record: {ex.GetBaseException().Message}";
                 }
             }
 

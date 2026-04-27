@@ -13,15 +13,18 @@ namespace OneJaxDashboard.Controllers
         private readonly ApplicationDbContext _context;
         private readonly ActivityLogService _activityLog;
         private readonly ILogger<identitySocial_5DController> _logger;
+        private readonly SqlServerInsertCompatibilityService _sqlServerInsertCompatibility;
 
         public identitySocial_5DController(
             ApplicationDbContext context,
             ActivityLogService activityLog,
-            ILogger<identitySocial_5DController> logger)
+            ILogger<identitySocial_5DController> logger,
+            SqlServerInsertCompatibilityService sqlServerInsertCompatibility)
         {
             _context = context;
             _activityLog = activityLog;
             _logger = logger;
+            _sqlServerInsertCompatibility = sqlServerInsertCompatibility;
         }
 
         // GET: identitySocial_5D/Index
@@ -51,6 +54,7 @@ namespace OneJaxDashboard.Controllers
                 try
                 {
                     model.CreatedDate = DateTime.Now;
+                    _sqlServerInsertCompatibility.PrepareForInsert(model, "socialMedia_5D");
                     _context.socialMedia_5D.Add(model);
                     _context.SaveChanges();
                     var actor = User?.Identity?.Name ?? "Unknown";
@@ -63,7 +67,7 @@ namespace OneJaxDashboard.Controllers
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Failed to save Social Media Engagement record for year {Year}.", model.Year);
-                    TempData["Error"] = $"Error saving record: {ex.Message}";
+                    TempData["Error"] = $"Error saving record: {ex.GetBaseException().Message}";
                 }
             }
 

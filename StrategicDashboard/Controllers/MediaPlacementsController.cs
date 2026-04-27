@@ -13,15 +13,18 @@ namespace OneJaxDashboard.Controllers
         private readonly ApplicationDbContext _context;
         private readonly ActivityLogService _activityLog;
         private readonly ILogger<MediaPlacementsController> _logger;
+        private readonly SqlServerInsertCompatibilityService _sqlServerInsertCompatibility;
 
         public MediaPlacementsController(
             ApplicationDbContext context,
             ActivityLogService activityLog,
-            ILogger<MediaPlacementsController> logger)
+            ILogger<MediaPlacementsController> logger,
+            SqlServerInsertCompatibilityService sqlServerInsertCompatibility)
         {
             _context = context;
             _activityLog = activityLog;
             _logger = logger;
+            _sqlServerInsertCompatibility = sqlServerInsertCompatibility;
         }
 
         // GET: MediaPlacements/Index
@@ -41,6 +44,7 @@ namespace OneJaxDashboard.Controllers
             {
                 try
                 {
+                    _sqlServerInsertCompatibility.PrepareForInsert(model, "MediaPlacements_3D");
                     _context.MediaPlacements_3D.Add(model);
                     _context.SaveChanges();
 
@@ -62,7 +66,7 @@ namespace OneJaxDashboard.Controllers
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Failed to save Media Placements record.");
-                    TempData["Error"] = $"Error saving record: {ex.Message}";
+                    TempData["Error"] = $"Error saving record: {ex.GetBaseException().Message}";
                 }
             }
 
