@@ -143,15 +143,6 @@ public class ProgramsController : Controller
         {
             try
             {
-                var linkedStrategies = _context.Strategies
-                    .Where(s => s.ProgramId == program.Id)
-                    .ToList();
-
-                foreach (var strategy in linkedStrategies)
-                {
-                    strategy.ProgramId = null;
-                }
-
                 var archivedProgram = new ArchivedProgram
                 {
                     OriginalProgramId = program.Id,
@@ -161,9 +152,12 @@ public class ProgramsController : Controller
                     ArchivedAtUtc = DateTime.UtcNow
                 };
 
-                _context.ArchivedPrograms.Add(archivedProgram);
+                using var transaction = _context.Database.BeginTransaction();
+                DetachProgramFromStrategies(program.Id);
+                PersistArchivedProgram(archivedProgram);
                 _context.Programs.Remove(program);
                 _context.SaveChanges();
+                transaction.Commit();
 
                 _activityLog.Log(
                     GetActorName(),
@@ -172,8 +166,9 @@ public class ProgramsController : Controller
                     details: $"Id={program.Id}; Archived '{program.ProgramName}' ({program.ProgramType})");
                 TempData["ProgramsSuccess"] = "Program archived successfully.";
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Console.WriteLine($"[program-archive] Failed to archive program '{program.ProgramName}' (Id={program.Id}): {ex}");
                 TempData["ProgramsError"] = "We couldn't archive that program right now. Please try again.";
                 return RedirectToAction(nameof(Index));
             }
@@ -319,6 +314,15 @@ public class ProgramsController : Controller
 
     private static string Display(string value) => string.IsNullOrEmpty(value) ? "(empty)" : value;
 
+    private void DetachProgramFromStrategies(int programId)
+    {
+        _context.Database.ExecuteSqlInterpolated($"""
+            UPDATE [Strategies]
+            SET [ProgramId] = NULL
+            WHERE [ProgramId] = {programId};
+            """);
+    }
+
     private void PersistProgram(Programs program)
     {
         if (!RequiresExplicitIdInsert("Programs"))
@@ -333,6 +337,23 @@ public class ProgramsController : Controller
         _context.Database.ExecuteSqlInterpolated($"""
             INSERT INTO [Programs] ([Id], [ProgramName], [Description], [ProgramType])
             VALUES ({program.Id}, {program.ProgramName}, {program.Description}, {program.ProgramType});
+            """);
+    }
+
+    private void PersistArchivedProgram(ArchivedProgram archivedProgram)
+    {
+        if (!RequiresExplicitIdInsert("ArchivedPrograms"))
+        {
+            _context.ArchivedPrograms.Add(archivedProgram);
+            _context.SaveChanges();
+            return;
+        }
+
+        archivedProgram.Id = GetNextSqlServerId("ArchivedPrograms");
+
+        _context.Database.ExecuteSqlInterpolated($"""
+            INSERT INTO [ArchivedPrograms] ([Id], [OriginalProgramId], [ProgramName], [ProgramType], [Description], [ArchivedAtUtc])
+            VALUES ({archivedProgram.Id}, {archivedProgram.OriginalProgramId}, {archivedProgram.ProgramName}, {archivedProgram.ProgramType}, {archivedProgram.Description}, {archivedProgram.ArchivedAtUtc});
             """);
     }
 
