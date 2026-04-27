@@ -5,6 +5,7 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "View Events";
     var successMessage = TempData["SuccessMessage"] as string;
+    var pageErrorMessage = ViewBag.PageErrorMessage as string;
 
     // Prefer Goals provided by the controller (best: comes from a Goals table)
     var goals = ViewBag.Goals as List<SelectListItem>;
@@ -496,6 +497,10 @@
         <div class="text-center mb-3">
             <span class="success-text">@successMessage</span>
         </div>
+    }
+    @if (!string.IsNullOrWhiteSpace(pageErrorMessage))
+    {
+        <div class="alert alert-warning text-center mb-3">@pageErrorMessage</div>
     }
 
     <!-- Fiscal Year Tabs (server-side filter via query string) -->
