@@ -10,6 +10,13 @@ namespace StrategicDashboard.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            // This migration fixes SQLite's TEXT storage of decimal columns.
+            // SQL Server already stores these columns as decimal(18,2), so skip on SQL Server.
+            if (migrationBuilder.ActiveProvider == "Microsoft.EntityFrameworkCore.SqlServer")
+            {
+                return;
+            }
+
             migrationBuilder.AlterColumn<decimal>(
                 name: "PostEventSurveySatisfaction",
                 table: "YouthAttend_15D",
@@ -294,6 +301,11 @@ namespace StrategicDashboard.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            if (migrationBuilder.ActiveProvider == "Microsoft.EntityFrameworkCore.SqlServer")
+            {
+                return;
+            }
+
             migrationBuilder.AlterColumn<decimal>(
                 name: "PostEventSurveySatisfaction",
                 table: "YouthAttend_15D",
