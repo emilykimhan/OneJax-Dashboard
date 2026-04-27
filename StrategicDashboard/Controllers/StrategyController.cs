@@ -45,17 +45,31 @@ public class StrategyController : Controller
 
     private List<SelectListItem> GetGoalOptions()
     {
-        var dbGoals = _context.StrategicGoals
-            .Where(g => g.Id >= 1 && g.Id <= 4)
-            .OrderBy(g => g.Id)
-            .Select(g => new SelectListItem
-            {
-                Value = g.Id.ToString(),
-                Text = g.Name
-            })
-            .ToList();
+        try
+        {
+            var dbGoals = _context.StrategicGoals
+                .Where(g => g.Id >= 1 && g.Id <= 4)
+                .OrderBy(g => g.Id)
+                .Select(g => new SelectListItem
+                {
+                    Value = g.Id.ToString(),
+                    Text = g.Name
+                })
+                .ToList();
 
-        return dbGoals.Count > 0 ? dbGoals : Goals;
+            return dbGoals.Count > 0 ? dbGoals : Goals;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[strategy-index] Failed to load strategic goals: {ex}");
+            return Goals
+                .Select(goal => new SelectListItem
+                {
+                    Value = goal.Value,
+                    Text = goal.Text
+                })
+                .ToList();
+        }
     }
 
     private StrategicGoal? EnsureGoalExists(int goalId)
@@ -101,9 +115,20 @@ public class StrategyController : Controller
 
     private IActionResult RenderIndex(int? goalId, Dictionary<string, string>? formValues = null, Dictionary<string, string>? formErrors = null)
     {
-        var programOptions = _context.Programs
-            .OrderBy(p => p.ProgramName)
-            .ToList();
+        var pageErrors = new List<string>();
+        List<Programs> programOptions;
+        try
+        {
+            programOptions = _context.Programs
+                .OrderBy(p => p.ProgramName)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[strategy-index] Failed to load programs: {ex}");
+            programOptions = new List<Programs>();
+            pageErrors.Add("Programs couldn't be loaded right now.");
+        }
 
         var goalOptions = GetGoalOptions();
         ViewBag.Goals = goalOptions;
@@ -116,14 +141,25 @@ public class StrategyController : Controller
             .OrderBy(t => t)
             .ToList();
 
-        var goalStrategies = goalId.HasValue
-            ? _context.Strategies.Where(s => !s.IsArchived && s.StrategicGoalId == goalId.Value).ToList()
-            : _context.Strategies.Where(s => !s.IsArchived).ToList();
+        List<Strategy> goalStrategies;
+        try
+        {
+            goalStrategies = goalId.HasValue
+                ? _context.Strategies.Where(s => !s.IsArchived && s.StrategicGoalId == goalId.Value).ToList()
+                : _context.Strategies.Where(s => !s.IsArchived).ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[strategy-index] Failed to load strategies: {ex}");
+            goalStrategies = new List<Strategy>();
+            pageErrors.Add("Events couldn't be loaded right now.");
+        }
 
         goalStrategies = goalStrategies.OrderByDescending(s => s.Id).ToList();
 
         ViewBag.GoalId = goalId;
         ViewBag.SuccessMessage = TempData["SuccessMessage"];
+        ViewBag.PageErrorMessage = pageErrors.Count > 0 ? string.Join(" ", pageErrors) : null;
         ViewBag.FormValues = formValues ?? new Dictionary<string, string>();
         ViewBag.FormErrors = formErrors ?? new Dictionary<string, string>();
 
@@ -420,10 +456,21 @@ public class StrategyController : Controller
 
     public IActionResult ViewEvents(string? fy = null) 
     {
-        // Fetch all events from the database
-        var events = _context.Strategies
-            .Where(s => !s.IsArchived)
-            .ToList();
+        var pageErrors = new List<string>();
+        List<Strategy> events;
+        try
+        {
+            events = _context.Strategies
+                .Where(s => !s.IsArchived)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[strategy-view-events] Failed to load strategies: {ex}");
+            events = new List<Strategy>();
+            pageErrors.Add("Events couldn't be loaded right now.");
+        }
+
         var hasUpdates = false;
         foreach (var evt in events)
         {
@@ -441,15 +488,30 @@ public class StrategyController : Controller
         }
 
         // ViewEvents should only show the four strategic goals as goal filter tabs.
-        ViewBag.Goals = _context.StrategicGoals
-            .Where(g => g.Id >= 1 && g.Id <= 4)
-            .OrderBy(g => g.Id)
-            .Select(g => new SelectListItem
-            {
-                Value = g.Id.ToString(),
-                Text = g.Name
-            })
-            .ToList();
+        try
+        {
+            ViewBag.Goals = _context.StrategicGoals
+                .Where(g => g.Id >= 1 && g.Id <= 4)
+                .OrderBy(g => g.Id)
+                .Select(g => new SelectListItem
+                {
+                    Value = g.Id.ToString(),
+                    Text = g.Name
+                })
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[strategy-view-events] Failed to load strategic goals: {ex}");
+            ViewBag.Goals = Goals
+                .Select(goal => new SelectListItem
+                {
+                    Value = goal.Value,
+                    Text = goal.Text
+                })
+                .ToList();
+            pageErrors.Add("Goals couldn't be loaded right now.");
+        }
 
         var fiscalYears = events
             .Select(e => FiscalYearSelection.ToEventsFormat(e.EventFYear))
@@ -483,6 +545,7 @@ public class StrategyController : Controller
 
         ViewBag.FiscalYears = fiscalYears;
         ViewBag.SelectedFY = selectedFiscalYear;
+        ViewBag.PageErrorMessage = pageErrors.Count > 0 ? string.Join(" ", pageErrors) : null;
         FiscalYearSelection.PersistSelection(Response, selectedFiscalYear);
 
         // Pass the events to the view
