@@ -139,7 +139,7 @@ public class ProgramsController : Controller
     [ValidateAntiForgeryToken]
     public IActionResult Archive(int id)
     {
-        var program = _context.Programs.FirstOrDefault(p => p.Id == id);
+        var program = GetProgramForArchiveMutation(id);
         if (program != null)
         {
             try
@@ -156,8 +156,7 @@ public class ProgramsController : Controller
                 using var transaction = _context.Database.BeginTransaction();
                 DetachProgramFromStrategies(program.Id);
                 PersistArchivedProgram(archivedProgram);
-                _context.Programs.Remove(program);
-                _context.SaveChanges();
+                DeleteProgramById(program.Id);
                 transaction.Commit();
 
                 _activityLog.Log(
@@ -347,6 +346,62 @@ public class ProgramsController : Controller
             UPDATE [Strategies]
             SET [ProgramId] = NULL
             WHERE [ProgramId] = {programId};
+            """);
+    }
+
+    private Programs? GetProgramForArchiveMutation(int id)
+    {
+        if (!_context.Database.IsSqlServer())
+        {
+            return _context.Programs.FirstOrDefault(p => p.Id == id);
+        }
+
+        var connection = _context.Database.GetDbConnection();
+        var shouldClose = connection.State != ConnectionState.Open;
+        if (shouldClose)
+        {
+            connection.Open();
+        }
+
+        try
+        {
+            var existingColumns = GetSqlServerColumns(connection, "Programs");
+            using var command = connection.CreateCommand();
+            command.CommandText = BuildProgramsSelectByIdSql(existingColumns);
+
+            var parameter = command.CreateParameter();
+            parameter.ParameterName = "@id";
+            parameter.Value = id;
+            command.Parameters.Add(parameter);
+
+            using var reader = command.ExecuteReader();
+            if (!reader.Read())
+            {
+                return null;
+            }
+
+            return new Programs
+            {
+                Id = SafeGetInt(reader, "Id"),
+                ProgramName = SafeGetString(reader, "ProgramName"),
+                Description = SafeGetString(reader, "Description"),
+                ProgramType = SafeGetString(reader, "ProgramType")
+            };
+        }
+        finally
+        {
+            if (shouldClose)
+            {
+                connection.Close();
+            }
+        }
+    }
+
+    private void DeleteProgramById(int id)
+    {
+        _context.Database.ExecuteSqlInterpolated($"""
+            DELETE FROM [Programs]
+            WHERE [Id] = {id};
             """);
     }
 
@@ -596,6 +651,22 @@ public class ProgramsController : Controller
             : " ORDER BY [Id] DESC";
 
         return $"SELECT {selectList} FROM [dbo].[ArchivedPrograms]{orderBy};";
+    }
+
+    private static string BuildProgramsSelectByIdSql(HashSet<string> existingColumns)
+    {
+        string SelectColumn(string name, string fallbackSql)
+            => existingColumns.Contains(name) ? $"[{name}] AS [{name}]" : $"{fallbackSql} AS [{name}]";
+
+        var selectList = string.Join(", ", new[]
+        {
+            SelectColumn("Id", "0"),
+            SelectColumn("ProgramName", "N''"),
+            SelectColumn("Description", "N''"),
+            SelectColumn("ProgramType", "N''")
+        });
+
+        return $"SELECT TOP (1) {selectList} FROM [dbo].[Programs] WHERE [Id] = @id;";
     }
 
     private static string BuildArchivedStrategiesSelectSql(HashSet<string> existingColumns)
