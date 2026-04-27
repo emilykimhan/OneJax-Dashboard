@@ -5,6 +5,7 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "View Events";
     var successMessage = TempData["SuccessMessage"] as string;
+    var errorMessage = TempData["ErrorMessage"] as string;
     var pageErrorMessage = ViewBag.PageErrorMessage as string;
 
     // Prefer Goals provided by the controller (best: comes from a Goals table)
@@ -497,6 +498,10 @@
         <div class="text-center mb-3">
             <span class="success-text">@successMessage</span>
         </div>
+    }
+    @if (!string.IsNullOrWhiteSpace(errorMessage))
+    {
+        <div class="alert alert-danger text-center mb-3">@errorMessage</div>
     }
     @if (!string.IsNullOrWhiteSpace(pageErrorMessage))
     {

@@ -415,39 +415,57 @@ public class StrategyController : Controller
     [HttpPost]
     public IActionResult Delete(int id)
     {
-        // Fetch the strategy from the database
-        var strategy = _context.Strategies.FirstOrDefault(s => s.Id == id);
-        if (strategy == null)
+        var deletedEventName = GetStrategyNameForMutation(id);
+        if (deletedEventName == null)
         {
-            return NotFound(); // Return 404 if the strategy doesn't exist
+            return NotFound();
         }
 
-        // Remove the strategy from the database
-        var deletedEventName = strategy.Name;
-        _events.RemoveByStrategyTemplate(id);
-        _context.Strategies.Remove(strategy);
-        _context.SaveChanges();
+        try
+        {
+            using var transaction = _context.Database.BeginTransaction();
+            DeleteEventsByStrategyTemplate(id);
+            DeleteStrategyById(id);
+            transaction.Commit();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[strategy-delete] Failed to delete strategy event '{deletedEventName}' (Id={id}): {ex}");
+            TempData["ErrorMessage"] = "We couldn't delete that event right now. Please try again.";
+            return RedirectToAction(nameof(ViewEvents));
+        }
+
         _activityLog.Log(GetActorName(), "Deleted Core Strategy Event", "Strategy",
             details: $"Id={id}; Deleted '{deletedEventName}'");
 
         TempData["SuccessMessage"] = "Event deleted successfully!";
-        return RedirectToAction("ViewEvents");
+        return RedirectToAction(nameof(ViewEvents));
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     public IActionResult Archive(int id)
     {
-        var strategy = _context.Strategies.FirstOrDefault(s => s.Id == id);
-        if (strategy == null)
+        var archivedEventName = GetStrategyNameForMutation(id);
+        if (archivedEventName == null)
         {
             return NotFound();
         }
 
-        strategy.IsArchived = true;
-        strategy.ArchivedAtUtc = DateTime.UtcNow;
-        _events.ArchiveByStrategyTemplate(id);
-        _context.SaveChanges();
+        try
+        {
+            using var transaction = _context.Database.BeginTransaction();
+            var archivedAtUtc = DateTime.UtcNow;
+            ArchiveEventsByStrategyTemplate(id, archivedAtUtc);
+            ArchiveStrategyById(id, archivedAtUtc);
+            transaction.Commit();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[strategy-archive] Failed to archive strategy event '{archivedEventName}' (Id={id}): {ex}");
+            TempData["ErrorMessage"] = "We couldn't archive that event right now. Please try again.";
+            return RedirectToAction(nameof(ViewEvents));
+        }
 
         TempData["ProgramsSuccess"] = "Event archived.";
         return RedirectToAction("Archive", "Programs");
@@ -762,6 +780,85 @@ public class StrategyController : Controller
                 connection.Close();
             }
         }
+    }
+
+    private string? GetStrategyNameForMutation(int id)
+    {
+        if (!_context.Database.IsSqlServer())
+        {
+            return _context.Strategies
+                .Where(s => s.Id == id)
+                .Select(s => s.Name)
+                .FirstOrDefault();
+        }
+
+        var connection = _context.Database.GetDbConnection();
+        var shouldClose = connection.State != ConnectionState.Open;
+        if (shouldClose)
+        {
+            connection.Open();
+        }
+
+        try
+        {
+            using var command = connection.CreateCommand();
+            command.CommandText = """
+                SELECT TOP (1) [Name]
+                FROM [dbo].[Strategies]
+                WHERE [Id] = @id;
+                """;
+
+            var parameter = command.CreateParameter();
+            parameter.ParameterName = "@id";
+            parameter.Value = id;
+            command.Parameters.Add(parameter);
+
+            var result = command.ExecuteScalar();
+            return result == null || result == DBNull.Value ? null : result.ToString();
+        }
+        finally
+        {
+            if (shouldClose)
+            {
+                connection.Close();
+            }
+        }
+    }
+
+    private void DeleteEventsByStrategyTemplate(int strategyId)
+    {
+        _context.Database.ExecuteSqlInterpolated($"""
+            DELETE FROM [Events]
+            WHERE [StrategyId] = {strategyId};
+            """);
+    }
+
+    private void DeleteStrategyById(int strategyId)
+    {
+        _context.Database.ExecuteSqlInterpolated($"""
+            DELETE FROM [Strategies]
+            WHERE [Id] = {strategyId};
+            """);
+    }
+
+    private void ArchiveEventsByStrategyTemplate(int strategyId, DateTime completionDateUtc)
+    {
+        _context.Database.ExecuteSqlInterpolated($"""
+            UPDATE [Events]
+            SET [IsArchived] = 1,
+                [CompletionDate] = COALESCE([CompletionDate], {completionDateUtc})
+            WHERE [StrategyId] = {strategyId};
+            """);
+    }
+
+    private void ArchiveStrategyById(int strategyId, DateTime archivedAtUtc)
+    {
+        _context.Database.ExecuteSqlInterpolated($"""
+            UPDATE [Strategies]
+            SET [IsArchived] = 1,
+                [ArchivedAtUtc] = {archivedAtUtc}
+            WHERE [Id] = {strategyId};
+            """);
     }
 
     private List<Strategy> LoadStrategiesForDisplay(int? goalId, bool includeArchived)
