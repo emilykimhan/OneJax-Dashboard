@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 //Karrie's 
 namespace OneJaxDashboard.Models
 {
@@ -39,20 +40,24 @@ namespace OneJaxDashboard.Models
 
         [Required(ErrorMessage = "Please enter the participant satisfaction rating.")]
         [Range(0, 100, ErrorMessage = "Participant satisfaction rating must be between 0 and 100.")]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal ParticipantSatisfactionRating { get; set; }
 
         [Required(ErrorMessage = "Please enter the partner satisfaction rating.")]
         [Range(0, 100, ErrorMessage = "Partner satisfaction rating must be between 0 and 100.")]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal PartnerSatisfactionRating { get; set; }
 
         [Required(ErrorMessage = "Please enter the revenue received.")]
         [Range(0, double.MaxValue, ErrorMessage = "Revenue must be a positive number.")]
         [DataType(DataType.Currency)]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal RevenueReceived { get; set; }
 
         [Required(ErrorMessage = "Please enter the expense received.")]
         [Range(0, double.MaxValue, ErrorMessage = "Expense must be a positive number.")]
         [DataType(DataType.Currency)]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal ExpenseReceived { get; set; }
 
         [Required(ErrorMessage = "Please enter the year.")]

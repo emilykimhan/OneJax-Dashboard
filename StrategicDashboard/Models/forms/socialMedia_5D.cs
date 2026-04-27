@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OneJaxDashboard.Models
 {
@@ -14,18 +15,22 @@ namespace OneJaxDashboard.Models
 
         [Range(0, 100, ErrorMessage = "Engagement rate must be between 0 and 100")]
         [Display(Name = "July-Sept Engagement Rate (%)")]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal? JulySeptEngagementRate { get; set; }
 
         [Range(0, 100, ErrorMessage = "Engagement rate must be between 0 and 100")]
         [Display(Name = "Oct-Dec Engagement Rate (%)")]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal? OctDecEngagementRate { get; set; }
 
         [Range(0, 100, ErrorMessage = "Engagement rate must be between 0 and 100")]
         [Display(Name = "Jan-Mar Engagement Rate (%)")]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal? JanMarEngagementRate { get; set; }
 
         [Range(0, 100, ErrorMessage = "Engagement rate must be between 0 and 100")]
         [Display(Name = "April-June Engagement Rate (%)")]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal? AprilJuneEngagementRate { get; set; }
 
         public DateTime CreatedDate { get; set; } = DateTime.Now;

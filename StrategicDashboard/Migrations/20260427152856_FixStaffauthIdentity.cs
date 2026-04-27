@@ -8,6 +8,11 @@ namespace StrategicDashboard.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            if (migrationBuilder.ActiveProvider != "Microsoft.EntityFrameworkCore.SqlServer")
+            {
+                return;
+            }
+
             migrationBuilder.Sql("EXEC sp_rename 'Staffauth', 'Staffauth_backup'");
 
             migrationBuilder.Sql(@"
@@ -28,6 +33,11 @@ namespace StrategicDashboard.Migrations
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            if (migrationBuilder.ActiveProvider != "Microsoft.EntityFrameworkCore.SqlServer")
+            {
+                return;
+            }
+
             migrationBuilder.Sql("EXEC sp_rename 'Staffauth_backup', 'Staffauth'");
             migrationBuilder.Sql("DROP TABLE Staffauth");
         }
