@@ -446,21 +446,21 @@ static void EnsureProfessionalDevelopmentSchemaSupport(ApplicationDbContext db)
         db,
         tableName: "ProfessionalDevelopments",
         columnName: "Year",
-        sqlServerDefinition: "[Year] int NOT NULL CONSTRAINT [DF_ProfessionalDevelopments_Year] DEFAULT(0)",
+        sqlServerDefinition: "int NOT NULL CONSTRAINT [DF_ProfessionalDevelopments_Year] DEFAULT(0)",
         sqliteDefinition: "\"Year\" INTEGER NOT NULL DEFAULT 0");
 
     EnsureRequiredColumn(
         db,
         tableName: "ProfessionalDevelopments",
         columnName: "Activities",
-        sqlServerDefinition: "[Activities] nvarchar(2000) NOT NULL CONSTRAINT [DF_ProfessionalDevelopments_Activities] DEFAULT(N'')",
+        sqlServerDefinition: "nvarchar(2000) NOT NULL CONSTRAINT [DF_ProfessionalDevelopments_Activities] DEFAULT(N'')",
         sqliteDefinition: "\"Activities\" TEXT NOT NULL DEFAULT ''");
 
     EnsureRequiredColumn(
         db,
         tableName: "ProfessionalDevelopments",
         columnName: "Month",
-        sqlServerDefinition: "[Month] nvarchar(20) NOT NULL CONSTRAINT [DF_ProfessionalDevelopments_Month] DEFAULT(N'')",
+        sqlServerDefinition: "nvarchar(20) NOT NULL CONSTRAINT [DF_ProfessionalDevelopments_Month] DEFAULT(N'')",
         sqliteDefinition: "\"Month\" TEXT NOT NULL DEFAULT ''");
 }
 
@@ -473,13 +473,19 @@ static void EnsureRequiredColumn(
 {
     if (db.Database.IsSqlServer())
     {
-        db.Database.ExecuteSqlRaw($"""
-            IF COL_LENGTH('{tableName}', '{columnName}') IS NULL
+        var tableIdentifier = DelimitSqlServerIdentifier(tableName);
+        var columnIdentifier = DelimitSqlServerIdentifier(columnName);
+        var tableNameLiteral = EscapeSqlServerStringLiteral(tableName);
+        var columnNameLiteral = EscapeSqlServerStringLiteral(columnName);
+        var sql = $"""
+            IF COL_LENGTH('{tableNameLiteral}', '{columnNameLiteral}') IS NULL
             BEGIN
-                ALTER TABLE [{tableName}]
-                ADD {sqlServerDefinition};
+                ALTER TABLE {tableIdentifier}
+                ADD {columnIdentifier} {sqlServerDefinition};
             END
-            """);
+            """;
+
+        db.Database.ExecuteSqlRaw(sql);
 
         return;
     }
@@ -532,6 +538,19 @@ static void EnsureRequiredColumn(
         }
     }
 }
+
+static string DelimitSqlServerIdentifier(string identifier)
+{
+    if (string.IsNullOrWhiteSpace(identifier) ||
+        identifier.Any(character => !char.IsLetterOrDigit(character) && character != '_'))
+    {
+        throw new InvalidOperationException($"'{identifier}' is not a valid SQL Server identifier.");
+    }
+
+    return $"[{identifier}]";
+}
+
+static string EscapeSqlServerStringLiteral(string value) => value.Replace("'", "''", StringComparison.Ordinal);
 
 static void EnsureStrategyProgramSupport(ApplicationDbContext db)
 {

@@ -10,9 +10,15 @@ namespace StrategicDashboard.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Events_Staffauth_OwnerUsername",
-                table: "Events");
+            if (ActiveProvider == "Microsoft.EntityFrameworkCore.SqlServer")
+            {
+                migrationBuilder.Sql("""
+                    IF OBJECT_ID(N'[dbo].[FK_Events_Staffauth_OwnerUsername]', N'F') IS NOT NULL
+                    BEGIN
+                        ALTER TABLE [Events] DROP CONSTRAINT [FK_Events_Staffauth_OwnerUsername];
+                    END
+                    """);
+            }
 
             if (ActiveProvider == "Microsoft.EntityFrameworkCore.SqlServer")
             {
@@ -23,6 +29,15 @@ namespace StrategicDashboard.Migrations
                         ADD [IsAdmin] bit NOT NULL CONSTRAINT [DF_Staffauth_IsAdmin] DEFAULT(0);
                     END
                     """);
+            }
+            else
+            {
+                migrationBuilder.AddColumn<bool>(
+                    name: "IsAdmin",
+                    table: "Staffauth",
+                    type: "INTEGER",
+                    nullable: false,
+                    defaultValue: false);
             }
 
             migrationBuilder.AddForeignKey(
@@ -36,9 +51,21 @@ namespace StrategicDashboard.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Events_Staffauth_OwnerUsername",
-                table: "Events");
+            if (ActiveProvider == "Microsoft.EntityFrameworkCore.SqlServer")
+            {
+                migrationBuilder.Sql("""
+                    IF OBJECT_ID(N'[dbo].[FK_Events_Staffauth_OwnerUsername]', N'F') IS NOT NULL
+                    BEGIN
+                        ALTER TABLE [Events] DROP CONSTRAINT [FK_Events_Staffauth_OwnerUsername];
+                    END
+                    """);
+            }
+            else
+            {
+                migrationBuilder.DropForeignKey(
+                    name: "FK_Events_Staffauth_OwnerUsername",
+                    table: "Events");
+            }
 
             if (ActiveProvider == "Microsoft.EntityFrameworkCore.SqlServer")
             {
@@ -62,6 +89,12 @@ namespace StrategicDashboard.Migrations
                         ALTER TABLE [Staffauth] DROP COLUMN [IsAdmin];
                     END
                     """);
+            }
+            else
+            {
+                migrationBuilder.DropColumn(
+                    name: "IsAdmin",
+                    table: "Staffauth");
             }
 
             migrationBuilder.AddForeignKey(
