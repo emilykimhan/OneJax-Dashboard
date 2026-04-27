@@ -270,6 +270,8 @@ Migrations/
  20260422145035_AddMonthToNetworkContacts.Designer.cs
  20260427152856_FixStaffauthIdentity.cs
  20260427152856_FixStaffauthIdentity.Designer.cs
+ 20260427145634_SyncPendingModelChanges.cs
+ 20260427145634_SyncPendingModelChanges.Designer.cs
  ApplicationDbContextModelSnapshot.cs
 Models/
  ActivityLogEntry.cs
