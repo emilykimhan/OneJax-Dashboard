@@ -115,7 +115,7 @@ using (var scope = app.Services.CreateScope())
     EnsureProgramArchiveSupport(db);
     EnsureActivityLogSupport(db);
     Console.WriteLine("[startup] Ensuring fallback admin access...");
-    EnsureFallbackAdminAccess(db);
+    EnsureFallbackAdminAccess(db, builder.Configuration);
     EnsureProfessionalDevelopmentSchemaSupport(db);
 
     Console.WriteLine("[startup] Ensuring canonical strategic goals...");
@@ -263,7 +263,7 @@ static void EnsureStaffAdminSupport(ApplicationDbContext db)
     }
 }
 
-static void EnsureFallbackAdminAccess(ApplicationDbContext db)
+static void EnsureFallbackAdminAccess(ApplicationDbContext db, IConfiguration configuration)
 {
     if (db.Staffauth.Any(staff => staff.IsAdmin))
     {
@@ -273,6 +273,30 @@ static void EnsureFallbackAdminAccess(ApplicationDbContext db)
     var fallbackAdmin = db.Staffauth.FirstOrDefault(staff => staff.Username == "admin");
     if (fallbackAdmin == null)
     {
+        var bootstrapUsername = configuration["AdminBootstrap:Username"];
+        var bootstrapPassword = configuration["AdminBootstrap:Password"];
+        var bootstrapEmail = configuration["AdminBootstrap:Email"];
+        var bootstrapName = configuration["AdminBootstrap:Name"];
+
+        if (string.IsNullOrWhiteSpace(bootstrapUsername) ||
+            string.IsNullOrWhiteSpace(bootstrapPassword) ||
+            string.IsNullOrWhiteSpace(bootstrapEmail))
+        {
+            Console.WriteLine("[admin-bootstrap] No admin accounts found. Set AdminBootstrap__Username, AdminBootstrap__Password, and AdminBootstrap__Email to create the first admin account.");
+            return;
+        }
+
+        db.Staffauth.Add(new Staffauth
+        {
+            Username = bootstrapUsername.Trim(),
+            Password = bootstrapPassword,
+            Email = bootstrapEmail.Trim(),
+            Name = string.IsNullOrWhiteSpace(bootstrapName) ? bootstrapUsername.Trim() : bootstrapName.Trim(),
+            IsAdmin = true
+        });
+
+        db.SaveChanges();
+        Console.WriteLine($"[admin-bootstrap] Created first administrator account '{bootstrapUsername.Trim()}' because no admin accounts were found.");
         return;
     }
 
