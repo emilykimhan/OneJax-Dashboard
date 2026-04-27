@@ -9,6 +9,7 @@ using System.Security.Claims;
 using System.Collections.Generic;
 using System.Linq;
 using System.Data;
+using System.Data.Common;
 //dina
 [Authorize(Roles = "Admin,Staff")]
 public class StrategyController : Controller
@@ -144,9 +145,7 @@ public class StrategyController : Controller
         List<Strategy> goalStrategies;
         try
         {
-            goalStrategies = goalId.HasValue
-                ? _context.Strategies.Where(s => !s.IsArchived && s.StrategicGoalId == goalId.Value).ToList()
-                : _context.Strategies.Where(s => !s.IsArchived).ToList();
+            goalStrategies = LoadStrategiesForDisplay(goalId, includeArchived: false);
         }
         catch (Exception ex)
         {
@@ -460,9 +459,7 @@ public class StrategyController : Controller
         List<Strategy> events;
         try
         {
-            events = _context.Strategies
-                .Where(s => !s.IsArchived)
-                .ToList();
+            events = LoadStrategiesForDisplay(goalId: null, includeArchived: false);
         }
         catch (Exception ex)
         {
@@ -765,5 +762,233 @@ public class StrategyController : Controller
                 connection.Close();
             }
         }
+    }
+
+    private List<Strategy> LoadStrategiesForDisplay(int? goalId, bool includeArchived)
+    {
+        if (!_context.Database.IsSqlServer())
+        {
+            var query = _context.Strategies.AsQueryable();
+            if (!includeArchived)
+            {
+                query = query.Where(s => !s.IsArchived);
+            }
+
+            if (goalId.HasValue)
+            {
+                query = query.Where(s => s.StrategicGoalId == goalId.Value);
+            }
+
+            return query.ToList();
+        }
+
+        var connection = _context.Database.GetDbConnection();
+        var shouldClose = connection.State != ConnectionState.Open;
+        if (shouldClose)
+        {
+            connection.Open();
+        }
+
+        try
+        {
+            var existingColumns = GetSqlServerColumns(connection, "Strategies");
+            using var command = connection.CreateCommand();
+            command.CommandText = BuildStrategiesSelectSql(existingColumns, goalId, includeArchived);
+
+            if (goalId.HasValue && existingColumns.Contains("StrategicGoalId"))
+            {
+                var parameter = command.CreateParameter();
+                parameter.ParameterName = "@goalId";
+                parameter.Value = goalId.Value;
+                command.Parameters.Add(parameter);
+            }
+
+            using var reader = command.ExecuteReader();
+            var results = new List<Strategy>();
+            while (reader.Read())
+            {
+                results.Add(new Strategy
+                {
+                    Id = SafeGetInt(reader, "Id"),
+                    Name = SafeGetString(reader, "Name"),
+                    ProgramId = SafeGetNullableInt(reader, "ProgramId"),
+                    ProgramName = SafeGetNullableString(reader, "ProgramName"),
+                    ProgramType = SafeGetNullableString(reader, "ProgramType"),
+                    StrategicGoalId = SafeGetInt(reader, "StrategicGoalId"),
+                    Description = SafeGetString(reader, "Description"),
+                    Date = SafeGetNullableString(reader, "Date"),
+                    Time = SafeGetNullableString(reader, "Time"),
+                    CrossCollaboration = SafeGetString(reader, "CrossCollaboration"),
+                    Partners = SafeGetString(reader, "Partners"),
+                    EventFYear = SafeGetString(reader, "EventFYear"),
+                    IsArchived = SafeGetBool(reader, "IsArchived"),
+                    ArchivedAtUtc = SafeGetNullableDateTime(reader, "ArchivedAtUtc")
+                });
+            }
+
+            return results;
+        }
+        finally
+        {
+            if (shouldClose)
+            {
+                connection.Close();
+            }
+        }
+    }
+
+    private static HashSet<string> GetSqlServerColumns(DbConnection connection, string tableName)
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT [name]
+            FROM sys.columns
+            WHERE [object_id] = OBJECT_ID(@tableName);
+            """;
+
+        var parameter = command.CreateParameter();
+        parameter.ParameterName = "@tableName";
+        parameter.Value = $"dbo.{tableName}";
+        command.Parameters.Add(parameter);
+
+        var columns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            var name = reader["name"]?.ToString();
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                columns.Add(name);
+            }
+        }
+
+        return columns;
+    }
+
+    private static string BuildStrategiesSelectSql(HashSet<string> existingColumns, int? goalId, bool includeArchived)
+    {
+        string SelectColumn(string name, string fallbackSql)
+            => existingColumns.Contains(name) ? $"[{name}] AS [{name}]" : $"{fallbackSql} AS [{name}]";
+
+        var selectList = string.Join(", ", new[]
+        {
+            SelectColumn("Id", "0"),
+            SelectColumn("Name", "N''"),
+            SelectColumn("ProgramId", "NULL"),
+            SelectColumn("ProgramName", "NULL"),
+            SelectColumn("ProgramType", "NULL"),
+            SelectColumn("StrategicGoalId", "0"),
+            SelectColumn("Description", "N''"),
+            SelectColumn("Date", "NULL"),
+            SelectColumn("Time", "NULL"),
+            SelectColumn("CrossCollaboration", "N''"),
+            SelectColumn("Partners", "N''"),
+            SelectColumn("EventFYear", "N''"),
+            SelectColumn("IsArchived", "CAST(0 AS bit)"),
+            SelectColumn("ArchivedAtUtc", "CAST(NULL AS datetime2)")
+        });
+
+        var whereClauses = new List<string>();
+        if (!includeArchived && existingColumns.Contains("IsArchived"))
+        {
+            whereClauses.Add("ISNULL([IsArchived], 0) = 0");
+        }
+
+        if (goalId.HasValue && existingColumns.Contains("StrategicGoalId"))
+        {
+            whereClauses.Add("[StrategicGoalId] = @goalId");
+        }
+
+        var whereSql = whereClauses.Count > 0
+            ? $" WHERE {string.Join(" AND ", whereClauses)}"
+            : string.Empty;
+
+        return $"SELECT {selectList} FROM [dbo].[Strategies]{whereSql};";
+    }
+
+    private static string SafeGetString(DbDataReader reader, string name)
+        => SafeGetNullableString(reader, name) ?? string.Empty;
+
+    private static string? SafeGetNullableString(DbDataReader reader, string name)
+    {
+        var value = reader[name];
+        return value == DBNull.Value ? null : value.ToString();
+    }
+
+    private static int SafeGetInt(DbDataReader reader, string name)
+    {
+        var value = reader[name];
+        if (value == DBNull.Value)
+        {
+            return 0;
+        }
+
+        return value switch
+        {
+            int intValue => intValue,
+            long longValue => Convert.ToInt32(longValue),
+            short shortValue => shortValue,
+            byte byteValue => byteValue,
+            bool boolValue => boolValue ? 1 : 0,
+            _ when int.TryParse(value.ToString(), out var parsed) => parsed,
+            _ => 0
+        };
+    }
+
+    private static int? SafeGetNullableInt(DbDataReader reader, string name)
+    {
+        var value = reader[name];
+        if (value == DBNull.Value)
+        {
+            return null;
+        }
+
+        return value switch
+        {
+            int intValue => intValue,
+            long longValue => Convert.ToInt32(longValue),
+            short shortValue => shortValue,
+            byte byteValue => byteValue,
+            _ when int.TryParse(value.ToString(), out var parsed) => parsed,
+            _ => null
+        };
+    }
+
+    private static bool SafeGetBool(DbDataReader reader, string name)
+    {
+        var value = reader[name];
+        if (value == DBNull.Value)
+        {
+            return false;
+        }
+
+        return value switch
+        {
+            bool boolValue => boolValue,
+            byte byteValue => byteValue != 0,
+            short shortValue => shortValue != 0,
+            int intValue => intValue != 0,
+            long longValue => longValue != 0,
+            string stringValue when bool.TryParse(stringValue, out var parsedBool) => parsedBool,
+            string stringValue when int.TryParse(stringValue, out var parsedInt) => parsedInt != 0,
+            _ => false
+        };
+    }
+
+    private static DateTime? SafeGetNullableDateTime(DbDataReader reader, string name)
+    {
+        var value = reader[name];
+        if (value == DBNull.Value)
+        {
+            return null;
+        }
+
+        return value switch
+        {
+            DateTime dateTimeValue => dateTimeValue,
+            DateTimeOffset dateTimeOffsetValue => dateTimeOffsetValue.UtcDateTime,
+            string stringValue when DateTime.TryParse(stringValue, out var parsedDate) => parsedDate,
+            _ => null
+        };
     }
 }
