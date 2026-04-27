@@ -23,6 +23,7 @@
     var trustScheduled = IsScheduledMetric("Community Perception Survey");
     var frameworkScheduled = IsScheduledMetric("Strategic Plan Completion");
     var socialScheduled = IsScheduledMetric("Website Traffic");
+
     var mediaStatusText = mediaScheduled ? "Tracking" : "Starts later";
     var mediaDisplayText = mediaScheduled ? id.MediaPlacementsTotal.ToString("N0") : "--";
     var mediaSubtext = mediaScheduled
@@ -31,6 +32,7 @@
     var mediaProgressWidth = mediaScheduled && id.MediaPlacementsTarget > 0
         ? Math.Min(id.MediaPlacementsTotal * 100.0m / id.MediaPlacementsTarget, 100)
         : 0;
+
     var trustStatusClass = trustScheduled && id.TrustPercent >= id.TrustTargetPercent ? "ok" : trustScheduled ? "warn" : string.Empty;
     var trustStatusText = !trustScheduled ? "Starts later" : id.TrustPercent >= id.TrustTargetPercent ? "Target achieved" : "In progress";
     var trustDisplayText = trustScheduled ? $"{id.TrustPercent:N1}%" : "--";
@@ -40,829 +42,485 @@
     var trustProgressWidth = trustScheduled && id.TrustTargetPercent > 0
         ? Math.Min(id.TrustPercent * 100.0m / id.TrustTargetPercent, 100)
         : 0;
-    var frameworkStatusClass = frameworkScheduled && !string.IsNullOrWhiteSpace(id.FrameworkStatus) && id.FrameworkStatus.Contains("track", StringComparison.OrdinalIgnoreCase)
-        ? "ok"
-        : string.Empty;
+
     var frameworkStatusText = !frameworkScheduled ? "Starts later" : string.IsNullOrWhiteSpace(id.FrameworkStatus) ? "Planning" : id.FrameworkStatus;
     var frameworkHeadline = frameworkScheduled ? (id.FrameworkGoalMet ? "Goal met" : "In progress") : "Scheduled later";
     var frameworkDetailText = frameworkScheduled
         ? $"{(id.FrameworkYear.HasValue ? id.FrameworkYear.Value.ToString() : string.Empty)}{(!string.IsNullOrWhiteSpace(id.FrameworkQuarter) ? $" {id.FrameworkQuarter}" : string.Empty)}"
         : UnscheduledMetricText("Strategic Plan Completion", "Framework rollout");
+
     var socialStatusText = socialScheduled ? "Tracking" : "Starts later";
     var socialDisplayText = socialScheduled ? $"{id.SocialAvgEngagementRate:N1}%" : "--";
     var socialSubtext = socialScheduled
         ? $"Avg engagement {(id.SocialYear.HasValue ? $"({id.SocialYear})" : string.Empty)}{(id.SocialGoalMet ? " | Goal met" : string.Empty)}"
         : UnscheduledMetricText("Website Traffic", "Social engagement");
+
     var zipServed = id.ZipCodesServed;
     var zipTarget = id.ZipCodeGoal;
     var zipProgressPct = zipTarget > 0 ? (zipServed * 100.0m / zipTarget) : 0m;
 
     <div class="mb-4">
 
-	                                    <style>
-	                                        /* Identity KPI cards: keep them dashboard-sized and prevent "stretched" look. */
-	                                        .onejax-kpi-card {
-	                                            border-radius: 12px;
-	                                            border: 1px solid var(--onejax-border);
-	                                            box-shadow: none;
-	                                            position: relative;
-	                                            overflow: hidden;
-	                                        }
+        <!-- Row 1: Media Placements + Community Perception Survey -->
+        <div class="row g-3">
+            <!-- Media Placements Card -->
+            <div class="col-md-6 mb-3 d-flex">
+                <div class="card w-100" style="background: white; border: 1px solid #d1d5db; border-radius: 8px; box-shadow: 0 2px 8px rgba(15,23,42,0.08); display: flex; flex-direction: column;">
+                    <div class="card-header" style="background: linear-gradient(135deg, var(--onejax-navy), var(--onejax-blue)); color: white; border: none; border-radius: 8px 8px 0 0; padding: 0.9rem 1rem;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-0" style="font-weight: 600; font-size: 1rem;">Media Placements</h6>
+                                <small style="opacity: 0.9;">Earned media tracking</small>
+                            </div>
+                            <div class="text-end d-flex flex-column align-items-end gap-2">
+                                <span class="badge" style="background: @(mediaScheduled ? "rgba(255,255,255,0.2)" : "#dbeafe"); color: @(mediaScheduled ? "white" : "#1e3a8a"); font-size: 0.75rem;">
+                                    @mediaStatusText
+                                </span>
+                                @if (canManageData)
+                                {
+                                    <a asp-controller="MediaPlacements" asp-action="Index" class="btn btn-sm btn-outline-light" style="border-radius: 999px; white-space: nowrap;">Enter data</a>
+                                    <a asp-controller="DataEntry" asp-action="RecordHistory" asp-route-recordType="media-placements" class="btn btn-sm btn-outline-light" style="border-radius: 999px; white-space: nowrap;">View data</a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body d-flex flex-column" style="padding: 1.5rem; flex: 1;">
+                        @if (!mediaScheduled)
+                        {
+                            <div style="font-size: 2.5rem; font-weight: 700; color: var(--onejax-navy); line-height: 1;">--</div>
+                            <div class="mt-2" style="color: #475569; font-weight: 500;">Media placements are scheduled later.</div>
+                            <small style="color: var(--onejax-text-muted);">@mediaSubtext</small>
+                            <div class="progress mt-4" style="height: 8px; border-radius: 999px; background: rgba(148,163,184,0.18);">
+                                <div class="progress-bar" style="width: 0%; background: #cbd5e1;"></div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div style="font-size: 2.5rem; font-weight: 700; color: var(--onejax-navy); line-height: 1;">@mediaDisplayText</div>
+                            <div style="color: var(--onejax-text-muted); font-size: 0.9rem; margin-top: 0.25rem;">@mediaSubtext</div>
+                            <div class="mt-auto">
+                                <div class="d-flex justify-content-between mb-1 mt-3">
+                                    <small style="color: var(--onejax-text-muted);">Progress to target</small>
+                                    <small style="color: var(--onejax-navy); font-weight: 600;">@Math.Round(mediaProgressWidth, 1)%</small>
+                                </div>
+                                <div class="progress" style="height: 8px; border-radius: 999px; background: rgba(2,6,23,0.08);">
+                                    <div class="progress-bar" style="width: @mediaProgressWidth%; background: var(--onejax-blue); border-radius: 999px;"></div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
 
-		                                        .onejax-kpi-card::before {
-		                                            content: "";
-		                                            position: absolute;
-		                                            inset: 0 0 auto 0;
-		                                            height: 86px; /* bold header bar (space for status + enter button) */
-		                                            background: var(--gradient-primary);
-		                                            border-bottom: 1px solid rgba(255, 255, 255, 0.16);
-		                                            pointer-events: none;
-		                                            z-index: 0;
-		                                        }
+            <!-- Community Perception Survey Card -->
+            <div class="col-md-6 mb-3 d-flex">
+                <div class="card w-100" style="background: white; border: 1px solid #d1d5db; border-radius: 8px; box-shadow: 0 2px 8px rgba(15,23,42,0.08); display: flex; flex-direction: column;">
+                    <div class="card-header" style="background: linear-gradient(135deg, #7a5c0b, #b8860b); color: white; border: none; border-radius: 8px 8px 0 0; padding: 0.9rem 1rem;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-0" style="font-weight: 600; font-size: 1rem;">Community Perception Survey</h6>
+                                <small style="opacity: 0.9;">Community trust rating</small>
+                            </div>
+                            <div class="text-end d-flex flex-column align-items-end gap-2">
+                                <span class="badge" style="background: @(trustScheduled && id.TrustPercent >= id.TrustTargetPercent ? "#10b981" : trustScheduled ? "rgba(245,158,11,0.85)" : "#dbeafe"); color: @(trustScheduled ? "white" : "#1e3a8a"); font-size: 0.75rem;">
+                                    @trustStatusText
+                                </span>
+                                @if (canManageData)
+                                {
+                                    <a asp-controller="IdentityAnnual_7D" asp-action="Index" class="btn btn-sm btn-outline-light" style="border-radius: 999px; white-space: nowrap;">Enter data</a>
+                                    <a asp-controller="DataEntry" asp-action="RecordHistory" asp-route-recordType="community-perception" class="btn btn-sm btn-outline-light" style="border-radius: 999px; white-space: nowrap;">View data</a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body d-flex flex-column" style="padding: 1.5rem; flex: 1;">
+                        @if (!trustScheduled)
+                        {
+                            <div style="font-size: 2.5rem; font-weight: 700; color: var(--onejax-navy); line-height: 1;">--</div>
+                            <div class="mt-2" style="color: #475569; font-weight: 500;">Community perception survey is scheduled later.</div>
+                            <small style="color: var(--onejax-text-muted);">@trustSubtext</small>
+                            <div class="progress mt-4" style="height: 8px; border-radius: 999px; background: rgba(148,163,184,0.18);">
+                                <div class="progress-bar" style="width: 0%; background: #cbd5e1;"></div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div style="font-size: 2.5rem; font-weight: 700; color: var(--onejax-navy); line-height: 1;">@trustDisplayText</div>
+                            <div style="color: var(--onejax-text-muted); font-size: 0.9rem; margin-top: 0.25rem;">@trustSubtext</div>
+                            <div class="mt-auto">
+                                <div class="d-flex justify-content-between mb-1 mt-3">
+                                    <small style="color: var(--onejax-text-muted);">Progress to target</small>
+                                    <small style="color: var(--onejax-navy); font-weight: 600;">@Math.Round(trustProgressWidth, 1)%</small>
+                                </div>
+                                <div class="progress" style="height: 8px; border-radius: 999px; background: rgba(2,6,23,0.08);">
+                                    <div class="progress-bar" style="width: @trustProgressWidth%; background: #7a5c0b; border-radius: 999px;"></div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
 
-	                                        /* Subtle color accents per card (pops, but stays professional). */
-	                                        .onejax-kpi-card.kpi-media {
-	                                            background: linear-gradient(180deg, rgba(15, 61, 87, 0.08), rgba(255, 255, 255, 0.00) 58%);
-	                                        }
-	                                        .onejax-kpi-card.kpi-media::before { background: linear-gradient(135deg, var(--onejax-navy), var(--onejax-dark-blue)); }
+        <!-- Row 2: Framework Development Plan -->
+        <div class="row g-3 mt-1">
+            <div class="col-12 mb-3">
+                <div class="card" style="background: white; border: 1px solid #d1d5db; border-radius: 8px; box-shadow: 0 2px 8px rgba(15,23,42,0.08);">
+                    <div class="card-header" style="background: linear-gradient(135deg, var(--onejax-dark-blue), var(--onejax-navy)); color: white; border: none; border-radius: 8px 8px 0 0; padding: 0.9rem 1rem;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-0" style="font-weight: 600; font-size: 1rem;">Framework Development Plan</h6>
+                                <small style="opacity: 0.9;">Strategic plan completion progress</small>
+                            </div>
+                            <div class="text-end d-flex flex-column align-items-end gap-2">
+                                <span class="badge" style="background: @(frameworkScheduled && id.FrameworkGoalMet ? "#10b981" : frameworkScheduled ? "rgba(255,255,255,0.2)" : "#dbeafe"); color: @(frameworkScheduled ? "white" : "#1e3a8a"); font-size: 0.75rem;">
+                                    @frameworkStatusText
+                                </span>
+                                @if (canManageData)
+                                {
+                                    <a asp-controller="identityPlan_24D" asp-action="Index" class="btn btn-sm btn-outline-light" style="border-radius: 999px; white-space: nowrap;">Enter data</a>
+                                    <a asp-controller="DataEntry" asp-action="RecordHistory" asp-route-recordType="framework-plan" class="btn btn-sm btn-outline-light" style="border-radius: 999px; white-space: nowrap;">View data</a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body" style="padding: 1.5rem;">
+                        <div style="font-size: 1.6rem; font-weight: 900; color: var(--onejax-navy); line-height: 1.15;">@frameworkHeadline</div>
+                        <div style="color: var(--onejax-text-muted); font-size: 0.95rem; margin-top: 0.15rem;">@frameworkDetailText</div>
 
-	                                        .onejax-kpi-card.kpi-traffic {
-	                                            background: linear-gradient(180deg, rgba(31, 111, 84, 0.08), rgba(255, 255, 255, 0.00) 58%);
-	                                        }
-	                                        .onejax-kpi-card.kpi-traffic::before { background: linear-gradient(135deg, var(--onejax-dark-green), var(--onejax-green)); }
+                        @if (frameworkScheduled)
+                        {
+                            <!-- Quarter Pills -->
+                            <div style="display: flex; gap: 6px; margin-top: 1rem;">
+                                @foreach (var q in new[] { "Q1", "Q2", "Q3", "Q4" })
+                                {
+                                    var isActive = (id.FrameworkQuarter ?? "").Trim().Equals(q, StringComparison.OrdinalIgnoreCase);
+                                    <span style="flex: 1; text-align: center; padding: 0.25rem 0.35rem; border-radius: 999px; font-weight: 800; font-size: 0.75rem; letter-spacing: 0.02em; color: @(isActive ? "#ffffff" : "#475569"); background: @(isActive ? "#0b2c3a" : "rgba(15,23,42,0.06)"); border: 1px solid @(isActive ? "rgba(11,44,58,0.25)" : "rgba(15,23,42,0.10)");">@q</span>
+                                }
+                            </div>
 
-	                                        .onejax-kpi-card.kpi-trust {
-	                                            background: linear-gradient(180deg, rgba(122, 92, 11, 0.09), rgba(255, 255, 255, 0.00) 58%);
-	                                        }
-	                                        .onejax-kpi-card.kpi-trust::before { background: var(--gradient-accent); }
+                            <!-- Pipeline/Delivery grid -->
+                            <div class="mt-3" style="display:grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; color:#475569; font-size: 0.92rem;">
+                                <div style="border: 1px solid rgba(15,23,42,0.10); border-radius: 10px; padding: 0.75rem; background: #f8fafc;">
+                                    <div style="font-weight: 900; color:#0f172a; margin-bottom: 0.25rem;">Pipeline</div>
+                                    <div>Discovery</div>
+                                    <div>Drafting</div>
+                                </div>
+                                <div style="border: 1px solid rgba(15,23,42,0.10); border-radius: 10px; padding: 0.75rem; background: #f8fafc;">
+                                    <div style="font-weight: 900; color:#0f172a; margin-bottom: 0.25rem;">Delivery</div>
+                                    <div>Approval</div>
+                                    <div>Rollout</div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
 
-		                                        .onejax-kpi-card.kpi-framework {
-		                                            background: linear-gradient(180deg, rgba(11, 44, 58, 0.08), rgba(255, 255, 255, 0.00) 58%);
-		                                        }
-		                                        .onejax-kpi-card.kpi-framework::before { background: linear-gradient(135deg, var(--onejax-dark-blue), var(--onejax-navy)); }
+        <!-- Row 3: Social Media Engagement -->
+        <div class="row g-3 mt-1">
+            <div class="col-12 mb-3">
+                <div class="card" style="background: white; border: 1px solid #d1d5db; border-radius: 8px; box-shadow: 0 2px 8px rgba(15,23,42,0.08);">
+                    <div class="card-header" style="background: linear-gradient(135deg, #2b3a55, #3d5170); color: white; border: none; border-radius: 8px 8px 0 0; padding: 0.9rem 1rem;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-0" style="font-weight: 600; font-size: 1rem;">Social Media Engagement</h6>
+                                <small style="opacity: 0.9;">Website traffic &amp; engagement tracking</small>
+                            </div>
+                            <div class="text-end d-flex flex-column align-items-end gap-2">
+                                <span class="badge" style="background: @(socialScheduled ? "rgba(255,255,255,0.2)" : "#dbeafe"); color: @(socialScheduled ? "white" : "#1e3a8a"); font-size: 0.75rem;">
+                                    @socialStatusText
+                                </span>
+                                @if (canManageData)
+                                {
+                                    <a asp-controller="identitySocial_5D" asp-action="Index" class="btn btn-sm btn-outline-light" style="border-radius: 999px; white-space: nowrap;">Enter data</a>
+                                    <a asp-controller="DataEntry" asp-action="RecordHistory" asp-route-recordType="social-media" class="btn btn-sm btn-outline-light" style="border-radius: 999px; white-space: nowrap;">View data</a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body" style="padding: 1.5rem;">
+                        @if (!socialScheduled)
+                        {
+                            <div style="font-size: 2.5rem; font-weight: 700; color: var(--onejax-navy); line-height: 1;">--</div>
+                            <div class="mt-2" style="color: #475569; font-weight: 500;">Social engagement tracking is scheduled later.</div>
+                            <small style="color: var(--onejax-text-muted);">@socialSubtext</small>
+                            <div class="progress mt-4" style="height: 8px; border-radius: 999px; background: rgba(148,163,184,0.18);">
+                                <div class="progress-bar" style="width: 0%; background: #cbd5e1;"></div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div style="font-size: 2.5rem; font-weight: 700; color: var(--onejax-navy); line-height: 1;">@socialDisplayText</div>
+                            <div style="color: var(--onejax-text-muted); font-size: 0.9rem; margin-top: 0.25rem;">@socialSubtext</div>
+                            <div class="mt-3" style="display:grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; font-size: 0.85rem; color:#475569;">
+                                <div>Q1: <strong>@(socialScheduled ? $"{id.SocialQ1?.ToString("N1") ?? "-"}%" : "--")</strong></div>
+                                <div>Q2: <strong>@(socialScheduled ? $"{id.SocialQ2?.ToString("N1") ?? "-"}%" : "--")</strong></div>
+                                <div>Q3: <strong>@(socialScheduled ? $"{id.SocialQ3?.ToString("N1") ?? "-"}%" : "--")</strong></div>
+                                <div>Q4: <strong>@(socialScheduled ? $"{id.SocialQ4?.ToString("N1") ?? "-"}%" : "--")</strong></div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
 
-		                                        .onejax-kpi-card.kpi-social {
-		                                            background: linear-gradient(180deg, rgba(43, 58, 85, 0.08), rgba(255, 255, 255, 0.00) 58%);
-		                                        }
-	                                        .onejax-kpi-card.kpi-social::before { background: var(--gradient-cool); }
-
-		                                        .onejax-kpi-body {
-		                                            position: relative;
-		                                            z-index: 2;
-		                                            padding: 1rem 1rem 0.9rem;
-		                                            padding-top: 104px; /* clear the header bar */
-		                                            min-height: 168px;
-		                                        }
-
-	                                        .onejax-kpi-body--tall { min-height: 232px; }
-
-	                                        /* Move the metric name into the header bar without changing markup. */
-	                                        .onejax-kpi-body > div:first-child {
-	                                            position: absolute;
-	                                            top: 14px;
-	                                            left: 16px;
-	                                            right: auto;
-	                                            max-width: calc(100% - 190px); /* reserve room for the status pill */
-	                                            margin: 0;
-	                                            color: rgba(255, 255, 255, 0.92) !important;
-	                                            font-weight: 800 !important;
-	                                            letter-spacing: 0.06em !important;
-	                                            text-transform: uppercase !important;
-	                                            font-size: 0.74rem !important;
-	                                            line-height: 1.2;
-	                                            white-space: normal;
-	                                            display: -webkit-box;
-	                                            -webkit-box-orient: vertical;
-	                                            -webkit-line-clamp: 2;
-	                                            overflow: hidden;
-	                                            text-overflow: ellipsis;
-	                                        }
-
-	                                        .onejax-kpi-badge {
-	                                            position: absolute;
-	                                            top: 14px;
-	                                            right: 10px;
-	                                            z-index: 3;
-	                                            font-weight: 800;
-	                                            letter-spacing: 0.02em;
-	                                            border-radius: 999px;
-	                                            padding: 0.35rem 0.6rem;
-	                                            font-size: 0.75rem;
-	                                            max-width: 170px;
-	                                            white-space: nowrap;
-	                                            overflow: hidden;
-	                                            text-overflow: ellipsis;
-	                                            background: rgba(255, 255, 255, 0.70);
-	                                            border: 1px solid rgba(15, 23, 42, 0.12);
-	                                            color: #334155;
-	                                            backdrop-filter: blur(8px);
-	                                        }
-
-	                                        .onejax-kpi-badge.ok { background: rgba(16, 185, 129, 0.12); border-color: rgba(16, 185, 129, 0.25); color: #065f46; }
-	                                        .onejax-kpi-badge.warn { background: rgba(245, 158, 11, 0.14); border-color: rgba(245, 158, 11, 0.28); color: #92400e; }
-
-		                                        .onejax-kpi-topright {
-		                                            position: absolute;
-		                                            top: 10px;
-		                                            right: 10px;
-		                                            display: flex;
-		                                            flex-direction: column;
-		                                            align-items: flex-end;
-		                                            gap: 5px;
-		                                            z-index: 4;
-		                                        }
-
-	                                        /* Put the status pill inside the top-right stack. */
-	                                        .onejax-kpi-topright .onejax-kpi-badge {
-	                                            position: static;
-	                                            top: auto;
-	                                            right: auto;
-	                                        }
-
-		                                        .onejax-kpi-enter {
-		                                            border-radius: 999px;
-		                                            padding: 0.24rem 0.55rem;
-		                                            font-weight: 800;
-		                                            font-size: 0.72rem;
-		                                            background: rgba(255, 255, 255, 0.72);
-		                                            border: 1px solid rgba(15, 23, 42, 0.12);
-		                                            color: #334155;
-		                                            text-decoration: none;
-		                                            backdrop-filter: blur(8px);
-		                                            white-space: nowrap;
-		                                            line-height: 1.15;
-		                                        }
-
-		                                        .onejax-kpi-enter:hover {
-		                                            background: rgba(255, 255, 255, 0.84);
-		                                            border-color: rgba(15, 23, 42, 0.18);
-		                                            color: #0f172a;
-		                                        }
-
-	                                        /* Reserve room for the stacked status + enter button. */
-	                                        .onejax-kpi-body > div:first-child {
-	                                            max-width: calc(100% - 210px);
-	                                        }
-
-	                                        .onejax-kpi-link {
-	                                            color: var(--onejax-text-muted);
-	                                            font-weight: 700;
-	                                            font-size: 0.85rem;
-                                            text-decoration: none;
-                                        }
-
-                                        .onejax-kpi-link:hover {
-                                            color: var(--onejax-navy);
-                                            text-decoration: underline;
-                                        }
-
-                                        .onejax-kpi-spark {
-                                            height: 72px;
-                                            margin-top: 0.5rem;
-                                        }
-
-                                        .onejax-kpi-spark canvas {
-                                            width: 100% !important;
-                                            height: 100% !important;
-                                            display: block;
-                                        }
-
-                                        .onejax-kpi-pill-row {
-                                            display: flex;
-                                            gap: 6px;
-                                            margin-top: 0.6rem;
-                                        }
-
-                                        .onejax-kpi-pill {
-                                            flex: 1;
-                                            text-align: center;
-                                            padding: 0.25rem 0.35rem;
-                                            border-radius: 999px;
-                                            font-weight: 800;
-                                            font-size: 0.75rem;
-                                            letter-spacing: 0.02em;
-                                            color: #475569;
-                                            background: rgba(15, 23, 42, 0.06);
-                                            border: 1px solid rgba(15, 23, 42, 0.10);
-                                        }
-
-                                        .onejax-kpi-pill.active {
-                                            color: #ffffff;
-                                            background: #0b2c3a;
-                                            border-color: rgba(11, 44, 58, 0.25);
-                                        }
-                                    </style>
-
-	                                    <div class="row g-3">
-	                                        <div class="col-md-6 col-lg-6">
-	                                            <div class="card onejax-kpi-card kpi-media" style="border-left: 5px solid var(--onejax-navy);">
-	                                                <div class="onejax-kpi-topright">
-	                                                    <span class="onejax-kpi-badge">@mediaStatusText</span>
-	                                                    @if (canManageData)
-	                                                    {
-	                                                        <a asp-controller="MediaPlacements" asp-action="Index" class="onejax-kpi-enter">Enter data</a>
-	                                                    }
-	                                                </div>
-	                                                <div class="card-body onejax-kpi-body d-flex flex-column">
-	                                                    <div style="font-size: 0.8rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--onejax-text-muted); font-weight: 700;">Media Placements</div>
-	                                                    <div style="font-size: 2rem; font-weight: 800; color: var(--onejax-navy); line-height: 1.1; margin-top: 0.5rem;">@mediaDisplayText</div>
-	                                                    <div style="color: var(--onejax-text-muted); font-size: 0.9rem;">@mediaSubtext</div>
-	                                                    <div class="onejax-kpi-spark">
-	                                                        <canvas id="identityMediaSpark"></canvas>
-	                                                    </div>
-	                                                    <div class="mt-auto">
-	                                                        <div class="progress mt-2" style="height: 10px; border-radius: 999px; background: rgba(2,6,23,0.08);">
-	                                                            <div class="progress-bar" style="width: @mediaProgressWidth%; background: #0f3d57; border-radius: 999px;"></div>
-	                                                        </div>
-	                                                        @if (canManageData)
-	                                                        {
-	                                                            <div class="d-flex justify-content-between align-items-center mt-2">
-	                                                                <a asp-controller="DataEntry" asp-action="RecordHistory" asp-route-recordType="media-placements" class="onejax-kpi-link">History</a>
-	                                                            </div>
-	                                                        }
-	                                                        else
-	                                                        {
-	                                                            @* Public view: hide staff-only message *@
-	                                                        }
-	                                                    </div>
-	                                                </div>
-	                                            </div>
-	                                        </div>
-	                                        <div class="col-md-6 col-lg-6">
-	                                            <div class="card onejax-kpi-card kpi-trust" style="border-left: 5px solid var(--onejax-gold);">
-	                                                <div class="onejax-kpi-topright">
-	                                                    <span class="onejax-kpi-badge @trustStatusClass">@trustStatusText</span>
-	                                                    @if (canManageData)
-	                                                    {
-	                                                        <a asp-controller="IdentityAnnual_7D" asp-action="Index" class="onejax-kpi-enter">Enter data</a>
-	                                                    }
-	                                                </div>
-	                                                <div class="card-body onejax-kpi-body d-flex flex-column">
-	                                                    <div style="font-size: 0.8rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--onejax-text-muted); font-weight: 700;">Community Perception Survey</div>
-	                                                    <div style="font-size: 2rem; font-weight: 800; color: var(--onejax-navy); line-height: 1.1; margin-top: 0.5rem;">@trustDisplayText</div>
-	                                                    <div style="color: var(--onejax-text-muted); font-size: 0.9rem;">@trustSubtext</div>
-	                                                    <div class="onejax-kpi-spark">
-	                                                        <canvas id="identityTrustSpark"></canvas>
-	                                                    </div>
-	                                                    <div class="mt-auto">
-	                                                        <div class="progress mt-2" style="height: 10px; border-radius: 999px; background: rgba(2,6,23,0.08);">
-	                                                            <div class="progress-bar" style="width: @trustProgressWidth%; background: #7a5c0b; border-radius: 999px;"></div>
-	                                                        </div>
-	                                                        @if (canManageData)
-	                                                        {
-	                                                            <div class="d-flex justify-content-between align-items-center mt-2">
-	                                                                <a asp-controller="DataEntry" asp-action="RecordHistory" asp-route-recordType="community-perception" class="onejax-kpi-link">History</a>
-	                                                            </div>
-	                                                        }
-	                                                        else
-	                                                        {
-	                                                            @* Public view: hide staff-only message *@
-	                                                        }
-	                                                    </div>
-	                                                </div>
-	                                            </div>
-	                                        </div>
-	                                    </div>
-
-                                    <div class="row g-3 mt-3">
-		                                        <div class="col-12">
-		                                            <div class="card onejax-kpi-card kpi-framework" style="border-left: 5px solid var(--onejax-dark-blue);">
-			                                                <div class="onejax-kpi-topright">
-			                                                    <span class="onejax-kpi-badge @frameworkStatusClass">@frameworkStatusText</span>
-			                                                    @if (canManageData)
-			                                                    {
-			                                                        <a asp-controller="identityPlan_24D" asp-action="Index" class="onejax-kpi-enter">Enter data</a>
-			                                                    }
-			                                                </div>
-			                                                <div class="card-body onejax-kpi-body onejax-kpi-body--tall d-flex flex-column">
-		                                                    <div style="font-size: 0.8rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--onejax-text-muted); font-weight: 700;">Framework Development Plan</div>
-		                                                    <div style="font-size: 1.6rem; font-weight: 900; color: var(--onejax-navy); line-height: 1.15; margin-top: 0.35rem;">
-		                                                        @frameworkHeadline
-		                                                    </div>
-		                                                    <div style="color: var(--onejax-text-muted); font-size: 0.95rem; margin-top: 0.15rem;">
-		                                                        @frameworkDetailText
-		                                                    </div>
-                                                            @if (frameworkScheduled)
-                                                            {
-		                                                        <div class="onejax-kpi-pill-row" aria-label="Framework quarter">
-		                                                            <span class="onejax-kpi-pill @((id.FrameworkQuarter ?? "").Trim().Equals("Q1", StringComparison.OrdinalIgnoreCase) ? "active" : "")">Q1</span>
-		                                                            <span class="onejax-kpi-pill @((id.FrameworkQuarter ?? "").Trim().Equals("Q2", StringComparison.OrdinalIgnoreCase) ? "active" : "")">Q2</span>
-		                                                            <span class="onejax-kpi-pill @((id.FrameworkQuarter ?? "").Trim().Equals("Q3", StringComparison.OrdinalIgnoreCase) ? "active" : "")">Q3</span>
-		                                                            <span class="onejax-kpi-pill @((id.FrameworkQuarter ?? "").Trim().Equals("Q4", StringComparison.OrdinalIgnoreCase) ? "active" : "")">Q4</span>
-		                                                        </div>
-		                                                        <div class="mt-3" style="display:grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; color:#475569; font-size: 0.92rem;">
-		                                                            <div style="border: 1px solid rgba(15,23,42,0.10); border-radius: 10px; padding: 0.75rem; background: rgba(255,255,255,0.7);">
-		                                                                <div style="font-weight: 900; color:#0f172a; margin-bottom: 0.25rem;">Pipeline</div>
-		                                                                <div>Discovery</div>
-		                                                                <div>Drafting</div>
-		                                                            </div>
-		                                                            <div style="border: 1px solid rgba(15,23,42,0.10); border-radius: 10px; padding: 0.75rem; background: rgba(255,255,255,0.7);">
-		                                                                <div style="font-weight: 900; color:#0f172a; margin-bottom: 0.25rem;">Delivery</div>
-		                                                                <div>Approval</div>
-		                                                                <div>Rollout</div>
-		                                                            </div>
-		                                                        </div>
-                                                            }
-		                                                    <div class="mt-auto">
-			                                                        @if (canManageData)
-			                                                        {
-			                                                            <div class="d-flex justify-content-between align-items-center mt-2">
-			                                                                <a asp-controller="DataEntry" asp-action="RecordHistory" asp-route-recordType="framework-plan" class="onejax-kpi-link">History</a>
-			                                                            </div>
-			                                                        }
-		                                                        else
-		                                                        {
-		                                                            @* Public view: hide staff-only message *@
-		                                                        }
-		                                                    </div>
-			                                                </div>
-			                                            </div>
-			                                        </div>
-		                                    </div>
-
-                                    <div class="row g-3 mt-3">
-		                                        <div class="col-12">
-		                                            <div class="card onejax-kpi-card kpi-social" style="border-left: 5px solid var(--onejax-dark-blue);">
-			                                                <div class="onejax-kpi-topright">
-			                                                    <span class="onejax-kpi-badge">@socialStatusText</span>
-			                                                    @if (canManageData)
-			                                                    {
-			                                                        <a asp-controller="identitySocial_5D" asp-action="Index" class="onejax-kpi-enter">Enter data</a>
-			                                                    }
-			                                                </div>
-			                                                <div class="card-body onejax-kpi-body onejax-kpi-body--tall d-flex flex-column">
-		                                                    <div style="font-size: 0.8rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--onejax-text-muted); font-weight: 700;">Social Media Engagement</div>
-		                                                    <div style="font-size: 2rem; font-weight: 800; color: var(--onejax-navy); line-height: 1.1; margin-top: 0.5rem;">@socialDisplayText</div>
-		                                                    <div style="color: var(--onejax-text-muted); font-size: 0.9rem;">@socialSubtext</div>
-		                                                    <div class="onejax-kpi-spark">
-		                                                        <canvas id="identitySocialSpark"></canvas>
-		                                                    </div>
-		                                                    <div class="mt-2" style="display:grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; font-size: 0.85rem; color:#475569;">
-                                                        <div>Q1: <strong>@(socialScheduled ? $"{id.SocialQ1?.ToString("N1") ?? "-"}%" : "--")</strong></div>
-                                                        <div>Q2: <strong>@(socialScheduled ? $"{id.SocialQ2?.ToString("N1") ?? "-"}%" : "--")</strong></div>
-                                                        <div>Q3: <strong>@(socialScheduled ? $"{id.SocialQ3?.ToString("N1") ?? "-"}%" : "--")</strong></div>
-                                                        <div>Q4: <strong>@(socialScheduled ? $"{id.SocialQ4?.ToString("N1") ?? "-"}%" : "--")</strong></div>
-		                                                    </div>
-		                                                    <div class="mt-auto">
-			                                                        @if (canManageData)
-			                                                        {
-			                                                            <div class="d-flex justify-content-between align-items-center mt-2">
-			                                                                <a asp-controller="DataEntry" asp-action="RecordHistory" asp-route-recordType="social-media" class="onejax-kpi-link">History</a>
-			                                                            </div>
-			                                                        }
-		                                                        else
-		                                                        {
-		                                                            @* Public view: hide staff-only message *@
-		                                                        }
-		                                                    </div>
-		                                                </div>
-		                                            </div>
-		                                        </div>
-		                                    </div>
-                                    </div>
-
-	                                    <script>
-	                                        (function bindIdentitySparks() {
-	                                            if (window.__onejaxIdentitySparksBound) return;
-	                                            window.__onejaxIdentitySparksBound = true;
-
-	                                            function init(attempt) {
-	                                                if (window.__onejaxIdentitySparksInitialized) return;
-	                                                // Chart.js is loaded later in the page. Retry briefly until it's available.
-	                                                if (!window.Chart) {
-	                                                    if ((attempt ?? 0) < 40) {
-	                                                        setTimeout(() => init((attempt ?? 0) + 1), 50);
-	                                                    }
-	                                                    return;
-	                                                }
-	                                                window.__onejaxIdentitySparksInitialized = true;
-
-                                            const mediaMonthly = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(mediaScheduled ? id.MediaPlacementsByMonth ?? new int[12] : new int[12]));
-                                            const trafficQuarterly = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(socialScheduled ? id.WebsiteClicksByQuarter ?? new int[4] : new int[4]));
-                                            const trustYears = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(trustScheduled ? id.TrustHistoryYears ?? new List<int>() : new List<int>()));
-                                            const trustPercents = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(trustScheduled ? id.TrustHistoryPercents ?? new List<decimal>() : new List<decimal>()));
-                                            const socialQuarterly = [
-                                                @((socialScheduled ? (id.SocialQ1 ?? 0) : 0).ToString(System.Globalization.CultureInfo.InvariantCulture)),
-                                                @((socialScheduled ? (id.SocialQ2 ?? 0) : 0).ToString(System.Globalization.CultureInfo.InvariantCulture)),
-                                                @((socialScheduled ? (id.SocialQ3 ?? 0) : 0).ToString(System.Globalization.CultureInfo.InvariantCulture)),
-                                                @((socialScheduled ? (id.SocialQ4 ?? 0) : 0).ToString(System.Globalization.CultureInfo.InvariantCulture))
-                                            ];
-
-                                            const common = {
-                                                responsive: true,
-                                                maintainAspectRatio: false,
-                                                plugins: { legend: { display: false }, tooltip: { enabled: true } },
-                                                scales: {
-                                                    x: { display: false, grid: { display: false } },
-                                                    y: { display: false, grid: { display: false } }
-                                                },
-                                                elements: { point: { radius: 0 }, line: { borderWidth: 2, tension: 0.35 } }
-                                            };
-
-                                            function make(id, cfg) {
-                                                const canvas = document.getElementById(id);
-                                                if (!canvas) return;
-                                                const ctx = canvas.getContext('2d');
-                                                if (!ctx) return;
-                                                // eslint-disable-next-line no-new
-                                                new Chart(ctx, cfg);
-                                            }
-
-                                            make('identityMediaSpark', {
-                                                type: 'bar',
-                                                data: {
-                                                    labels: ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'],
-                                                    datasets: [{
-                                                        data: mediaMonthly,
-                                                        backgroundColor: 'rgba(15, 61, 87, 0.22)',
-                                                        borderColor: '#0f3d57',
-                                                        borderWidth: 1,
-                                                        borderRadius: 3,
-                                                        maxBarThickness: 10
-                                                    }]
-                                                },
-                                                options: {
-                                                    ...common,
-                                                    plugins: { legend: { display: false }, tooltip: { enabled: true } }
-                                                }
-                                            });
-
-                                            make('identityTrafficSpark', {
-                                                type: 'bar',
-                                                data: {
-                                                    labels: ['Q1', 'Q2', 'Q3', 'Q4'],
-                                                    datasets: [{
-                                                        data: trafficQuarterly,
-                                                        backgroundColor: 'rgba(31, 111, 84, 0.22)',
-                                                        borderColor: '#1f6f54',
-                                                        borderWidth: 1,
-                                                        borderRadius: 4,
-                                                        maxBarThickness: 22
-                                                    }]
-                                                },
-                                                options: {
-                                                    ...common,
-                                                    plugins: { legend: { display: false }, tooltip: { enabled: true } }
-                                                }
-                                            });
-
-                                            const trustLabels = Array.isArray(trustYears)
-                                                ? (trustYears.length ? trustYears : [@((id.TrustYear ?? DateTime.Now.Year).ToString(System.Globalization.CultureInfo.InvariantCulture))])
-                                                : [@((id.TrustYear ?? DateTime.Now.Year).ToString(System.Globalization.CultureInfo.InvariantCulture))];
-                                            const trustSeries = Array.isArray(trustPercents)
-                                                ? (trustPercents.length ? trustPercents : [@id.TrustPercent.ToString(System.Globalization.CultureInfo.InvariantCulture)])
-                                                : [@id.TrustPercent.ToString(System.Globalization.CultureInfo.InvariantCulture)];
-
-                                            make('identityTrustSpark', {
-                                                type: 'line',
-                                                data: {
-                                                    labels: trustLabels,
-                                                    datasets: [{
-                                                        data: trustSeries,
-                                                        borderColor: '#7a5c0b',
-                                                        backgroundColor: 'rgba(122, 92, 11, 0.12)',
-                                                        fill: true
-                                                    }]
-                                                },
-                                                options: {
-                                                    ...common,
-                                                    plugins: { legend: { display: false }, tooltip: { enabled: true } },
-                                                    scales: {
-                                                        x: { display: false, grid: { display: false } },
-                                                        y: { display: false, grid: { display: false }, suggestedMin: 0, suggestedMax: 100 }
-                                                    }
-                                                }
-                                            });
-
-                                            make('identitySocialSpark', {
-                                                type: 'line',
-                                                data: {
-                                                    labels: ['Q1', 'Q2', 'Q3', 'Q4'],
-                                                    datasets: [{
-                                                        data: socialQuarterly,
-                                                        borderColor: '#2b3a55',
-                                                        backgroundColor: 'rgba(43, 58, 85, 0.12)',
-                                                        fill: true
-                                                    }]
-                                                },
-                                                options: {
-                                                    ...common,
-                                                    plugins: { legend: { display: false }, tooltip: { enabled: true } },
-                                                    scales: {
-                                                        x: { display: false, grid: { display: false } },
-                                                        y: { display: false, grid: { display: false }, suggestedMin: 0, suggestedMax: 100 }
-                                                    }
-                                                }
-                                            });
-	                                            }
-
-	                                            document.addEventListener('DOMContentLoaded', () => init(0));
-	                                            window.addEventListener('load', () => init(0));
-	                                        })();
-	                                    </script>
-
-                                    <div class="row g-3 mt-1">
-                                        <div class="col-lg-9">
-                                            <div class="card" style="border-radius: 12px; border: 1px solid var(--onejax-border); overflow: hidden;">
-                                                <div class="card-header" style="background: #0b2c3a; color: white;">
-                                                    <div class="d-flex justify-content-between align-items-center">
-                                                        <div style="font-weight: 700;">Programs Demographics</div>
-                                                        <div style="font-size: 0.9rem; opacity: 0.9;">Red = reached, Blue = not reached</div>
-                                                    </div>
-                                                </div>
-                                                <div class="card-body" style="background: #f8fafc;">
-                                                    <div class="row g-3">
-                                                        <div class="col-md-9">
-                                                            <div id="zipCoverageMap" style="width: 100%; height: 520px; border: 1px solid rgba(15,23,42,0.10); border-radius: 10px; background: #eef2f7; position: relative;">
-                                                                <div id="zipCoverageLoading" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#475569; font-weight:600;">Loading ZIP coverage map...</div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-3">
-                                                            <div style="font-size: 0.85rem; color: #334155; font-weight: 700; margin-bottom: 0.5rem;">Service Area</div>
-                                                            <div style="color: #475569; font-size: 0.9rem; margin-bottom: 1rem;">Duval + Clay + St. Johns + Nassau</div>
-
-	                                                            <div class="card" style="border-radius: 10px; border: 1px solid rgba(15,23,42,0.12); box-shadow: none;">
-	                                                                <div class="card-body" style="padding: 1rem;">
-	                                                                    <div style="font-size: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase; color: #64748b; font-weight: 800;">Geographic Reach</div>
-                                                                    <div style="font-size: 2rem; font-weight: 800; color: #0f172a; line-height: 1.1; margin-top: 0.25rem;">@zipServed</div>
-                                                                    <div style="color: #64748b; font-size: 0.9rem;">ZIP Codes Served</div>
-	                                                                    <div class="mt-3">
-	                                                                        <div class="d-flex justify-content-between" style="font-size: 0.85rem; color:#475569;">
-	                                                                            <span>Target</span>
-	                                                                            <span>@zipTarget ZIPs</span>
-	                                                                        </div>
-	                                                                        <div class="d-flex justify-content-between mt-1" style="font-size: 0.85rem; color:#475569;">
-	                                                                            <span>Service area ZIPs</span>
-	                                                                            <span id="zipServiceAreaTotal">...</span>
-	                                                                        </div>
-	                                                                        <div class="progress mt-2" style="height: 10px; border-radius: 999px; background: rgba(2,6,23,0.08);">
-	                                                                            <div class="progress-bar" style="width: @Math.Min(zipProgressPct, 100)%; background: #0f3d57; border-radius: 999px;"></div>
-	                                                                        </div>
-	                                                                        <div class="mt-2" style="font-size: 0.85rem; color:#475569;">@Math.Round(zipProgressPct, 1)% complete</div>
-	                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            <div class="mt-3" id="zipHoverPanel" style="border-radius: 10px; border: 1px dashed rgba(15,23,42,0.25); padding: 0.75rem; background: rgba(255,255,255,0.7);">
-                                                                <div style="font-size: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase; color: #64748b; font-weight: 800;">Hover</div>
-                                                                <div style="font-size: 1.15rem; font-weight: 800; color: #0f172a; margin-top: 0.25rem;" id="zipHoverZip">ZIP: -</div>
-                                                                <div style="color: #475569; font-size: 0.9rem;" id="zipHoverCount">Not reached</div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
+        <!-- Programs Demographics Map -->
+        <div class="row g-3 mt-1">
+            <div class="col-lg-9">
+                <div class="card" style="border-radius: 12px; border: 1px solid var(--onejax-border); overflow: hidden;">
+                    <div class="card-header" style="background: #0b2c3a; color: white;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div style="font-weight: 700;">Programs Demographics</div>
+                            <div style="font-size: 0.9rem; opacity: 0.9;">Red = reached, Blue = not reached</div>
+                        </div>
+                    </div>
+                    <div class="card-body" style="background: #f8fafc;">
+                        <div class="row g-3">
+                            <div class="col-md-9">
+                                <div id="zipCoverageMap" style="width: 100%; height: 520px; border: 1px solid rgba(15,23,42,0.10); border-radius: 10px; background: #eef2f7; position: relative;">
+                                    <div id="zipCoverageLoading" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#475569; font-weight:600;">Loading ZIP coverage map...</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div style="font-size: 0.85rem; color: #334155; font-weight: 700; margin-bottom: 0.5rem;">Service Area</div>
+                                <div style="color: #475569; font-size: 0.9rem; margin-bottom: 1rem;">Duval + Clay + St. Johns + Nassau</div>
+                                <div class="card" style="border-radius: 10px; border: 1px solid rgba(15,23,42,0.12); box-shadow: none;">
+                                    <div class="card-body" style="padding: 1rem;">
+                                        <div style="font-size: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase; color: #64748b; font-weight: 800;">Geographic Reach</div>
+                                        <div style="font-size: 2rem; font-weight: 800; color: #0f172a; line-height: 1.1; margin-top: 0.25rem;">@zipServed</div>
+                                        <div style="color: #64748b; font-size: 0.9rem;">ZIP Codes Served</div>
+                                        <div class="mt-3">
+                                            <div class="d-flex justify-content-between" style="font-size: 0.85rem; color:#475569;">
+                                                <span>Target</span>
+                                                <span>@zipTarget ZIPs</span>
                                             </div>
-                                        </div>
-	                                        <div class="col-lg-3">
-	                                            @{
-	                                                var defaultProgramsNote = "Coverage is based on ZIP codes submitted in Programs Demographics (Data Entry).";
-	                                                var programsNote = DashboardNotesStore.Get("programs-demographics") ?? defaultProgramsNote;
-	                                            }
-	                                            <div class="card h-100" style="border-radius: 12px; border: 1px solid var(--onejax-border);">
-	                                                <div class="card-header" style="background: #111827; color: white; font-weight: 700;">Notes</div>
-	                                                <div class="card-body" style="color: var(--onejax-text-muted); font-size: 0.95rem;">
-	                                                    <div id="programsDemographicsNoteText" style="white-space: pre-wrap;">@programsNote</div>
-	                                                    @if (canManageData)
-	                                                    {
-	                                                        <div class="mt-3">
-	                                                            <button type="button" class="btn btn-sm btn-outline-secondary" style="border-radius: 10px;" onclick="toggleProgramsNoteEdit(true)">
-	                                                                Edit note
-	                                                            </button>
-	                                                        </div>
-	                                                        <form id="programsDemographicsNoteForm" class="mt-3" method="post" action="/DashboardNotes/SaveJson" style="display:none;">
-	                                                            @Html.AntiForgeryToken()
-	                                                            <input type="hidden" name="key" value="programs-demographics" />
-	                                                            <div class="mb-2">
-	                                                                <textarea name="value" class="form-control" rows="6" style="border-radius: 10px; font-size: 0.95rem;">@programsNote</textarea>
-	                                                            </div>
-	                                                            <div class="d-flex gap-2">
-	                                                                <button type="submit" class="btn btn-sm btn-primary" style="border-radius: 10px;">Save</button>
-	                                                                <button type="button" class="btn btn-sm btn-outline-secondary" style="border-radius: 10px;" onclick="toggleProgramsNoteEdit(false)">Cancel</button>
-	                                                            </div>
-	                                                        </form>
-	                                                        <script>
-	                                                            function toggleProgramsNoteEdit(on) {
-	                                                                const form = document.getElementById('programsDemographicsNoteForm');
-	                                                                if (!form) return;
-	                                                                form.style.display = on ? 'block' : 'none';
-	                                                            }
-
-	                                                            (function bindProgramsDemographicsNoteAjax() {
-	                                                                const form = document.getElementById('programsDemographicsNoteForm');
-	                                                                const noteText = document.getElementById('programsDemographicsNoteText');
-	                                                                if (!form || !noteText) return;
-	                                                                if (form.dataset.bound === '1') return;
-	                                                                form.dataset.bound = '1';
-
-	                                                                form.addEventListener('submit', async function (e) {
-	                                                                    e.preventDefault();
-	                                                                    const fd = new FormData(form);
-
-	                                                                    // ASP.NET Core antiforgery uses this field name by default.
-	                                                                    const token = fd.get('__RequestVerificationToken');
-	                                                                    try {
-	                                                                        const resp = await fetch(form.action, {
-	                                                                            method: 'POST',
-	                                                                            headers: {
-	                                                                                'RequestVerificationToken': String(token || ''),
-	                                                                                'X-Requested-With': 'XMLHttpRequest'
-	                                                                            },
-	                                                                            body: fd
-	                                                                        });
-	                                                                        if (!resp.ok) throw new Error('Save failed');
-	                                                                        const data = await resp.json();
-	                                                                        if (!data || !data.ok) throw new Error('Save failed');
-
-	                                                                        noteText.textContent = data.value || '';
-	                                                                        toggleProgramsNoteEdit(false);
-	                                                                    } catch (err) {
-	                                                                        // Keep it simple: show a non-blocking alert on failure.
-	                                                                        alert('Could not save note. Please try again.');
-	                                                                    }
-	                                                                });
-	                                                            })();
-	                                                        </script>
-	                                                    }
-	                                                </div>
-	                                            </div>
-	                                        </div>
-                                    </div>
-
-                                    <script>
-                                        (function initZipCoverageMap() {
-                                            if (window.__onejaxZipMapInitialized) return;
-                                            const el = document.getElementById('zipCoverageMap');
-                                            if (!el) return;
-                                            window.__onejaxZipMapInitialized = true;
-
-                                            const loading = document.getElementById('zipCoverageLoading');
-                                            const hoverZip = document.getElementById('zipHoverZip');
-                                            const hoverCount = document.getElementById('zipHoverCount');
-
-	                                            const coverage = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ZipCoverage ?? new Dictionary<string, int>()));
-	                                            // Map palette:
-	                                            // Covered ZIPs use a red intensity gradient (more records = deeper red).
-	                                            // Not covered ZIPs are explicitly blue (not gray) for clear contrast.
-	                                            const reachedLo = '#fecaca'; // light red
-	                                            const reachedHi = '#dc2626'; // deep red
-	                                            const notReached = '#93c5fd'; // light blue
-
-                                            function lerp(a, b, t) { return a + (b - a) * t; }
-                                            function hexToRgb(h) {
-                                                const m = /^#?([a-f\\d]{2})([a-f\\d]{2})([a-f\\d]{2})$/i.exec(h);
-                                                return m ? { r: parseInt(m[1], 16), g: parseInt(m[2], 16), b: parseInt(m[3], 16) } : { r: 0, g: 0, b: 0 };
-                                            }
-                                            function rgbToHex(r, g, b) {
-                                                const to = (n) => n.toString(16).padStart(2, '0');
-                                                return `#${to(r)}${to(g)}${to(b)}`;
-                                            }
-
-	                                            function fillForCount(count, maxCount) {
-	                                                if (!count) return notReached;
-	                                                const safeMax = Number.isFinite(maxCount)
-	                                                    ? (maxCount > 0 ? maxCount : 1)
-	                                                    : 1;
-	                                                const t = safeMax <= 1 ? 1 : Math.min(1, Math.log(count + 1) / Math.log(safeMax + 1));
-	                                                const a = hexToRgb(reachedLo);
-	                                                const b = hexToRgb(reachedHi);
-	                                                const c = rgbToHex(
-	                                                    Math.round(lerp(a.r, b.r, t)),
-	                                                    Math.round(lerp(a.g, b.g, t)),
-	                                                    Math.round(lerp(a.b, b.b, t))
-	                                                );
-	                                                return /^#[0-9a-f]{6}$/i.test(c) ? c : reachedHi;
-	                                            }
-
-                                            function flattenCoords(coords, out) {
-                                                if (!coords) return;
-                                                if (typeof coords[0] === 'number') {
-                                                    out.push(coords);
-                                                    return;
-                                                }
-                                                for (const c of coords) flattenCoords(c, out);
-                                            }
-
-                                            fetch('/data/NorthEastMap.json', { cache: 'no-store' })
-                                                .then(r => r.json())
-                                                .then(geo => {
-		                                                    const features = geo ? (geo.features || []) : [];
-	                                                    // Update the "service area ZIPs" count (unique ZIPs in the GeoJSON file).
-	                                                    try {
-	                                                        const totals = new Set();
-	                                                        for (const f of features) {
-		                                                            const featureProps = f ? f.properties : null;
-		                                                            const zipCode = featureProps ? (featureProps.ZCTA5CE20 || featureProps.GEOID20) : '';
-		                                                            const z = zipCode ? String(zipCode) : '';
-	                                                            if (z) totals.add(z);
-	                                                        }
-	                                                        const totalEl = document.getElementById('zipServiceAreaTotal');
-	                                                        if (totalEl) totalEl.textContent = String(totals.size);
-	                                                    } catch { /* ignore */ }
-                                                    const pts = [];
-                                                    for (const f of features) {
-	                                                        const geometryCoords = f ? (f.geometry ? f.geometry.coordinates : null) : null;
-	                                                        flattenCoords(geometryCoords, pts);
-                                                    }
-                                                    if (!pts.length) throw new Error('No coordinates in GeoJSON');
-
-                                                    let minLon = Infinity, maxLon = -Infinity, minLat = Infinity, maxLat = -Infinity;
-                                                    for (const p of pts) {
-                                                        const lon = p[0], lat = p[1];
-                                                        if (lon < minLon) minLon = lon;
-                                                        if (lon > maxLon) maxLon = lon;
-                                                        if (lat < minLat) minLat = lat;
-                                                        if (lat > maxLat) maxLat = lat;
-                                                    }
-
-                                                    const width = el.clientWidth || 900;
-                                                    const height = el.clientHeight || 520;
-                                                    const pad = 10;
-                                                    const sx = (lon) => pad + ((lon - minLon) / (maxLon - minLon)) * (width - pad * 2);
-                                                    const sy = (lat) => pad + ((maxLat - lat) / (maxLat - minLat)) * (height - pad * 2);
-
-	                                                    const maxCount = Object.values(coverage).reduce((m, v) => {
-	                                                        const n = Number(v);
-	                                                        return Number.isFinite(n) ? Math.max(m, n) : m;
-	                                                    }, 0);
-
-                                                    const svgNS = 'http://www.w3.org/2000/svg';
-                                                    const svg = document.createElementNS(svgNS, 'svg');
-                                                    svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-                                                    svg.setAttribute('width', '100%');
-                                                    svg.setAttribute('height', '100%');
-                                                    svg.style.display = 'block';
-
-                                                    function ringToPath(ring) {
-                                                        let d = '';
-                                                        for (let i = 0; i < ring.length; i++) {
-                                                            const p = ring[i];
-                                                            const x = sx(p[0]).toFixed(2);
-                                                            const y = sy(p[1]).toFixed(2);
-                                                            d += (i === 0 ? `M ${x} ${y}` : ` L ${x} ${y}`);
-                                                        }
-                                                        return d + ' Z';
-                                                    }
-
-                                                    function geomToPath(geom) {
-                                                        if (!geom) return '';
-                                                        if (geom.type === 'Polygon') {
-                                                            return geom.coordinates.map(ringToPath).join(' ');
-                                                        }
-                                                        if (geom.type === 'MultiPolygon') {
-                                                            return geom.coordinates.map(poly => poly.map(ringToPath).join(' ')).join(' ');
-                                                        }
-                                                        return '';
-                                                    }
-
-	                                                    for (const f of features) {
-	                                                        const featureProps = f ? f.properties : null;
-	                                                        const featureZip = featureProps ? (featureProps.ZCTA5CE20 || featureProps.GEOID20) : '';
-	                                                        const zip = featureZip ? String(featureZip) : '';
-	                                                        const count = Math.max(0, Number(coverage[zip]) || 0);
-	                                                        const path = document.createElementNS(svgNS, 'path');
-	                                                        path.setAttribute('d', geomToPath(f.geometry));
-	                                                        path.setAttribute('fill', fillForCount(count, maxCount));
-	                                                        path.setAttribute('fill-rule', 'evenodd');
-	                                                        path.setAttribute('stroke', 'rgba(15,23,42,0.18)');
-	                                                        path.setAttribute('stroke-width', '0.6');
-	                                                        path.style.cursor = 'pointer';
-
-                                                        path.addEventListener('mouseenter', () => {
-                                                            path.setAttribute('stroke', 'rgba(15,23,42,0.55)');
-                                                            path.setAttribute('stroke-width', '1.2');
-                                                            if (hoverZip) hoverZip.textContent = `ZIP: ${zip || '-'}`;
-                                                            if (hoverCount) hoverCount.textContent = count ? `${count} covered record${count === 1 ? '' : 's'}` : 'Not reached';
-                                                        });
-                                                        path.addEventListener('mouseleave', () => {
-                                                            path.setAttribute('stroke', 'rgba(15,23,42,0.18)');
-                                                            path.setAttribute('stroke-width', '0.6');
-                                                        });
-
-                                                        svg.appendChild(path);
-                                                    }
-
-                                                    el.innerHTML = '';
-                                                    el.appendChild(svg);
-                                                })
-                                                .catch(err => {
-                                                    console.error(err);
-                                                    if (loading) loading.textContent = 'Failed to load ZIP coverage map';
-                                                })
-                                                .finally(() => {
-                                                    if (loading) loading.remove();
-                                                });
-                                        })();
-                                    </script>
-
-                                <!-- Quarterly Performance Overview Chart -->
-                                <div class="mb-4">
-                                    <div class="card" style="border-radius: 12px; border: 1px solid var(--onejax-border); box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-                                        <div class="card-header" style="background: linear-gradient(135deg, var(--onejax-navy), var(--onejax-blue)); color: white; border-radius: 12px 12px 0 0;">
-                                            <h6 class="mb-0">📅 Quarterly Performance Overview</h6>
-                                        </div>
-                                        <div class="card-body">
-                                            <canvas id="quarterlyChart" width="800" height="280" style="max-height: 280px;"></canvas>
+                                            <div class="d-flex justify-content-between mt-1" style="font-size: 0.85rem; color:#475569;">
+                                                <span>Service area ZIPs</span>
+                                                <span id="zipServiceAreaTotal">...</span>
+                                            </div>
+                                            <div class="progress mt-2" style="height: 10px; border-radius: 999px; background: rgba(2,6,23,0.08);">
+                                                <div class="progress-bar" style="width: @Math.Min(zipProgressPct, 100)%; background: #0f3d57; border-radius: 999px;"></div>
+                                            </div>
+                                            <div class="mt-2" style="font-size: 0.85rem; color:#475569;">@Math.Round(zipProgressPct, 1)% complete</div>
                                         </div>
                                     </div>
                                 </div>
+                                <div class="mt-3" id="zipHoverPanel" style="border-radius: 10px; border: 1px dashed rgba(15,23,42,0.25); padding: 0.75rem; background: rgba(255,255,255,0.7);">
+                                    <div style="font-size: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase; color: #64748b; font-weight: 800;">Hover</div>
+                                    <div style="font-size: 1.15rem; font-weight: 800; color: #0f172a; margin-top: 0.25rem;" id="zipHoverZip">ZIP: -</div>
+                                    <div style="color: #475569; font-size: 0.9rem;" id="zipHoverCount">Not reached</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3">
+                @{
+                    var defaultProgramsNote = "Coverage is based on ZIP codes submitted in Programs Demographics (Data Entry).";
+                    var programsNote = DashboardNotesStore.Get("programs-demographics") ?? defaultProgramsNote;
+                }
+                <div class="card h-100" style="border-radius: 12px; border: 1px solid var(--onejax-border);">
+                    <div class="card-header" style="background: #111827; color: white; font-weight: 700;">Notes</div>
+                    <div class="card-body" style="color: var(--onejax-text-muted); font-size: 0.95rem;">
+                        <div id="programsDemographicsNoteText" style="white-space: pre-wrap;">@programsNote</div>
+                        @if (canManageData)
+                        {
+                            <div class="mt-3">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" style="border-radius: 10px;" onclick="toggleProgramsNoteEdit(true)">
+                                    Edit note
+                                </button>
+                            </div>
+                            <form id="programsDemographicsNoteForm" class="mt-3" method="post" action="/DashboardNotes/SaveJson" style="display:none;">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="key" value="programs-demographics" />
+                                <div class="mb-2">
+                                    <textarea name="value" class="form-control" rows="6" style="border-radius: 10px; font-size: 0.95rem;">@programsNote</textarea>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-sm btn-primary" style="border-radius: 10px;">Save</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" style="border-radius: 10px;" onclick="toggleProgramsNoteEdit(false)">Cancel</button>
+                                </div>
+                            </form>
+                            <script>
+                                function toggleProgramsNoteEdit(on) {
+                                    const form = document.getElementById('programsDemographicsNoteForm');
+                                    if (!form) return;
+                                    form.style.display = on ? 'block' : 'none';
+                                }
+                                (function bindProgramsDemographicsNoteAjax() {
+                                    const form = document.getElementById('programsDemographicsNoteForm');
+                                    const noteText = document.getElementById('programsDemographicsNoteText');
+                                    if (!form || !noteText) return;
+                                    if (form.dataset.bound === '1') return;
+                                    form.dataset.bound = '1';
+                                    form.addEventListener('submit', async function (e) {
+                                        e.preventDefault();
+                                        const fd = new FormData(form);
+                                        const token = fd.get('__RequestVerificationToken');
+                                        try {
+                                            const resp = await fetch(form.action, {
+                                                method: 'POST',
+                                                headers: {
+                                                    'RequestVerificationToken': String(token || ''),
+                                                    'X-Requested-With': 'XMLHttpRequest'
+                                                },
+                                                body: fd
+                                            });
+                                            if (!resp.ok) throw new Error('Save failed');
+                                            const data = await resp.json();
+                                            if (!data || !data.ok) throw new Error('Save failed');
+                                            noteText.textContent = data.value || '';
+                                            toggleProgramsNoteEdit(false);
+                                        } catch (err) {
+                                            alert('Could not save note. Please try again.');
+                                        }
+                                    });
+                                })();
+                            </script>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ZIP Coverage Map Script -->
+        <script>
+            (function initZipCoverageMap() {
+                if (window.__onejaxZipMapInitialized) return;
+                const el = document.getElementById('zipCoverageMap');
+                if (!el) return;
+                window.__onejaxZipMapInitialized = true;
+                const loading = document.getElementById('zipCoverageLoading');
+                const hoverZip = document.getElementById('zipHoverZip');
+                const hoverCount = document.getElementById('zipHoverCount');
+                const coverage = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ZipCoverage ?? new Dictionary<string, int>()));
+                const reachedLo = '#fecaca';
+                const reachedHi = '#dc2626';
+                const notReached = '#93c5fd';
+                function lerp(a, b, t) { return a + (b - a) * t; }
+                function hexToRgb(h) {
+                    const m = /^#?([a-f\\d]{2})([a-f\\d]{2})([a-f\\d]{2})$/i.exec(h);
+                    return m ? { r: parseInt(m[1], 16), g: parseInt(m[2], 16), b: parseInt(m[3], 16) } : { r: 0, g: 0, b: 0 };
+                }
+                function rgbToHex(r, g, b) {
+                    const to = (n) => n.toString(16).padStart(2, '0');
+                    return `#${to(r)}${to(g)}${to(b)}`;
+                }
+                function fillForCount(count, maxCount) {
+                    if (!count) return notReached;
+                    const safeMax = Number.isFinite(maxCount) ? (maxCount > 0 ? maxCount : 1) : 1;
+                    const t = safeMax <= 1 ? 1 : Math.min(1, Math.log(count + 1) / Math.log(safeMax + 1));
+                    const a = hexToRgb(reachedLo);
+                    const b = hexToRgb(reachedHi);
+                    const c = rgbToHex(Math.round(lerp(a.r, b.r, t)), Math.round(lerp(a.g, b.g, t)), Math.round(lerp(a.b, b.b, t)));
+                    return /^#[0-9a-f]{6}$/i.test(c) ? c : reachedHi;
+                }
+                function flattenCoords(coords, out) {
+                    if (!coords) return;
+                    if (typeof coords[0] === 'number') { out.push(coords); return; }
+                    for (const c of coords) flattenCoords(c, out);
+                }
+                fetch('/data/NorthEastMap.json', { cache: 'no-store' })
+                    .then(r => r.json())
+                    .then(geo => {
+                        const features = geo ? (geo.features || []) : [];
+                        try {
+                            const totals = new Set();
+                            for (const f of features) {
+                                const featureProps = f ? f.properties : null;
+                                const zipCode = featureProps ? (featureProps.ZCTA5CE20 || featureProps.GEOID20) : '';
+                                const z = zipCode ? String(zipCode) : '';
+                                if (z) totals.add(z);
+                            }
+                            const totalEl = document.getElementById('zipServiceAreaTotal');
+                            if (totalEl) totalEl.textContent = String(totals.size);
+                        } catch { }
+                        const pts = [];
+                        for (const f of features) {
+                            const geometryCoords = f ? (f.geometry ? f.geometry.coordinates : null) : null;
+                            flattenCoords(geometryCoords, pts);
+                        }
+                        if (!pts.length) throw new Error('No coordinates in GeoJSON');
+                        let minLon = Infinity, maxLon = -Infinity, minLat = Infinity, maxLat = -Infinity;
+                        for (const p of pts) {
+                            if (p[0] < minLon) minLon = p[0]; if (p[0] > maxLon) maxLon = p[0];
+                            if (p[1] < minLat) minLat = p[1]; if (p[1] > maxLat) maxLat = p[1];
+                        }
+                        const width = el.clientWidth || 900;
+                        const height = el.clientHeight || 520;
+                        const pad = 10;
+                        const sx = (lon) => pad + ((lon - minLon) / (maxLon - minLon)) * (width - pad * 2);
+                        const sy = (lat) => pad + ((maxLat - lat) / (maxLat - minLat)) * (height - pad * 2);
+                        const maxCount = Object.values(coverage).reduce((m, v) => { const n = Number(v); return Number.isFinite(n) ? Math.max(m, n) : m; }, 0);
+                        const svgNS = 'http://www.w3.org/2000/svg';
+                        const svg = document.createElementNS(svgNS, 'svg');
+                        svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+                        svg.setAttribute('width', '100%');
+                        svg.setAttribute('height', '100%');
+                        svg.style.display = 'block';
+                        function ringToPath(ring) {
+                            let d = '';
+                            for (let i = 0; i < ring.length; i++) {
+                                const p = ring[i];
+                                d += (i === 0 ? `M ${sx(p[0]).toFixed(2)} ${sy(p[1]).toFixed(2)}` : ` L ${sx(p[0]).toFixed(2)} ${sy(p[1]).toFixed(2)}`);
+                            }
+                            return d + ' Z';
+                        }
+                        function geomToPath(geom) {
+                            if (!geom) return '';
+                            if (geom.type === 'Polygon') return geom.coordinates.map(ringToPath).join(' ');
+                            if (geom.type === 'MultiPolygon') return geom.coordinates.map(poly => poly.map(ringToPath).join(' ')).join(' ');
+                            return '';
+                        }
+                        for (const f of features) {
+                            const featureProps = f ? f.properties : null;
+                            const featureZip = featureProps ? (featureProps.ZCTA5CE20 || featureProps.GEOID20) : '';
+                            const zip = featureZip ? String(featureZip) : '';
+                            const count = Math.max(0, Number(coverage[zip]) || 0);
+                            const path = document.createElementNS(svgNS, 'path');
+                            path.setAttribute('d', geomToPath(f.geometry));
+                            path.setAttribute('fill', fillForCount(count, maxCount));
+                            path.setAttribute('fill-rule', 'evenodd');
+                            path.setAttribute('stroke', 'rgba(15,23,42,0.18)');
+                            path.setAttribute('stroke-width', '0.6');
+                            path.style.cursor = 'pointer';
+                            path.addEventListener('mouseenter', () => {
+                                path.setAttribute('stroke', 'rgba(15,23,42,0.55)');
+                                path.setAttribute('stroke-width', '1.2');
+                                if (hoverZip) hoverZip.textContent = `ZIP: ${zip || '-'}`;
+                                if (hoverCount) hoverCount.textContent = count ? `${count} covered record${count === 1 ? '' : 's'}` : 'Not reached';
+                            });
+                            path.addEventListener('mouseleave', () => {
+                                path.setAttribute('stroke', 'rgba(15,23,42,0.18)');
+                                path.setAttribute('stroke-width', '0.6');
+                            });
+                            svg.appendChild(path);
+                        }
+                        el.innerHTML = '';
+                        el.appendChild(svg);
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        if (loading) loading.textContent = 'Failed to load ZIP coverage map';
+                    })
+                    .finally(() => { if (loading) loading.remove(); });
+            })();
+        </script>
+
+        <!-- Quarterly Performance Overview Chart -->
+        <div class="mb-4 mt-3">
+            <div class="card" style="border-radius: 12px; border: 1px solid var(--onejax-border); box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                <div class="card-header" style="background: linear-gradient(135deg, var(--onejax-navy), var(--onejax-blue)); color: white; border-radius: 12px 12px 0 0;">
+                    <h6 class="mb-0">📅 Quarterly Performance Overview</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="quarterlyChart" width="800" height="280" style="max-height: 280px;"></canvas>
+                </div>
+            </div>
+        </div>
+
+    </div>
 }
