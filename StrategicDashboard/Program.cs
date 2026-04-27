@@ -111,6 +111,7 @@ using (var scope = app.Services.CreateScope())
     }
 
     RunStartupStep("Fixing legacy SQL Server text columns", () => EnsureSqlServerTextColumnsFixed(db));
+    RunStartupStep("Fixing legacy SQL Server datetime columns", () => EnsureSqlServerDatetimeColumnsFixed(db));
     RunStartupStep("Ensuring staff admin schema support", () => EnsureStaffAdminSupport(db));
     RunStartupStep("Ensuring strategy program schema support", () => EnsureStrategyProgramSupport(db));
     RunStartupStep("Ensuring strategy archive schema support", () => EnsureStrategyArchiveSupport(db));
@@ -955,6 +956,64 @@ static void EnsureSqlServerTextColumnsFixed(ApplicationDbContext db)
         FROM sys.columns c
         INNER JOIN sys.types t ON c.user_type_id = t.user_type_id
         WHERE t.name IN ('text', 'ntext')
+          AND OBJECTPROPERTY(c.object_id, 'IsUserTable') = 1;
+        IF @alterCols IS NOT NULL EXEC sp_executesql @alterCols;
+        """);
+}
+
+static void EnsureSqlServerDatetimeColumnsFixed(ApplicationDbContext db)
+{
+    if (!db.Database.IsSqlServer())
+    {
+        return;
+    }
+
+    // Some DateTime columns were created as 'TEXT' (SQLite type) on SQL Server, then
+    // converted to NVARCHAR(MAX) by EnsureSqlServerTextColumnsFixed. EF Core's SQL Server
+    // provider cannot read NVARCHAR(MAX) columns as DateTime — it expects datetime2.
+    // This step converts all known DateTime columns that are still text/nvarchar to datetime2(7).
+    //
+    // Steps:
+    //   1. Drop any DEFAULT constraints on those columns (required before ALTER COLUMN).
+    //   2. ALTER each column to DATETIME2(7), preserving nullability.
+    db.Database.ExecuteSqlRaw("""
+        DECLARE @dropDefaults NVARCHAR(MAX);
+        SELECT @dropDefaults = STRING_AGG(
+            CONVERT(NVARCHAR(MAX),
+                N'ALTER TABLE ' + QUOTENAME(OBJECT_SCHEMA_NAME(d.parent_object_id))
+                + N'.' + QUOTENAME(OBJECT_NAME(d.parent_object_id))
+                + N' DROP CONSTRAINT ' + QUOTENAME(d.name) + N';'),
+            N' '
+        )
+        FROM sys.default_constraints d
+        INNER JOIN sys.columns c
+            ON d.parent_object_id = c.object_id AND d.parent_column_id = c.column_id
+        INNER JOIN sys.types t ON c.user_type_id = t.user_type_id
+        WHERE c.name IN (N'CreatedDate', N'WorkshopDate', N'Timestamp', N'ArchivedAtUtc',
+                         N'TargetDate', N'StartDate', N'EndDate', N'AssignmentDate',
+                         N'DueDate', N'CompletionDate')
+          AND ((t.name IN (N'text', N'ntext'))
+               OR (t.name = N'nvarchar' AND c.max_length = -1))
+          AND OBJECTPROPERTY(c.object_id, 'IsUserTable') = 1;
+        IF @dropDefaults IS NOT NULL EXEC sp_executesql @dropDefaults;
+
+        DECLARE @alterCols NVARCHAR(MAX);
+        SELECT @alterCols = STRING_AGG(
+            CONVERT(NVARCHAR(MAX),
+                N'ALTER TABLE ' + QUOTENAME(OBJECT_SCHEMA_NAME(c.object_id))
+                + N'.' + QUOTENAME(OBJECT_NAME(c.object_id))
+                + N' ALTER COLUMN ' + QUOTENAME(c.name)
+                + N' DATETIME2(7) '
+                + CASE WHEN c.is_nullable = 1 THEN N'NULL' ELSE N'NOT NULL' END + N';'),
+            N' '
+        )
+        FROM sys.columns c
+        INNER JOIN sys.types t ON c.user_type_id = t.user_type_id
+        WHERE c.name IN (N'CreatedDate', N'WorkshopDate', N'Timestamp', N'ArchivedAtUtc',
+                         N'TargetDate', N'StartDate', N'EndDate', N'AssignmentDate',
+                         N'DueDate', N'CompletionDate')
+          AND ((t.name IN (N'text', N'ntext'))
+               OR (t.name = N'nvarchar' AND c.max_length = -1))
           AND OBJECTPROPERTY(c.object_id, 'IsUserTable') = 1;
         IF @alterCols IS NOT NULL EXEC sp_executesql @alterCols;
         """);
