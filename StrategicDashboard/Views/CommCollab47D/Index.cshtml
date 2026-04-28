@@ -26,22 +26,6 @@
                     Track new collaborative partner and allied organizations — Goal: Add 3 new partners annually.
                 </p>
 
-                <!-- Stats Bar -->
-                <div class="row text-center mb-4">
-                    <div class="col-md-6">
-                        <div class="p-3" style="background:#f0f4ff; border-radius:12px;">
-                            <div class="fw-bold" style="font-size:1.6rem; color:var(--onejax-navy);">@ViewBag.TotalPartners</div>
-                            <div style="color:var(--onejax-gray); font-size:0.9rem;">Total Partners Logged</div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="p-3" style="background:#f0f4ff; border-radius:12px;">
-                            <div class="fw-bold" style="font-size:1.6rem; color:var(--onejax-navy);">@ViewBag.NewPartnersThisFY</div>
-                            <div style="color:var(--onejax-gray); font-size:0.9rem;">Partners This Fiscal Year</div>
-                        </div>
-                    </div>
-                </div>
-
                 @if (TempData["Success"] != null)
                 {
                     <div class="alert alert-success text-center" style="border-radius:12px;">
