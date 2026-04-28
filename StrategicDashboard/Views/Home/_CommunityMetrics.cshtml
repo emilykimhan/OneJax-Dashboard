@@ -6,13 +6,18 @@
     var activeFiscalYearLabel = ViewBag.ActiveFiscalYearLabel as string ?? string.Empty;
     var goalMetrics = goal?.Metrics ?? new List<GoalMetric>();
     var scheduledGoalMetrics = goalMetrics
-        .Where(m => MetricTrackingSchedule.IsScheduledForFiscalYear(m.Name, activeFiscalYearLabel))
+        .Where(m => DashboardMetricRules.IsScheduledMetric(m, activeFiscalYearLabel))
         .ToList();
 }
 
 	                                        @if (goal?.Name.Contains("Community", StringComparison.OrdinalIgnoreCase) == true)
 	                                        {
-	                                            bool IsScheduledMetric(string metricName) => MetricTrackingSchedule.IsScheduledForFiscalYear(metricName, activeFiscalYearLabel);
+	                                            bool IsScheduledMetric(string metricName)
+                                                {
+                                                    return goalMetrics.Any(m => string.Equals(m.Name, metricName, StringComparison.OrdinalIgnoreCase)
+                                                        && DashboardMetricRules.IsScheduledMetric(m, activeFiscalYearLabel))
+                                                        || MetricTrackingSchedule.IsScheduledForFiscalYear(metricName, activeFiscalYearLabel);
+                                                }
 	                                            var interfaithScheduled = IsScheduledMetric("Interfaith Events Hosted");
 	                                            var youthScheduled = IsScheduledMetric("Youth Attendance Growth");
 	                                            var partnersScheduled = IsScheduledMetric("Cross-Sector Collaborations");
@@ -50,7 +55,7 @@
 
                                             string metricStatus(bool isScheduled, bool hasValue, decimal current, decimal? target, string? fallbackStatus)
                                             {
-                                                if (!isScheduled) return "Starts later";
+                                                if (!isScheduled) return "Not active";
                                                 if (!hasValue) return "No entries yet";
                                                 if (target.HasValue && target.Value > 0 && current >= target.Value) return "Target met";
                                                 return string.IsNullOrWhiteSpace(fallbackStatus) ? "Tracking" : fallbackStatus!;
@@ -100,37 +105,36 @@
                                                 return isScheduled ? valueLabel(value, format, suffix, signed) : "--";
                                             }
 
-                                            string earliestStartFiscalYear(params string[] metricNames)
+                                            string inactiveText(string metricName, string fallback = "Not active")
                                             {
-                                                return metricNames
-                                                    .Select(MetricTrackingSchedule.GetStartFiscalYear)
-                                                    .Where(label => !string.IsNullOrWhiteSpace(label))
-                                                    .OrderBy(label => label)
-                                                    .FirstOrDefault() ?? string.Empty;
+                                                var reason = MetricTrackingSchedule.GetInactiveReason(metricName, activeFiscalYearLabel);
+                                                if (string.IsNullOrWhiteSpace(reason)) return fallback;
+                                                if (reason.StartsWith("Starts in FY ", StringComparison.OrdinalIgnoreCase)) return reason.Replace("Starts in FY ", "Starts FY ", StringComparison.OrdinalIgnoreCase).TrimEnd('.');
+                                                if (reason.StartsWith("Ended after FY ", StringComparison.OrdinalIgnoreCase)) return reason.TrimEnd('.');
+                                                return fallback;
                                             }
 
                                             string panelBadgeText(bool anyScheduled, bool allScheduled, params string[] metricNames)
                                             {
                                                 if (allScheduled) return "In scope";
-                                                if (anyScheduled) return "Some start later";
-                                                var start = earliestStartFiscalYear(metricNames);
-                                                return string.IsNullOrWhiteSpace(start) ? "Starts later" : $"Starts FY {start}";
+                                                if (anyScheduled) return "Partially active";
+                                                return metricNames.Length > 0 ? inactiveText(metricNames[0]) : "Not active";
                                             }
 
                                             string panelNoteText(bool anyScheduled, bool allScheduled, params string[] metricNames)
                                             {
                                                 if (allScheduled) return string.Empty;
-                                                if (anyScheduled) return $"Some metrics in this section do not count toward {activeFiscalYearLabel} yet.";
-                                                var start = earliestStartFiscalYear(metricNames);
-                                                return string.IsNullOrWhiteSpace(start)
-                                                    ? $"This section does not count toward {activeFiscalYearLabel} yet."
-                                                    : $"This section starts in FY {start} and does not count toward {activeFiscalYearLabel} yet.";
+                                                if (anyScheduled) return $"Some metrics in this section do not count toward {activeFiscalYearLabel}.";
+                                                var reason = metricNames.Length > 0 ? MetricTrackingSchedule.GetInactiveReason(metricNames[0], activeFiscalYearLabel) : string.Empty;
+                                                return string.IsNullOrWhiteSpace(reason)
+                                                    ? $"This section does not count toward {activeFiscalYearLabel}."
+                                                    : $"This section does not count toward {activeFiscalYearLabel}. {reason}";
                                             }
 
                                             string earlyMetricStatus(bool isScheduled, bool hasEntry, bool hasValue, decimal current, decimal? target, string? fallbackStatus, string metricName)
                                             {
                                                 if (isScheduled) return metricStatus(true, hasValue, current, target, fallbackStatus);
-                                                if (!hasEntry) return "Starts later";
+                                                if (!hasEntry) return inactiveText(metricName);
 
                                                 var start = MetricTrackingSchedule.GetStartFiscalYear(metricName);
                                                 return string.IsNullOrWhiteSpace(start)
@@ -140,8 +144,7 @@
 
                                             string metricStartText(string metricName)
                                             {
-                                                var start = MetricTrackingSchedule.GetStartFiscalYear(metricName);
-                                                return string.IsNullOrWhiteSpace(start) ? "Starts later" : $"Starts FY {start}";
+                                                return inactiveText(metricName);
                                             }
 
                                             double progressWidth(decimal progress)
@@ -885,7 +888,7 @@
                                                                                 @if (!anyLatestPartners)
                                                                                 {
                                                                                     <tr>
-                                                                                        <td colspan="2">@(partnersScheduled ? "No entries yet." : $"Starts later for FY {activeFiscalYearLabel}.")</td>
+                                                                                        <td colspan="2">@(partnersScheduled ? "No entries yet." : $"Not active for FY {activeFiscalYearLabel}.")</td>
                                                                                     </tr>
                                                                                 }
 	                                                                                else

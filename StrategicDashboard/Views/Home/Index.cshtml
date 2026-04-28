@@ -19,7 +19,7 @@
 
     bool IsScheduledMetric(GoalMetric metric)
     {
-        return MetricTrackingSchedule.IsScheduledForFiscalYear(metric.Name, activeFiscalYear);
+        return DashboardMetricRules.IsScheduledMetric(metric, activeFiscalYear);
     }
 
     bool IsReportingMetric(GoalMetric metric)

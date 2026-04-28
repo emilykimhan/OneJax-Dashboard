@@ -51,13 +51,38 @@ public static class DashboardMetricRules
     public static bool IsScheduledMetric(GoalMetric metric, string? fiscalYear)
     {
         return metric != null
-            && MetricTrackingSchedule.IsScheduledForFiscalYear(metric.Name, fiscalYear);
+            && (MetricTrackingSchedule.IsScheduledForFiscalYear(metric.Name, fiscalYear)
+                || HasDataForFiscalYear(metric, fiscalYear));
     }
 
     public static IEnumerable<GoalMetric> ScheduledMetrics(IEnumerable<GoalMetric>? metrics, string? fiscalYear)
     {
         return (metrics ?? Enumerable.Empty<GoalMetric>())
             .Where(metric => IsScheduledMetric(metric, fiscalYear));
+    }
+
+    public static bool HasDataForFiscalYear(GoalMetric metric, string? fiscalYear)
+    {
+        if (metric == null)
+        {
+            return false;
+        }
+
+        if (!string.IsNullOrWhiteSpace(fiscalYear)
+            && !string.Equals(fiscalYear, "All Years", StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(metric.FiscalYear, fiscalYear, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        return metric.CurrentValue > 0
+            || metric.Q1Value > 0
+            || metric.Q2Value > 0
+            || metric.Q3Value > 0
+            || metric.Q4Value > 0
+            || string.Equals(metric.Status, "Active", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(metric.Status, "Completed", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(metric.Status, "In Progress", StringComparison.OrdinalIgnoreCase);
     }
 
     public static bool TryParseTarget(string? target, out decimal targetValue)

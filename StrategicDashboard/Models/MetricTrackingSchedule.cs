@@ -2,48 +2,109 @@ using System.Globalization;
 
 namespace OneJaxDashboard.Models
 {
+    public enum MetricTrackingType
+    {
+        Annual,
+        Cumulative,
+        Milestone,
+        YearOverYear
+    }
+
     public static class MetricTrackingSchedule
     {
-        // Central place to manage when each dashboard metric should begin counting
-        // toward summary progress. These start years were inferred from the strategic
-        // plan screenshots and can be adjusted without changing the database or forms.
-        private static readonly IReadOnlyDictionary<string, string> StartFiscalYears =
-            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        public sealed record MetricSchedule(
+            string StartFiscalYear,
+            string? EndFiscalYear,
+            MetricTrackingType TrackingType);
+
+        // Central place to manage which fiscal years each metric should count toward
+        // by default. This keeps old one-time metrics from dragging down future annual
+        // summaries while still allowing repeated metrics to reset each fiscal year.
+        private static readonly IReadOnlyDictionary<string, MetricSchedule> Schedules =
+            new Dictionary<string, MetricSchedule>(StringComparer.OrdinalIgnoreCase)
             {
-                ["Earned Media Placements"] = "2025-2026",
-                ["Website Traffic"] = "2025-2026",
-                ["Geographic Reach"] = "2025-2026",
-                ["Community Perception Survey"] = "2025-2026",
-                ["Milestone Achievement"] = "2025-2026",
-                ["Social Media Engagement"] = "2025-2026",
-                ["Interfaith Events Hosted"] = "2025-2026",
-                ["Youth Attendance Growth"] = "2025-2026",
-                ["Cross-Sector Collaborations"] = "2025-2026",
-                ["Faith Representation"] = "2025-2026",
-                ["Event Satisfaction"] = "2025-2026",
-                ["Clergy Network Growth"] = "2025-2026",
-                ["Donor Engagement Events"] = "2025-2026",
-                ["Donor Communication Satisfaction"] = "2025-2026",
-                ["Staff Satisfaction Rating"] = "2025-2026",
-                ["Professional Development Plans"] = "2025-2026",
-                ["Strategic Plan Completion"] = "2026-2027",
-                ["Budget Revenue Tracking"] = "2026-2027",
-                ["Fee-for-Service Income"] = "2026-2027",
-                ["General Income Streams"] = "2026-2027",
-                ["BoardRecruitment"] = "2025-2026",
-                ["Board Recruitment"] = "2025-2026",
-                ["Board Meeting Participation"] = "2025-2026",
-                ["Board Self-Assessment"] = "2025-2026",
-                ["Participant Diversity"] = "2027-2028",
-                ["First-Time Participants"] = "2027-2028",
-                ["Volunteer Program Participation"] = "2025-2026"
+                ["Earned Media Placements"] = new("2025-2026", "2026-2027", MetricTrackingType.Cumulative),
+                ["Website Traffic"] = new("2025-2026", null, MetricTrackingType.YearOverYear),
+                ["Geographic Reach"] = new("2025-2026", "2025-2026", MetricTrackingType.YearOverYear),
+                ["Community Perception Survey"] = new("2025-2026", null, MetricTrackingType.Annual),
+                ["Milestone Achievement"] = new("2025-2026", "2025-2026", MetricTrackingType.Milestone),
+                ["Social Media Engagement"] = new("2025-2026", null, MetricTrackingType.YearOverYear),
+                ["Interfaith Events Hosted"] = new("2025-2026", "2025-2026", MetricTrackingType.Annual),
+                ["Youth Attendance Growth"] = new("2025-2026", null, MetricTrackingType.YearOverYear),
+                ["Cross-Sector Collaborations"] = new("2025-2026", "2026-2027", MetricTrackingType.Cumulative),
+                ["Faith Representation"] = new("2025-2026", null, MetricTrackingType.Annual),
+                ["Event Satisfaction"] = new("2025-2026", null, MetricTrackingType.Annual),
+                ["Clergy Network Growth"] = new("2025-2026", "2025-2026", MetricTrackingType.YearOverYear),
+                ["Donor Engagement Events"] = new("2025-2026", null, MetricTrackingType.Annual),
+                ["Donor Communication Satisfaction"] = new("2025-2026", null, MetricTrackingType.Annual),
+                ["Staff Satisfaction Rating"] = new("2026-2027", null, MetricTrackingType.Annual),
+                ["Professional Development Plans"] = new("2026-2027", null, MetricTrackingType.Annual),
+                ["Strategic Plan Completion"] = new("2026-2027", "2026-2027", MetricTrackingType.Milestone),
+                ["Budget Revenue Tracking"] = new("2025-2026", "2025-2026", MetricTrackingType.Annual),
+                ["Fee-for-Service Income"] = new("2025-2026", "2026-2027", MetricTrackingType.Cumulative),
+                ["General Income Streams"] = new("2026-2027", "2026-2027", MetricTrackingType.Cumulative),
+                ["BoardRecruitment"] = new("2025-2026", null, MetricTrackingType.Annual),
+                ["Board Recruitment"] = new("2025-2026", null, MetricTrackingType.Annual),
+                ["Board Meeting Participation"] = new("2025-2026", null, MetricTrackingType.Annual),
+                ["Board Self-Assessment"] = new("2025-2026", null, MetricTrackingType.Annual),
+                ["Participant Diversity"] = new("2027-2028", null, MetricTrackingType.YearOverYear),
+                ["First-Time Participants"] = new("2027-2028", null, MetricTrackingType.Annual),
+                ["Volunteer Program Participation"] = new("2027-2028", null, MetricTrackingType.Cumulative)
             };
+
+        public static MetricSchedule? GetSchedule(string metricName)
+        {
+            return Schedules.TryGetValue(metricName ?? string.Empty, out var schedule)
+                ? schedule
+                : null;
+        }
 
         public static string? GetStartFiscalYear(string metricName)
         {
-            return StartFiscalYears.TryGetValue(metricName ?? string.Empty, out var startFiscalYear)
-                ? startFiscalYear
-                : null;
+            return GetSchedule(metricName)?.StartFiscalYear;
+        }
+
+        public static string? GetEndFiscalYear(string metricName)
+        {
+            return GetSchedule(metricName)?.EndFiscalYear;
+        }
+
+        public static MetricTrackingType GetTrackingType(string metricName)
+        {
+            return GetSchedule(metricName)?.TrackingType ?? MetricTrackingType.Annual;
+        }
+
+        public static string GetInactiveReason(string metricName, string? fiscalYear)
+        {
+            var schedule = GetSchedule(metricName);
+            if (schedule == null)
+            {
+                return "This metric does not count toward the selected fiscal year.";
+            }
+
+            if (string.IsNullOrWhiteSpace(fiscalYear)
+                || string.Equals(fiscalYear, "All Years", StringComparison.OrdinalIgnoreCase)
+                || IsScheduledForFiscalYear(metricName, fiscalYear))
+            {
+                return string.Empty;
+            }
+
+            if (TryParseFiscalYearEnd(fiscalYear, out var selectedFiscalYearEnd)
+                && TryParseFiscalYearEnd(schedule.StartFiscalYear, out var startFiscalYearEnd)
+                && selectedFiscalYearEnd < startFiscalYearEnd)
+            {
+                return $"Starts in FY {schedule.StartFiscalYear}.";
+            }
+
+            if (!string.IsNullOrWhiteSpace(schedule.EndFiscalYear)
+                && TryParseFiscalYearEnd(fiscalYear ?? string.Empty, out selectedFiscalYearEnd)
+                && TryParseFiscalYearEnd(schedule.EndFiscalYear, out var endFiscalYearEnd)
+                && selectedFiscalYearEnd > endFiscalYearEnd)
+            {
+                return $"Ended after FY {schedule.EndFiscalYear}.";
+            }
+
+            return "This metric does not count toward the selected fiscal year.";
         }
 
         public static bool IsScheduledForFiscalYear(string metricName, string? fiscalYear)
@@ -55,15 +116,26 @@ namespace OneJaxDashboard.Models
                 return true;
             }
 
-            var startFiscalYear = GetStartFiscalYear(metricName);
-            if (string.IsNullOrWhiteSpace(startFiscalYear))
+            var schedule = GetSchedule(metricName);
+            if (schedule == null)
             {
                 return true;
             }
 
-            return TryParseFiscalYearEnd(fiscalYear, out var selectedFiscalYearEnd)
-                && TryParseFiscalYearEnd(startFiscalYear, out var startFiscalYearEnd)
-                && selectedFiscalYearEnd >= startFiscalYearEnd;
+            if (!TryParseFiscalYearEnd(fiscalYear, out var selectedFiscalYearEnd)
+                || !TryParseFiscalYearEnd(schedule.StartFiscalYear, out var startFiscalYearEnd))
+            {
+                return false;
+            }
+
+            if (selectedFiscalYearEnd < startFiscalYearEnd)
+            {
+                return false;
+            }
+
+            return string.IsNullOrWhiteSpace(schedule.EndFiscalYear)
+                || (TryParseFiscalYearEnd(schedule.EndFiscalYear, out var endFiscalYearEnd)
+                    && selectedFiscalYearEnd <= endFiscalYearEnd);
         }
 
         private static bool TryParseFiscalYearEnd(string fiscalYear, out int fiscalYearEnd)

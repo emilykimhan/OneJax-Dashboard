@@ -5,17 +5,15 @@
     var canManageData = ViewData["CanManageData"] as bool? ?? false;
     var activeFiscalYearLabel = ViewBag.ActiveFiscalYearLabel as string ?? string.Empty;
     var scheduleYearLabel = string.IsNullOrWhiteSpace(activeFiscalYearLabel) ? "this fiscal year" : activeFiscalYearLabel;
-    bool IsScheduledMetric(string metricName) => MetricTrackingSchedule.IsScheduledForFiscalYear(metricName, activeFiscalYearLabel);
+    bool IsScheduledMetric(GoalMetric metric) => DashboardMetricRules.IsScheduledMetric(metric, activeFiscalYearLabel);
     string ScheduleBadgeText(bool isScheduled, string? startFiscalYear, string fallbackText) =>
         isScheduled
             ? fallbackText
-            : "Starts later";
+            : "Not active";
     string ScheduleHintText(bool isScheduled, string? startFiscalYear) =>
         isScheduled
             ? string.Empty
-            : string.IsNullOrWhiteSpace(startFiscalYear)
-                ? $"This metric does not count toward {scheduleYearLabel}."
-                : $"This metric does not count toward {scheduleYearLabel}. Starts in FY {startFiscalYear}.";
+            : $"This metric does not count toward {scheduleYearLabel}.";
 }
 
 @if (goal?.Metrics != null && goal.Metrics.Any())
@@ -23,7 +21,7 @@
     foreach (var metric in goal.Metrics)
     {
         var metricName = metric.Name ?? string.Empty;
-        var metricIsScheduled = IsScheduledMetric(metricName);
+        var metricIsScheduled = IsScheduledMetric(metric);
         var metricStartFiscalYear = MetricTrackingSchedule.GetStartFiscalYear(metricName);
 		                                            @if (metricName.Contains("Earned Media", StringComparison.OrdinalIgnoreCase))
 		                                            {
@@ -575,7 +573,7 @@
                                                                 </div>
                                                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                                                     <span class="badge bg-dark">
-                                                                        @(metricIsScheduled ? latestVolunteerRecord != null ? $"Q{latestVolunteerRecord.Quarter}" : "Q-" : "Starts later")
+                                                                        @(metricIsScheduled ? latestVolunteerRecord != null ? $"Q{latestVolunteerRecord.Quarter}" : "Q-" : "Not active")
                                                                     </span>
                                                                     <span class="badge bg-secondary">
                                                                         @(metricIsScheduled ? latestVolunteerRecord?.Year.ToString() ?? "No Year" : metricStartFiscalYear ?? "Planned")

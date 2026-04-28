@@ -14,17 +14,21 @@
     bool IsScheduledMetric(string metricName) => MetricTrackingSchedule.IsScheduledForFiscalYear(metricName, activeFiscalYearLabel);
     string UnscheduledMetricText(string metricName, string subject)
     {
-        var startFiscalYear = MetricTrackingSchedule.GetStartFiscalYear(metricName);
-        return string.IsNullOrWhiteSpace(startFiscalYear)
-            ? $"{subject} does not count toward {scheduleYearLabel}."
-            : $"{subject} does not count toward {scheduleYearLabel}. Starts in FY {startFiscalYear}.";
+        var inactiveReason = MetricTrackingSchedule.GetInactiveReason(metricName, activeFiscalYearLabel);
+        return string.IsNullOrWhiteSpace(inactiveReason)
+            ? string.Empty
+            : $"{subject} does not count toward {scheduleYearLabel}. {inactiveReason}";
     }
     var mediaScheduled = IsScheduledMetric("Earned Media Placements");
     var trustScheduled = IsScheduledMetric("Community Perception Survey");
     var frameworkScheduled = IsScheduledMetric("Strategic Plan Completion");
     var socialScheduled = IsScheduledMetric("Website Traffic");
+    mediaScheduled = mediaScheduled || id.MediaPlacementsTotal > 0;
+    trustScheduled = trustScheduled || id.TrustPercent > 0 || id.TrustRespondents.HasValue;
+    frameworkScheduled = frameworkScheduled || id.FrameworkYear.HasValue || !string.IsNullOrWhiteSpace(id.FrameworkStatus);
+    socialScheduled = socialScheduled || id.SocialYear.HasValue || id.SocialAvgEngagementRate > 0;
 
-    var mediaStatusText = mediaScheduled ? "Tracking" : "Starts later";
+    var mediaStatusText = mediaScheduled ? "Tracking" : "Not active";
     var mediaDisplayText = mediaScheduled ? id.MediaPlacementsTotal.ToString("N0") : "--";
     var mediaSubtext = mediaScheduled
         ? $"Target: {id.MediaPlacementsTarget} placements"
@@ -34,7 +38,7 @@
         : 0;
 
     var trustStatusClass = trustScheduled && id.TrustPercent >= id.TrustTargetPercent ? "ok" : trustScheduled ? "warn" : string.Empty;
-    var trustStatusText = !trustScheduled ? "Starts later" : id.TrustPercent >= id.TrustTargetPercent ? "Target achieved" : "In progress";
+    var trustStatusText = !trustScheduled ? "Not active" : id.TrustPercent >= id.TrustTargetPercent ? "Target achieved" : "In progress";
     var trustDisplayText = trustScheduled ? $"{id.TrustPercent:N1}%" : "--";
     var trustSubtext = trustScheduled
         ? $"Target: {id.TrustTargetPercent:N0}%{(id.TrustRespondents.HasValue ? $" | {id.TrustRespondents} respondents" : string.Empty)}"
@@ -43,13 +47,13 @@
         ? Math.Min(id.TrustPercent * 100.0m / id.TrustTargetPercent, 100)
         : 0;
 
-    var frameworkStatusText = !frameworkScheduled ? "Starts later" : string.IsNullOrWhiteSpace(id.FrameworkStatus) ? "Planning" : id.FrameworkStatus;
-    var frameworkHeadline = frameworkScheduled ? (id.FrameworkGoalMet ? "Goal met" : "In progress") : "Scheduled later";
+    var frameworkStatusText = !frameworkScheduled ? "Not active" : string.IsNullOrWhiteSpace(id.FrameworkStatus) ? "Planning" : id.FrameworkStatus;
+    var frameworkHeadline = frameworkScheduled ? (id.FrameworkGoalMet ? "Goal met" : "In progress") : "Not active";
     var frameworkDetailText = frameworkScheduled
         ? $"{(id.FrameworkYear.HasValue ? id.FrameworkYear.Value.ToString() : string.Empty)}{(!string.IsNullOrWhiteSpace(id.FrameworkQuarter) ? $" {id.FrameworkQuarter}" : string.Empty)}"
         : UnscheduledMetricText("Strategic Plan Completion", "Framework rollout");
 
-    var socialStatusText = socialScheduled ? "Tracking" : "Starts later";
+    var socialStatusText = socialScheduled ? "Tracking" : "Not active";
     var socialDisplayText = socialScheduled ? $"{id.SocialAvgEngagementRate:N1}%" : "--";
     var socialSubtext = socialScheduled
         ? $"Avg engagement {(id.SocialYear.HasValue ? $"({id.SocialYear})" : string.Empty)}{(id.SocialGoalMet ? " | Goal met" : string.Empty)}"
