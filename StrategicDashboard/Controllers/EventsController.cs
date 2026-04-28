@@ -201,7 +201,7 @@ namespace OneJaxDashboard.Controllers
             }
         }
 
-        [Authorize(Roles = "Staff")]
+        [Authorize(Roles = "Admin,Staff")]
         public IActionResult Index()
         {
             var username = User.Identity?.Name ?? string.Empty;
@@ -213,7 +213,7 @@ namespace OneJaxDashboard.Controllers
             return View(items);
         }
 
-        [Authorize(Roles = "Staff")]
+        [Authorize(Roles = "Admin,Staff")]
         public IActionResult Archived()
         {
             var username = User.Identity?.Name ?? string.Empty;
@@ -289,7 +289,7 @@ namespace OneJaxDashboard.Controllers
             return RedirectToAction("Index");
         }
 
-        [Authorize(Roles = "Staff")]
+        [Authorize(Roles = "Admin,Staff")]
         public IActionResult Edit(int id)
         {
             var eventModel = _events.Get(id);
@@ -301,55 +301,66 @@ namespace OneJaxDashboard.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Staff")]
+        [Authorize(Roles = "Admin,Staff")]
         public IActionResult Edit(Event eventModel)
         {
             var existing = _events.Get(eventModel.Id);
             if (existing == null) return NotFound();
             if (!IsOwner(existing)) return Forbid();
 
-            if (!ModelState.IsValid)
+            var updatedEvent = new Event
             {
-                return View(eventModel);
-            }
+                Id = existing.Id,
+                Title = existing.Title,
+                StrategyId = existing.StrategyId,
+                OwnerUsername = existing.OwnerUsername,
+                IsAssignedByAdmin = existing.IsAssignedByAdmin,
+                AssignmentDate = existing.AssignmentDate,
+                AdminNotes = existing.AdminNotes,
+                Type = existing.Type,
+                Location = existing.Location,
+                Attendees = existing.Attendees,
+                Notes = existing.Notes,
+                SatisfactionScore = existing.SatisfactionScore,
+                PreAssessmentData = existing.PreAssessmentData,
+                PostAssessmentData = existing.PostAssessmentData,
+                Description = eventModel.Description ?? existing.Description,
+                Status = string.IsNullOrWhiteSpace(eventModel.Status) ? existing.Status : eventModel.Status,
+                StartDate = eventModel.StartDate,
+                EndDate = eventModel.EndDate,
+                DueDate = existing.DueDate,
+                IsArchived = existing.IsArchived,
+                CompletionDate = existing.CompletionDate
+            };
 
-            // Keep owner unchanged
-            eventModel.OwnerUsername = existing.OwnerUsername;
-            // Keep event title unchanged once assigned
-            eventModel.Title = existing.Title;
-            eventModel.StrategyId = existing.StrategyId;
-            eventModel.IsAssignedByAdmin = existing.IsAssignedByAdmin;
-            eventModel.AssignmentDate = existing.AssignmentDate;
-            eventModel.AdminNotes = existing.AdminNotes;
-
-            var changeDetails = BuildEventChangeDetails(existing, eventModel);
-            var statusChanged = !string.Equals(existing.Status ?? string.Empty, eventModel.Status ?? string.Empty, StringComparison.OrdinalIgnoreCase);
+            var changeDetails = BuildEventChangeDetails(existing, updatedEvent);
+            var statusChanged = !string.Equals(existing.Status ?? string.Empty, updatedEvent.Status ?? string.Empty, StringComparison.OrdinalIgnoreCase);
 
             // Auto-archive when status is Completed
-            if (eventModel.Status == "Completed")
+            if (updatedEvent.Status == "Completed")
             {
-                eventModel.IsArchived = true;
-                eventModel.CompletionDate = existing.CompletionDate ?? NowEastern;
+                updatedEvent.IsArchived = true;
+                updatedEvent.CompletionDate = existing.CompletionDate ?? NowEastern;
             }
             else
             {
-                eventModel.IsArchived = false;
-                eventModel.CompletionDate = null;
+                updatedEvent.IsArchived = false;
+                updatedEvent.CompletionDate = null;
             }
 
-            _events.Update(eventModel);
+            _events.Update(updatedEvent);
 
             //Get staff name for logging
             var username = User.Identity?.Name ?? string.Empty;
             var logAction = statusChanged ? "Changed Event Status" : "Updated Event";
-            var logNotes = $"Updated '{eventModel.Title}'. Changes: {changeDetails}";
-            _activityLog.Log(username, logAction, "Event", details: $"Id={eventModel.Id}; {logNotes}");
+            var logNotes = $"Updated '{updatedEvent.Title}'. Changes: {changeDetails}";
+            _activityLog.Log(username, logAction, "Event", details: $"Id={updatedEvent.Id}; {logNotes}");
 
             TempData["SuccessMessage"] = "Event updated successfully!";
             return RedirectToAction("Index");
         }
 
-        [Authorize(Roles = "Staff")]
+        [Authorize(Roles = "Admin,Staff")]
         public IActionResult Delete(int id)
         {
             var eventModel = _events.Get(id);
@@ -361,7 +372,7 @@ namespace OneJaxDashboard.Controllers
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Staff")]
+        [Authorize(Roles = "Admin,Staff")]
         public IActionResult DeleteConfirmed(int id)
         {
             var eventModel = _events.Get(id);
