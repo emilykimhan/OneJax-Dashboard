@@ -35,6 +35,27 @@
             _ => "#1f2937"
         };
     }
+
+    DateTime? EventDisplayDate(Event eventItem)
+    {
+        return eventItem.DueDate ?? eventItem.StartDate;
+    }
+
+    bool IsPastEvent(Event eventItem)
+    {
+        var eventDate = EventDisplayDate(eventItem);
+        return eventDate.HasValue && eventDate.Value.Date < DateTime.Today;
+    }
+
+    string GetDashboardEventStatus(Event eventItem)
+    {
+        if (string.Equals(eventItem.Status, "Completed", StringComparison.OrdinalIgnoreCase) || IsPastEvent(eventItem))
+        {
+            return "Completed";
+        }
+
+        return string.IsNullOrWhiteSpace(eventItem.Status) ? "Planned" : eventItem.Status;
+    }
 }
 
 @if (goal != null)
@@ -73,8 +94,12 @@
                                                     </h6>
                                                     <div style="font-size: 2rem; font-weight: 700; color: var(--onejax-navy); margin-bottom: 1rem;">@(goal.Events?.Count() ?? 0)</div>
                                                     @{
-                                                        var upcomingCount = goal.Events?.Count(e => e.Status == "Planned" || e.Status == "In Progress") ?? 0;
-                                                        var completedCount = goal.Events?.Count(e => e.Status == "Completed") ?? 0;
+                                                        var upcomingCount = goal.Events?.Count(e => GetDashboardEventStatus(e) != "Completed") ?? 0;
+                                                        var completedCount = goal.Events?.Count(e => GetDashboardEventStatus(e) == "Completed") ?? 0;
+                                                        var nextUpcomingEvent = goal.Events?
+                                                            .Where(e => EventDisplayDate(e).HasValue && EventDisplayDate(e) >= DateTime.Today && GetDashboardEventStatus(e) != "Completed")
+                                                            .OrderBy(EventDisplayDate)
+                                                            .FirstOrDefault();
                                                     }
                                                     @if (goal.Events != null && goal.Events.Any())
                                                     {
@@ -85,7 +110,7 @@
                                                         {
                                                             <div style="margin-top: 0.5rem;">
                                                                 <span class="badge" style="background: var(--gradient-secondary); color: white; font-size: 0.75rem;">
-                                                                    Next: @(goal.Events.Where(e => e.DueDate.HasValue && e.DueDate > DateTime.Now).OrderBy(e => e.DueDate).FirstOrDefault()?.DueDate?.ToString("MMM dd") ?? "TBD")
+                                                                    Next: @(nextUpcomingEvent != null ? EventDisplayDate(nextUpcomingEvent)?.ToString("MMM dd") : "TBD")
                                                                 </span>
                                                             </div>
                                                         }
@@ -116,9 +141,10 @@
                                     
                                     <!-- Event Status Summary -->
                                     @{
-                                        var upcomingEvents = goal.Events.Count(e => e.Status == "Planned" || e.Status == "In Progress");
-                                        var completedEvents = goal.Events.Count(e => e.Status == "Completed");
-                                        var activeEvents = goal.Events.Count(e => e.Status == "Active" || e.Status == "In Progress");
+                                        var upcomingEvents = goal.Events.Count(e => GetDashboardEventStatus(e) != "Completed");
+                                        var completedEvents = goal.Events.Count(e => GetDashboardEventStatus(e) == "Completed");
+                                        var activeEvents = goal.Events.Count(e => GetDashboardEventStatus(e) == "Active" || GetDashboardEventStatus(e) == "In Progress");
+                                        var carouselId = $"events-carousel-{goal.Id}";
                                     }
                                     
                                     <div class="row mb-3">
@@ -142,43 +168,119 @@
                                         </div>
                                     </div>
 
+                                    <style>
+                                        .dashboard-event-strip {
+                                            position: relative;
+                                        }
+
+                                        .dashboard-event-rail {
+                                            display: flex;
+                                            gap: 1rem;
+                                            overflow-x: auto;
+                                            overflow-y: hidden;
+                                            scroll-behavior: smooth;
+                                            scroll-snap-type: x mandatory;
+                                            padding: 0.25rem 0.25rem 0.85rem;
+                                            min-height: 230px;
+                                        }
+
+                                        .dashboard-event-rail::-webkit-scrollbar {
+                                            height: 8px;
+                                        }
+
+                                        .dashboard-event-rail::-webkit-scrollbar-track {
+                                            background: rgba(15, 61, 87, 0.08);
+                                            border-radius: 999px;
+                                        }
+
+                                        .dashboard-event-rail::-webkit-scrollbar-thumb {
+                                            background: rgba(54, 163, 189, 0.65);
+                                            border-radius: 999px;
+                                        }
+
+                                        .dashboard-event-slide {
+                                            flex: 0 0 min(360px, 82vw);
+                                            scroll-snap-align: start;
+                                        }
+
+                                        .dashboard-event-slide .event-card {
+                                            height: 100%;
+                                            min-height: 212px;
+                                        }
+
+                                        .dashboard-event-card-body {
+                                            min-height: 128px;
+                                            display: flex;
+                                            flex-direction: column;
+                                            justify-content: space-between;
+                                        }
+
+                                        .dashboard-event-arrow {
+                                            width: 2.35rem;
+                                            height: 2.35rem;
+                                            border-radius: 999px;
+                                            border: 1px solid var(--onejax-border);
+                                            background: var(--onejax-white);
+                                            color: var(--onejax-navy);
+                                            display: inline-flex;
+                                            align-items: center;
+                                            justify-content: center;
+                                            box-shadow: 0 6px 16px rgba(15, 61, 87, 0.12);
+                                        }
+
+                                        .dashboard-event-arrow:hover {
+                                            background: rgba(54, 163, 189, 0.1);
+                                        }
+                                    </style>
+
                                     <!-- Event Cards -->
-                                    <div class="row">
+                                    <div class="dashboard-event-strip">
+                                        <div class="d-flex justify-content-end gap-2 mb-2">
+                                            <button type="button" class="dashboard-event-arrow" aria-label="Previous events" onclick="scrollDashboardEvents('@carouselId', -1)">
+                                                <i class="fas fa-chevron-left"></i>
+                                            </button>
+                                            <button type="button" class="dashboard-event-arrow" aria-label="Next events" onclick="scrollDashboardEvents('@carouselId', 1)">
+                                                <i class="fas fa-chevron-right"></i>
+                                            </button>
+                                        </div>
+                                        <div class="dashboard-event-rail" id="@carouselId">
                                         @foreach (var eventItem in goal.Events
-                                            .Where(e => (string.IsNullOrEmpty(selectedStatus) || e.Status == selectedStatus))
-                                            .OrderBy(e => e.DueDate ?? DateTime.MaxValue))
+                                            .Where(e => string.IsNullOrEmpty(selectedStatus) || GetDashboardEventStatus(e) == selectedStatus)
+                                            .OrderBy(e => EventDisplayDate(e) ?? DateTime.MaxValue))
                                         {
-                                            <div class="col-md-6 col-lg-4 mb-3">
+                                            var displayStatus = GetDashboardEventStatus(eventItem);
+                                            var eventDate = EventDisplayDate(eventItem);
+                                            <div class="dashboard-event-slide">
                                                 <div class="card event-card" 
                                                      style="background-color:var(--onejax-white); border-radius:12px; border: 1px solid var(--onejax-border); transition: all 0.3s ease; cursor: pointer;"
-                                                     data-status="@eventItem.Status"
-                                                     data-date="@eventItem.DueDate?.ToString("yyyy-MM-dd")"
-                                                     data-quarter="@((eventItem.DueDate?.Month - 1) / 3 + 1)"
-                                                     data-year="@eventItem.DueDate?.Year"
+                                                     data-status="@displayStatus"
+                                                     data-date="@eventDate?.ToString("yyyy-MM-dd")"
+                                                     data-quarter="@((eventDate?.Month - 1) / 3 + 1)"
+                                                     data-year="@eventDate?.Year"
                                                      onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)';"
                                                      onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)';">
                                                     
                                                     <!-- Event Header -->
-                                                    <div class="card-header" style="background: linear-gradient(135deg, @(GetEventHeaderColor(eventItem.Status)), @(GetEventHeaderColorSecondary(eventItem.Status))); color: white; border-radius: 12px 12px 0 0; border: none;">
+                                                    <div class="card-header" style="background: linear-gradient(135deg, @(GetEventHeaderColor(displayStatus)), @(GetEventHeaderColorSecondary(displayStatus))); color: white; border-radius: 12px 12px 0 0; border: none;">
                                                         <div class="d-flex justify-content-between align-items-center">
                                                             <div>
                                                                 <h6 style="margin: 0; font-weight: 600;">@eventItem.Title</h6>
                                                                 <small style="opacity: 0.9;">@eventItem.Type Event</small>
                                                             </div>
                                                             <span class="badge" style="background: rgba(255,255,255,0.2);">
-                                                                @eventItem.Status
+                                                                @displayStatus
                                                             </span>
                                                         </div>
                                                     </div>
                                                     
                                                     <!-- Event Body -->
-                                                    <div class="card-body" style="padding: 1rem;">
+                                                    <div class="card-body dashboard-event-card-body" style="padding: 1rem;">
                                                         <div class="event-details">
                                                             <div class="mb-2">
                                                                 <i class="fas fa-calendar" style="color: var(--onejax-blue); width: 16px;"></i>
                                                                 <strong>Date:</strong> 
                                                                 <span style="color: var(--onejax-navy);">
-                                                                    @(eventItem.DueDate?.ToString("MMM dd, yyyy") ?? eventItem.StartDate?.ToString("MMM dd, yyyy") ?? "TBD")
+                                                                    @(eventDate?.ToString("MMM dd, yyyy") ?? "TBD")
                                                                 </span>
                                                             </div>
                                                             
@@ -231,10 +333,16 @@
                                                                 </a>
                                                             }
                                                             
-                                                            @if (eventItem.DueDate.HasValue)
+                                                            @if (eventDate.HasValue)
                                                             {
-                                                                var daysUntil = (eventItem.DueDate.Value - DateTime.Now).Days;
-                                                                @if (daysUntil >= 0)
+                                                                var daysUntil = (eventDate.Value.Date - DateTime.Today).Days;
+                                                                @if (displayStatus == "Completed")
+                                                                {
+                                                                    <small style="color: var(--onejax-green); font-weight: 600;">
+                                                                        <i class="fas fa-check-circle"></i> Completed
+                                                                    </small>
+                                                                }
+                                                                else if (daysUntil >= 0)
                                                                 {
                                                                     <small style="color: var(--onejax-blue); font-weight: 600;">
                                                                         @if (daysUntil == 0)
@@ -255,25 +363,13 @@
                                                                         }
                                                                     </small>
                                                                 }
-                                                                else
-                                                                {
-                                                                    <small style="color: #ef4444;">
-                                                                        @if (eventItem.Status != "Completed")
-                                                                        {
-                                                                            <span>⚠️ @(-daysUntil) days overdue</span>
-                                                                        }
-                                                                        else
-                                                                        {
-                                                                            <span style="color: var(--onejax-green);">✅ Completed</span>
-                                                                        }
-                                                                    </small>
-                                                                }
                                                             }
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         }
+                                        </div>
                                     </div>
                                     
 	                                    <!-- Quick Action Buttons -->
@@ -301,6 +397,14 @@
 	                                        }
                                     </div>
                                 </div>
+                                <script>
+                                    window.scrollDashboardEvents = window.scrollDashboardEvents || function (id, direction) {
+                                        var rail = document.getElementById(id);
+                                        if (!rail) return;
+                                        var amount = Math.max(rail.clientWidth * 0.85, 320);
+                                        rail.scrollBy({ left: amount * direction, behavior: 'smooth' });
+                                    };
+                                </script>
                             }
                             else
                             {
