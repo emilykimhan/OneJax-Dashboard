@@ -13,6 +13,7 @@ public class HomeController : Controller
     private readonly ApplicationDbContext _context;
     private readonly MetricsService _metricsService;
     private Dictionary<int, DateTime?>? _strategyDateLookup;
+    private string? _activeDashboardFiscalYear;
 
     public HomeController(ApplicationDbContext context, MetricsService metricsService)
     {
@@ -1458,6 +1459,7 @@ public class HomeController : Controller
     private async Task<DashboardViewModel> BuildEnhancedDashboardAsync(string? fiscalYear = null)
     {
         fiscalYear ??= GetCurrentFiscalYearLabel();
+        _activeDashboardFiscalYear = fiscalYear;
         var dashboard = new DashboardViewModel();
         
         // Always create all four strategic goals (regardless of data)
@@ -2308,7 +2310,9 @@ public class HomeController : Controller
     {
         var existingMetric = goal.Metrics.FirstOrDefault(m => m.Name == name);
         var hasIncomingData = !string.Equals(status, "Planning", StringComparison.OrdinalIgnoreCase);
-        var resolvedFiscalYear = string.IsNullOrWhiteSpace(fiscalYear) ? GetCurrentFiscalYearLabel() : fiscalYear;
+        var resolvedFiscalYear = string.IsNullOrWhiteSpace(fiscalYear)
+            ? _activeDashboardFiscalYear ?? GetCurrentFiscalYearLabel()
+            : fiscalYear;
         
         if (existingMetric != null)
         {
