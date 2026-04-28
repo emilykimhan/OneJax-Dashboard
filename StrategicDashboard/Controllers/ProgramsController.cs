@@ -416,31 +416,65 @@ public class ProgramsController : Controller
 
     private void PersistProgram(Programs program)
     {
-        if (!RequiresExplicitIdInsert("Programs"))
+        if (!_context.Database.IsSqlServer())
         {
             _context.Programs.Add(program);
             _context.SaveChanges();
             return;
         }
 
-        program.Id = GetNextSqlServerId("Programs");
+        var connection = _context.Database.GetDbConnection();
+        var shouldClose = connection.State != ConnectionState.Open;
+        if (shouldClose)
+        {
+            connection.Open();
+        }
 
-        _context.Database.ExecuteSqlInterpolated($"""
-            INSERT INTO [Programs] ([Id], [ProgramName], [Description], [ProgramType])
-            VALUES ({program.Id}, {program.ProgramName}, {program.Description}, {program.ProgramType});
-            """);
+        try
+        {
+            var existingColumns = GetSqlServerColumns(connection, "Programs");
+            var requiresExplicitId = RequiresExplicitIdInsert("Programs");
+            if (requiresExplicitId)
+            {
+                program.Id = GetNextSqlServerId("Programs");
+            }
+
+            using var command = connection.CreateCommand();
+            EnlistInCurrentTransaction(command);
+
+            if (requiresExplicitId)
+            {
+                AddInsertParameter(command, "@id", program.Id);
+            }
+
+            AddInsertParameter(command, "@programName", program.ProgramName);
+            AddInsertParameter(command, "@description", program.Description);
+            AddInsertParameter(command, "@programType", program.ProgramType);
+
+            command.CommandText = BuildProgramInsertSql(existingColumns, requiresExplicitId);
+            var result = command.ExecuteScalar();
+            if (!requiresExplicitId && result != null && result != DBNull.Value)
+            {
+                program.Id = Convert.ToInt32(result);
+            }
+        }
+        finally
+        {
+            if (shouldClose)
+            {
+                connection.Close();
+            }
+        }
     }
 
     private void PersistArchivedProgram(ArchivedProgram archivedProgram)
     {
-        if (!RequiresExplicitIdInsert("ArchivedPrograms"))
+        if (!_context.Database.IsSqlServer())
         {
             _context.ArchivedPrograms.Add(archivedProgram);
             _context.SaveChanges();
             return;
         }
-
-        archivedProgram.Id = GetNextSqlServerId("ArchivedPrograms");
 
         var connection = _context.Database.GetDbConnection();
         var shouldClose = connection.State != ConnectionState.Open;
@@ -452,18 +486,32 @@ public class ProgramsController : Controller
         try
         {
             var existingColumns = GetSqlServerColumns(connection, "ArchivedPrograms");
+            var requiresExplicitId = RequiresExplicitIdInsert("ArchivedPrograms");
+            if (requiresExplicitId)
+            {
+                archivedProgram.Id = GetNextSqlServerId("ArchivedPrograms");
+            }
+
             using var command = connection.CreateCommand();
             EnlistInCurrentTransaction(command);
 
-            AddInsertParameter(command, "@id", archivedProgram.Id);
+            if (requiresExplicitId)
+            {
+                AddInsertParameter(command, "@id", archivedProgram.Id);
+            }
+
             AddInsertParameter(command, "@originalProgramId", archivedProgram.OriginalProgramId);
             AddInsertParameter(command, "@programName", archivedProgram.ProgramName);
             AddInsertParameter(command, "@programType", archivedProgram.ProgramType);
             AddInsertParameter(command, "@description", archivedProgram.Description);
             AddInsertParameter(command, "@archivedAtUtc", archivedProgram.ArchivedAtUtc);
 
-            command.CommandText = BuildArchivedProgramInsertSql(existingColumns);
-            command.ExecuteNonQuery();
+            command.CommandText = BuildArchivedProgramInsertSql(existingColumns, requiresExplicitId);
+            var result = command.ExecuteScalar();
+            if (!requiresExplicitId && result != null && result != DBNull.Value)
+            {
+                archivedProgram.Id = Convert.ToInt32(result);
+            }
         }
         finally
         {
@@ -491,8 +539,14 @@ public class ProgramsController : Controller
         try
         {
             using var command = connection.CreateCommand();
-            command.CommandText = $"SELECT ISNULL(COLUMNPROPERTY(OBJECT_ID(N'{tableName}'), N'Id', 'IsIdentity'), -1)";
+            command.CommandText = "SELECT ISNULL(COLUMNPROPERTY(OBJECT_ID(@tableName), N'Id', 'IsIdentity'), -1)";
             EnlistInCurrentTransaction(command);
+
+            var parameter = command.CreateParameter();
+            parameter.ParameterName = "@tableName";
+            parameter.Value = $"dbo.{tableName}";
+            command.Parameters.Add(parameter);
+
             var identityFlag = Convert.ToInt32(command.ExecuteScalar() ?? -1);
             return identityFlag == 0;
         }
@@ -517,7 +571,7 @@ public class ProgramsController : Controller
         try
         {
             using var command = connection.CreateCommand();
-            command.CommandText = $"SELECT ISNULL(MAX([Id]), 0) + 1 FROM [{tableName}]";
+            command.CommandText = $"SELECT ISNULL(MAX([Id]), 0) + 1 FROM [dbo].[{ValidateSqlServerIdentifier(tableName)}]";
             EnlistInCurrentTransaction(command);
             return Convert.ToInt32(command.ExecuteScalar() ?? 1);
         }
@@ -739,23 +793,71 @@ public class ProgramsController : Controller
         command.Parameters.Add(parameter);
     }
 
-    private static string BuildArchivedProgramInsertSql(HashSet<string> existingColumns)
+    private static string ValidateSqlServerIdentifier(string identifier)
+    {
+        if (string.IsNullOrWhiteSpace(identifier) ||
+            identifier.Any(character => !char.IsLetterOrDigit(character) && character != '_'))
+        {
+            throw new InvalidOperationException($"'{identifier}' is not a valid SQL Server identifier.");
+        }
+
+        return identifier;
+    }
+
+    private static string BuildArchivedProgramInsertSql(HashSet<string> existingColumns, bool includeExplicitId)
     {
         var inserts = new List<(string Column, string Parameter)>
         {
-            ("Id", "@id"),
             ("OriginalProgramId", "@originalProgramId"),
             ("ProgramName", "@programName"),
             ("ProgramType", "@programType"),
             ("Description", "@description"),
             ("ArchivedAtUtc", "@archivedAtUtc")
+        };
+
+        if (includeExplicitId)
+        {
+            inserts.Insert(0, ("Id", "@id"));
         }
+
+        inserts = inserts
         .Where(insert => existingColumns.Contains(insert.Column))
         .ToList();
 
         var columnList = string.Join(", ", inserts.Select(insert => $"[{insert.Column}]"));
         var parameterList = string.Join(", ", inserts.Select(insert => insert.Parameter));
-        return $"INSERT INTO [dbo].[ArchivedPrograms] ({columnList}) VALUES ({parameterList});";
+        return $"""
+            INSERT INTO [dbo].[ArchivedPrograms] ({columnList})
+            OUTPUT INSERTED.[Id]
+            VALUES ({parameterList});
+            """;
+    }
+
+    private static string BuildProgramInsertSql(HashSet<string> existingColumns, bool includeExplicitId)
+    {
+        var inserts = new List<(string Column, string Parameter)>
+        {
+            ("ProgramName", "@programName"),
+            ("Description", "@description"),
+            ("ProgramType", "@programType")
+        };
+
+        if (includeExplicitId)
+        {
+            inserts.Insert(0, ("Id", "@id"));
+        }
+
+        inserts = inserts
+            .Where(insert => existingColumns.Contains(insert.Column))
+            .ToList();
+
+        var columnList = string.Join(", ", inserts.Select(insert => $"[{insert.Column}]"));
+        var parameterList = string.Join(", ", inserts.Select(insert => insert.Parameter));
+        return $"""
+            INSERT INTO [dbo].[Programs] ({columnList})
+            OUTPUT INSERTED.[Id]
+            VALUES ({parameterList});
+            """;
     }
 
     private static string BuildArchivedProgramsSelectSql(HashSet<string> existingColumns)
