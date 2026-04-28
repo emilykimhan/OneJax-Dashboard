@@ -208,6 +208,7 @@ namespace OneJaxDashboard.Controllers
             var items = _events.GetByOwner(username)
                 .ToList();
 
+            BackfillMissingStrategyLinks(items);
             PopulateEventDisplayData(items);
             return View(items);
         }
@@ -219,6 +220,7 @@ namespace OneJaxDashboard.Controllers
             var items = _events.GetArchivedByOwner(username)
                 .ToList();
 
+            BackfillMissingStrategyLinks(items);
             PopulateEventDisplayData(items);
             return View(items);
         }
@@ -269,6 +271,11 @@ namespace OneJaxDashboard.Controllers
 
             eventModel.Title = strategy.Name;
             eventModel.Description = strategy.Description;
+            eventModel.StrategyId = strategy.Id;
+            if (string.IsNullOrWhiteSpace(eventModel.Type))
+            {
+                eventModel.Type = strategy.ProgramType ?? string.Empty;
+            }
 
             var username = User.Identity?.Name ?? string.Empty;
             eventModel.OwnerUsername = username;
@@ -447,7 +454,8 @@ namespace OneJaxDashboard.Controllers
 
         private void PopulateEventDisplayData(IEnumerable<Event> events)
         {
-            var strategyIds = events
+            var eventList = events.ToList();
+            var strategyIds = eventList
                 .Select(e => e.StrategyId)
                 .Where(id => id.HasValue)
                 .Select(id => id!.Value)
@@ -480,6 +488,60 @@ namespace OneJaxDashboard.Controllers
 
             ViewBag.GoalNamesByStrategyId = goalNamesByStrategyId;
             ViewBag.EventTypesByStrategyId = eventTypesByStrategyId;
+        }
+
+        private void BackfillMissingStrategyLinks(List<Event> events)
+        {
+            var orphanedEvents = events
+                .Where(e => !e.StrategyId.HasValue && !string.IsNullOrWhiteSpace(e.Title))
+                .ToList();
+
+            if (!orphanedEvents.Any())
+            {
+                return;
+            }
+
+            var candidateTitles = orphanedEvents
+                .Select(e => e.Title.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            var strategyMatches = _context.Strategies
+                .Where(s => candidateTitles.Contains(s.Name))
+                .Select(s => new { s.Id, s.Name, s.ProgramType })
+                .ToList();
+
+            if (!strategyMatches.Any())
+            {
+                return;
+            }
+
+            var strategiesByName = strategyMatches
+                .GroupBy(s => s.Name, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+
+            var hasChanges = false;
+            foreach (var evt in orphanedEvents)
+            {
+                var title = evt.Title.Trim();
+                if (!strategiesByName.TryGetValue(title, out var matchedStrategy))
+                {
+                    continue;
+                }
+
+                evt.StrategyId = matchedStrategy.Id;
+                if (string.IsNullOrWhiteSpace(evt.Type))
+                {
+                    evt.Type = matchedStrategy.ProgramType ?? string.Empty;
+                }
+
+                hasChanges = true;
+            }
+
+            if (hasChanges)
+            {
+                _context.SaveChanges();
+            }
         }
 
         private string ResolveGoalNameForEvent(Event evt)

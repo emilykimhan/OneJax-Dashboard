@@ -65,13 +65,11 @@ namespace OneJaxDashboard.Controllers
         // GET: /Admin/ManageEvents
         public IActionResult ManageEvents()
         {
-            // Get all non-archived events
+            // Get all non-archived events assigned by/admin to real users.
             var allEvents = _db.Events
                 .Include(e => e.AssignedStaff)
                 .Where(e => !e.IsArchived)
                 .Where(e => !string.IsNullOrWhiteSpace(e.OwnerUsername) && e.OwnerUsername != DashboardSyncOwnerUsername)
-                .ToList()
-                .Where(e => e.StrategyId.HasValue && _strategyService.GetStrategy(e.StrategyId.Value) != null)
                 .ToList();
 
             // Separate into active and completed
@@ -172,8 +170,6 @@ namespace OneJaxDashboard.Controllers
                 .Include(e => e.AssignedStaff)
                 .Where(e => e.IsArchived)
                 .Where(e => !string.IsNullOrWhiteSpace(e.OwnerUsername) && e.OwnerUsername != DashboardSyncOwnerUsername)
-                .ToList()
-                .Where(e => e.StrategyId.HasValue && _strategyService.GetStrategy(e.StrategyId.Value) != null)
                 .ToList();
 
             return View(archivedEvents);
@@ -223,7 +219,11 @@ namespace OneJaxDashboard.Controllers
                 return View(eventModel);
             }
 
-            var strategy = _strategyService.GetStrategy(eventModel.StrategyId.Value);
+            var strategy = _db.Strategies
+                .AsNoTracking()
+                .Where(s => s.Id == eventModel.StrategyId.Value)
+                .Select(s => new { s.Id, s.Name, s.Description })
+                .FirstOrDefault();
             if (strategy == null)
             {
                 ModelState.AddModelError(nameof(eventModel.StrategyId), "Please select a valid event.");
@@ -244,7 +244,7 @@ namespace OneJaxDashboard.Controllers
             var staffName = staffMember?.Name ?? selectedStaffUsername;
 
             eventModel.Title = strategy.Name;
-            eventModel.Description = strategy.Description;
+            eventModel.Description = strategy.Description ?? string.Empty;
 
             // Set admin assignment properties
             eventModel.OwnerUsername = selectedStaffUsername;
