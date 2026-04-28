@@ -7,6 +7,8 @@ using OneJaxDashboard.Data;
 using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml.Drawing.Chart;
 using Microsoft.Extensions.Logging;
+using System.Data;
+using System.Data.Common;
 
 
 namespace OneJaxDashboard.Controllers
@@ -412,15 +414,7 @@ namespace OneJaxDashboard.Controllers
         {
             try
             {
-                var strategies = _db.Strategies
-                    .AsNoTracking()
-                    .Select(s => new
-                    {
-                        s.Id,
-                        Name = string.IsNullOrWhiteSpace(s.Name) ? $"Untitled Event #{s.Id}" : s.Name
-                    })
-                    .OrderBy(s => s.Name)
-                    .ToList();
+                var strategies = LoadStrategyDropdownItems();
 
                 ViewBag.StrategyTemplates = new SelectList(strategies, "Id", "Name", selectedStrategyId);
             }
@@ -430,6 +424,129 @@ namespace OneJaxDashboard.Controllers
                 ViewBag.StrategyTemplates = new SelectList(Enumerable.Empty<object>(), "Id", "Name", selectedStrategyId);
                 TempData["ErrorMessage"] = "Unable to load events list. Please contact support if this persists.";
             }
+        }
+
+        private List<StrategyDropdownItem> LoadStrategyDropdownItems()
+        {
+            if (!_db.Database.IsSqlServer())
+            {
+                return _db.Strategies
+                    .AsNoTracking()
+                    .Where(s => !s.IsArchived)
+                    .Select(s => new StrategyDropdownItem
+                    {
+                        Id = s.Id,
+                        Name = string.IsNullOrWhiteSpace(s.Name) ? $"Untitled Event #{s.Id}" : s.Name
+                    })
+                    .OrderBy(s => s.Name)
+                    .ToList();
+            }
+
+            var connection = _db.Database.GetDbConnection();
+            var shouldClose = connection.State != ConnectionState.Open;
+            if (shouldClose)
+            {
+                connection.Open();
+            }
+
+            try
+            {
+                if (!SqlServerTableExists(connection, "Strategies"))
+                {
+                    return new List<StrategyDropdownItem>();
+                }
+
+                var columns = GetSqlServerColumns(connection, "Strategies");
+                if (!columns.Contains("Id"))
+                {
+                    return new List<StrategyDropdownItem>();
+                }
+
+                var nameExpression = columns.Contains("Name")
+                    ? "NULLIF(LTRIM(RTRIM(CONVERT(nvarchar(max), [Name]))), N'')"
+                    : "NULL";
+
+                var whereSql = columns.Contains("IsArchived")
+                    ? " WHERE ISNULL([IsArchived], 0) = 0"
+                    : string.Empty;
+
+                using var command = connection.CreateCommand();
+                command.CommandText = $"""
+                    SELECT
+                        [Id],
+                        COALESCE({nameExpression}, CONCAT(N'Untitled Event #', CONVERT(nvarchar(20), [Id]))) AS [Name]
+                    FROM [dbo].[Strategies]
+                    {whereSql}
+                    ORDER BY [Name];
+                    """;
+
+                using var reader = command.ExecuteReader();
+                var strategies = new List<StrategyDropdownItem>();
+                while (reader.Read())
+                {
+                    strategies.Add(new StrategyDropdownItem
+                    {
+                        Id = Convert.ToInt32(reader["Id"]),
+                        Name = reader["Name"]?.ToString() ?? string.Empty
+                    });
+                }
+
+                return strategies;
+            }
+            finally
+            {
+                if (shouldClose)
+                {
+                    connection.Close();
+                }
+            }
+        }
+
+        private static bool SqlServerTableExists(DbConnection connection, string tableName)
+        {
+            using var command = connection.CreateCommand();
+            command.CommandText = "SELECT CASE WHEN OBJECT_ID(@tableName, N'U') IS NULL THEN 0 ELSE 1 END;";
+
+            var parameter = command.CreateParameter();
+            parameter.ParameterName = "@tableName";
+            parameter.Value = $"dbo.{tableName}";
+            command.Parameters.Add(parameter);
+
+            return Convert.ToInt32(command.ExecuteScalar() ?? 0) == 1;
+        }
+
+        private static HashSet<string> GetSqlServerColumns(DbConnection connection, string tableName)
+        {
+            using var command = connection.CreateCommand();
+            command.CommandText = """
+                SELECT [name]
+                FROM sys.columns
+                WHERE [object_id] = OBJECT_ID(@tableName);
+                """;
+
+            var parameter = command.CreateParameter();
+            parameter.ParameterName = "@tableName";
+            parameter.Value = $"dbo.{tableName}";
+            command.Parameters.Add(parameter);
+
+            var columns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                var name = reader["name"]?.ToString();
+                if (!string.IsNullOrWhiteSpace(name))
+                {
+                    columns.Add(name);
+                }
+            }
+
+            return columns;
+        }
+
+        private sealed class StrategyDropdownItem
+        {
+            public int Id { get; set; }
+            public string Name { get; set; } = string.Empty;
         }
 
         private int? ResolveStrategyIdByEventTitle(string? title)
