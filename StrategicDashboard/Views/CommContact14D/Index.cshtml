@@ -26,46 +26,6 @@
                     Track interfaith contacts — Goal: Expand clergy and interfaith network contacts by 25% by end of FY 25-26.
                 </p>
 
-                <!-- Stats Bar -->
-                <div class="row text-center mb-4">
-                    <div class="col-md-4">
-                        <div class="p-3" style="background:#f0f4ff; border-radius:12px;">
-                            <div class="fw-bold" style="font-size:1.6rem; color:var(--onejax-navy);">@(ViewBag.TotalEntries ?? 0)</div>
-                            <div style="color:var(--onejax-gray); font-size:0.9rem;">Years Logged</div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="p-3" style="background:#f0f4ff; border-radius:12px;">
-                            @if (ViewBag.LatestTotal != null)
-                            {
-                                <div class="fw-bold" style="font-size:1.6rem; color:var(--onejax-navy);">@ViewBag.LatestTotal</div>
-                                <div style="color:var(--onejax-gray); font-size:0.9rem;">Contacts in @ViewBag.LatestYear</div>
-                            }
-                            else
-                            {
-                                <div class="fw-bold" style="font-size:1.6rem; color:var(--onejax-navy);">—</div>
-                                <div style="color:var(--onejax-gray); font-size:0.9rem;">Latest Total Contacts</div>
-                            }
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="p-3" style="background:#f0f4ff; border-radius:12px;">
-                            @if (ViewBag.GrowthPercent != null)
-                            {
-                                double g = (double)ViewBag.GrowthPercent;
-                                string growthColor = g >= 25 ? "#198754" : g >= 0 ? "#fd7e14" : "#dc3545";
-                                <div class="fw-bold" style="font-size:1.6rem; color:@growthColor;">@g%</div>
-                                <div style="color:var(--onejax-gray); font-size:0.9rem;">Growth <span style="font-size:0.75rem;">(target 25%)</span></div>
-                            }
-                            else
-                            {
-                                <div class="fw-bold" style="font-size:1.6rem; color:var(--onejax-navy);">—</div>
-                                <div style="color:var(--onejax-gray); font-size:0.9rem;">Growth <span style="font-size:0.75rem;">(target 25%)</span></div>
-                            }
-                        </div>
-                    </div>
-                </div>
-
                 @if (TempData["Success"] != null)
                 {
                     <div class="alert alert-success text-center" style="border-radius:12px;">
