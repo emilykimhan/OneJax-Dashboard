@@ -52,6 +52,9 @@ namespace OneJaxDashboard.Services
             existing.StartDate = eventModel.StartDate;
             existing.EndDate = eventModel.EndDate;
             existing.StrategyId = eventModel.StrategyId;
+            existing.OwnerUsername = eventModel.OwnerUsername;
+            existing.IsAssignedByAdmin = eventModel.IsAssignedByAdmin;
+            existing.AssignmentDate = eventModel.AssignmentDate;
             existing.DueDate = eventModel.DueDate;
             existing.AdminNotes = eventModel.AdminNotes;
             existing.Type = eventModel.Type;
