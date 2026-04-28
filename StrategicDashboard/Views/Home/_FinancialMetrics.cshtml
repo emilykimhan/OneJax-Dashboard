@@ -5,17 +5,15 @@
     var canManageData = ViewData["CanManageData"] as bool? ?? false;
     var activeFiscalYearLabel = ViewBag.ActiveFiscalYearLabel as string ?? string.Empty;
     var scheduleYearLabel = string.IsNullOrWhiteSpace(activeFiscalYearLabel) ? "this fiscal year" : activeFiscalYearLabel;
-    bool IsScheduledMetric(string metricName) => MetricTrackingSchedule.IsScheduledForFiscalYear(metricName, activeFiscalYearLabel);
+    bool IsScheduledMetric(GoalMetric metric) => DashboardMetricRules.IsScheduledMetric(metric, activeFiscalYearLabel);
     string ScheduleBadgeText(bool isScheduled, string? startFiscalYear, string fallbackText) =>
         isScheduled
             ? fallbackText
-            : "Starts later";
+            : "Not active";
     string ScheduleHintText(bool isScheduled, string? startFiscalYear) =>
         isScheduled
             ? string.Empty
-            : string.IsNullOrWhiteSpace(startFiscalYear)
-                ? $"This metric does not count toward {scheduleYearLabel}."
-                : $"This metric does not count toward {scheduleYearLabel}. Starts in FY {startFiscalYear}.";
+            : $"This metric does not count toward {scheduleYearLabel}.";
     var isFinancialGoal = goal != null && (goal.Name.Contains("Financial") || goal.Name.Contains("Sustainability"));
     IEnumerable<GoalMetric> orderedMetrics = goal?.Metrics != null
         ? goal.Metrics
@@ -34,7 +32,7 @@
     var renderedFinancialCards = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
     foreach (var metric in orderedMetrics)
     {
-		                                            var metricIsScheduled = IsScheduledMetric(metric.Name ?? string.Empty);
+		                                            var metricIsScheduled = IsScheduledMetric(metric);
 		                                            var metricStartFiscalYear = MetricTrackingSchedule.GetStartFiscalYear(metric.Name ?? string.Empty);
 			                                            // Hide redundant/basic financial cards that shouldn't show on the dashboard.
 			                                            if (isFinancialGoal)
