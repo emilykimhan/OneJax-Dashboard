@@ -26,32 +26,6 @@
                     Track faith representation — Goal: Ensure 3 faiths represented at 80% of community events.
                 </p>
 
-                <!-- Stats Bar -->
-                <div class="row text-center mb-4">
-                    <div class="col-md-4">
-                        <div class="p-3" style="background:#f0f4ff; border-radius:12px;">
-                            <div class="fw-bold" style="font-size:1.6rem; color:var(--onejax-navy);">@ViewBag.TotalEvents</div>
-                            <div style="color:var(--onejax-gray); font-size:0.9rem;">Total Events Logged</div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="p-3" style="background:#f0f4ff; border-radius:12px;">
-                            <div class="fw-bold" style="font-size:1.6rem; color:var(--onejax-navy);">@ViewBag.EventsMeetingGoal</div>
-                            <div style="color:var(--onejax-gray); font-size:0.9rem;">Events with 3+ Faiths</div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="p-3" style="background:#f0f4ff; border-radius:12px;">
-                            @{
-                                var pct = (double)(ViewBag.PercentMeetingGoal ?? 0);
-                                var badgeColor = pct >= 80 ? "#198754" : pct >= 50 ? "#fd7e14" : "#dc3545";
-                            }
-                            <div class="fw-bold" style="font-size:1.6rem; color:@badgeColor;">@pct%</div>
-                            <div style="color:var(--onejax-gray); font-size:0.9rem;">% Meeting Goal <span style="font-size:0.75rem;">(target 80%)</span></div>
-                        </div>
-                    </div>
-                </div>
-
                 @if (TempData["Success"] != null)
                 {
                     <div class="alert alert-success text-center" style="border-radius:12px;">

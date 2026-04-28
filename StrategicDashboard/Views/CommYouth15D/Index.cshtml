@@ -26,55 +26,6 @@
                     Track youth participation — Goal: Increase youth attendance by at least 20%.
                 </p>
 
-                <!-- Stats Bar -->
-                <div class="row text-center mb-4 g-3">
-                    <div class="col-md-4 col-6">
-                        <div class="p-3" style="background:#f0f4ff; border-radius:12px;">
-                            <div class="fw-bold" style="font-size:1.5rem; color:var(--onejax-navy);">@(ViewBag.TotalEvents ?? 0)</div>
-                            <div style="color:var(--onejax-gray); font-size:0.85rem;">Events Logged</div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 col-6">
-                        <div class="p-3" style="background:#f0f4ff; border-radius:12px;">
-                            <div class="fw-bold" style="font-size:1.5rem; color:var(--onejax-navy);">@(ViewBag.TotalYouthAttendees ?? 0)</div>
-                            <div style="color:var(--onejax-gray); font-size:0.85rem;">Total Youth Attendees</div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 col-6">
-                        @{
-                            var growth = ViewBag.AttendanceGrowthPercent;
-                            string growthColor = growth == null ? "var(--onejax-navy)"
-                                : (double)growth >= 20 ? "#198754"
-                                : (double)growth >= 0  ? "#fd7e14"
-                                : "#dc3545";
-                        }
-                        <div class="p-3" style="background:#f0f4ff; border-radius:12px;">
-                            <div class="fw-bold" style="font-size:1.5rem; color:@growthColor;">
-                                @(growth != null ? $"{growth}%" : "—")
-                            </div>
-                            <div style="color:var(--onejax-gray); font-size:0.85rem;">Attendance Growth <span style="font-size:0.75rem;">(target 20%)</span></div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 col-6">
-                        <div class="p-3" style="background:#f0f4ff; border-radius:12px;">
-                            <div class="fw-bold" style="font-size:1.5rem; color:var(--onejax-navy);">@(ViewBag.AvgSatisfaction != null ? $"{ViewBag.AvgSatisfaction}%" : "—")</div>
-                            <div style="color:var(--onejax-gray); font-size:0.85rem;">Avg Post-Event Satisfaction</div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 col-6">
-                        <div class="p-3" style="background:#f0f4ff; border-radius:12px;">
-                            <div class="fw-bold" style="font-size:1.5rem; color:var(--onejax-navy);">@(ViewBag.AvgPreAssessment != null ? $"{ViewBag.AvgPreAssessment}" : "—")</div>
-                            <div style="color:var(--onejax-gray); font-size:0.85rem;">Avg Pre-Assessment Score</div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 col-6">
-                        <div class="p-3" style="background:#f0f4ff; border-radius:12px;">
-                            <div class="fw-bold" style="font-size:1.5rem; color:var(--onejax-navy);">@(ViewBag.AvgPostAssessment != null ? $"{ViewBag.AvgPostAssessment}" : "—")</div>
-                            <div style="color:var(--onejax-gray); font-size:0.85rem;">Avg Post-Assessment Score</div>
-                        </div>
-                    </div>
-                </div>
-
                 @if (TempData["Success"] != null)
                 {
                     <div class="alert alert-success text-center" style="border-radius:12px;">
