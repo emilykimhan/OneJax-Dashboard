@@ -349,17 +349,21 @@ public class HomeController : Controller
                 g.Events = g.Events
                     .Where(e => 
                     {
-                        // Status filter
-                        var statusMatch = string.IsNullOrEmpty(status) || e.Status == status;
+                        // Status filter. The dashboard displays past dated events as completed,
+                        // so filtering should use that same display status.
+                        var statusMatch = string.IsNullOrEmpty(status)
+                            || string.Equals(GetDashboardEventStatus(e), status, StringComparison.OrdinalIgnoreCase);
                         
                         // Legacy/quarter time filter
                         var timeMatch = timeFilter == null || 
                                        (e.DueDate >= timeFilter.Value.StartDate && e.DueDate <= timeFilter.Value.EndDate);
 
+                        var eventDate = e.DueDate ?? e.StartDate;
+
                         // Fiscal year filter (events only). Keep events without dates visible.
                         var fiscalYearMatch = fiscalYearRange == null
-                            || !e.DueDate.HasValue
-                            || (e.DueDate.Value >= fiscalYearRange.Value.StartDate && e.DueDate.Value <= fiscalYearRange.Value.EndDate);
+                            || !eventDate.HasValue
+                            || (eventDate.Value >= fiscalYearRange.Value.StartDate && eventDate.Value <= fiscalYearRange.Value.EndDate);
                         
                         return statusMatch && timeMatch && fiscalYearMatch;
                     })
@@ -911,9 +915,6 @@ public class HomeController : Controller
     {
         var strategies = await GetVisibleDashboardStrategiesQuery()
             .Where(s => s.StrategicGoalId == strategicGoalId)
-            .OrderBy(s => string.IsNullOrWhiteSpace(s.Date))
-            .ThenBy(s => s.Date)
-            .Take(12)
             .ToListAsync();
 
         if (!strategies.Any())
@@ -998,6 +999,23 @@ public class HomeController : Controller
             .Select(s => new { s.Id, s.Date })
             .ToList()
             .ToDictionary(item => item.Id, item => ParseStrategyDate(item.Date));
+    }
+
+    private static string GetDashboardEventStatus(Event eventItem)
+    {
+        if (string.Equals(eventItem.Status, "Completed", StringComparison.OrdinalIgnoreCase)
+            || IsPastDashboardEvent(eventItem))
+        {
+            return "Completed";
+        }
+
+        return string.IsNullOrWhiteSpace(eventItem.Status) ? "Planned" : eventItem.Status;
+    }
+
+    private static bool IsPastDashboardEvent(Event eventItem)
+    {
+        var eventDate = eventItem.DueDate ?? eventItem.StartDate;
+        return eventDate.HasValue && eventDate.Value.Date < DateTime.Today;
     }
 
     private DateTime? GetStrategyOccurrenceDate(int strategyId)
