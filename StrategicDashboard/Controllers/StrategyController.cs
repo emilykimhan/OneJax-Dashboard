@@ -661,23 +661,15 @@ public class StrategyController : Controller
     {
         try
         {
+            // Background dashboard sync rows are not staff assignments. Only attach
+            // them to the reserved sync account when that account exists; otherwise
+            // skip creating the row instead of making it look assigned to a real user.
             if (_context.Staffauth.Any(s => s.Username == DashboardSyncOwnerUsername))
             {
                 return DashboardSyncOwnerUsername;
             }
 
-            var currentUsername = User.Identity?.Name?.Trim();
-            if (!string.IsNullOrWhiteSpace(currentUsername)
-                && _context.Staffauth.Any(s => s.Username == currentUsername))
-            {
-                return currentUsername;
-            }
-
-            return _context.Staffauth
-                .OrderByDescending(s => s.IsAdmin)
-                .ThenBy(s => s.Username)
-                .Select(s => s.Username)
-                .FirstOrDefault();
+            return null;
         }
         catch (Exception ex)
         {

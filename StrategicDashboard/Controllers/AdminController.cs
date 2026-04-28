@@ -67,11 +67,12 @@ namespace OneJaxDashboard.Controllers
         // GET: /Admin/ManageEvents
         public IActionResult ManageEvents()
         {
-            // Get all non-archived events assigned by/admin to real users.
+            // Only show events that were explicitly assigned through Admin.
             var allEvents = _db.Events
                 .Include(e => e.AssignedStaff)
                 .Where(e => !e.IsArchived)
-                .Where(e => !string.IsNullOrWhiteSpace(e.OwnerUsername) && e.OwnerUsername != DashboardSyncOwnerUsername)
+                .Where(e => e.IsAssignedByAdmin)
+                .Where(e => !string.IsNullOrWhiteSpace(e.OwnerUsername))
                 .ToList();
 
             // Separate into active and completed
@@ -171,7 +172,8 @@ namespace OneJaxDashboard.Controllers
             var archivedEvents = _db.Events
                 .Include(e => e.AssignedStaff)
                 .Where(e => e.IsArchived)
-                .Where(e => !string.IsNullOrWhiteSpace(e.OwnerUsername) && e.OwnerUsername != DashboardSyncOwnerUsername)
+                .Where(e => e.IsAssignedByAdmin)
+                .Where(e => !string.IsNullOrWhiteSpace(e.OwnerUsername))
                 .ToList();
 
             return View(archivedEvents);
