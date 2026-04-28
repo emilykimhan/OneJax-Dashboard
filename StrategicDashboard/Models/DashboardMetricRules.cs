@@ -6,7 +6,9 @@ public static class DashboardMetricRules
 {
     private static readonly HashSet<string> MilestoneMetrics = new(StringComparer.OrdinalIgnoreCase)
     {
-        "Strategic Plan Completion"
+        "Strategic Plan Completion",
+        "Milestone Achievement",
+        "Social Media Engagement"
     };
 
     private static readonly HashSet<string> GrowthMetrics = new(StringComparer.OrdinalIgnoreCase)
