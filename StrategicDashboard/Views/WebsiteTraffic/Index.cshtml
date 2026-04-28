@@ -97,25 +97,6 @@
                         </div>
                     </div>
 
-                    @if (ViewBag.GrandTotal != null)
-                    {
-                        <div class="alert alert-success mt-3" style="border-radius: 12px;">
-                            <div class="row align-items-center">
-                                <div class="col-md-8">
-                                    <h5 class="mb-0" style="color: #155724;">
-                                        <strong>Grand Total Across All Entries:</strong>
-                                    </h5>
-                                    <small class="text-muted">Based on @ViewBag.TotalEntries entry/entries in the database</small>
-                                </div>
-                                <div class="col-md-4 text-end">
-                                    <h3 class="mb-0" style="color: #155724;">
-                                        <strong>@ViewBag.GrandTotal</strong> clicks
-                                    </h3>
-                                </div>
-                            </div>
-                        </div>
-                    }
-
                     <!-- Submit Button -->
                     <div class="text-center mt-4">
                         <button type="submit" class="btn btn-primary btn-lg px-5 py-3"
