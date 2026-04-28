@@ -289,7 +289,7 @@ public class StrategyController : Controller
     public IActionResult Edit(int id)
     {
         // Fetch the strategy from the database
-        var evt = _context.Strategies.FirstOrDefault(s => s.Id == id);
+        var evt = GetStrategyForMutation(id);
         if (evt == null)
         {
             return NotFound(); // Return 404 if the strategy doesn't exist
@@ -345,7 +345,7 @@ public class StrategyController : Controller
         }
 
         // Fetch the strategy from the database
-        var evt = _context.Strategies.FirstOrDefault(s => s.Id == id);
+        var evt = GetStrategyForMutation(id);
         if (evt == null)
         {
             return NotFound(); // Return 404 if the strategy doesn't exist
@@ -387,8 +387,18 @@ public class StrategyController : Controller
         evt.StrategicGoalId = goalId;
         evt.EventFYear = ComputeFiscalYear(eventDate);
 
-        // Save changes to the database
-        TrySyncLinkedDashboardEvent(evt);
+        try
+        {
+            SaveStrategyChanges(evt);
+            TrySyncLinkedDashboardEvent(evt);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[strategy-edit] Failed to update strategy event '{resolvedEventName}' (Id={id}): {ex}");
+            TempData["ErrorMessage"] = "We couldn't update that event right now. Please try again.";
+            return RedirectToAction(nameof(Edit), new { id });
+        }
+
         var previousGoalName = ResolveGoalName(previousGoalId);
         var updatedGoalName = ResolveGoalName(evt.StrategicGoalId);
 
@@ -728,6 +738,113 @@ public class StrategyController : Controller
             """);
     }
 
+    private Strategy? GetStrategyForMutation(int id)
+    {
+        if (!_context.Database.IsSqlServer())
+        {
+            return _context.Strategies.FirstOrDefault(s => s.Id == id);
+        }
+
+        var connection = _context.Database.GetDbConnection();
+        var shouldClose = connection.State != ConnectionState.Open;
+        if (shouldClose)
+        {
+            connection.Open();
+        }
+
+        try
+        {
+            var existingColumns = GetSqlServerColumns(connection, "Strategies");
+            using var command = connection.CreateCommand();
+            command.CommandText = BuildStrategySelectByIdSql(existingColumns);
+
+            var parameter = command.CreateParameter();
+            parameter.ParameterName = "@id";
+            parameter.Value = id;
+            command.Parameters.Add(parameter);
+
+            using var reader = command.ExecuteReader();
+            if (!reader.Read())
+            {
+                return null;
+            }
+
+            return new Strategy
+            {
+                Id = SafeGetInt(reader, "Id"),
+                Name = SafeGetString(reader, "Name"),
+                ProgramId = SafeGetNullableInt(reader, "ProgramId"),
+                ProgramName = SafeGetNullableString(reader, "ProgramName"),
+                ProgramType = SafeGetNullableString(reader, "ProgramType"),
+                StrategicGoalId = SafeGetInt(reader, "StrategicGoalId"),
+                Description = SafeGetString(reader, "Description"),
+                Date = SafeGetNullableString(reader, "Date"),
+                Time = SafeGetNullableString(reader, "Time"),
+                CrossCollaboration = SafeGetString(reader, "CrossCollaboration"),
+                Partners = SafeGetString(reader, "Partners"),
+                EventFYear = SafeGetString(reader, "EventFYear"),
+                IsArchived = SafeGetBool(reader, "IsArchived"),
+                ArchivedAtUtc = SafeGetNullableDateTime(reader, "ArchivedAtUtc")
+            };
+        }
+        finally
+        {
+            if (shouldClose)
+            {
+                connection.Close();
+            }
+        }
+    }
+
+    private void SaveStrategyChanges(Strategy strategy)
+    {
+        if (!_context.Database.IsSqlServer())
+        {
+            _context.SaveChanges();
+            return;
+        }
+
+        var connection = _context.Database.GetDbConnection();
+        var shouldClose = connection.State != ConnectionState.Open;
+        if (shouldClose)
+        {
+            connection.Open();
+        }
+
+        try
+        {
+            var existingColumns = GetSqlServerColumns(connection, "Strategies");
+            using var command = connection.CreateCommand();
+            command.CommandText = BuildStrategyUpdateSql(existingColumns);
+
+            AddCommandParameter(command, "@id", strategy.Id);
+            AddCommandParameter(command, "@name", strategy.Name);
+            AddCommandParameter(command, "@programId", strategy.ProgramId);
+            AddCommandParameter(command, "@programName", strategy.ProgramName);
+            AddCommandParameter(command, "@programType", strategy.ProgramType);
+            AddCommandParameter(command, "@strategicGoalId", strategy.StrategicGoalId);
+            AddCommandParameter(command, "@description", strategy.Description);
+            AddCommandParameter(command, "@date", strategy.Date);
+            AddCommandParameter(command, "@time", strategy.Time);
+            AddCommandParameter(command, "@crossCollaboration", strategy.CrossCollaboration);
+            AddCommandParameter(command, "@partners", strategy.Partners);
+            AddCommandParameter(command, "@eventFYear", strategy.EventFYear);
+
+            var rowsAffected = command.ExecuteNonQuery();
+            if (rowsAffected == 0)
+            {
+                throw new InvalidOperationException($"Strategy event Id={strategy.Id} was not found.");
+            }
+        }
+        finally
+        {
+            if (shouldClose)
+            {
+                connection.Close();
+            }
+        }
+    }
+
     private bool RequiresExplicitIdInsert(string tableName)
     {
         if (!_context.Database.IsSqlServer())
@@ -962,6 +1079,14 @@ public class StrategyController : Controller
         return columns;
     }
 
+    private static void AddCommandParameter(DbCommand command, string name, object? value)
+    {
+        var parameter = command.CreateParameter();
+        parameter.ParameterName = name;
+        parameter.Value = value ?? DBNull.Value;
+        command.Parameters.Add(parameter);
+    }
+
     private static string BuildStrategiesSelectSql(HashSet<string> existingColumns, int? goalId, bool includeArchived)
     {
         string SelectColumn(string name, string fallbackSql)
@@ -1001,6 +1126,60 @@ public class StrategyController : Controller
             : string.Empty;
 
         return $"SELECT {selectList} FROM [dbo].[Strategies]{whereSql};";
+    }
+
+    private static string BuildStrategySelectByIdSql(HashSet<string> existingColumns)
+    {
+        string SelectColumn(string name, string fallbackSql)
+            => existingColumns.Contains(name) ? $"[{name}] AS [{name}]" : $"{fallbackSql} AS [{name}]";
+
+        var selectList = string.Join(", ", new[]
+        {
+            SelectColumn("Id", "0"),
+            SelectColumn("Name", "N''"),
+            SelectColumn("ProgramId", "NULL"),
+            SelectColumn("ProgramName", "NULL"),
+            SelectColumn("ProgramType", "NULL"),
+            SelectColumn("StrategicGoalId", "0"),
+            SelectColumn("Description", "N''"),
+            SelectColumn("Date", "NULL"),
+            SelectColumn("Time", "NULL"),
+            SelectColumn("CrossCollaboration", "N''"),
+            SelectColumn("Partners", "N''"),
+            SelectColumn("EventFYear", "N''"),
+            SelectColumn("IsArchived", "CAST(0 AS bit)"),
+            SelectColumn("ArchivedAtUtc", "CAST(NULL AS datetime2)")
+        });
+
+        return $"SELECT TOP (1) {selectList} FROM [dbo].[Strategies] WHERE [Id] = @id;";
+    }
+
+    private static string BuildStrategyUpdateSql(HashSet<string> existingColumns)
+    {
+        var updates = new List<(string Column, string Parameter)>
+        {
+            ("Name", "@name"),
+            ("ProgramId", "@programId"),
+            ("ProgramName", "@programName"),
+            ("ProgramType", "@programType"),
+            ("StrategicGoalId", "@strategicGoalId"),
+            ("Description", "@description"),
+            ("Date", "@date"),
+            ("Time", "@time"),
+            ("CrossCollaboration", "@crossCollaboration"),
+            ("Partners", "@partners"),
+            ("EventFYear", "@eventFYear")
+        }
+        .Where(update => existingColumns.Contains(update.Column))
+        .ToList();
+
+        if (updates.Count == 0)
+        {
+            throw new InvalidOperationException("The Strategies table has no editable event columns.");
+        }
+
+        var setSql = string.Join(", ", updates.Select(update => $"[{update.Column}] = {update.Parameter}"));
+        return $"UPDATE [dbo].[Strategies] SET {setSql} WHERE [Id] = @id;";
     }
 
     private static string SafeGetString(DbDataReader reader, string name)
