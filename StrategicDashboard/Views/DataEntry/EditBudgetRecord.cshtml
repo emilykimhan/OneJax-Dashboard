@@ -40,32 +40,47 @@
             <h5 class="mt-4 mb-3" style="color:var(--onejax-navy); border-bottom:2px solid #dee2e6; padding-bottom:0.5rem;">Expenses</h5>
             <div class="row mb-3">
                 <div class="col-md-6">
-                    <label asp-for="CommunityPrograms" class="form-label fw-bold">Community Programs ($)</label>
-                    <input asp-for="CommunityPrograms" type="number" step="0.01" min="0" class="form-control" />
+                    <label asp-for="CommunityPrograms" class="form-label fw-bold">Community Programs</label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input asp-for="CommunityPrograms" type="number" step="0.01" min="0" class="form-control" />
+                    </div>
                     <span asp-validation-for="CommunityPrograms" class="text-danger"></span>
                 </div>
                 <div class="col-md-6">
-                    <label asp-for="OneYouthPrograms" class="form-label fw-bold">OneYouth Programs ($)</label>
-                    <input asp-for="OneYouthPrograms" type="number" step="0.01" min="0" class="form-control" />
+                    <label asp-for="OneYouthPrograms" class="form-label fw-bold">OneYouth Programs</label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input asp-for="OneYouthPrograms" type="number" step="0.01" min="0" class="form-control" />
+                    </div>
                     <span asp-validation-for="OneYouthPrograms" class="text-danger"></span>
                 </div>
             </div>
             <div class="row mb-3">
                 <div class="col-md-6">
-                    <label asp-for="InterfaithPrograms" class="form-label fw-bold">Interfaith Programs ($)</label>
-                    <input asp-for="InterfaithPrograms" type="number" step="0.01" min="0" class="form-control" />
+                    <label asp-for="InterfaithPrograms" class="form-label fw-bold">Interfaith Programs</label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input asp-for="InterfaithPrograms" type="number" step="0.01" min="0" class="form-control" />
+                    </div>
                     <span asp-validation-for="InterfaithPrograms" class="text-danger"></span>
                 </div>
                 <div class="col-md-6">
-                    <label asp-for="HumanitarianEvent" class="form-label fw-bold">Humanitarian Event ($)</label>
-                    <input asp-for="HumanitarianEvent" type="number" step="0.01" min="0" class="form-control" />
+                    <label asp-for="HumanitarianEvent" class="form-label fw-bold">Humanitarian Event</label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input asp-for="HumanitarianEvent" type="number" step="0.01" min="0" class="form-control" />
+                    </div>
                     <span asp-validation-for="HumanitarianEvent" class="text-danger"></span>
                 </div>
             </div>
             <div class="row mb-3">
                 <div class="col-md-6">
-                    <label asp-for="MiscellaneousExpenses" class="form-label fw-bold">Miscellaneous Expenses ($)</label>
-                    <input asp-for="MiscellaneousExpenses" type="number" step="0.01" min="0" class="form-control" />
+                    <label asp-for="MiscellaneousExpenses" class="form-label fw-bold">Miscellaneous Expenses</label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input asp-for="MiscellaneousExpenses" type="number" step="0.01" min="0" class="form-control" />
+                    </div>
                     <span asp-validation-for="MiscellaneousExpenses" class="text-danger"></span>
                 </div>
             </div>
@@ -73,37 +88,55 @@
             <h5 class="mt-4 mb-3" style="color:var(--onejax-navy); border-bottom:2px solid #dee2e6; padding-bottom:0.5rem;">Revenues</h5>
             <div class="row mb-3">
                 <div class="col-md-6">
-                    <label asp-for="CorporateGiving" class="form-label fw-bold">Corporate Giving ($)</label>
-                    <input asp-for="CorporateGiving" type="number" step="0.01" min="0" class="form-control" />
+                    <label asp-for="CorporateGiving" class="form-label fw-bold">Corporate Giving</label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input asp-for="CorporateGiving" type="number" step="0.01" min="0" class="form-control" />
+                    </div>
                     <span asp-validation-for="CorporateGiving" class="text-danger"></span>
                 </div>
                 <div class="col-md-6">
-                    <label asp-for="IndividualGiving" class="form-label fw-bold">Individual Giving ($)</label>
-                    <input asp-for="IndividualGiving" type="number" step="0.01" min="0" class="form-control" />
+                    <label asp-for="IndividualGiving" class="form-label fw-bold">Individual Giving</label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input asp-for="IndividualGiving" type="number" step="0.01" min="0" class="form-control" />
+                    </div>
                     <span asp-validation-for="IndividualGiving" class="text-danger"></span>
                 </div>
             </div>
             <div class="row mb-3">
                 <div class="col-md-6">
-                    <label asp-for="GrantsFoundations" class="form-label fw-bold">Grants &amp; Foundations ($)</label>
-                    <input asp-for="GrantsFoundations" type="number" step="0.01" min="0" class="form-control" />
+                    <label asp-for="GrantsFoundations" class="form-label fw-bold">Grants &amp; Foundations</label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input asp-for="GrantsFoundations" type="number" step="0.01" min="0" class="form-control" />
+                    </div>
                     <span asp-validation-for="GrantsFoundations" class="text-danger"></span>
                 </div>
                 <div class="col-md-6">
-                    <label asp-for="CommunityEvents" class="form-label fw-bold">Community Events ($)</label>
-                    <input asp-for="CommunityEvents" type="number" step="0.01" min="0" class="form-control" />
+                    <label asp-for="CommunityEvents" class="form-label fw-bold">Community Events</label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input asp-for="CommunityEvents" type="number" step="0.01" min="0" class="form-control" />
+                    </div>
                     <span asp-validation-for="CommunityEvents" class="text-danger"></span>
                 </div>
             </div>
             <div class="row mb-3">
                 <div class="col-md-6">
-                    <label asp-for="PeopleCultureWorkshops" class="form-label fw-bold">People and Culture Workshops ($)</label>
-                    <input asp-for="PeopleCultureWorkshops" type="number" step="0.01" min="0" class="form-control" />
+                    <label asp-for="PeopleCultureWorkshops" class="form-label fw-bold">People and Culture Workshops</label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input asp-for="PeopleCultureWorkshops" type="number" step="0.01" min="0" class="form-control" />
+                    </div>
                     <span asp-validation-for="PeopleCultureWorkshops" class="text-danger"></span>
                 </div>
                 <div class="col-md-6">
-                    <label asp-for="MiscellaneousRevenue" class="form-label fw-bold">Miscellaneous Revenue ($)</label>
-                    <input asp-for="MiscellaneousRevenue" type="number" step="0.01" min="0" class="form-control" />
+                    <label asp-for="MiscellaneousRevenue" class="form-label fw-bold">Miscellaneous Revenue</label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input asp-for="MiscellaneousRevenue" type="number" step="0.01" min="0" class="form-control" />
+                    </div>
                     <span asp-validation-for="MiscellaneousRevenue" class="text-danger"></span>
                 </div>
             </div>
@@ -121,3 +154,11 @@
         </form>
     </div>
 </div>
+
+<style>
+    .input-group-text {
+        background-color: var(--onejax-navy);
+        color: white;
+        border-color: var(--onejax-navy);
+    }
+</style>
