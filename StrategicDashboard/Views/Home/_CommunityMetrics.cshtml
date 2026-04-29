@@ -365,6 +365,15 @@
 	                                                    color: rgba(255,255,255,0.88);
 	                                                }
 
+                                                    .community-pulse-shell .community-relationships .community-mini-table,
+                                                    .community-pulse-shell .community-relationships .community-mini-table thead,
+                                                    .community-pulse-shell .community-relationships .community-mini-table tbody,
+                                                    .community-pulse-shell .community-relationships .community-mini-table tr,
+                                                    .community-pulse-shell .community-relationships .community-mini-table th,
+                                                    .community-pulse-shell .community-relationships .community-mini-table td {
+                                                        background: transparent !important;
+                                                    }
+
 	                                                .community-pulse-shell .community-relationships .community-kicker {
 	                                                    background: rgba(255,255,255,0.12);
 	                                                    color: #d3f4ef;
@@ -616,6 +625,16 @@
 	                                                    color: rgba(255,255,255,0.82);
 	                                                }
 
+                                                    .community-pulse-shell .community-partner-name {
+                                                        color: #ffffff;
+                                                        font-weight: 800;
+                                                    }
+
+                                                    .community-pulse-shell .community-partner-meta {
+                                                        color: rgba(255,255,255,0.70);
+                                                        font-size: 0.8rem;
+                                                    }
+
 	                                                .community-pulse-shell .community-link-cluster {
 	                                                    display: flex;
 	                                                    gap: 0.55rem;
@@ -811,13 +830,13 @@
 	                                                                    <div class="col-12">
 	                                                                        <div class="community-insight-card signal-band">
 	                                                                            <div class="community-insight-main">
-	                                                                                <div class="community-chart-label">Learning signal</div>
-                                                                                <div class="community-kpi-big">@(youthHasValue && youthTarget.HasValue ? $"{youthProgress:0.#}%" : youthStatusText)</div>
-	                                                                                <div class="community-kpi-caption">Progress toward youth attendance growth target</div>
+	                                                                                <div class="community-chart-label">Youth attendance growth</div>
+                                                                                <div class="community-kpi-big">@scheduledValueLabel(youthScheduled, youthValueRaw, "0.#", "%", true)</div>
+	                                                                                <div class="community-kpi-caption">Growth between the two most recent youth attendance entries</div>
 	                                                                            </div>
 	                                                                            <div class="community-inline-meta">
 	                                                                                <span>Target: @targetLabel(youthTarget, "0.#", "+", "%")</span>
-	                                                                                <span>@youthStatusText</span>
+	                                                                                <span>@(youthHasValue && youthTarget.HasValue ? $"{youthStatusText}, {youthProgress:0.#}% of target" : youthStatusText)</span>
 	                                                                            </div>
 	                                                                        </div>
 	                                                                    </div>
@@ -867,11 +886,16 @@
 	                                                                </div>
 
 	                                                                <div class="community-chart-card">
-	                                                                    <div class="community-chart-label">By fiscal year</div>
-	                                                                    <div class="community-chart-title">Partner growth trend</div>
-	                                                                    <div class="community-chart-stage compact">
-	                                                                        <canvas id="commPartnersFyBar"></canvas>
-	                                                                    </div>
+	                                                                    <div class="community-chart-label">@activeFiscalYearLabel</div>
+	                                                                    <div class="community-chart-title">Selected-year progress</div>
+                                                                        <div class="community-chart-subtitle">This card follows the fiscal year selected at the top of the dashboard.</div>
+                                                                        <div class="progress" style="height: 12px; border-radius: 999px; background: rgba(255,255,255,0.18);">
+                                                                            <div class="progress-bar" style="width: @(Math.Min(partnersProgress, 100))%; background: var(--community-sand); border-radius: 999px;"></div>
+                                                                        </div>
+                                                                        <div class="community-inline-meta mt-2">
+                                                                            <span>@partnersValue.ToString("0") of @targetLabel(partnersTarget, "0.#") partners</span>
+                                                                            <span>@(partnersHasValue && partnersTarget.HasValue ? $"{partnersProgress:0.#}% of annual target" : partnersStatusText)</span>
+                                                                        </div>
 	                                                                </div>
 
 	                                                                <div class="community-chart-card">
@@ -880,8 +904,7 @@
 	                                                                        <table class="table table-sm community-mini-table">
 	                                                                            <thead>
 	                                                                                <tr>
-	                                                                                    <th style="white-space: nowrap;">Date</th>
-	                                                                                    <th>Strategy</th>
+	                                                                                    <th>Partner</th>
 	                                                                                </tr>
 	                                                                            </thead>
 	                                                                            <tbody>
@@ -896,8 +919,10 @@
 	                                                                                    foreach (var row in latestPartners!)
 	                                                                                    {
 	                                                                                        <tr>
-	                                                                                            <td style="white-space: nowrap;">@row.date</td>
-	                                                                                            <td>@row.strategy</td>
+	                                                                                            <td>
+                                                                                                    <div class="community-partner-name">@row.partner</div>
+                                                                                                    <div class="community-partner-meta">@row.date</div>
+                                                                                                </td>
 	                                                                                        </tr>
 	                                                                                    }
 	                                                                                }
@@ -1143,36 +1168,6 @@
 	                                                                    scales: {
 	                                                                        x: { ticks: { color: '#6c879a' }, grid: { color: 'rgba(23, 50, 77, 0.08)' }, beginAtZero: true, suggestedMax: 100 },
 	                                                                        y: { ticks: { color: '#5d768b' }, grid: { display: false } }
-	                                                                    }
-	                                                                }
-	                                                            });
-	                                                        }
-
-	                                                        const partnersFy = @Html.Raw(Json.Serialize(ViewBag.CommunityPartnersByFiscalYear ?? new List<object>()));
-	                                                        const partnersEl = document.getElementById('commPartnersFyBar');
-	                                                        if (partnersEl) {
-	                                                            const labels = (partnersFy || []).map(p => p.fiscalYear);
-	                                                            const values = (partnersFy || []).map(p => p.count);
-	                                                            new Chart(partnersEl, {
-	                                                                type: 'bar',
-	                                                                data: {
-	                                                                    labels,
-	                                                                    datasets: [{
-	                                                                        label: 'New partners',
-	                                                                        data: values,
-	                                                                        backgroundColor: ['rgba(244, 201, 138, 0.90)', 'rgba(42, 166, 164, 0.82)', 'rgba(239, 125, 87, 0.86)'],
-	                                                                        borderRadius: 14,
-	                                                                        borderSkipped: false
-	                                                                    }]
-	                                                                },
-	                                                                options: {
-	                                                                    responsive: true,
-	                                                                    maintainAspectRatio: false,
-	                                                                    indexAxis: 'y',
-	                                                                    plugins: { legend: { display: false } },
-	                                                                    scales: {
-	                                                                        x: { ticks: { color: 'rgba(255,255,255,0.86)', precision: 0 }, grid: { color: 'rgba(255,255,255,0.10)' }, beginAtZero: true },
-	                                                                        y: { ticks: { color: 'rgba(255,255,255,0.86)' }, grid: { display: false } }
 	                                                                    }
 	                                                                }
 	                                                            });
