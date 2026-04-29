@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using OneJaxDashboard.Models;
 using OneJaxDashboard.Data;
@@ -59,6 +60,36 @@ namespace OneJaxDashboard.Controllers
         public IActionResult Index()
         {
             return View();
+        }
+
+        private List<SelectListItem> GetStaffMemberOptions(string? selectedName = null)
+        {
+            var staffMembers = _context.Staffauth
+                .AsNoTracking()
+                .Where(s => !string.IsNullOrWhiteSpace(s.Name))
+                .OrderBy(s => s.Name)
+                .Select(s => s.Name.Trim())
+                .Distinct()
+                .ToList();
+
+            if (!string.IsNullOrWhiteSpace(selectedName))
+            {
+                var normalizedSelectedName = selectedName.Trim();
+                if (!staffMembers.Contains(normalizedSelectedName, StringComparer.OrdinalIgnoreCase))
+                {
+                    staffMembers.Add(normalizedSelectedName);
+                }
+            }
+
+            return staffMembers
+                .OrderBy(name => name)
+                .Select(name => new SelectListItem
+                {
+                    Value = name,
+                    Text = name,
+                    Selected = string.Equals(name, selectedName, StringComparison.OrdinalIgnoreCase)
+                })
+                .ToList();
         }
 
         private void LogSuccessfulEditOrDelete(ActionExecutedContext context)
@@ -1769,6 +1800,8 @@ namespace OneJaxDashboard.Controllers
                 TempData["Error"] = "Record not found.";
                 return RedirectToRecordHistory();
             }
+
+            ViewBag.StaffMembers = GetStaffMemberOptions(profDev.Name);
             return View(profDev);
         }
 
@@ -1795,6 +1828,8 @@ namespace OneJaxDashboard.Controllers
                     TempData["Error"] = "Record not found.";
                 }
             }
+
+            ViewBag.StaffMembers = GetStaffMemberOptions(profDev.Name);
             return View(profDev);
         }
 
