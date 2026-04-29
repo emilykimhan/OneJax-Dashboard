@@ -45,7 +45,7 @@ namespace OneJaxDashboard.Controllers
                 ViewBag.Strategies = EmptyStrategies();
             }
 
-            return View(new demographics_8D());
+            return View(new demographics_8D { Year = DateTime.Now.Year });
         }
 
         // POST: identityDemo_8D/Index

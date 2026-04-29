@@ -1068,38 +1068,39 @@
                                                                     }
                                                                 </div>
 
-	                                                                <div class="community-network-grid">
+	                                                                <div class="community-network-grid" style="display:grid; grid-template-columns:1fr; gap:1rem;">
                                                                         @if (interfaithScheduled)
                                                                         {
-	                                                                    <div class="community-stat-card accent-teal" style="display:grid; gap:0.85rem;">
-	                                                                        <div class="d-flex justify-content-between align-items-start gap-3">
+	                                                                    <div class="community-stat-card accent-teal" style="display:grid; grid-template-columns:minmax(170px, 0.55fr) minmax(220px, 1fr); align-items:center; gap:1rem;">
 	                                                                            <div>
 	                                                                                <div class="community-stat-label">Interfaith events</div>
                                                                                     <div class="community-stat-value">@(interfaithScheduled ? interfaithValue.ToString("0") : "--")</div>
+                                                                                    <div class="community-stat-meta">Target: @targetLabel(interfaithTarget) events hosted</div>
                                                                                 </div>
-                                                                                <div style="width:76px; height:76px; border-radius:50%; display:grid; place-items:center; background:conic-gradient(#2f8792 @progressWidth(interfaithProgress)%, rgba(15,23,42,0.10) 0);">
-                                                                                    <div style="width:58px; height:58px; border-radius:50%; background:white; display:grid; place-items:center; color:#0f3d57; font-weight:900; font-size:0.9rem;">@progressWidth(interfaithProgress)%</div>
+                                                                                <div>
+                                                                                    <div class="community-rail-track"><div class="community-rail-fill" style="width:@progressWidth(interfaithProgress)%"></div></div>
+                                                                                    <div class="community-inline-meta mt-2">
+                                                                                        <span>@progressWidth(interfaithProgress)% of annual target</span>
+                                                                                        <span>@interfaithStatusText</span>
+                                                                                    </div>
                                                                                 </div>
-	                                                                        </div>
-                                                                            <div class="community-rail-track"><div class="community-rail-fill" style="width:@progressWidth(interfaithProgress)%"></div></div>
-                                                                            <div class="community-stat-meta">@(interfaithScheduled ? $"Target: {targetLabel(interfaithTarget)} events hosted | {interfaithStatusText}" : interfaithStatusText)</div>
 	                                                                    </div>
                                                                         }
                                                                         @if (clergyScheduled)
                                                                         {
-	                                                                    <div class="community-stat-card accent-coral" style="display:grid; gap:0.85rem;">
-	                                                                        <div class="d-flex justify-content-between align-items-start gap-3">
+	                                                                    <div class="community-stat-card accent-coral" style="display:grid; grid-template-columns:minmax(170px, 0.55fr) minmax(220px, 1fr); align-items:center; gap:1rem;">
 	                                                                            <div>
 	                                                                                <div class="community-stat-label">Network growth</div>
                                                                                     <div class="community-stat-value">@scheduledValueLabel(clergyScheduled, clergyValueRaw, "0.#", "%", true)</div>
+                                                                                    <div class="community-stat-meta">Target: @targetLabel(clergyTarget, "0.#", "+", "%") growth</div>
                                                                                 </div>
-                                                                                <div style="min-width:76px; border-radius:999px; padding:0.45rem 0.7rem; background:rgba(255,255,255,0.85); color:#7f1d1d; font-weight:900; text-align:center;">
-                                                                                    <div style="font-size:1.2rem; line-height:1;">@clergyLatestTotal.ToString("0")</div>
-                                                                                    <div style="font-size:0.68rem; letter-spacing:0.04em; text-transform:uppercase;">contacts</div>
+                                                                                <div>
+                                                                                    <div class="community-rail-track"><div class="community-rail-fill" style="width:@progressWidth(clergyProgress)%"></div></div>
+                                                                                    <div class="community-inline-meta mt-2">
+                                                                                        <span>@progressWidth(clergyProgress)% of growth target</span>
+                                                                                        <span>@clergyStatusText</span>
+                                                                                    </div>
                                                                                 </div>
-	                                                                        </div>
-                                                                            <div class="community-rail-track"><div class="community-rail-fill" style="width:@progressWidth(clergyProgress)%"></div></div>
-                                                                            <div class="community-stat-meta">@(clergyScheduled ? $"Target: {targetLabel(clergyTarget, "0.#", "+", "%")} growth | {clergyStatusText}" : clergyStatusText)</div>
 	                                                                    </div>
                                                                         }
 	                                                                </div>
