@@ -231,7 +231,7 @@
         function addZip() {
             const zip = (zipInput.value || '').trim();
             const count = Math.max(1, parseInt(countInput.value || '1', 10) || 1);
-            if (!/^\\d{5}$/.test(zip)) {
+                            if (!/^\d{5}$/.test(zip)) {
                 zipInput.setCustomValidity('Enter a 5-digit ZIP code.');
                 zipInput.reportValidity();
                 return;
