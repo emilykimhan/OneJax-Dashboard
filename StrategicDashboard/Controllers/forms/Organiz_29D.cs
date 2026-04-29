@@ -48,6 +48,8 @@ namespace OneJaxDashboard.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Index(BoardMemberRecruitment model)
         {
+            model.MemberNames ??= string.Empty;
+
             if (ModelState.IsValid)
             {
                 try

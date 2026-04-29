@@ -2018,6 +2018,8 @@ namespace OneJaxDashboard.Controllers
         [HttpPost]
         public IActionResult EditBoardMember(BoardMemberRecruitment model)
         {
+            model.MemberNames ??= string.Empty;
+
             if (ModelState.IsValid)
             {
                 var existing = _context.BoardMember_29D.Find(model.Id);
@@ -2026,7 +2028,7 @@ namespace OneJaxDashboard.Controllers
                     existing.Year = model.Year;
                     existing.Quarter = model.Quarter;
                     existing.NumberRecruited = model.NumberRecruited;
-                    existing.MemberNames = model.MemberNames;
+                    existing.MemberNames = model.MemberNames ?? string.Empty;
                     existing.TotalProspectOutreach = model.TotalProspectOutreach;
                     existing.ProspectNames = model.ProspectNames;
                     _context.SaveChanges();

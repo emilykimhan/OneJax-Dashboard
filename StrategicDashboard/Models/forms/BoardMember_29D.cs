@@ -7,7 +7,7 @@ namespace OneJaxDashboard.Models
         public int Id { get; set; }
 
         [StringLength(1000)]
-        public string MemberNames { get; set; } = string.Empty; // Comma-separated list of member names
+        public string? MemberNames { get; set; } // Comma-separated list of member names
 
         [Required]
         [Range(1, 4)]
