@@ -1091,6 +1091,14 @@ namespace OneJaxDashboard.Controllers
         {
             if (ModelState.IsValid)
             {
+                model.ZipCodes = NormalizeZipCodes(model.ZipCodes);
+                if (string.IsNullOrWhiteSpace(model.ZipCodes))
+                {
+                    ModelState.AddModelError("ZipCodes", "Please enter at least one ZIP code.");
+                    ViewBag.Strategies = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(_context.Strategies.OrderBy(s => s.Name), "Id", "Name", model.StrategyId);
+                    return View(model);
+                }
+
                 var existing = _context.demographics_8D.Find(model.Id);
                 if (existing != null)
                 {
@@ -1110,6 +1118,21 @@ namespace OneJaxDashboard.Controllers
             }
             ViewBag.Strategies = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(_context.Strategies.OrderBy(s => s.Name), "Id", "Name", model.StrategyId);
             return View(model);
+        }
+
+        private static string NormalizeZipCodes(string? zipCodes)
+        {
+            if (string.IsNullOrWhiteSpace(zipCodes))
+            {
+                return string.Empty;
+            }
+
+            var tokens = zipCodes
+                .Split(new[] { ',', ' ', '\r', '\n', ';' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(z => z.Trim())
+                .Where(z => !string.IsNullOrWhiteSpace(z));
+
+            return string.Join(", ", tokens);
         }
 
         // Delete Community Perception Survey

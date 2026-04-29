@@ -37,8 +37,27 @@
 
             <div class="mb-3">
                 <label asp-for="ZipCodes" class="form-label fw-bold">Zip Codes</label>
-                <textarea asp-for="ZipCodes" class="form-control" rows="3" maxlength="1000" placeholder="Enter zip codes..." required></textarea>
+                <input asp-for="ZipCodes" type="hidden" id="ZipCodes" maxlength="1000" />
+                <div class="zip-entry-panel">
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-7">
+                            <label for="zipCodeInput" class="form-label small fw-bold">ZIP code</label>
+                            <input id="zipCodeInput" type="text" class="form-control" inputmode="numeric" maxlength="5" placeholder="e.g., 32211" />
+                        </div>
+                        <div class="col-md-3">
+                            <label for="zipCountInput" class="form-label small fw-bold">Times recorded</label>
+                            <input id="zipCountInput" type="number" class="form-control" min="1" max="999" value="1" />
+                        </div>
+                        <div class="col-md-2 d-grid">
+                            <button type="button" class="btn btn-outline-primary" id="addZipCountButton">Add</button>
+                        </div>
+                    </div>
+                    <div class="zip-count-list mt-3" id="zipCountList">
+                        <div class="zip-empty-state">No ZIP codes added yet.</div>
+                    </div>
+                </div>
                 <span asp-validation-for="ZipCodes" class="text-danger"></span>
+                <small class="form-text text-muted">Edit each ZIP code once, then set how many times it was recorded.</small>
             </div>
 
             <div class="mb-3">
@@ -57,6 +76,122 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        (function initZipCountEdit() {
+            const form = document.querySelector('form[asp-action="EditDemographics"]') || document.querySelector('form');
+            const zipHidden = document.getElementById('ZipCodes');
+            const zipInput = document.getElementById('zipCodeInput');
+            const countInput = document.getElementById('zipCountInput');
+            const addButton = document.getElementById('addZipCountButton');
+            const list = document.getElementById('zipCountList');
+            if (!form || !zipHidden || !zipInput || !countInput || !addButton || !list) return;
+
+            const counts = new Map();
+
+            function loadExisting() {
+                const existing = (zipHidden.value || '').split(/[\s,;]+/).map(z => z.trim()).filter(Boolean);
+                for (const zip of existing) {
+                    if (/^\d{5}$/.test(zip)) {
+                        counts.set(zip, (counts.get(zip) || 0) + 1);
+                    }
+                }
+            }
+
+            function render() {
+                list.innerHTML = '';
+                if (!counts.size) {
+                    const empty = document.createElement('div');
+                    empty.className = 'zip-empty-state';
+                    empty.textContent = 'No ZIP codes added yet.';
+                    list.appendChild(empty);
+                    return;
+                }
+
+                for (const [zip, count] of counts.entries()) {
+                    const row = document.createElement('div');
+                    row.className = 'zip-count-row';
+                    row.innerHTML = `<div><strong>${zip}</strong><div class="text-muted small">${count} recorded</div></div>`;
+                    const actions = document.createElement('div');
+                    actions.className = 'd-flex gap-2 align-items-center';
+
+                    const editCount = document.createElement('input');
+                    editCount.type = 'number';
+                    editCount.min = '1';
+                    editCount.max = '999';
+                    editCount.value = String(count);
+                    editCount.className = 'form-control form-control-sm';
+                    editCount.style.width = '90px';
+                    editCount.addEventListener('change', function () {
+                        counts.set(zip, Math.max(1, parseInt(editCount.value || '1', 10) || 1));
+                        render();
+                    });
+
+                    const remove = document.createElement('button');
+                    remove.type = 'button';
+                    remove.className = 'btn btn-sm btn-outline-secondary';
+                    remove.textContent = 'Remove';
+                    remove.addEventListener('click', function () {
+                        counts.delete(zip);
+                        render();
+                    });
+
+                    actions.appendChild(editCount);
+                    actions.appendChild(remove);
+                    row.appendChild(actions);
+                    list.appendChild(row);
+                }
+            }
+
+            function addZip() {
+                const zip = (zipInput.value || '').trim();
+                const count = Math.max(1, parseInt(countInput.value || '1', 10) || 1);
+                if (!/^\d{5}$/.test(zip)) {
+                    zipInput.setCustomValidity('Enter a 5-digit ZIP code.');
+                    zipInput.reportValidity();
+                    return;
+                }
+                zipInput.setCustomValidity('');
+                counts.set(zip, (counts.get(zip) || 0) + count);
+                zipInput.value = '';
+                countInput.value = '1';
+                render();
+                zipInput.focus();
+            }
+
+            addButton.addEventListener('click', addZip);
+            zipInput.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    addZip();
+                }
+            });
+
+            form.addEventListener('submit', function (event) {
+                const expanded = [];
+                for (const [zip, count] of counts.entries()) {
+                    for (let i = 0; i < count; i++) expanded.push(zip);
+                }
+
+                zipHidden.value = expanded.join(', ');
+                if (!zipHidden.value) {
+                    event.preventDefault();
+                    zipInput.setCustomValidity('Add at least one ZIP code.');
+                    zipInput.reportValidity();
+                    return;
+                }
+                if (zipHidden.value.length > 1000) {
+                    event.preventDefault();
+                    zipInput.setCustomValidity('This entry has too many ZIP records. Please split it into two submissions.');
+                    zipInput.reportValidity();
+                    return;
+                }
+                zipInput.setCustomValidity('');
+            });
+
+            loadExisting();
+            render();
+        })();
+    </script>
 }
 
 <style>
@@ -78,5 +213,38 @@
     .btn-primary:hover {
         background-color: #1a365d;
         border-color: #1a365d;
+    }
+
+    .zip-entry-panel {
+        border: 1px solid rgba(15, 23, 42, 0.14);
+        border-radius: 12px;
+        padding: 1rem;
+        background: #f8fafc;
+    }
+
+    .zip-count-list {
+        display: grid;
+        gap: 0.5rem;
+    }
+
+    .zip-count-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        border: 1px solid rgba(15, 23, 42, 0.10);
+        border-radius: 10px;
+        padding: 0.65rem 0.75rem;
+        background: white;
+    }
+
+    .zip-count-row strong {
+        color: var(--onejax-navy);
+    }
+
+    .zip-empty-state {
+        color: #64748b;
+        font-size: 0.95rem;
+        padding: 0.6rem 0;
     }
 </style>
