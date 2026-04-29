@@ -619,7 +619,7 @@
                                     <strong>Income Source:</strong> @income.IncomeSource
                                 </div>
                                 <div class="detail-item">
-                                    <strong>Amount:</strong> @income.Amount.ToString("C")
+                                    <strong>Amount:</strong> @($"${income.Amount:N2}")
                                 </div>
                                 <div class="detail-item">
                                     <strong>Month:</strong> @income.Month
@@ -676,13 +676,13 @@
                                     <strong>Quarter:</strong> @budget.Quarter &mdash; <strong>Year:</strong> @budget.Year
                                 </div>
                                 <div class="detail-item">
-                                    <strong>Total Revenues:</strong> @budget.TotalRevenues.ToString("C")
+                                    <strong>Total Revenues:</strong> @($"${budget.TotalRevenues:N2}")
                                 </div>
                                 <div class="detail-item">
-                                    <strong>Total Expenses:</strong> @budget.TotalExpenses.ToString("C")
+                                    <strong>Total Expenses:</strong> @($"${budget.TotalExpenses:N2}")
                                 </div>
                                 <div class="detail-item">
-                                    <strong>Net (Revenue - Expense):</strong> @budget.NetAmount.ToString("C")
+                                    <strong>Net (Revenue - Expense):</strong> @($"${budget.NetAmount:N2}")
                                 </div>
                                 @if (!string.IsNullOrEmpty(budget.Notes))
                                 {
