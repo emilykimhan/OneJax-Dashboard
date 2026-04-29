@@ -30,7 +30,9 @@
 
             <div class="mb-3">
                 <label asp-for="Name" class="form-label fw-bold">Staff Member Name</label>
-                <input asp-for="Name" class="form-control" />
+                <select asp-for="Name" class="form-select" asp-items="ViewBag.StaffMembers">
+                    <option value="">-- Select a Staff Member --</option>
+                </select>
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
 

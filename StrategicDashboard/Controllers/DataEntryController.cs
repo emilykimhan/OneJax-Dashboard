@@ -1746,6 +1746,9 @@ namespace OneJaxDashboard.Controllers
                 TempData["Error"] = "Record not found.";
                 return RedirectToRecordHistory();
             }
+            ViewBag.StaffMembers = _context.Staffauth
+                .Select(s => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem { Value = s.Name, Text = s.Name })
+                .ToList();
             return View(profDev);
         }
 
@@ -1755,6 +1758,7 @@ namespace OneJaxDashboard.Controllers
         {
             if (ModelState.IsValid)
             {
+
                 var existingProfDev = _context.ProfessionalDevelopments.Find(profDev.Id);
                 if (existingProfDev != null)
                 {
@@ -1772,6 +1776,9 @@ namespace OneJaxDashboard.Controllers
                     TempData["Error"] = "Record not found.";
                 }
             }
+            ViewBag.StaffMembers = _context.Staffauth
+                .Select(s => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem { Value = s.Name, Text = s.Name })
+                .ToList();
             return View(profDev);
         }
 
