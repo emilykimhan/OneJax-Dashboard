@@ -95,7 +95,7 @@ public class HomeController : Controller
                     }
                 }
 
-                // Collaborative Partner Touchpoints (CollabTouch_47D): FY bar chart + latest 5 table (date + strategy only).
+                // Collaborative Partner Touchpoints (CollabTouch_47D): selected-FY pace + latest partner names.
                 var collabRows = await _context.CollabTouch_47D
                     .Include(c => c.Strategy)
                     .OrderByDescending(c => c.CreatedDate)
@@ -107,11 +107,6 @@ public class HomeController : Controller
 
                 ViewBag.CommunityPartnerEntryCount = collabRows.Count;
                 ViewBag.CommunityPartnersCurrentCount = collabRows.Count;
-                ViewBag.CommunityPartnersByFiscalYear = collabRows
-                    .GroupBy(c => string.IsNullOrWhiteSpace(c.FiscalYear) ? "Unknown" : c.FiscalYear.Trim())
-                    .OrderBy(g => g.Key)
-                    .Select(g => new { fiscalYear = g.Key, count = g.Count() })
-                    .ToList();
 
                 ViewBag.CommunityPartnersLatest = collabRows
                     .OrderByDescending(c => c.CreatedDate)
@@ -119,6 +114,8 @@ public class HomeController : Controller
                     .Select(c => new
                     {
                         date = c.CreatedDate.ToString("MMM d, yyyy", CultureInfo.InvariantCulture),
+                        partner = c.PartnerOrganization,
+                        touchpoint = c.Touchpoint,
                         strategy = c.Strategy?.Name ?? "Unassigned"
                     })
                     .ToList();
