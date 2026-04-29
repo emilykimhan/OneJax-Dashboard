@@ -114,25 +114,16 @@ namespace OneJaxDashboard.Controllers
 
         private List<SelectListItem> GetMonths()
         {
-            var currentYear = DateTime.Now.Year;
-            var months = new List<SelectListItem>();
-            
-            for (int year = currentYear - 1; year <= currentYear + 2; year++)
-            {
-                var monthNames = new[] { "January", "February", "March", "April", "May", "June", 
-                                        "July", "August", "September", "October", "November", "December" };
-                
-                foreach (var month in monthNames)
+            var monthNames = new[] { "January", "February", "March", "April", "May", "June",
+                                     "July", "August", "September", "October", "November", "December" };
+
+            return monthNames
+                .Select(month => new SelectListItem
                 {
-                    months.Add(new SelectListItem 
-                    { 
-                        Value = $"{month} {year}", 
-                        Text = $"{month} {year}" 
-                    });
-                }
-            }
-            
-            return months;
+                    Value = month,
+                    Text = month
+                })
+                .ToList();
         }
 
         private bool TryExtractYearFromMonthValue(string monthValue, out int year)
