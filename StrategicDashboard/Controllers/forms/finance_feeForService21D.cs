@@ -44,6 +44,11 @@ namespace OneJaxDashboard.Controllers
                     {
                         model.EventName = strategy.Name;
                     }
+
+                    if (model.Year <= 0)
+                    {
+                        model.Year = model.WorkshopDate.Year;
+                    }
                     
                     _context.FeeForServices_21D.Add(model);
                     _context.SaveChanges();

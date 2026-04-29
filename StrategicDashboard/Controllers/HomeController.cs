@@ -159,11 +159,9 @@ public class HomeController : Controller
                     .OrderByDescending(s => s.CreatedDate)
                     .ToListAsync();
 
-                satisfactionRows = FilterByFiscalYearStrategyDateWithCreatedDateFallback(
-                        satisfactionRows,
-                        selectedFiscalYear,
-                        s => s.StrategyId,
-                        s => s.CreatedDate)
+                satisfactionRows = FilterEventSatisfactionByFiscalYear(
+                    satisfactionRows,
+                    selectedFiscalYear)
                     .OrderByDescending(s => GetStrategyOccurrenceDateOrCreatedDate(s.StrategyId, s.CreatedDate))
                     .ToList();
 
@@ -525,6 +523,68 @@ public class HomeController : Controller
             item => GetFiscalYearEndFromDate(dateSelector(item)));
     }
 
+    private List<feeForService_21D> FilterFeeForServicesByFiscalYear(IEnumerable<feeForService_21D> source, string fiscalYear)
+    {
+        if (!TryParseFiscalYearEnd(fiscalYear, out var selectedFiscalYearEnd))
+        {
+            return source.ToList();
+        }
+
+        var range = GetFiscalYearRange(selectedFiscalYearEnd);
+        var selectedFiscalYearStart = selectedFiscalYearEnd - 1;
+
+        return source
+            .Where(item =>
+                (item.WorkshopDate >= range.StartDate && item.WorkshopDate <= range.EndDate)
+                || item.Year == selectedFiscalYearStart
+                || item.Year == selectedFiscalYearEnd)
+            .ToList();
+    }
+
+    private List<Plan2026_24D> FilterFrameworkPlansByFiscalYear(IEnumerable<Plan2026_24D> source, string fiscalYear)
+    {
+        if (!TryParseFiscalYearEnd(fiscalYear, out var selectedFiscalYearEnd))
+        {
+            return source.ToList();
+        }
+
+        var range = GetFiscalYearRange(selectedFiscalYearEnd);
+        var selectedFiscalYearStart = selectedFiscalYearEnd - 1;
+
+        return source
+            .Where(item =>
+                GetFiscalYearEndFromQuarterLabel(item.Year, item.Quarter, fiscalQuarterLabels: true) == selectedFiscalYearEnd
+                || item.Year == selectedFiscalYearStart
+                || item.Year == selectedFiscalYearEnd
+                || IsDateInRange(item.CreatedDate, range.StartDate, range.EndDate))
+            .ToList();
+    }
+
+    private List<eventSatisfaction> FilterEventSatisfactionByFiscalYear(IEnumerable<eventSatisfaction> source, string fiscalYear)
+    {
+        if (!TryParseFiscalYearEnd(fiscalYear, out var selectedFiscalYearEnd))
+        {
+            return source.ToList();
+        }
+
+        var range = GetFiscalYearRange(selectedFiscalYearEnd);
+
+        return source
+            .Where(item =>
+            {
+                var strategyDate = GetStrategyOccurrenceDate(item.StrategyId);
+                return (strategyDate.HasValue && IsDateInRange(strategyDate.Value, range.StartDate, range.EndDate))
+                    || IsDateInRange(item.CreatedDate, range.StartDate, range.EndDate);
+            })
+            .ToList();
+    }
+
+    private static bool IsDateInRange(DateTime date, DateTime startDate, DateTime endDate)
+    {
+        var day = date.Date;
+        return day >= startDate.Date && day <= endDate.Date;
+    }
+
     private List<T> FilterByFiscalYearYears<T>(IEnumerable<T> source, string fiscalYear, Func<T, int> yearSelector)
     {
         var yearRange = GetFiscalYearNumbersOrNull(fiscalYear);
@@ -651,12 +711,21 @@ public class HomeController : Controller
         Func<T, int> strategyIdSelector,
         Func<T, DateTime> createdDateSelector)
     {
-        return FilterByResolvedFiscalYear(
-            source,
-            fiscalYear,
-            item => GetStrategyOccurrenceDate(strategyIdSelector(item)) is DateTime strategyDate
-                ? GetFiscalYearEndFromDate(strategyDate)
-                : GetFiscalYearEndFromDate(createdDateSelector(item)));
+        if (!TryParseFiscalYearEnd(fiscalYear, out var selectedFiscalYearEnd))
+        {
+            return source.ToList();
+        }
+
+        return source
+            .Where(item =>
+            {
+                var strategyDate = GetStrategyOccurrenceDate(strategyIdSelector(item));
+                var createdFiscalYearEnd = GetFiscalYearEndFromDate(createdDateSelector(item));
+
+                return (strategyDate.HasValue && GetFiscalYearEndFromDate(strategyDate.Value) == selectedFiscalYearEnd)
+                    || createdFiscalYearEnd == selectedFiscalYearEnd;
+            })
+            .ToList();
     }
 
     private static int? GetFiscalYearEndFromYearAndMonth(int? year, string? monthValue)
@@ -1678,13 +1747,9 @@ public class HomeController : Controller
         // Framework Development Plan
         try
         {
-            var latest = FilterByFiscalYearQuarterLabelWithCreatedDateFallback(
+            var latest = FilterFrameworkPlansByFiscalYear(
                     await _context.Plan2026_24D.ToListAsync(),
-                    fiscalYear,
-                    p => p.Year,
-                    p => p.Quarter,
-                    p => p.CreatedDate,
-                    fiscalQuarterLabels: true)
+                    fiscalYear)
                 .OrderByDescending(p => p.Year)
                 .ThenByDescending(p => p.Quarter)
                 .ThenByDescending(p => p.CreatedDate)
@@ -1898,13 +1963,9 @@ public class HomeController : Controller
             $"🌟 {trustRating}% identify OneJax as trusted leader ({latestSurvey?.TotalRespondents} respondents, {latestSurvey?.Year}) | Form: Data Entry → Annual Survey", nextId++);
 
         // 5. Strategic Planning (from Plan2026_24D)
-        var plan2026 = FilterByFiscalYearQuarterLabelWithCreatedDateFallback(
+        var plan2026 = FilterFrameworkPlansByFiscalYear(
             await _context.Plan2026_24D.ToListAsync(),
-            fiscalYear,
-            p => p.Year,
-            p => p.Quarter,
-            p => p.CreatedDate,
-            fiscalQuarterLabels: true);
+            fiscalYear);
         var completedPlans = plan2026.Count(p => p.GoalMet);
         
         AddOrUpdateMetric(goal, "Strategic Plan Completion", "2026 planning progress", 
@@ -2089,10 +2150,9 @@ public class HomeController : Controller
             budgetTracking.Any() ? $"Total revenue: ${totalRevenue:N0}, Total expenses: ${totalExpenses:N0}" : "No budget data yet - Go to Data Entry → Budget Tracking", nextId++);
 
         // 2. Fee-for-Service Revenue
-        var feeServices = FilterByFiscalYearDate(
+        var feeServices = FilterFeeForServicesByFiscalYear(
             await _context.FeeForServices_21D.ToListAsync(),
-            fiscalYear,
-            f => f.WorkshopDate);
+            fiscalYear);
         var totalFeeRevenue = feeServices.Sum(f => f.RevenueReceived);
         var totalFeeExpenses = feeServices.Sum(f => f.ExpenseReceived);
         var totalFeeNetRevenue = totalFeeRevenue - totalFeeExpenses;
@@ -2242,11 +2302,9 @@ public class HomeController : Controller
                 ? $"{faithRows.Count(f => f.NumberOfFaithsRepresented >= 3)} of {faithRows.Count} entries met the 3-faith threshold | Form: Data Entry → CommFaith13D"
                 : "No faith representation entries yet - Go to Data Entry → CommFaith13D", nextId++);
 
-        var eventSatisfaction = FilterByFiscalYearStrategyDateWithCreatedDateFallback(
+        var eventSatisfaction = FilterEventSatisfactionByFiscalYear(
             await _context.EventSatisfaction_12D.ToListAsync(),
-            fiscalYear,
-            e => e.StrategyId,
-            e => e.CreatedDate);
+            fiscalYear);
         var avgEventSatisfaction = eventSatisfaction.Any() ? Math.Round((decimal)eventSatisfaction.Average(e => e.EventAttendeeSatisfactionPercentage), 1) : 0m;
         AddOrUpdateMetric(goal, "Event Satisfaction", "Community event satisfaction",
             avgEventSatisfaction, "%", "90", eventSatisfaction.Any() ? "Active" : "Planning",
