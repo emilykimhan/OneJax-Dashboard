@@ -207,7 +207,3 @@ OneJax-Dashboard/
 │   └── azure/                   # ARM templates and deployment docs
 └── README.md
 ```
-
-## admin user and password
-admin user : Admin 
-password: addyposaol09!
