@@ -55,22 +55,21 @@ namespace OneJaxDashboard.Controllers
         {
             if (ModelState.IsValid)
             {
-                // Validate no duplicate zip codes
-                var zipCodes = model.ZipCodes.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries)
-                                             .Select(z => z.Trim())
-                                             .ToList();
-                
-                var duplicates = zipCodes.GroupBy(z => z)
-                                        .Where(g => g.Count() > 1)
-                                        .Select(g => g.Key)
-                                        .ToList();
-                
-                if (duplicates.Any())
+                var zipCodes = model.ZipCodes
+                    .Split(new[] { ',', ' ', '\r', '\n', ';' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(z => z.Trim())
+                    .Where(z => !string.IsNullOrWhiteSpace(z))
+                    .ToList();
+
+                if (!zipCodes.Any())
                 {
-                    ModelState.AddModelError("ZipCodes", $"Duplicate zip codes found: {string.Join(", ", duplicates)}");
+                    ModelState.AddModelError("ZipCodes", "Please enter at least one ZIP code.");
                     LoadStrategiesDropdown(model.StrategyId);
+                    TryLoadStats();
                     return View(model);
                 }
+
+                model.ZipCodes = string.Join(", ", zipCodes);
 
                 try
                 {
