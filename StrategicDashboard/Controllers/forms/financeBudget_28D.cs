@@ -116,10 +116,10 @@ namespace OneJaxDashboard.Controllers
         {
             return new List<SelectListItem>
             {
-                new SelectListItem { Value = "Q1", Text = "Q1 (January - March)" },
-                new SelectListItem { Value = "Q2", Text = "Q2 (April - June)" },
-                new SelectListItem { Value = "Q3", Text = "Q3 (July - September)" },
-                new SelectListItem { Value = "Q4", Text = "Q4 (October - December)" }
+                new SelectListItem { Value = "Q1", Text = "July - September (Q1)" },
+                new SelectListItem { Value = "Q2", Text = "October - December (Q2)" },
+                new SelectListItem { Value = "Q3", Text = "January - March (Q3)" },
+                new SelectListItem { Value = "Q4", Text = "April - June (Q4)" }
             };
         }
     }

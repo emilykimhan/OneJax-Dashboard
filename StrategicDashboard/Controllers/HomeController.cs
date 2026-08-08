@@ -276,7 +276,7 @@ public class HomeController : Controller
                 b => b.Year,
                 b => b.Quarter,
                 b => b.CreatedDate,
-                fiscalQuarterLabels: false);
+                fiscalQuarterLabels: true);
             ViewBag.BudgetTracking = budgetTracking;
 
             // Add volunteer program records for detailed organizational card display
@@ -2129,7 +2129,7 @@ public class HomeController : Controller
             b => b.Year,
             b => b.Quarter,
             b => b.CreatedDate,
-            fiscalQuarterLabels: false);
+            fiscalQuarterLabels: true);
         decimal totalRevenue = 0;
         decimal totalExpenses = 0;
         
