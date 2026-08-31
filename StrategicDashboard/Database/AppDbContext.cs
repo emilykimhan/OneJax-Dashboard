@@ -51,6 +51,7 @@ namespace OneJaxDashboard.Data
 
         // Core Strategies 
         public DbSet<Strategy> Strategies { get; set; } = default!;
+        public DbSet<CrossColab> CrossColabs { get; set; } = default!;
         public DbSet<Programs> Programs { get; set; } = default!;
         public DbSet<ArchivedProgram> ArchivedPrograms { get; set; } = default!;
 
@@ -88,6 +89,15 @@ namespace OneJaxDashboard.Data
                 .WithMany(p => p.Strategies)
                 .HasForeignKey(s => s.ProgramId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<CrossColab>()
+                .ToTable("crosscolabs");
+
+            modelBuilder.Entity<CrossColab>()
+                .HasOne(c => c.Strategy)
+                .WithMany(s => s.CrossColabs)
+                .HasForeignKey(c => c.StrategyId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Event>()
                 .HasOne(e => e.Strategy)

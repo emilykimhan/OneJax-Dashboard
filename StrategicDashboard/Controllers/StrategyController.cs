@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using ClosedXML.Excel;
 using OneJaxDashboard.Models;
 using OneJaxDashboard.Data;
 using OneJaxDashboard.Services;
@@ -10,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Data;
 using System.Data.Common;
+using System.IO;
 //dina
 [Authorize(Roles = "Admin,Staff")]
 public class StrategyController : Controller
@@ -196,10 +198,24 @@ public class StrategyController : Controller
     }
 
     [HttpPost]
-    public IActionResult Add(int goalId, string? eventName, string eventDescription, string? eventDate, string? eventTime, bool isCrossCollaboration = false, string? partners = null, int? programId = null, string? programType = null)
+    public IActionResult Add(
+        int goalId,
+        string? eventName,
+        string eventDescription,
+        string? eventDate,
+        string? eventTime,
+        bool isCrossCollaboration = false,
+        List<string>? crossColabPartnerNames = null,
+        List<string>? crossColabPartnerEmails = null,
+        int? programId = null,
+        string? programType = null)
     {
         var normalizedDescription = eventDescription?.Trim() ?? string.Empty;
-        var formValues = BuildStrategyFormValues(goalId, eventName, eventDescription, eventDate, eventTime, isCrossCollaboration, partners, programId, programType);
+        var crossColabs = isCrossCollaboration
+            ? BuildCrossColabs(crossColabPartnerNames, crossColabPartnerEmails)
+            : new List<CrossColab>();
+        var partnerSummary = BuildPartnerSummary(crossColabs);
+        var formValues = BuildStrategyFormValues(goalId, eventName, eventDescription, eventDate, eventTime, isCrossCollaboration, partnerSummary, programId, programType);
         var formErrors = new Dictionary<string, string>();
 
         if (string.IsNullOrWhiteSpace(eventName))
@@ -220,6 +236,11 @@ public class StrategyController : Controller
         if (IsPastMaxEventDate(eventDate))
         {
             formErrors["eventDate"] = "Event date cannot be later than 12/31/2030.";
+        }
+
+        if (isCrossCollaboration && crossColabs.Count == 0)
+        {
+            formErrors["crossColabs"] = "Add at least one collaborator partner name.";
         }
 
         if (formErrors.Count > 0)
@@ -258,14 +279,17 @@ public class StrategyController : Controller
             Date = eventDate,
             Time = eventTime,
             CrossCollaboration = isCrossCollaboration ? "Yes" : "No",
-            Partners = isCrossCollaboration ? (partners ?? string.Empty).Trim() : string.Empty,
+            Partners = isCrossCollaboration ? partnerSummary : string.Empty,
             EventFYear = ComputeFiscalYear(eventDate)
         };
 
         try
         {
+            using var transaction = _context.Database.BeginTransaction();
             PersistStrategy(dbEvent);
+            SaveCrossColabs(dbEvent.Id, crossColabs);
             TrySyncLinkedDashboardEvent(dbEvent);
+            transaction.Commit();
         }
         catch (Exception ex)
         {
@@ -575,6 +599,61 @@ public class StrategyController : Controller
 
         // Pass the events to the view
         return View(events);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult ExportEventsXlsx(List<int>? selectedEventIds)
+    {
+        if (selectedEventIds == null || selectedEventIds.Count == 0)
+        {
+            TempData["ErrorMessage"] = "Select at least one event to export.";
+            return RedirectToAction(nameof(ViewEvents));
+        }
+
+        var selectedIds = selectedEventIds
+            .Distinct()
+            .ToHashSet();
+        var events = LoadStrategiesForDisplay(goalId: null, includeArchived: false);
+        var selectedEvents = events
+            .Where(e => selectedIds.Contains(e.Id))
+            .ToList();
+
+        if (selectedEvents.Count == 0)
+        {
+            TempData["ErrorMessage"] = "No matching events were found for export.";
+            return RedirectToAction(nameof(ViewEvents));
+        }
+
+        using var workbook = new XLWorkbook();
+        var worksheet = workbook.Worksheets.Add("Events");
+
+        for (var c = 0; c < EventExportColumns.Count; c++)
+        {
+            worksheet.Cell(1, c + 1).Value = EventExportColumns[c].Header;
+        }
+
+        var row = 2;
+        foreach (var evt in selectedEvents.OrderByDescending(e => e.Id))
+        {
+            for (var c = 0; c < EventExportColumns.Count; c++)
+            {
+                worksheet.Cell(row, c + 1).Value = EventExportColumns[c].Value(evt);
+            }
+
+            row++;
+        }
+
+        worksheet.Row(1).Style.Font.Bold = true;
+        worksheet.Columns().AdjustToContents();
+
+        using var stream = new MemoryStream();
+        workbook.SaveAs(stream);
+
+        return File(
+            stream.ToArray(),
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            $"Events_{DateTime.Now:yyyyMMdd}.xlsx");
     }
 
     private string GetActorName()
@@ -974,7 +1053,10 @@ public class StrategyController : Controller
     {
         if (!_context.Database.IsSqlServer())
         {
-            var query = _context.Strategies.AsQueryable();
+            var query = _context.Strategies
+                .Include(s => s.CrossColabs)
+                .Include(s => s.StrategicGoal)
+                .AsQueryable();
             if (!includeArchived)
             {
                 query = query.Where(s => !s.IsArchived);
@@ -985,7 +1067,10 @@ public class StrategyController : Controller
                 query = query.Where(s => s.StrategicGoalId == goalId.Value);
             }
 
-            return query.ToList();
+            var strategies = query.ToList();
+            ApplyCrossColabSummaries(strategies);
+            ApplyStrategyGoalReferences(strategies);
+            return strategies;
         }
 
         var connection = _context.Database.GetDbConnection();
@@ -1032,6 +1117,8 @@ public class StrategyController : Controller
                 });
             }
 
+            ApplyCrossColabSummaries(results);
+            ApplyStrategyGoalReferences(results);
             return results;
         }
         finally
@@ -1041,6 +1128,302 @@ public class StrategyController : Controller
                 connection.Close();
             }
         }
+    }
+
+    private static List<CrossColab> BuildCrossColabs(List<string>? partnerNames, List<string>? partnerEmails)
+    {
+        var maxCount = Math.Max(partnerNames?.Count ?? 0, partnerEmails?.Count ?? 0);
+        var crossColabs = new List<CrossColab>();
+
+        for (var i = 0; i < maxCount; i++)
+        {
+            var partnerName = i < (partnerNames?.Count ?? 0)
+                ? partnerNames![i]?.Trim()
+                : string.Empty;
+
+            if (string.IsNullOrWhiteSpace(partnerName))
+            {
+                continue;
+            }
+
+            var partnerEmail = i < (partnerEmails?.Count ?? 0)
+                ? partnerEmails![i]?.Trim()
+                : string.Empty;
+
+            crossColabs.Add(new CrossColab
+            {
+                PartnerName = partnerName,
+                PartnerEmail = string.IsNullOrWhiteSpace(partnerEmail) ? null : partnerEmail,
+                CreatedDate = DateTime.Now
+            });
+        }
+
+        return crossColabs;
+    }
+
+    private static string BuildPartnerSummary(IEnumerable<CrossColab> crossColabs)
+        => string.Join(", ", crossColabs
+            .Select(c => c.PartnerName.Trim())
+            .Where(name => !string.IsNullOrWhiteSpace(name)));
+
+    private void SaveCrossColabs(int strategyId, List<CrossColab> crossColabs)
+    {
+        if (crossColabs.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var crossColab in crossColabs)
+        {
+            crossColab.StrategyId = strategyId;
+        }
+
+        _context.CrossColabs.AddRange(crossColabs);
+        _context.SaveChanges();
+    }
+
+    private void ApplyCrossColabSummaries(List<Strategy> strategies)
+    {
+        if (strategies.Count == 0)
+        {
+            return;
+        }
+
+        if (!_context.Database.IsSqlServer())
+        {
+            foreach (var strategy in strategies)
+            {
+                ApplyCrossColabSummary(strategy, strategy.CrossColabs);
+            }
+
+            return;
+        }
+
+        var strategyIds = strategies.Select(s => s.Id).Distinct().ToList();
+        var crossColabsByStrategy = _context.CrossColabs
+            .Where(c => strategyIds.Contains(c.StrategyId))
+            .AsEnumerable()
+            .GroupBy(c => c.StrategyId)
+            .ToDictionary(g => g.Key, g => g.ToList());
+
+        foreach (var strategy in strategies)
+        {
+            if (crossColabsByStrategy.TryGetValue(strategy.Id, out var crossColabs))
+            {
+                strategy.CrossColabs = crossColabs;
+                ApplyCrossColabSummary(strategy, crossColabs);
+            }
+        }
+    }
+
+    private static void ApplyCrossColabSummary(Strategy strategy, IEnumerable<CrossColab> crossColabs)
+    {
+        var summary = BuildPartnerSummary(crossColabs);
+        if (string.IsNullOrWhiteSpace(summary))
+        {
+            return;
+        }
+
+        strategy.CrossCollaboration = "Yes";
+        strategy.Partners = summary;
+    }
+
+    private void ApplyStrategyGoalReferences(List<Strategy> strategies)
+    {
+        if (strategies.Count == 0)
+        {
+            return;
+        }
+
+        var goalIds = strategies
+            .Select(s => s.StrategicGoalId)
+            .Distinct()
+            .ToList();
+        var goalsById = _context.StrategicGoals
+            .Where(g => goalIds.Contains(g.Id))
+            .ToDictionary(g => g.Id);
+
+        foreach (var strategy in strategies)
+        {
+            if (goalsById.TryGetValue(strategy.StrategicGoalId, out var goal))
+            {
+                strategy.StrategicGoal = goal;
+            }
+        }
+    }
+
+    private sealed record EventExportColumn(string Key, string Header, Func<Strategy, string> Value);
+
+    private static readonly List<EventExportColumn> EventExportColumns =
+    [
+        new("strategicGoal", "Strategic Goal", e => e.StrategicGoal?.Name ?? $"Goal {e.StrategicGoalId}"),
+        new("fiscalYear", "Fiscal Year", e => e.EventFYear ?? string.Empty),
+        new("programName", "Program Name", e => e.ProgramName ?? string.Empty),
+        new("programType", "Program Type", e => e.ProgramType ?? string.Empty),
+        new("eventName", "Event", e => e.Name),
+        new("description", "Description", e => e.Description),
+        new("crossCollaboration", "Cross Collaboration", e => e.CrossCollaboration),
+        new("partnerNames", "Partner Names", e => BuildPartnerSummary(e.CrossColabs.Count > 0 ? e.CrossColabs : BuildLegacyPartnerColabs(e.Partners))),
+        new("partnerEmails", "Partner Emails", e => BuildPartnerEmailSummary(e.CrossColabs)),
+        new("date", "Date", e => FormatDate(e.Date)),
+        new("time", "Time", e => FormatTime(e.Time))
+    ];
+
+    private List<Strategy> ApplyEventExportFilters(
+        List<Strategy> events,
+        string? fy,
+        string? strategicGoal,
+        string? programName,
+        string? programType,
+        string? eventName,
+        string? description,
+        string? crossCollaboration,
+        string? partnerName,
+        string? partnerEmail,
+        string? dateFrom,
+        string? dateTo,
+        string? time)
+    {
+        var query = events.AsEnumerable();
+
+        if (!string.IsNullOrWhiteSpace(fy))
+        {
+            var selectedFY = fy.Trim();
+            var selectedFYAlt = NormalizeFiscalYearForComparison(selectedFY);
+            query = query.Where(e =>
+                !string.IsNullOrWhiteSpace(e.EventFYear) &&
+                (string.Equals(e.EventFYear, selectedFY, StringComparison.OrdinalIgnoreCase) ||
+                 string.Equals(e.EventFYear, selectedFYAlt, StringComparison.OrdinalIgnoreCase) ||
+                 string.Equals(NormalizeFiscalYearForComparison(e.EventFYear), selectedFY, StringComparison.OrdinalIgnoreCase) ||
+                 string.Equals(NormalizeFiscalYearForComparison(e.EventFYear), selectedFYAlt, StringComparison.OrdinalIgnoreCase)));
+        }
+
+        if (!string.IsNullOrWhiteSpace(strategicGoal))
+        {
+            query = query.Where(e => ContainsExportFilter(e.StrategicGoal?.Name, strategicGoal) || ContainsExportFilter($"Goal {e.StrategicGoalId}", strategicGoal));
+        }
+
+        if (!string.IsNullOrWhiteSpace(programName))
+        {
+            query = query.Where(e => ContainsExportFilter(e.ProgramName, programName));
+        }
+
+        if (!string.IsNullOrWhiteSpace(programType))
+        {
+            query = query.Where(e => ContainsExportFilter(e.ProgramType, programType));
+        }
+
+        if (!string.IsNullOrWhiteSpace(eventName))
+        {
+            query = query.Where(e => ContainsExportFilter(e.Name, eventName));
+        }
+
+        if (!string.IsNullOrWhiteSpace(description))
+        {
+            query = query.Where(e => ContainsExportFilter(e.Description, description));
+        }
+
+        if (!string.IsNullOrWhiteSpace(crossCollaboration))
+        {
+            query = query.Where(e => ContainsExportFilter(e.CrossCollaboration, crossCollaboration));
+        }
+
+        if (!string.IsNullOrWhiteSpace(partnerName))
+        {
+            query = query.Where(e => ContainsExportFilter(BuildPartnerSummary(e.CrossColabs.Count > 0 ? e.CrossColabs : BuildLegacyPartnerColabs(e.Partners)), partnerName));
+        }
+
+        if (!string.IsNullOrWhiteSpace(partnerEmail))
+        {
+            query = query.Where(e => ContainsExportFilter(BuildPartnerEmailSummary(e.CrossColabs), partnerEmail));
+        }
+
+        if (DateTime.TryParse(dateFrom, out var parsedDateFrom))
+        {
+            query = query.Where(e => DateTime.TryParse(e.Date, out var eventDate) && eventDate.Date >= parsedDateFrom.Date);
+        }
+
+        if (DateTime.TryParse(dateTo, out var parsedDateTo))
+        {
+            query = query.Where(e => DateTime.TryParse(e.Date, out var eventDate) && eventDate.Date <= parsedDateTo.Date);
+        }
+
+        if (!string.IsNullOrWhiteSpace(time))
+        {
+            query = query.Where(e => ContainsExportFilter(FormatTime(e.Time), time) || ContainsExportFilter(e.Time, time));
+        }
+
+        return query.ToList();
+    }
+
+    private static List<EventExportColumn> ResolveEventExportColumns(List<string>? selectedColumns)
+    {
+        if (selectedColumns == null || selectedColumns.Count == 0)
+        {
+            return EventExportColumns;
+        }
+
+        var selected = selectedColumns.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var exportColumns = EventExportColumns
+            .Where(column => selected.Contains(column.Key))
+            .ToList();
+
+        return exportColumns.Count > 0 ? exportColumns : EventExportColumns;
+    }
+
+    private static List<CrossColab> BuildLegacyPartnerColabs(string? partners)
+        => (partners ?? string.Empty)
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(name => !string.IsNullOrWhiteSpace(name))
+            .Select(name => new CrossColab { PartnerName = name })
+            .ToList();
+
+    private static string BuildPartnerEmailSummary(IEnumerable<CrossColab> crossColabs)
+        => string.Join(", ", crossColabs
+            .Select(c => c.PartnerEmail?.Trim())
+            .Where(email => !string.IsNullOrWhiteSpace(email)));
+
+    private static bool ContainsExportFilter(string? value, string filter)
+        => !string.IsNullOrWhiteSpace(value) &&
+           value.Contains(filter.Trim(), StringComparison.OrdinalIgnoreCase);
+
+    private static string FormatDate(string? value)
+        => DateTime.TryParse(value, out var parsedDate)
+            ? parsedDate.ToString("MM/dd/yyyy")
+            : value ?? string.Empty;
+
+    private static string FormatTime(string? value)
+        => DateTime.TryParse(value, out var parsedTime)
+            ? parsedTime.ToString("h:mm tt")
+            : value ?? string.Empty;
+
+    private static string? NormalizeFiscalYearForComparison(string? fy)
+    {
+        if (string.IsNullOrWhiteSpace(fy))
+        {
+            return fy;
+        }
+
+        fy = fy.Trim();
+        if (fy.Length >= 9 && fy.Contains('/'))
+        {
+            var parts = fy.Split('/');
+            if (parts.Length == 2 && parts[0].Length == 4 && parts[1].Length == 4)
+            {
+                return parts[0][2..] + "/" + parts[1][2..];
+            }
+        }
+
+        if (fy.Length == 5 && fy[2] == '/')
+        {
+            var parts = fy.Split('/');
+            if (parts.Length == 2 && parts[0].Length == 2 && parts[1].Length == 2)
+            {
+                return "20" + parts[0] + "/20" + parts[1];
+            }
+        }
+
+        return fy;
     }
 
     private static HashSet<string> GetSqlServerColumns(DbConnection connection, string tableName)

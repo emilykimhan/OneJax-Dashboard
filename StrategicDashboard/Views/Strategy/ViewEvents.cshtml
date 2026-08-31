@@ -63,7 +63,6 @@
 
     var selectedFYAlt = NormalizeFY(selectedFY);
     var allYearsActive = string.IsNullOrWhiteSpace(selectedFY);
-
     // Filter events by fiscal year (falls back to all if no FY is available)
     var filteredEvents = allEvents.AsEnumerable();
     if (!string.IsNullOrWhiteSpace(selectedFY))
@@ -393,6 +392,38 @@
         text-align: center;
     }
 
+    .icon-action-btn {
+        min-width: 46px;
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--onejax-teal);
+        color: #fff;
+        border: none;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+    }
+
+    .icon-action-btn:hover,
+    .icon-action-btn:focus {
+        background-color: var(--onejax-blue);
+        color: #fff;
+    }
+
+    .select-cell {
+        width: 44px;
+        text-align: center;
+    }
+
+    .event-export-checkbox,
+    .event-export-select-all {
+        width: 1.1rem;
+        height: 1.1rem;
+        cursor: pointer;
+    }
+
     .quick-action-row {
         display: flex;
         justify-content: center;
@@ -434,6 +465,16 @@
         white-space: nowrap;
     }
 
+    .collaborator-list {
+        display: grid;
+        gap: 4px;
+    }
+
+    .collaborator-item {
+        display: block;
+        line-height: 1.35;
+    }
+
     .success-text {
         color: #00A676;
         font-weight: 600;
@@ -465,6 +506,7 @@
             margin-bottom: 4px;
         }
         .actions-cell { text-align: left; }
+        .select-cell { text-align: left; }
     }
 </style>
 
@@ -489,6 +531,12 @@
             <a href="/Programs/Archive" class="btn quick-action-btn archive-action-btn">
                 View Archive
             </a>
+            <form asp-action="ExportEventsXlsx" asp-controller="Strategy" method="post" id="eventExportForm" class="m-0">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn icon-action-btn" aria-label="Export selected events" title="Export selected events">
+                    <i class="bi bi-download"></i>
+                </button>
+            </form>
         </div>
         <div class="page-head-divider"></div>
     </div>
@@ -572,12 +620,16 @@
                     <table class="events-table">
                         <thead>
                             <tr>
+                                <th class="select-cell">
+                                    <input class="form-check-input event-export-select-all" type="checkbox" aria-label="Select all visible events" />
+                                </th>
                                 <th>Program Name</th>
                                 <th>Program Type</th>
                                 <th>Event</th>
                                 <th>Description</th>
                                 <th>Cross-Collabs</th>
                                 <th>Partners</th>
+                                <th>Partner Emails</th>
                                 <th>Date</th>
                                 <th>Time</th>
                                 <th class="text-end">Actions</th>
@@ -589,6 +641,9 @@
                                 var programNameDisplay = !string.IsNullOrWhiteSpace(e.ProgramName) ? e.ProgramName : "—";
                                 var programTypeDisplay = !string.IsNullOrWhiteSpace(e.ProgramType) ? e.ProgramType : "—";
                                 var eventName = e.Name;
+                                var partnerEmailsDisplay = string.Join(", ", e.CrossColabs
+                                    .Select(c => c.PartnerEmail)
+                                    .Where(email => !string.IsNullOrWhiteSpace(email)));
 
                                 var dateDisplay = e.Date;
                                 if (!string.IsNullOrWhiteSpace(e.Date) && DateTime.TryParse(e.Date, out var parsedDate))
@@ -603,6 +658,10 @@
                                 }
 
                                 <tr>
+                                    <td class="select-cell" data-label="Select">
+                                        <input class="form-check-input event-export-checkbox" type="checkbox" name="selectedEventIds" value="@e.Id" form="eventExportForm" aria-label="Select @eventName for export" />
+                                    </td>
+
                                     <td data-label="Program Name">
                                         <div class="cell-title">@programNameDisplay</div>
                                     </td>
@@ -654,7 +713,28 @@
                                     <td data-label="Partners">
                                         @if (!string.IsNullOrWhiteSpace(e.Partners))
                                         {
-                                            <span>@e.Partners</span>
+                                            <div class="collaborator-list">
+                                                @foreach (var partner in e.Partners.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                                                {
+                                                    <span class="collaborator-item">@partner</span>
+                                                }
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span class="cell-muted">—</span>
+                                        }
+                                    </td>
+
+                                    <td data-label="Partner Emails">
+                                        @if (!string.IsNullOrWhiteSpace(partnerEmailsDisplay))
+                                        {
+                                            <div class="collaborator-list">
+                                                @foreach (var email in partnerEmailsDisplay.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                                                {
+                                                    <span class="collaborator-item">@email</span>
+                                                }
+                                            </div>
                                         }
                                         else
                                         {
@@ -751,12 +831,16 @@
                             <table class="events-table">
                                 <thead>
                                     <tr>
+                                        <th class="select-cell">
+                                            <input class="form-check-input event-export-select-all" type="checkbox" aria-label="Select all visible events" />
+                                        </th>
                                         <th>Program Name</th>
                                         <th>Program Type</th>
                                         <th>Event</th>
                                         <th>Description</th>
                                         <th>Cross Collaboration</th>
                                         <th>Partners</th>
+                                        <th>Partner Emails</th>
                                         <th>Date</th>
                                         <th>Time</th>
                                         <th class="text-end">Actions</th>
@@ -768,6 +852,9 @@
                                         var programNameDisplay = !string.IsNullOrWhiteSpace(e.ProgramName) ? e.ProgramName : "—";
                                         var programTypeDisplay = !string.IsNullOrWhiteSpace(e.ProgramType) ? e.ProgramType : "—";
                                         var eventName = e.Name;
+                                        var partnerEmailsDisplay = string.Join(", ", e.CrossColabs
+                                            .Select(c => c.PartnerEmail)
+                                            .Where(email => !string.IsNullOrWhiteSpace(email)));
 
                                         var dateDisplay = e.Date;
                                         if (!string.IsNullOrWhiteSpace(e.Date) && DateTime.TryParse(e.Date, out var parsedDate))
@@ -782,6 +869,10 @@
                                         }
 
                                         <tr>
+                                            <td class="select-cell" data-label="Select">
+                                                <input class="form-check-input event-export-checkbox" type="checkbox" name="selectedEventIds" value="@e.Id" form="eventExportForm" aria-label="Select @eventName for export" />
+                                            </td>
+
                                             <td data-label="Program Name">
                                                 <div class="cell-title">@programNameDisplay</div>
                                             </td>
@@ -833,7 +924,28 @@
                                             <td data-label="Partners">
                                                 @if (!string.IsNullOrWhiteSpace(e.Partners))
                                                 {
-                                                    <span>@e.Partners</span>
+                                                    <div class="collaborator-list">
+                                                        @foreach (var partner in e.Partners.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                                                        {
+                                                            <span class="collaborator-item">@partner</span>
+                                                        }
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <span class="cell-muted">—</span>
+                                                }
+                                            </td>
+
+                                            <td data-label="Partner Emails">
+                                                @if (!string.IsNullOrWhiteSpace(partnerEmailsDisplay))
+                                                {
+                                                    <div class="collaborator-list">
+                                                        @foreach (var email in partnerEmailsDisplay.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                                                        {
+                                                            <span class="collaborator-item">@email</span>
+                                                        }
+                                                    </div>
                                                 }
                                                 else
                                                 {
@@ -948,10 +1060,66 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        var exportForm = document.getElementById('eventExportForm');
+        var exportCheckboxes = Array.from(document.querySelectorAll('.event-export-checkbox'));
+        var selectAllCheckboxes = Array.from(document.querySelectorAll('.event-export-select-all'));
         var deleteModal = document.getElementById('deleteConfirmModal');
         var input = document.getElementById('deleteConfirmInput');
         var button = document.getElementById('deleteConfirmButton');
         var hiddenId = document.getElementById('deleteEventId');
+
+        function syncMatchingEventCheckboxes(changedCheckbox) {
+            exportCheckboxes
+                .filter(function (checkbox) { return checkbox.value === changedCheckbox.value; })
+                .forEach(function (checkbox) { checkbox.checked = changedCheckbox.checked; });
+        }
+
+        function updateSelectAllStates() {
+            selectAllCheckboxes.forEach(function (selectAll) {
+                var table = selectAll.closest('table');
+                var tableCheckboxes = table
+                    ? Array.from(table.querySelectorAll('.event-export-checkbox'))
+                    : [];
+                var checkedCount = tableCheckboxes.filter(function (checkbox) { return checkbox.checked; }).length;
+
+                selectAll.checked = tableCheckboxes.length > 0 && checkedCount === tableCheckboxes.length;
+                selectAll.indeterminate = checkedCount > 0 && checkedCount < tableCheckboxes.length;
+            });
+        }
+
+        exportCheckboxes.forEach(function (checkbox) {
+            checkbox.addEventListener('change', function () {
+                syncMatchingEventCheckboxes(checkbox);
+                updateSelectAllStates();
+            });
+        });
+
+        selectAllCheckboxes.forEach(function (selectAll) {
+            selectAll.addEventListener('change', function () {
+                var table = selectAll.closest('table');
+                var tableCheckboxes = table
+                    ? Array.from(table.querySelectorAll('.event-export-checkbox'))
+                    : [];
+
+                tableCheckboxes.forEach(function (checkbox) {
+                    checkbox.checked = selectAll.checked;
+                    syncMatchingEventCheckboxes(checkbox);
+                });
+                updateSelectAllStates();
+            });
+        });
+
+        if (exportForm) {
+            exportForm.addEventListener('submit', function (event) {
+                var hasSelection = exportCheckboxes.some(function (checkbox) { return checkbox.checked; });
+                if (!hasSelection) {
+                    event.preventDefault();
+                    alert('Select at least one event to export.');
+                }
+            });
+        }
+
+        updateSelectAllStates();
 
         if (!deleteModal) return;
 

@@ -13,6 +13,7 @@ public sealed class AppDataResetter
         "ArchivedPrograms",
         "Events",
         "GoalMetrics",
+        "crosscolabs",
         "Strategies",
         "Programs",
         "StaffSurveys_22D",
