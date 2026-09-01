@@ -289,7 +289,6 @@ public class StrategyController : Controller
             using var transaction = _context.Database.BeginTransaction();
             PersistStrategy(dbEvent);
             SaveCrossColabs(dbEvent.Id, crossColabs);
-            TrySyncLinkedDashboardEvent(dbEvent);
             transaction.Commit();
         }
         catch (Exception ex)
@@ -299,11 +298,11 @@ public class StrategyController : Controller
             return RenderIndex(null, formValues, formErrors);
         }
 
+        TrySyncLinkedDashboardEvent(dbEvent);
 
         string goalName = selectedGoal.Name;
-        // Log the creation
-        _activityLog.Log(GetActorName(), "Created Core Strategy Event", "Strategy",
-            details: $"Id={dbEvent.Id}; Created strategy event '{eventName}' under {goalName}");
+        TryLogActivity(GetActorName(), "Created Core Strategy Event", "Strategy",
+            $"Id={dbEvent.Id}; Created strategy event '{eventName}' under {goalName}");
         TempData["SuccessMessage"] = $"Successfully added event under “{goalName}”";
 
         return RedirectToAction(nameof(Index), new { goalId });
@@ -332,13 +331,33 @@ public class StrategyController : Controller
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(t => t)
             .ToList();
+        ApplyCrossColabSummaries(new List<Strategy> { evt });
+        ViewBag.CrossColabs = evt.CrossColabs.Count > 0
+            ? evt.CrossColabs
+            : BuildLegacyPartnerColabs(evt.Partners);
         return View(evt); // Pass the strategy to the view
     }
 
     [HttpPost]
-    public IActionResult Edit(int id, string? eventName, string eventDescription, string? eventDate, string? eventTime, int goalId, bool isCrossCollaboration = false, string? partners = null, int? programId = null, string? programType = null)
+    public IActionResult Edit(
+        int id,
+        string? eventName,
+        string eventDescription,
+        string? eventDate,
+        string? eventTime,
+        int goalId,
+        bool isCrossCollaboration = false,
+        List<string>? crossColabPartnerNames = null,
+        List<string>? crossColabPartnerEmails = null,
+        int? programId = null,
+        string? programType = null)
     {
         var normalizedDescription = eventDescription?.Trim() ?? string.Empty;
+        var crossColabs = isCrossCollaboration
+            ? BuildCrossColabs(crossColabPartnerNames, crossColabPartnerEmails)
+            : new List<CrossColab>();
+        var partnerSummary = BuildPartnerSummary(crossColabs);
+
         if (string.IsNullOrWhiteSpace(eventName))
         {
             TempData["ErrorMessage"] = "Event name is required.";
@@ -360,6 +379,12 @@ public class StrategyController : Controller
         if (IsPastMaxEventDate(eventDate))
         {
             TempData["ErrorMessage"] = "Event date cannot be later than 12/31/2030.";
+            return RedirectToAction(nameof(Edit), new { id });
+        }
+
+        if (isCrossCollaboration && crossColabs.Count == 0)
+        {
+            TempData["ErrorMessage"] = "Add at least one collaborator partner name.";
             return RedirectToAction(nameof(Edit), new { id });
         }
 
@@ -405,7 +430,7 @@ public class StrategyController : Controller
         evt.ProgramName = selectedProgram?.ProgramName;
         evt.ProgramType = selectedProgramType;
         evt.CrossCollaboration = isCrossCollaboration ? "Yes" : "No";
-        evt.Partners = isCrossCollaboration ? (partners ?? string.Empty).Trim() : string.Empty;
+        evt.Partners = isCrossCollaboration ? partnerSummary : string.Empty;
         evt.Description = normalizedDescription;
         evt.Date = eventDate;
         evt.Time = eventTime;
@@ -414,8 +439,10 @@ public class StrategyController : Controller
 
         try
         {
+            using var transaction = _context.Database.BeginTransaction();
             SaveStrategyChanges(evt);
-            TrySyncLinkedDashboardEvent(evt);
+            ReplaceCrossColabs(evt.Id, crossColabs);
+            transaction.Commit();
         }
         catch (Exception ex)
         {
@@ -423,6 +450,8 @@ public class StrategyController : Controller
             TempData["ErrorMessage"] = "We couldn't update that event right now. Please try again.";
             return RedirectToAction(nameof(Edit), new { id });
         }
+
+        TrySyncLinkedDashboardEvent(evt);
 
         var previousGoalName = ResolveGoalName(previousGoalId);
         var updatedGoalName = ResolveGoalName(evt.StrategicGoalId);
@@ -440,8 +469,8 @@ public class StrategyController : Controller
         AddChange(changes, "Fiscal Year", previousEventFYear, evt.EventFYear);
         var changeDetails = changes.Count > 0 ? string.Join("; ", changes) : "No field changes detected";
 
-        _activityLog.Log(GetActorName(), "Updated Core Strategy Event", "Strategy",
-            details: $"Id={evt.Id}; Updated '{evt.Name}'. Changes: {changeDetails}");
+        TryLogActivity(GetActorName(), "Updated Core Strategy Event", "Strategy",
+            $"Id={evt.Id}; Updated '{evt.Name}'. Changes: {changeDetails}");
 
         TempData["SuccessMessage"] = "Event updated successfully!";
         return RedirectToAction(nameof(ViewEvents));
@@ -744,6 +773,18 @@ public class StrategyController : Controller
         catch (Exception ex)
         {
             Console.WriteLine($"[strategy-sync] Failed to sync dashboard event for strategy {strategy.Id}: {ex}");
+        }
+    }
+
+    private void TryLogActivity(string actor, string action, string entity, string details)
+    {
+        try
+        {
+            _activityLog.Log(actor, action, entity, details: details);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[strategy-activity] Failed to log '{action}' for {entity}: {ex}");
         }
     }
 
@@ -1295,6 +1336,52 @@ public class StrategyController : Controller
         }
 
         _context.CrossColabs.AddRange(crossColabs);
+        _context.SaveChanges();
+    }
+
+    private void ReplaceCrossColabs(int strategyId, List<CrossColab> crossColabs)
+    {
+        if (_context.Database.IsSqlServer())
+        {
+            var connection = _context.Database.GetDbConnection();
+            var shouldClose = connection.State != ConnectionState.Open;
+            if (shouldClose)
+            {
+                connection.Open();
+            }
+
+            try
+            {
+                if (!SqlServerTableExists(connection, "crosscolabs", _context.Database.CurrentTransaction?.GetDbTransaction()))
+                {
+                    return;
+                }
+            }
+            finally
+            {
+                if (shouldClose)
+                {
+                    connection.Close();
+                }
+            }
+        }
+
+        var existing = _context.CrossColabs
+            .Where(c => c.StrategyId == strategyId)
+            .ToList();
+        _context.CrossColabs.RemoveRange(existing);
+
+        if (crossColabs.Count > 0)
+        {
+            foreach (var crossColab in crossColabs)
+            {
+                crossColab.Id = 0;
+                crossColab.StrategyId = strategyId;
+            }
+
+            _context.CrossColabs.AddRange(crossColabs);
+        }
+
         _context.SaveChanges();
     }
 
