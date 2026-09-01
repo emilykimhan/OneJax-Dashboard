@@ -286,10 +286,7 @@ public class StrategyController : Controller
 
         try
         {
-            using var transaction = _context.Database.BeginTransaction();
             PersistStrategy(dbEvent);
-            SaveCrossColabs(dbEvent.Id, crossColabs);
-            transaction.Commit();
         }
         catch (Exception ex)
         {
@@ -298,6 +295,7 @@ public class StrategyController : Controller
             return RenderIndex(null, formValues, formErrors);
         }
 
+        TrySaveCrossColabs(dbEvent.Id, crossColabs);
         TrySyncLinkedDashboardEvent(dbEvent);
 
         string goalName = selectedGoal.Name;
@@ -439,10 +437,7 @@ public class StrategyController : Controller
 
         try
         {
-            using var transaction = _context.Database.BeginTransaction();
             SaveStrategyChanges(evt);
-            ReplaceCrossColabs(evt.Id, crossColabs);
-            transaction.Commit();
         }
         catch (Exception ex)
         {
@@ -451,6 +446,7 @@ public class StrategyController : Controller
             return RedirectToAction(nameof(Edit), new { id });
         }
 
+        TryReplaceCrossColabs(evt.Id, crossColabs);
         TrySyncLinkedDashboardEvent(evt);
 
         var previousGoalName = ResolveGoalName(previousGoalId);
@@ -918,6 +914,7 @@ public class StrategyController : Controller
             AddCommandParameter(command, "@time", strategy.Time);
             AddCommandParameter(command, "@crossCollaboration", strategy.CrossCollaboration);
             AddCommandParameter(command, "@partners", strategy.Partners);
+            AddCommandParameter(command, "@eventType", strategy.ProgramType ?? "Event");
             AddCommandParameter(command, "@eventFYear", strategy.EventFYear);
             AddCommandParameter(command, "@isArchived", strategy.IsArchived);
             AddCommandParameter(command, "@archivedAtUtc", strategy.ArchivedAtUtc);
@@ -1339,6 +1336,18 @@ public class StrategyController : Controller
         _context.SaveChanges();
     }
 
+    private void TrySaveCrossColabs(int strategyId, List<CrossColab> crossColabs)
+    {
+        try
+        {
+            SaveCrossColabs(strategyId, crossColabs);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[strategy-cross-colabs] Failed to save cross collaborators for strategy {strategyId}: {ex}");
+        }
+    }
+
     private void ReplaceCrossColabs(int strategyId, List<CrossColab> crossColabs)
     {
         if (_context.Database.IsSqlServer())
@@ -1383,6 +1392,18 @@ public class StrategyController : Controller
         }
 
         _context.SaveChanges();
+    }
+
+    private void TryReplaceCrossColabs(int strategyId, List<CrossColab> crossColabs)
+    {
+        try
+        {
+            ReplaceCrossColabs(strategyId, crossColabs);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[strategy-cross-colabs] Failed to replace cross collaborators for strategy {strategyId}: {ex}");
+        }
     }
 
     private void ApplyCrossColabSummaries(List<Strategy> strategies)
@@ -1787,6 +1808,7 @@ public class StrategyController : Controller
             ("Description", "@description"),
             ("Date", "@date"),
             ("Time", "@time"),
+            ("EventType", "@eventType"),
             ("CrossCollaboration", "@crossCollaboration"),
             ("Partners", "@partners"),
             ("EventFYear", "@eventFYear"),
