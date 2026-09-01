@@ -603,7 +603,7 @@ public class StrategyController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult ExportEventsXlsx(List<int>? selectedEventIds)
+    public IActionResult ExportEventsXlsx(List<int>? selectedEventIds, List<string>? columns)
     {
         if (selectedEventIds == null || selectedEventIds.Count == 0)
         {
@@ -611,9 +611,22 @@ public class StrategyController : Controller
             return RedirectToAction(nameof(ViewEvents));
         }
 
+        if (columns == null || columns.Count == 0)
+        {
+            TempData["ErrorMessage"] = "Select at least one column to export.";
+            return RedirectToAction(nameof(ViewEvents));
+        }
+
         var selectedIds = selectedEventIds
             .Distinct()
             .ToHashSet();
+        var exportColumns = ResolveEventExportColumns(columns);
+        if (exportColumns.Count == 0)
+        {
+            TempData["ErrorMessage"] = "Select at least one valid column to export.";
+            return RedirectToAction(nameof(ViewEvents));
+        }
+
         var events = LoadStrategiesForDisplay(goalId: null, includeArchived: false);
         var selectedEvents = events
             .Where(e => selectedIds.Contains(e.Id))
@@ -628,17 +641,17 @@ public class StrategyController : Controller
         using var workbook = new XLWorkbook();
         var worksheet = workbook.Worksheets.Add("Events");
 
-        for (var c = 0; c < EventExportColumns.Count; c++)
+        for (var c = 0; c < exportColumns.Count; c++)
         {
-            worksheet.Cell(1, c + 1).Value = EventExportColumns[c].Header;
+            worksheet.Cell(1, c + 1).Value = exportColumns[c].Header;
         }
 
         var row = 2;
         foreach (var evt in selectedEvents.OrderByDescending(e => e.Id))
         {
-            for (var c = 0; c < EventExportColumns.Count; c++)
+            for (var c = 0; c < exportColumns.Count; c++)
             {
-                worksheet.Cell(row, c + 1).Value = EventExportColumns[c].Value(evt);
+                worksheet.Cell(row, c + 1).Value = exportColumns[c].Value(evt);
             }
 
             row++;
@@ -649,11 +662,43 @@ public class StrategyController : Controller
 
         using var stream = new MemoryStream();
         workbook.SaveAs(stream);
+        var downloadFileName = BuildEventsExportFileName(selectedEvents);
 
         return File(
             stream.ToArray(),
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            $"Events_{DateTime.Now:yyyyMMdd}.xlsx");
+            downloadFileName);
+    }
+
+    private static string BuildEventsExportFileName(List<Strategy> selectedEvents)
+    {
+        var dateStamp = DateTime.Now.ToString("MMddyyyy");
+        if (selectedEvents.Count == 1)
+        {
+            var evt = selectedEvents[0];
+            var eventName = SanitizeFileNamePart(evt.Name, fallback: "Event");
+            return $"{eventName}_{dateStamp}.xlsx";
+        }
+
+        return $"Events_{dateStamp}.xlsx";
+    }
+
+    private static string SanitizeFileNamePart(string? value, string fallback)
+    {
+        var normalized = string.Join("_", (value ?? string.Empty)
+            .Trim()
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries));
+        var invalidChars = Path.GetInvalidFileNameChars();
+        var sanitized = new string(normalized
+            .Where(ch => !invalidChars.Contains(ch))
+            .ToArray());
+
+        if (string.IsNullOrWhiteSpace(sanitized))
+        {
+            return fallback;
+        }
+
+        return sanitized.Length > 80 ? sanitized[..80] : sanitized;
     }
 
     private string GetActorName()
@@ -1256,8 +1301,6 @@ public class StrategyController : Controller
 
     private static readonly List<EventExportColumn> EventExportColumns =
     [
-        new("strategicGoal", "Strategic Goal", e => e.StrategicGoal?.Name ?? $"Goal {e.StrategicGoalId}"),
-        new("fiscalYear", "Fiscal Year", e => e.EventFYear ?? string.Empty),
         new("programName", "Program Name", e => e.ProgramName ?? string.Empty),
         new("programType", "Program Type", e => e.ProgramType ?? string.Empty),
         new("eventName", "Event", e => e.Name),
@@ -1360,7 +1403,7 @@ public class StrategyController : Controller
     {
         if (selectedColumns == null || selectedColumns.Count == 0)
         {
-            return EventExportColumns;
+            return new List<EventExportColumn>();
         }
 
         var selected = selectedColumns.ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -1368,7 +1411,7 @@ public class StrategyController : Controller
             .Where(column => selected.Contains(column.Key))
             .ToList();
 
-        return exportColumns.Count > 0 ? exportColumns : EventExportColumns;
+        return exportColumns;
     }
 
     private static List<CrossColab> BuildLegacyPartnerColabs(string? partners)
