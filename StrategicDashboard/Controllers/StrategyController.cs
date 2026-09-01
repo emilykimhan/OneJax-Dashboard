@@ -1313,10 +1313,7 @@ public class StrategyController : Controller
 
             try
             {
-                if (!SqlServerTableExists(connection, "crosscolabs", _context.Database.CurrentTransaction?.GetDbTransaction()))
-                {
-                    return;
-                }
+                EnsureSqlServerCrossColabsTable(connection, _context.Database.CurrentTransaction?.GetDbTransaction());
             }
             finally
             {
@@ -1361,10 +1358,7 @@ public class StrategyController : Controller
 
             try
             {
-                if (!SqlServerTableExists(connection, "crosscolabs", _context.Database.CurrentTransaction?.GetDbTransaction()))
-                {
-                    return;
-                }
+                EnsureSqlServerCrossColabsTable(connection, _context.Database.CurrentTransaction?.GetDbTransaction());
             }
             finally
             {
@@ -1427,6 +1421,28 @@ public class StrategyController : Controller
         Dictionary<int, List<CrossColab>> crossColabsByStrategy;
         try
         {
+            if (_context.Database.IsSqlServer())
+            {
+                var connection = _context.Database.GetDbConnection();
+                var shouldClose = connection.State != ConnectionState.Open;
+                if (shouldClose)
+                {
+                    connection.Open();
+                }
+
+                try
+                {
+                    EnsureSqlServerCrossColabsTable(connection);
+                }
+                finally
+                {
+                    if (shouldClose)
+                    {
+                        connection.Close();
+                    }
+                }
+            }
+
             crossColabsByStrategy = _context.CrossColabs
                 .Where(c => strategyIds.Contains(c.StrategyId))
                 .AsEnumerable()
@@ -1690,6 +1706,50 @@ public class StrategyController : Controller
         command.Parameters.Add(parameter);
 
         return Convert.ToInt32(command.ExecuteScalar() ?? 0) == 1;
+    }
+
+    private static void EnsureSqlServerCrossColabsTable(DbConnection connection, DbTransaction? transaction = null)
+    {
+        using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = """
+            IF OBJECT_ID(N'dbo.crosscolabs', N'U') IS NULL
+            BEGIN
+                CREATE TABLE [dbo].[crosscolabs] (
+                    [Id] int NOT NULL IDENTITY,
+                    [StrategyId] int NOT NULL,
+                    [PartnerName] nvarchar(200) NOT NULL,
+                    [PartnerEmail] nvarchar(256) NULL,
+                    [CreatedDate] datetime2 NOT NULL CONSTRAINT [DF_crosscolabs_CreatedDate] DEFAULT(SYSUTCDATETIME()),
+                    CONSTRAINT [PK_crosscolabs] PRIMARY KEY ([Id])
+                );
+
+                CREATE INDEX [IX_crosscolabs_StrategyId] ON [dbo].[crosscolabs] ([StrategyId]);
+            END
+
+            IF COL_LENGTH('dbo.crosscolabs', 'PartnerEmail') IS NULL
+            BEGIN
+                ALTER TABLE [dbo].[crosscolabs]
+                ADD [PartnerEmail] nvarchar(256) NULL;
+            END
+
+            IF COL_LENGTH('dbo.crosscolabs', 'CreatedDate') IS NULL
+            BEGIN
+                ALTER TABLE [dbo].[crosscolabs]
+                ADD [CreatedDate] datetime2 NOT NULL CONSTRAINT [DF_crosscolabs_CreatedDate] DEFAULT(SYSUTCDATETIME());
+            END
+
+            IF NOT EXISTS (
+                SELECT 1
+                FROM sys.indexes
+                WHERE [name] = N'IX_crosscolabs_StrategyId'
+                  AND [object_id] = OBJECT_ID(N'dbo.crosscolabs')
+            )
+            BEGIN
+                CREATE INDEX [IX_crosscolabs_StrategyId] ON [dbo].[crosscolabs] ([StrategyId]);
+            END
+            """;
+        command.ExecuteNonQuery();
     }
 
     private static HashSet<string> GetSqlServerColumns(DbConnection connection, string tableName, DbTransaction? transaction = null)
