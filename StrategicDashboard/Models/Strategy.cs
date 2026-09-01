@@ -25,4 +25,5 @@ public class Strategy
     public DateTime? ArchivedAtUtc { get; set; }
     public StrategicGoal? StrategicGoal { get; set; }
     public Programs? Program { get; set; }
+    public List<CrossColab> CrossColabs { get; set; } = new();
 }

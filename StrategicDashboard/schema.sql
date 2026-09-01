@@ -128,6 +128,15 @@ CREATE TABLE IF NOT EXISTS "CrossSectorCollabs" (
     "Notes" TEXT NULL,
     "CreatedDate" TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS "crosscolabs" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_crosscolabs" PRIMARY KEY AUTOINCREMENT,
+    "StrategyId" INTEGER NOT NULL,
+    "PartnerName" TEXT NOT NULL,
+    "PartnerEmail" TEXT NULL,
+    "CreatedDate" TEXT NOT NULL,
+    CONSTRAINT "FK_crosscolabs_Strategies_StrategyId" FOREIGN KEY ("StrategyId") REFERENCES "Strategies" ("Id") ON DELETE CASCADE
+);
+CREATE INDEX "IX_crosscolabs_StrategyId" ON "crosscolabs" ("StrategyId");
 CREATE TABLE IF NOT EXISTS "WebsiteTraffic" (
     "Id" INTEGER NOT NULL CONSTRAINT "PK_WebsiteTraffic" PRIMARY KEY AUTOINCREMENT,
     "CreatedDate" TEXT NOT NULL,

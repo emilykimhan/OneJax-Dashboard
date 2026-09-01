@@ -115,6 +115,7 @@ using (var scope = app.Services.CreateScope())
     RunStartupStep("Ensuring staff admin schema support", () => EnsureStaffAdminSupport(db));
     RunStartupStep("Ensuring strategy program schema support", () => EnsureStrategyProgramSupport(db));
     RunStartupStep("Ensuring strategy archive schema support", () => EnsureStrategyArchiveSupport(db));
+    RunStartupStep("Ensuring cross collaborator schema support", () => EnsureCrossColabSupport(db));
     RunStartupStep("Ensuring program archive schema support", () => EnsureProgramArchiveSupport(db));
     RunStartupStep("Ensuring activity log schema support", () => EnsureActivityLogSupport(db));
     RunStartupStep("Ensuring fallback admin access", () => EnsureFallbackAdminAccess(db, builder.Configuration));
@@ -800,6 +801,64 @@ static void EnsureStrategyArchiveSupport(ApplicationDbContext db)
             "ALTER TABLE \"Strategies\" ADD COLUMN \"IsArchived\" INTEGER NOT NULL DEFAULT 0;");
         EnsureSqliteColumn(connection, "Strategies", "ArchivedAtUtc",
             "ALTER TABLE \"Strategies\" ADD COLUMN \"ArchivedAtUtc\" TEXT NULL;");
+    }
+    finally
+    {
+        if (shouldClose)
+        {
+            connection.Close();
+        }
+    }
+}
+
+static void EnsureCrossColabSupport(ApplicationDbContext db)
+{
+    if (db.Database.IsSqlServer())
+    {
+        db.Database.ExecuteSqlRaw("""
+            IF OBJECT_ID(N'dbo.crosscolabs', N'U') IS NULL
+            BEGIN
+                CREATE TABLE [dbo].[crosscolabs] (
+                    [Id] int NOT NULL IDENTITY,
+                    [StrategyId] int NOT NULL,
+                    [PartnerName] nvarchar(200) NOT NULL,
+                    [PartnerEmail] nvarchar(256) NULL,
+                    [CreatedDate] datetime2 NOT NULL,
+                    CONSTRAINT [PK_crosscolabs] PRIMARY KEY ([Id]),
+                    CONSTRAINT [FK_crosscolabs_Strategies_StrategyId] FOREIGN KEY ([StrategyId]) REFERENCES [dbo].[Strategies] ([Id]) ON DELETE CASCADE
+                );
+
+                CREATE INDEX [IX_crosscolabs_StrategyId] ON [dbo].[crosscolabs] ([StrategyId]);
+            END
+            """);
+
+        return;
+    }
+
+    if (!db.Database.IsSqlite())
+    {
+        return;
+    }
+
+    var connection = db.Database.GetDbConnection();
+    var shouldClose = connection.State != ConnectionState.Open;
+    if (shouldClose)
+    {
+        connection.Open();
+    }
+
+    try
+    {
+        EnsureSqliteTable(connection, "crosscolabs", """
+            CREATE TABLE "crosscolabs" (
+                "Id" INTEGER NOT NULL CONSTRAINT "PK_crosscolabs" PRIMARY KEY AUTOINCREMENT,
+                "StrategyId" INTEGER NOT NULL,
+                "PartnerName" TEXT NOT NULL,
+                "PartnerEmail" TEXT NULL,
+                "CreatedDate" TEXT NOT NULL,
+                CONSTRAINT "FK_crosscolabs_Strategies_StrategyId" FOREIGN KEY ("StrategyId") REFERENCES "Strategies" ("Id") ON DELETE CASCADE
+            );
+            """);
     }
     finally
     {
