@@ -676,9 +676,12 @@
                                 var programNameDisplay = !string.IsNullOrWhiteSpace(e.ProgramName) ? e.ProgramName : "—";
                                 var programTypeDisplay = !string.IsNullOrWhiteSpace(e.ProgramType) ? e.ProgramType : "—";
                                 var eventName = e.Name;
-                                var partnerEmailsDisplay = string.Join(", ", e.CrossColabs
+                                var crossColabEmailsDisplay = string.Join(", ", e.CrossColabs
                                     .Select(c => c.PartnerEmail)
                                     .Where(email => !string.IsNullOrWhiteSpace(email)));
+                                var partnerEmailsDisplay = !string.IsNullOrWhiteSpace(crossColabEmailsDisplay)
+                                    ? crossColabEmailsDisplay
+                                    : e.PartnerEmails;
 
                                 var dateDisplay = e.Date;
                                 if (!string.IsNullOrWhiteSpace(e.Date) && DateTime.TryParse(e.Date, out var parsedDate))
@@ -887,9 +890,12 @@
                                         var programNameDisplay = !string.IsNullOrWhiteSpace(e.ProgramName) ? e.ProgramName : "—";
                                         var programTypeDisplay = !string.IsNullOrWhiteSpace(e.ProgramType) ? e.ProgramType : "—";
                                         var eventName = e.Name;
-                                        var partnerEmailsDisplay = string.Join(", ", e.CrossColabs
+                                        var crossColabEmailsDisplay = string.Join(", ", e.CrossColabs
                                             .Select(c => c.PartnerEmail)
                                             .Where(email => !string.IsNullOrWhiteSpace(email)));
+                                        var partnerEmailsDisplay = !string.IsNullOrWhiteSpace(crossColabEmailsDisplay)
+                                            ? crossColabEmailsDisplay
+                                            : e.PartnerEmails;
 
                                         var dateDisplay = e.Date;
                                         if (!string.IsNullOrWhiteSpace(e.Date) && DateTime.TryParse(e.Date, out var parsedDate))

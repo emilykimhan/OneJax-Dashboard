@@ -4,6 +4,7 @@
 
 //Dina's
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OneJaxDashboard.Models;
 
@@ -20,6 +21,8 @@ public class Strategy
     public string? Time { get; set; }
     public string CrossCollaboration { get; set; } = string.Empty;
     public string Partners { get; set; } = string.Empty;
+    [NotMapped]
+    public string PartnerEmails { get; set; } = string.Empty;
     public string EventFYear { get; set; } = string.Empty;
     public bool IsArchived { get; set; }
     public DateTime? ArchivedAtUtc { get; set; }
