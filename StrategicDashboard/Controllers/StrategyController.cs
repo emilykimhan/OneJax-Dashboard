@@ -1245,11 +1245,25 @@ public class StrategyController : Controller
         }
 
         var strategyIds = strategies.Select(s => s.Id).Distinct().ToList();
-        var crossColabsByStrategy = _context.CrossColabs
-            .Where(c => strategyIds.Contains(c.StrategyId))
-            .AsEnumerable()
-            .GroupBy(c => c.StrategyId)
-            .ToDictionary(g => g.Key, g => g.ToList());
+        Dictionary<int, List<CrossColab>> crossColabsByStrategy;
+        try
+        {
+            crossColabsByStrategy = _context.CrossColabs
+                .Where(c => strategyIds.Contains(c.StrategyId))
+                .AsEnumerable()
+                .GroupBy(c => c.StrategyId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[strategy-cross-colabs] Failed to load cross collaborators: {ex}");
+            foreach (var strategy in strategies)
+            {
+                ApplyCrossColabSummary(strategy, BuildLegacyPartnerColabs(strategy.Partners));
+            }
+
+            return;
+        }
 
         foreach (var strategy in strategies)
         {
