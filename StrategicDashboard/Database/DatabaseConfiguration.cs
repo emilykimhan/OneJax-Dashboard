@@ -59,7 +59,10 @@ public static class DatabaseConfiguration
                 break;
 
             default:
-                options.UseSqlite(settings.ConnectionString);
+                options
+                    .ConfigureWarnings(warnings =>
+                        warnings.Ignore(RelationalEventId.PendingModelChangesWarning))
+                    .UseSqlite(settings.ConnectionString);
                 break;
         }
     }
