@@ -18,7 +18,7 @@
         --onejax-blue: #0070AD;
         --onejax-teal: #00A3AD;
         --onejax-navy: #102840;
-        --onejax-gold: #93d2de;
+        --onejax-gold: #93d2de; 
         --onejax-light: #F7F9FB;
     }
 
@@ -192,6 +192,34 @@
         font-size: 0.875rem;
         font-weight: 600;
         margin-top: 0.35rem;
+    }
+
+    .cross-colab-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 42px;
+        gap: 10px;
+        align-items: start;
+        margin-bottom: 10px;
+    }
+
+    .cross-colab-remove {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    @@media (max-width: 576px) {
+        .cross-colab-row {
+            grid-template-columns: 1fr 42px;
+        }
+
+        .cross-colab-row .partner-email-input {
+            grid-column: 1 / -1;
+            order: 3;
+        }
     }
 
     .create-event-btn {
@@ -502,7 +530,7 @@
         <div class="card-body p-4">
             <h3 class="fw-bold text-uppercase mb-4" style="color: var(--onejax-blue);">Add Event</h3>
 
-<form asp-action="Add" method="post" class="row g-3">
+<form asp-action="Add" method="post" class="row g-3" id="createEventForm">
 <div class="col-12">
     <label class="form-label fw-semibold">Program Name</label>
     <select name="programId" id="programId" class="form-select">
@@ -557,11 +585,20 @@
         </label>
     </div>
     <small class="text-muted">Unchecked means No.</small>
+    @if (formErrors.TryGetValue("crossColabs", out var crossColabsError))
+    {
+        <span class="field-error" id="crossColabInlineError">@crossColabsError</span>
+    }
 </div>
 
-<div class="col-md-6 d-none" id="partnersField">
-    <label class="form-label fw-semibold">Partners</label>
-    <input type="text" name="partners" id="partnersInput" class="form-control" placeholder="Enter partner organizations" value="@(formValues.TryGetValue("partners", out var partnersValue) ? partnersValue : string.Empty)" />
+<div class="col-md-6 d-none" id="partnersSummaryField">
+    <label class="form-label fw-semibold">Collaborators</label>
+    <div class="d-flex gap-2">
+        <input type="text" id="partnersSummary" class="form-control" value="@(formValues.TryGetValue("partners", out var partnersValue) ? partnersValue : string.Empty)" readonly />
+        <button type="button" class="btn btn-outline-primary rounded-pill px-3" id="editCrossColabsButton" data-bs-toggle="modal" data-bs-target="#crossColabModal">
+            Edit
+        </button>
+    </div>
 </div>
 
 <div class="col-md-6">
@@ -614,25 +651,173 @@
             </form>
         </div>
     </div>
+
+<div class="modal fade" id="crossColabModal" tabindex="-1" aria-labelledby="crossColabModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content rounded-4">
+            <div class="modal-header">
+                <h5 class="modal-title" id="crossColabModalLabel">Cross Collaborators</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="crossColabRows"></div>
+                <span class="field-error d-none" id="crossColabModalError">Add at least one partner name.</span>
+                <button type="button" class="btn btn-outline-primary rounded-pill mt-2" id="addCrossColabRowButton">
+                    Add Partner
+                </button>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary rounded-pill" id="saveCrossColabsButton">Save Collaborators</button>
+            </div>
+        </div>
+    </div>
+</div>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        var createEventForm = document.getElementById('createEventForm');
         var crossCollabCheckbox = document.getElementById('isCrossCollaboration');
-        var partnersField = document.getElementById('partnersField');
-        var partnersInput = document.getElementById('partnersInput');
+        var partnersSummaryField = document.getElementById('partnersSummaryField');
+        var partnersSummary = document.getElementById('partnersSummary');
+        var crossColabRows = document.getElementById('crossColabRows');
+        var addCrossColabRowButton = document.getElementById('addCrossColabRowButton');
+        var saveCrossColabsButton = document.getElementById('saveCrossColabsButton');
+        var crossColabModalElement = document.getElementById('crossColabModal');
+        var crossColabModalError = document.getElementById('crossColabModalError');
         var programSelect = document.getElementById('programId');
         var programTypeSelect = document.getElementById('programType');
+        var crossColabModal = crossColabModalElement && window.bootstrap
+            ? new bootstrap.Modal(crossColabModalElement)
+            : null;
 
-        if (crossCollabCheckbox && partnersField && partnersInput) {
+        var createCrossColabRow = function (partnerName, partnerEmail) {
+            var row = document.createElement('div');
+            row.className = 'cross-colab-row';
+
+            var nameInput = document.createElement('input');
+            nameInput.type = 'text';
+            nameInput.name = 'crossColabPartnerNames';
+            nameInput.className = 'form-control partner-name-input';
+            nameInput.placeholder = 'Partner name';
+            nameInput.value = partnerName || '';
+            nameInput.setAttribute('form', 'createEventForm');
+
+            var emailInput = document.createElement('input');
+            emailInput.type = 'email';
+            emailInput.name = 'crossColabPartnerEmails';
+            emailInput.className = 'form-control partner-email-input';
+            emailInput.placeholder = 'Email (optional)';
+            emailInput.value = partnerEmail || '';
+            emailInput.setAttribute('form', 'createEventForm');
+
+            var removeButton = document.createElement('button');
+            removeButton.type = 'button';
+            removeButton.className = 'btn btn-outline-danger cross-colab-remove';
+            removeButton.setAttribute('aria-label', 'Remove partner');
+            removeButton.textContent = 'x';
+
+            row.appendChild(nameInput);
+            row.appendChild(emailInput);
+            row.appendChild(removeButton);
+
+            removeButton.addEventListener('click', function () {
+                row.remove();
+                if (crossColabRows && crossColabRows.children.length === 0) {
+                    addCrossColabRow('', '');
+                }
+                updatePartnersSummary();
+            });
+
+            nameInput.addEventListener('input', updatePartnersSummary);
+            return row;
+        };
+
+        var addCrossColabRow = function (partnerName, partnerEmail) {
+            if (!crossColabRows) return;
+            crossColabRows.appendChild(createCrossColabRow(partnerName, partnerEmail));
+        };
+
+        function getPartnerNames() {
+            if (!crossColabRows) return [];
+            return Array.from(crossColabRows.querySelectorAll('.partner-name-input'))
+                .map(function (input) { return input.value.trim(); })
+                .filter(function (value) { return value.length > 0; });
+        }
+
+        function updatePartnersSummary() {
+            if (!partnersSummary) return;
+            partnersSummary.value = getPartnerNames().join(', ');
+        }
+
+        function hasPartnerName() {
+            return getPartnerNames().length > 0;
+        }
+
+        function showCrossColabError(show) {
+            if (crossColabModalError) {
+                crossColabModalError.classList.toggle('d-none', !show);
+            }
+        }
+
+        if (crossColabRows && crossColabRows.children.length === 0) {
+            var initialPartners = partnersSummary && partnersSummary.value
+                ? partnersSummary.value.split(',').map(function (value) { return value.trim(); }).filter(Boolean)
+                : [''];
+
+            initialPartners.forEach(function (partnerName) {
+                addCrossColabRow(partnerName, '');
+            });
+            updatePartnersSummary();
+        }
+
+        if (crossCollabCheckbox && partnersSummaryField) {
             var togglePartners = function () {
                 var isChecked = crossCollabCheckbox.checked;
-                partnersField.classList.toggle('d-none', !isChecked);
+                partnersSummaryField.classList.toggle('d-none', !isChecked);
                 if (!isChecked) {
-                    partnersInput.value = '';
+                    if (crossColabRows) {
+                        crossColabRows.innerHTML = '';
+                        addCrossColabRow('', '');
+                    }
+                    updatePartnersSummary();
+                    showCrossColabError(false);
+                } else if (crossColabModal && !hasPartnerName()) {
+                    crossColabModal.show();
                 }
             };
 
             crossCollabCheckbox.addEventListener('change', togglePartners);
             togglePartners();
+        }
+
+        if (addCrossColabRowButton) {
+            addCrossColabRowButton.addEventListener('click', function () {
+                addCrossColabRow('', '');
+            });
+        }
+
+        if (saveCrossColabsButton) {
+            saveCrossColabsButton.addEventListener('click', function () {
+                var valid = hasPartnerName();
+                showCrossColabError(!valid);
+                if (valid && crossColabModal) {
+                    updatePartnersSummary();
+                    crossColabModal.hide();
+                }
+            });
+        }
+
+        if (createEventForm && crossCollabCheckbox) {
+            createEventForm.addEventListener('submit', function (event) {
+                updatePartnersSummary();
+                if (crossCollabCheckbox.checked && !hasPartnerName()) {
+                    event.preventDefault();
+                    showCrossColabError(true);
+                    if (crossColabModal) {
+                        crossColabModal.show();
+                    }
+                }
+            });
         }
 
         if (programSelect && programTypeSelect) {
