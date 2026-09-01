@@ -216,6 +216,7 @@ public class StrategyController : Controller
             ? BuildCrossColabs(crossColabPartnerNames, crossColabPartnerEmails)
             : new List<CrossColab>();
         var partnerSummary = BuildPartnerSummary(crossColabs);
+        var partnerEmailSummary = BuildPartnerEmailSummary(crossColabs);
         var formValues = BuildStrategyFormValues(goalId, eventName, eventDescription, eventDate, eventTime, isCrossCollaboration, partnerSummary, programId, programType);
         var formErrors = new Dictionary<string, string>();
 
@@ -281,6 +282,7 @@ public class StrategyController : Controller
             Time = eventTime,
             CrossCollaboration = isCrossCollaboration ? "Yes" : "No",
             Partners = isCrossCollaboration ? partnerSummary : string.Empty,
+            PartnerEmails = isCrossCollaboration ? partnerEmailSummary : string.Empty,
             EventFYear = ComputeFiscalYear(eventDate)
         };
 
@@ -332,7 +334,7 @@ public class StrategyController : Controller
         ApplyCrossColabSummaries(new List<Strategy> { evt });
         ViewBag.CrossColabs = evt.CrossColabs.Count > 0
             ? evt.CrossColabs
-            : BuildLegacyPartnerColabs(evt.Partners);
+            : BuildLegacyPartnerColabs(evt.Partners, evt.PartnerEmails);
         return View(evt); // Pass the strategy to the view
     }
 
@@ -355,6 +357,7 @@ public class StrategyController : Controller
             ? BuildCrossColabs(crossColabPartnerNames, crossColabPartnerEmails)
             : new List<CrossColab>();
         var partnerSummary = BuildPartnerSummary(crossColabs);
+        var partnerEmailSummary = BuildPartnerEmailSummary(crossColabs);
 
         if (string.IsNullOrWhiteSpace(eventName))
         {
@@ -429,6 +432,7 @@ public class StrategyController : Controller
         evt.ProgramType = selectedProgramType;
         evt.CrossCollaboration = isCrossCollaboration ? "Yes" : "No";
         evt.Partners = isCrossCollaboration ? partnerSummary : string.Empty;
+        evt.PartnerEmails = isCrossCollaboration ? partnerEmailSummary : string.Empty;
         evt.Description = normalizedDescription;
         evt.Date = eventDate;
         evt.Time = eventTime;
@@ -898,6 +902,7 @@ public class StrategyController : Controller
         try
         {
             var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
+            EnsureSqlServerStrategyPartnerEmailsColumn(connection, transaction);
             var existingColumns = GetSqlServerColumns(connection, "Strategies", transaction);
             using var command = connection.CreateCommand();
             command.Transaction = transaction;
@@ -914,6 +919,7 @@ public class StrategyController : Controller
             AddCommandParameter(command, "@time", strategy.Time);
             AddCommandParameter(command, "@crossCollaboration", strategy.CrossCollaboration);
             AddCommandParameter(command, "@partners", strategy.Partners);
+            AddCommandParameter(command, "@partnerEmails", strategy.PartnerEmails);
             AddCommandParameter(command, "@eventType", strategy.ProgramType ?? "Event");
             AddCommandParameter(command, "@eventFYear", strategy.EventFYear);
             AddCommandParameter(command, "@isArchived", strategy.IsArchived);
@@ -978,6 +984,7 @@ public class StrategyController : Controller
                 Time = SafeGetNullableString(reader, "Time"),
                 CrossCollaboration = SafeGetString(reader, "CrossCollaboration"),
                 Partners = SafeGetString(reader, "Partners"),
+                PartnerEmails = SafeGetString(reader, "PartnerEmails"),
                 EventFYear = SafeGetString(reader, "EventFYear"),
                 IsArchived = SafeGetBool(reader, "IsArchived"),
                 ArchivedAtUtc = SafeGetNullableDateTime(reader, "ArchivedAtUtc")
@@ -1010,6 +1017,7 @@ public class StrategyController : Controller
         try
         {
             var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
+            EnsureSqlServerStrategyPartnerEmailsColumn(connection, transaction);
             var existingColumns = GetSqlServerColumns(connection, "Strategies", transaction);
             using var command = connection.CreateCommand();
             command.Transaction = transaction;
@@ -1026,6 +1034,7 @@ public class StrategyController : Controller
             AddCommandParameter(command, "@time", strategy.Time);
             AddCommandParameter(command, "@crossCollaboration", strategy.CrossCollaboration);
             AddCommandParameter(command, "@partners", strategy.Partners);
+            AddCommandParameter(command, "@partnerEmails", strategy.PartnerEmails);
             AddCommandParameter(command, "@eventFYear", strategy.EventFYear);
 
             var rowsAffected = command.ExecuteNonQuery();
@@ -1211,6 +1220,7 @@ public class StrategyController : Controller
 
         try
         {
+            EnsureSqlServerStrategyPartnerEmailsColumn(connection);
             var existingColumns = GetSqlServerColumns(connection, "Strategies");
             using var command = connection.CreateCommand();
             command.CommandText = BuildStrategiesSelectSql(existingColumns, goalId, includeArchived);
@@ -1240,6 +1250,7 @@ public class StrategyController : Controller
                     Time = SafeGetNullableString(reader, "Time"),
                     CrossCollaboration = SafeGetString(reader, "CrossCollaboration"),
                     Partners = SafeGetString(reader, "Partners"),
+                    PartnerEmails = SafeGetString(reader, "PartnerEmails"),
                     EventFYear = SafeGetString(reader, "EventFYear"),
                     IsArchived = SafeGetBool(reader, "IsArchived"),
                     ArchivedAtUtc = SafeGetNullableDateTime(reader, "ArchivedAtUtc")
@@ -1454,7 +1465,7 @@ public class StrategyController : Controller
             Console.WriteLine($"[strategy-cross-colabs] Failed to load cross collaborators: {ex}");
             foreach (var strategy in strategies)
             {
-                ApplyCrossColabSummary(strategy, BuildLegacyPartnerColabs(strategy.Partners));
+                ApplyCrossColabSummary(strategy, BuildLegacyPartnerColabs(strategy.Partners, strategy.PartnerEmails));
             }
 
             return;
@@ -1472,14 +1483,18 @@ public class StrategyController : Controller
 
     private static void ApplyCrossColabSummary(Strategy strategy, IEnumerable<CrossColab> crossColabs)
     {
-        var summary = BuildPartnerSummary(crossColabs);
-        if (string.IsNullOrWhiteSpace(summary))
+        var partnersSummary = BuildPartnerSummary(crossColabs);
+        var partnerEmailsSummary = BuildPartnerEmailSummary(crossColabs);
+        if (string.IsNullOrWhiteSpace(partnersSummary) && string.IsNullOrWhiteSpace(partnerEmailsSummary))
         {
             return;
         }
 
         strategy.CrossCollaboration = "Yes";
-        strategy.Partners = summary;
+        strategy.Partners = partnersSummary;
+        strategy.PartnerEmails = !string.IsNullOrWhiteSpace(partnerEmailsSummary)
+            ? partnerEmailsSummary
+            : strategy.PartnerEmails;
     }
 
     private void ApplyStrategyGoalReferences(List<Strategy> strategies)
@@ -1531,8 +1546,8 @@ public class StrategyController : Controller
         new("eventName", "Event", e => e.Name),
         new("description", "Description", e => e.Description),
         new("crossCollaboration", "Cross Collaboration", e => e.CrossCollaboration),
-        new("partnerNames", "Partner Names", e => BuildPartnerSummary(e.CrossColabs.Count > 0 ? e.CrossColabs : BuildLegacyPartnerColabs(e.Partners))),
-        new("partnerEmails", "Partner Emails", e => BuildPartnerEmailSummary(e.CrossColabs)),
+        new("partnerNames", "Partner Names", e => BuildPartnerSummary(e.CrossColabs.Count > 0 ? e.CrossColabs : BuildLegacyPartnerColabs(e.Partners, e.PartnerEmails))),
+        new("partnerEmails", "Partner Emails", e => ResolvePartnerEmailsDisplay(e)),
         new("date", "Date", e => FormatDate(e.Date)),
         new("time", "Time", e => FormatTime(e.Time))
     ];
@@ -1598,12 +1613,12 @@ public class StrategyController : Controller
 
         if (!string.IsNullOrWhiteSpace(partnerName))
         {
-            query = query.Where(e => ContainsExportFilter(BuildPartnerSummary(e.CrossColabs.Count > 0 ? e.CrossColabs : BuildLegacyPartnerColabs(e.Partners)), partnerName));
+            query = query.Where(e => ContainsExportFilter(BuildPartnerSummary(e.CrossColabs.Count > 0 ? e.CrossColabs : BuildLegacyPartnerColabs(e.Partners, e.PartnerEmails)), partnerName));
         }
 
         if (!string.IsNullOrWhiteSpace(partnerEmail))
         {
-            query = query.Where(e => ContainsExportFilter(BuildPartnerEmailSummary(e.CrossColabs), partnerEmail));
+            query = query.Where(e => ContainsExportFilter(ResolvePartnerEmailsDisplay(e), partnerEmail));
         }
 
         if (DateTime.TryParse(dateFrom, out var parsedDateFrom))
@@ -1639,17 +1654,49 @@ public class StrategyController : Controller
         return exportColumns;
     }
 
-    private static List<CrossColab> BuildLegacyPartnerColabs(string? partners)
-        => (partners ?? string.Empty)
+    private static List<CrossColab> BuildLegacyPartnerColabs(string? partners, string? partnerEmails = null)
+    {
+        var partnerNames = SplitSummaryValues(partners);
+        var emails = SplitSummaryValues(partnerEmails);
+        var maxCount = Math.Max(partnerNames.Count, emails.Count);
+        var crossColabs = new List<CrossColab>();
+
+        for (var i = 0; i < maxCount; i++)
+        {
+            var partnerName = i < partnerNames.Count ? partnerNames[i] : string.Empty;
+            if (string.IsNullOrWhiteSpace(partnerName))
+            {
+                continue;
+            }
+
+            crossColabs.Add(new CrossColab
+            {
+                PartnerName = partnerName,
+                PartnerEmail = i < emails.Count ? emails[i] : null
+            });
+        }
+
+        return crossColabs;
+    }
+
+    private static List<string> SplitSummaryValues(string? value)
+        => (value ?? string.Empty)
             .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Where(name => !string.IsNullOrWhiteSpace(name))
-            .Select(name => new CrossColab { PartnerName = name })
+            .Where(item => !string.IsNullOrWhiteSpace(item))
             .ToList();
 
     private static string BuildPartnerEmailSummary(IEnumerable<CrossColab> crossColabs)
         => string.Join(", ", crossColabs
             .Select(c => c.PartnerEmail?.Trim())
             .Where(email => !string.IsNullOrWhiteSpace(email)));
+
+    private static string ResolvePartnerEmailsDisplay(Strategy strategy)
+    {
+        var crossColabEmails = BuildPartnerEmailSummary(strategy.CrossColabs);
+        return !string.IsNullOrWhiteSpace(crossColabEmails)
+            ? crossColabEmails
+            : strategy.PartnerEmails;
+    }
 
     private static bool ContainsExportFilter(string? value, string filter)
         => !string.IsNullOrWhiteSpace(value) &&
@@ -1752,6 +1799,20 @@ public class StrategyController : Controller
         command.ExecuteNonQuery();
     }
 
+    private static void EnsureSqlServerStrategyPartnerEmailsColumn(DbConnection connection, DbTransaction? transaction = null)
+    {
+        using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = """
+            IF COL_LENGTH('dbo.Strategies', 'PartnerEmails') IS NULL
+            BEGIN
+                ALTER TABLE [dbo].[Strategies]
+                ADD [PartnerEmails] nvarchar(max) NOT NULL CONSTRAINT [DF_Strategies_PartnerEmails] DEFAULT(N'');
+            END
+            """;
+        command.ExecuteNonQuery();
+    }
+
     private static HashSet<string> GetSqlServerColumns(DbConnection connection, string tableName, DbTransaction? transaction = null)
     {
         using var command = connection.CreateCommand();
@@ -1807,6 +1868,7 @@ public class StrategyController : Controller
             SelectColumn("Time", "NULL"),
             SelectColumn("CrossCollaboration", "N''"),
             SelectColumn("Partners", "N''"),
+            SelectColumn("PartnerEmails", "N''"),
             SelectColumn("EventFYear", "N''"),
             SelectColumn("IsArchived", "CAST(0 AS bit)"),
             SelectColumn("ArchivedAtUtc", "CAST(NULL AS datetime2)")
@@ -1848,6 +1910,7 @@ public class StrategyController : Controller
             SelectColumn("Time", "NULL"),
             SelectColumn("CrossCollaboration", "N''"),
             SelectColumn("Partners", "N''"),
+            SelectColumn("PartnerEmails", "N''"),
             SelectColumn("EventFYear", "N''"),
             SelectColumn("IsArchived", "CAST(0 AS bit)"),
             SelectColumn("ArchivedAtUtc", "CAST(NULL AS datetime2)")
@@ -1871,6 +1934,7 @@ public class StrategyController : Controller
             ("EventType", "@eventType"),
             ("CrossCollaboration", "@crossCollaboration"),
             ("Partners", "@partners"),
+            ("PartnerEmails", "@partnerEmails"),
             ("EventFYear", "@eventFYear"),
             ("IsArchived", "@isArchived"),
             ("ArchivedAtUtc", "@archivedAtUtc")
@@ -1910,6 +1974,7 @@ public class StrategyController : Controller
             ("Time", "@time"),
             ("CrossCollaboration", "@crossCollaboration"),
             ("Partners", "@partners"),
+            ("PartnerEmails", "@partnerEmails"),
             ("EventFYear", "@eventFYear")
         }
         .Where(update => existingColumns.Contains(update.Column))
