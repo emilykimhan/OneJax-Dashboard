@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using ClosedXML.Excel;
 using OneJaxDashboard.Models;
 using OneJaxDashboard.Data;
@@ -837,21 +838,63 @@ public class StrategyController : Controller
 
     private void PersistStrategy(Strategy strategy)
     {
-        if (!RequiresExplicitIdInsert("Strategies"))
+        if (!_context.Database.IsSqlServer())
         {
             _context.Strategies.Add(strategy);
             _context.SaveChanges();
             return;
         }
 
-        strategy.Id = GetNextSqlServerId("Strategies");
+        var includeId = RequiresExplicitIdInsert("Strategies");
+        if (includeId)
+        {
+            strategy.Id = GetNextSqlServerId("Strategies");
+        }
 
-        _context.Database.ExecuteSqlInterpolated($"""
-            INSERT INTO [Strategies]
-                ([Id], [Name], [ProgramId], [ProgramName], [ProgramType], [StrategicGoalId], [Description], [Date], [Time], [CrossCollaboration], [Partners], [EventFYear], [IsArchived], [ArchivedAtUtc])
-            VALUES
-                ({strategy.Id}, {strategy.Name}, {strategy.ProgramId}, {strategy.ProgramName}, {strategy.ProgramType}, {strategy.StrategicGoalId}, {strategy.Description}, {strategy.Date}, {strategy.Time}, {strategy.CrossCollaboration}, {strategy.Partners}, {strategy.EventFYear}, {strategy.IsArchived}, {strategy.ArchivedAtUtc});
-            """);
+        var connection = _context.Database.GetDbConnection();
+        var shouldClose = connection.State != ConnectionState.Open;
+        if (shouldClose)
+        {
+            connection.Open();
+        }
+
+        try
+        {
+            var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
+            var existingColumns = GetSqlServerColumns(connection, "Strategies", transaction);
+            using var command = connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText = BuildStrategyInsertSql(existingColumns, includeId);
+
+            AddCommandParameter(command, "@id", strategy.Id);
+            AddCommandParameter(command, "@name", strategy.Name);
+            AddCommandParameter(command, "@programId", strategy.ProgramId);
+            AddCommandParameter(command, "@programName", strategy.ProgramName);
+            AddCommandParameter(command, "@programType", strategy.ProgramType);
+            AddCommandParameter(command, "@strategicGoalId", strategy.StrategicGoalId);
+            AddCommandParameter(command, "@description", strategy.Description);
+            AddCommandParameter(command, "@date", strategy.Date);
+            AddCommandParameter(command, "@time", strategy.Time);
+            AddCommandParameter(command, "@crossCollaboration", strategy.CrossCollaboration);
+            AddCommandParameter(command, "@partners", strategy.Partners);
+            AddCommandParameter(command, "@eventFYear", strategy.EventFYear);
+            AddCommandParameter(command, "@isArchived", strategy.IsArchived);
+            AddCommandParameter(command, "@archivedAtUtc", strategy.ArchivedAtUtc);
+
+            command.ExecuteNonQuery();
+            if (!includeId)
+            {
+                command.CommandText = "SELECT CONVERT(int, SCOPE_IDENTITY());";
+                strategy.Id = Convert.ToInt32(command.ExecuteScalar() ?? 0);
+            }
+        }
+        finally
+        {
+            if (shouldClose)
+            {
+                connection.Close();
+            }
+        }
     }
 
     private Strategy? GetStrategyForMutation(int id)
@@ -929,8 +972,10 @@ public class StrategyController : Controller
 
         try
         {
-            var existingColumns = GetSqlServerColumns(connection, "Strategies");
+            var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
+            var existingColumns = GetSqlServerColumns(connection, "Strategies", transaction);
             using var command = connection.CreateCommand();
+            command.Transaction = transaction;
             command.CommandText = BuildStrategyUpdateSql(existingColumns);
 
             AddCommandParameter(command, "@id", strategy.Id);
@@ -978,6 +1023,7 @@ public class StrategyController : Controller
         try
         {
             using var command = connection.CreateCommand();
+            command.Transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
             command.CommandText = $"SELECT ISNULL(COLUMNPROPERTY(OBJECT_ID(N'{tableName}'), N'Id', 'IsIdentity'), -1)";
             var identityFlag = Convert.ToInt32(command.ExecuteScalar() ?? -1);
             return identityFlag == 0;
@@ -1003,6 +1049,7 @@ public class StrategyController : Controller
         try
         {
             using var command = connection.CreateCommand();
+            command.Transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
             command.CommandText = $"SELECT ISNULL(MAX([Id]), 0) + 1 FROM [{tableName}]";
             return Convert.ToInt32(command.ExecuteScalar() ?? 1);
         }
@@ -1216,6 +1263,31 @@ public class StrategyController : Controller
         if (crossColabs.Count == 0)
         {
             return;
+        }
+
+        if (_context.Database.IsSqlServer())
+        {
+            var connection = _context.Database.GetDbConnection();
+            var shouldClose = connection.State != ConnectionState.Open;
+            if (shouldClose)
+            {
+                connection.Open();
+            }
+
+            try
+            {
+                if (!SqlServerTableExists(connection, "crosscolabs", _context.Database.CurrentTransaction?.GetDbTransaction()))
+                {
+                    return;
+                }
+            }
+            finally
+            {
+                if (shouldClose)
+                {
+                    connection.Close();
+                }
+            }
         }
 
         foreach (var crossColab in crossColabs)
@@ -1483,9 +1555,24 @@ public class StrategyController : Controller
         return fy;
     }
 
-    private static HashSet<string> GetSqlServerColumns(DbConnection connection, string tableName)
+    private static bool SqlServerTableExists(DbConnection connection, string tableName, DbTransaction? transaction = null)
     {
         using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = "SELECT CASE WHEN OBJECT_ID(@tableName, N'U') IS NULL THEN 0 ELSE 1 END;";
+
+        var parameter = command.CreateParameter();
+        parameter.ParameterName = "@tableName";
+        parameter.Value = $"dbo.{tableName}";
+        command.Parameters.Add(parameter);
+
+        return Convert.ToInt32(command.ExecuteScalar() ?? 0) == 1;
+    }
+
+    private static HashSet<string> GetSqlServerColumns(DbConnection connection, string tableName, DbTransaction? transaction = null)
+    {
+        using var command = connection.CreateCommand();
+        command.Transaction = transaction;
         command.CommandText = """
             SELECT [name]
             FROM sys.columns
@@ -1584,6 +1671,42 @@ public class StrategyController : Controller
         });
 
         return $"SELECT TOP (1) {selectList} FROM [dbo].[Strategies] WHERE [Id] = @id;";
+    }
+
+    private static string BuildStrategyInsertSql(HashSet<string> existingColumns, bool includeId)
+    {
+        var insertColumns = new List<(string Column, string Parameter)>
+        {
+            ("Name", "@name"),
+            ("ProgramId", "@programId"),
+            ("ProgramName", "@programName"),
+            ("ProgramType", "@programType"),
+            ("StrategicGoalId", "@strategicGoalId"),
+            ("Description", "@description"),
+            ("Date", "@date"),
+            ("Time", "@time"),
+            ("CrossCollaboration", "@crossCollaboration"),
+            ("Partners", "@partners"),
+            ("EventFYear", "@eventFYear"),
+            ("IsArchived", "@isArchived"),
+            ("ArchivedAtUtc", "@archivedAtUtc")
+        }
+        .Where(column => existingColumns.Contains(column.Column))
+        .ToList();
+
+        if (includeId && existingColumns.Contains("Id"))
+        {
+            insertColumns.Insert(0, ("Id", "@id"));
+        }
+
+        if (insertColumns.Count == 0)
+        {
+            throw new InvalidOperationException("The Strategies table has no writable event columns.");
+        }
+
+        var columnsSql = string.Join(", ", insertColumns.Select(column => $"[{column.Column}]"));
+        var valuesSql = string.Join(", ", insertColumns.Select(column => column.Parameter));
+        return $"INSERT INTO [dbo].[Strategies] ({columnsSql}) VALUES ({valuesSql});";
     }
 
     private static string BuildStrategyUpdateSql(HashSet<string> existingColumns)
