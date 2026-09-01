@@ -881,11 +881,10 @@ public class StrategyController : Controller
             AddCommandParameter(command, "@isArchived", strategy.IsArchived);
             AddCommandParameter(command, "@archivedAtUtc", strategy.ArchivedAtUtc);
 
-            command.ExecuteNonQuery();
+            var insertedId = command.ExecuteScalar();
             if (!includeId)
             {
-                command.CommandText = "SELECT CONVERT(int, SCOPE_IDENTITY());";
-                strategy.Id = Convert.ToInt32(command.ExecuteScalar() ?? 0);
+                strategy.Id = Convert.ToInt32(insertedId ?? 0);
             }
         }
         finally
@@ -1370,9 +1369,25 @@ public class StrategyController : Controller
             .Select(s => s.StrategicGoalId)
             .Distinct()
             .ToList();
-        var goalsById = _context.StrategicGoals
-            .Where(g => goalIds.Contains(g.Id))
-            .ToDictionary(g => g.Id);
+        Dictionary<int, StrategicGoal> goalsById;
+        try
+        {
+            goalsById = _context.StrategicGoals
+                .Where(g => goalIds.Contains(g.Id))
+                .ToDictionary(g => g.Id);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[strategy-goals] Failed to load strategic goal references: {ex}");
+            goalsById = Goals
+                .Select(goal => new StrategicGoal
+                {
+                    Id = int.TryParse(goal.Value, out var id) ? id : 0,
+                    Name = goal.Text
+                })
+                .Where(goal => goal.Id > 0)
+                .ToDictionary(goal => goal.Id);
+        }
 
         foreach (var strategy in strategies)
         {
@@ -1706,7 +1721,10 @@ public class StrategyController : Controller
 
         var columnsSql = string.Join(", ", insertColumns.Select(column => $"[{column.Column}]"));
         var valuesSql = string.Join(", ", insertColumns.Select(column => column.Parameter));
-        return $"INSERT INTO [dbo].[Strategies] ({columnsSql}) VALUES ({valuesSql});";
+        var identitySql = includeId
+            ? string.Empty
+            : " SELECT CONVERT(int, SCOPE_IDENTITY());";
+        return $"INSERT INTO [dbo].[Strategies] ({columnsSql}) VALUES ({valuesSql});{identitySql}";
     }
 
     private static string BuildStrategyUpdateSql(HashSet<string> existingColumns)
