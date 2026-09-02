@@ -96,29 +96,6 @@ public class HomeController : Controller
                 }
 
                 // Collaborative Partner Touchpoints (CollabTouch_47D): selected-FY pace + latest partner names.
-                var collabRows = await _context.CollabTouch_47D
-                    .Include(c => c.Strategy)
-                    .OrderByDescending(c => c.CreatedDate)
-                    .ToListAsync();
-
-                collabRows = collabRows
-                    .Where(c => FiscalYearMatches(c.FiscalYear, selectedFiscalYear))
-                    .ToList();
-
-                ViewBag.CommunityPartnerEntryCount = collabRows.Count;
-                ViewBag.CommunityPartnersCurrentCount = collabRows.Count;
-
-                ViewBag.CommunityPartnersLatest = collabRows
-                    .OrderByDescending(c => c.CreatedDate)
-                    .Take(5)
-                    .Select(c => new
-                    {
-                        date = c.CreatedDate.ToString("MMM d, yyyy", CultureInfo.InvariantCulture),
-                        partner = c.PartnerOrganization,
-                        touchpoint = c.Touchpoint,
-                        strategy = c.Strategy?.Name ?? "Unassigned"
-                    })
-                    .ToList();
 
                 var interfaithRows = await _context.Interfaith_11D
                     .OrderByDescending(i => i.CreatedDate)
@@ -2276,15 +2253,6 @@ public class HomeController : Controller
             hasYouthGrowth
                 ? $"{youthGrowth:F1}% growth based on the two most recent youth attendance records | Form: Data Entry → CommYouth15D"
                 : "Need at least two youth attendance entries to calculate growth - Go to Data Entry → CommYouth15D", nextId++);
-
-        var partnerRows = (await _context.CollabTouch_47D.ToListAsync())
-            .Where(p => FiscalYearMatches(p.FiscalYear, fiscalYear))
-            .ToList();
-        AddOrUpdateMetric(goal, "Cross-Sector Collaborations", "Collaborative partner touchpoints logged",
-            partnerRows.Count, "partners", "3", partnerRows.Any() ? "Active" : "Planning",
-            partnerRows.Any()
-                ? $"{partnerRows.Count} collaborative partner touchpoints logged | Form: Data Entry → CommCollab47D"
-                : "No collaborative partner touchpoints yet - Go to Data Entry → CommCollab47D", nextId++);
 
         var faithRows = FilterByFiscalYearStrategyDateWithCreatedDateFallback(
             await _context.FaithCommunity_13D.ToListAsync(),
