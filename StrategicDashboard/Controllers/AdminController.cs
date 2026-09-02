@@ -146,7 +146,6 @@ namespace OneJaxDashboard.Controllers
                 "FaithCommunity",
                 "MilestoneAchievement",
                 "Demographics",
-                "FrameworkPlan2026",
                 "SocialMediaEngagement",
                 "StaffSurvey",
                 "ProfessionalDevelopment",

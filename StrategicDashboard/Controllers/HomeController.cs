@@ -518,25 +518,6 @@ public class HomeController : Controller
             .ToList();
     }
 
-    private List<Plan2026_24D> FilterFrameworkPlansByFiscalYear(IEnumerable<Plan2026_24D> source, string fiscalYear)
-    {
-        if (!TryParseFiscalYearEnd(fiscalYear, out var selectedFiscalYearEnd))
-        {
-            return source.ToList();
-        }
-
-        var range = GetFiscalYearRange(selectedFiscalYearEnd);
-        var selectedFiscalYearStart = selectedFiscalYearEnd - 1;
-
-        return source
-            .Where(item =>
-                GetFiscalYearEndFromQuarterLabel(item.Year, item.Quarter, fiscalQuarterLabels: true) == selectedFiscalYearEnd
-                || item.Year == selectedFiscalYearStart
-                || item.Year == selectedFiscalYearEnd
-                || IsDateInRange(item.CreatedDate, range.StartDate, range.EndDate))
-            .ToList();
-    }
-
     private List<eventSatisfaction> FilterEventSatisfactionByFiscalYear(IEnumerable<eventSatisfaction> source, string fiscalYear)
     {
         if (!TryParseFiscalYearEnd(fiscalYear, out var selectedFiscalYearEnd))
@@ -1721,27 +1702,6 @@ public class HomeController : Controller
         }
         catch { }
 
-        // Framework Development Plan
-        try
-        {
-            var latest = FilterFrameworkPlansByFiscalYear(
-                    await _context.Plan2026_24D.ToListAsync(),
-                    fiscalYear)
-                .OrderByDescending(p => p.Year)
-                .ThenByDescending(p => p.Quarter)
-                .ThenByDescending(p => p.CreatedDate)
-                .FirstOrDefault();
-            if (latest != null)
-            {
-                data.FrameworkYear = latest.Year;
-                data.FrameworkQuarter = latest.Quarter ?? "";
-                data.FrameworkStatus = latest.FrameworkStatus ?? "";
-                data.FrameworkGoalMet = latest.GoalMet;
-                data.FrameworkLastUpdated = latest.CreatedDate;
-            }
-        }
-        catch { }
-
         return data;
     }
 
@@ -1938,16 +1898,6 @@ public class HomeController : Controller
         AddOrUpdateMetric(goal, "Community Perception Survey", "Biannual survey - 70% trust rating target by Q4 2025", 
             trustRating, "%", "70", annualSurvey.Any() ? "Active" : "Planning",
             $"🌟 {trustRating}% identify OneJax as trusted leader ({latestSurvey?.TotalRespondents} respondents, {latestSurvey?.Year}) | Form: Data Entry → Annual Survey", nextId++);
-
-        // 5. Strategic Planning (from Plan2026_24D)
-        var plan2026 = FilterFrameworkPlansByFiscalYear(
-            await _context.Plan2026_24D.ToListAsync(),
-            fiscalYear);
-        var completedPlans = plan2026.Count(p => p.GoalMet);
-        
-        AddOrUpdateMetric(goal, "Strategic Plan Completion", "2026 planning progress", 
-            completedPlans, "goals met", "20", plan2026.Any() ? "Active" : "Planning",
-            $"🎯 Plans Completed: {completedPlans}/{plan2026.Count} | Form: Data Entry → 2026 Planning", nextId++);
 
         // 6. Milestone Achievement (from achieveMile_6D)
         var milestoneEntries = FilterByFiscalYearMonthNumberWithCreatedDateFallback(
