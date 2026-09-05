@@ -34,6 +34,7 @@
     var crossColabJson = JsonSerializer.Serialize(crossColabs.Select(c => new
     {
         partnerName = c.PartnerName,
+        contactName = c.ContactName,
         partnerEmail = c.PartnerEmail
     }));
 }
@@ -106,7 +107,7 @@
 
     .cross-colab-row {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) auto;
         gap: 0.75rem;
         align-items: center;
         margin-bottom: 0.75rem;
@@ -227,7 +228,7 @@
                             Edit
                         </button>
                     </div>
-                    <span class="field-error d-none" id="crossColabInlineError">Add at least one partner name.</span>
+                    <span class="field-error d-none" id="crossColabInlineError">Add at least one organization.</span>
                 </div>
 
                 <div class="col-md-6">
@@ -282,7 +283,7 @@
             </div>
             <div class="modal-body">
                 <div id="crossColabRows"></div>
-                <span class="field-error d-none" id="crossColabModalError">Add at least one partner name.</span>
+                <span class="field-error d-none" id="crossColabModalError">Add at least one organization.</span>
                 <button type="button" class="btn btn-outline-primary rounded-pill mt-2" id="addCrossColabRowButton">
                     Add Partner
                 </button>
@@ -314,7 +315,7 @@
             ? new bootstrap.Modal(crossColabModalElement)
             : null;
 
-        var createCrossColabRow = function (partnerName, partnerEmail) {
+        var createCrossColabRow = function (partnerName, contactName, partnerEmail) {
             var row = document.createElement('div');
             row.className = 'cross-colab-row';
 
@@ -322,15 +323,23 @@
             nameInput.type = 'text';
             nameInput.name = 'crossColabPartnerNames';
             nameInput.className = 'form-control partner-name-input';
-            nameInput.placeholder = 'Partner name';
+            nameInput.placeholder = 'Organization';
             nameInput.value = partnerName || '';
             nameInput.setAttribute('form', 'editEventForm');
+
+            var contactInput = document.createElement('input');
+            contactInput.type = 'text';
+            contactInput.name = 'crossColabContactNames';
+            contactInput.className = 'form-control contact-name-input';
+            contactInput.placeholder = 'Contact Name';
+            contactInput.value = contactName || '';
+            contactInput.setAttribute('form', 'editEventForm');
 
             var emailInput = document.createElement('input');
             emailInput.type = 'email';
             emailInput.name = 'crossColabPartnerEmails';
             emailInput.className = 'form-control partner-email-input';
-            emailInput.placeholder = 'Email (optional)';
+            emailInput.placeholder = 'Partner Email';
             emailInput.value = partnerEmail || '';
             emailInput.setAttribute('form', 'editEventForm');
 
@@ -341,13 +350,14 @@
             removeButton.textContent = 'x';
 
             row.appendChild(nameInput);
+            row.appendChild(contactInput);
             row.appendChild(emailInput);
             row.appendChild(removeButton);
 
             removeButton.addEventListener('click', function () {
                 row.remove();
                 if (crossColabRows && crossColabRows.children.length === 0) {
-                    addCrossColabRow('', '');
+                    addCrossColabRow('', '', '');
                 }
                 updatePartnersSummary();
             });
@@ -356,9 +366,9 @@
             return row;
         };
 
-        var addCrossColabRow = function (partnerName, partnerEmail) {
+        var addCrossColabRow = function (partnerName, contactName, partnerEmail) {
             if (!crossColabRows) return;
-            crossColabRows.appendChild(createCrossColabRow(partnerName, partnerEmail));
+            crossColabRows.appendChild(createCrossColabRow(partnerName, contactName, partnerEmail));
         };
 
         function getPartnerNames() {
@@ -389,10 +399,10 @@
         if (crossColabRows && crossColabRows.children.length === 0) {
             if (initialCrossColabs && initialCrossColabs.length > 0) {
                 initialCrossColabs.forEach(function (partner) {
-                    addCrossColabRow(partner.partnerName, partner.partnerEmail);
+                    addCrossColabRow(partner.partnerName, partner.contactName, partner.partnerEmail);
                 });
             } else {
-                addCrossColabRow('', '');
+                addCrossColabRow('', '', '');
             }
 
             updatePartnersSummary();
@@ -405,7 +415,7 @@
                 if (!isChecked) {
                     if (crossColabRows) {
                         crossColabRows.innerHTML = '';
-                        addCrossColabRow('', '');
+                        addCrossColabRow('', '', '');
                     }
                     updatePartnersSummary();
                     showCrossColabError(false);
@@ -420,7 +430,7 @@
 
         if (addCrossColabRowButton) {
             addCrossColabRowButton.addEventListener('click', function () {
-                addCrossColabRow('', '');
+                addCrossColabRow('', '', '');
             });
         }
 

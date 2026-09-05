@@ -207,13 +207,14 @@ public class StrategyController : Controller
         string? eventTime,
         bool isCrossCollaboration = false,
         List<string>? crossColabPartnerNames = null,
+        List<string>? crossColabContactNames = null,
         List<string>? crossColabPartnerEmails = null,
         int? programId = null,
         string? programType = null)
     {
         var normalizedDescription = eventDescription?.Trim() ?? string.Empty;
         var crossColabs = isCrossCollaboration
-            ? BuildCrossColabs(crossColabPartnerNames, crossColabPartnerEmails)
+            ? BuildCrossColabs(crossColabPartnerNames, crossColabContactNames, crossColabPartnerEmails)
             : new List<CrossColab>();
         var partnerSummary = BuildPartnerSummary(crossColabs);
         var partnerEmailSummary = BuildPartnerEmailSummary(crossColabs);
@@ -242,7 +243,7 @@ public class StrategyController : Controller
 
         if (isCrossCollaboration && crossColabs.Count == 0)
         {
-            formErrors["crossColabs"] = "Add at least one collaborator partner name.";
+            formErrors["crossColabs"] = "Add at least one collaborator organization.";
         }
 
         if (formErrors.Count > 0)
@@ -348,13 +349,14 @@ public class StrategyController : Controller
         int goalId,
         bool isCrossCollaboration = false,
         List<string>? crossColabPartnerNames = null,
+        List<string>? crossColabContactNames = null,
         List<string>? crossColabPartnerEmails = null,
         int? programId = null,
         string? programType = null)
     {
         var normalizedDescription = eventDescription?.Trim() ?? string.Empty;
         var crossColabs = isCrossCollaboration
-            ? BuildCrossColabs(crossColabPartnerNames, crossColabPartnerEmails)
+            ? BuildCrossColabs(crossColabPartnerNames, crossColabContactNames, crossColabPartnerEmails)
             : new List<CrossColab>();
         var partnerSummary = BuildPartnerSummary(crossColabs);
         var partnerEmailSummary = BuildPartnerEmailSummary(crossColabs);
@@ -385,7 +387,7 @@ public class StrategyController : Controller
 
         if (isCrossCollaboration && crossColabs.Count == 0)
         {
-            TempData["ErrorMessage"] = "Add at least one collaborator partner name.";
+            TempData["ErrorMessage"] = "Add at least one collaborator organization.";
             return RedirectToAction(nameof(Edit), new { id });
         }
 
@@ -1270,9 +1272,9 @@ public class StrategyController : Controller
         }
     }
 
-    private static List<CrossColab> BuildCrossColabs(List<string>? partnerNames, List<string>? partnerEmails)
+    private static List<CrossColab> BuildCrossColabs(List<string>? partnerNames, List<string>? contactNames, List<string>? partnerEmails)
     {
-        var maxCount = Math.Max(partnerNames?.Count ?? 0, partnerEmails?.Count ?? 0);
+        var maxCount = Math.Max(Math.Max(partnerNames?.Count ?? 0, contactNames?.Count ?? 0), partnerEmails?.Count ?? 0);
         var crossColabs = new List<CrossColab>();
 
         for (var i = 0; i < maxCount; i++)
@@ -1289,10 +1291,14 @@ public class StrategyController : Controller
             var partnerEmail = i < (partnerEmails?.Count ?? 0)
                 ? partnerEmails![i]?.Trim()
                 : string.Empty;
+            var contactName = i < (contactNames?.Count ?? 0)
+                ? contactNames![i]?.Trim()
+                : string.Empty;
 
             crossColabs.Add(new CrossColab
             {
                 PartnerName = partnerName,
+                ContactName = string.IsNullOrWhiteSpace(contactName) ? null : contactName,
                 PartnerEmail = string.IsNullOrWhiteSpace(partnerEmail) ? null : partnerEmail,
                 CreatedDate = DateTime.Now
             });
@@ -1546,7 +1552,8 @@ public class StrategyController : Controller
         new("eventName", "Event", e => e.Name),
         new("description", "Description", e => e.Description),
         new("crossCollaboration", "Cross Collaboration", e => e.CrossCollaboration),
-        new("partnerNames", "Partner Names", e => BuildPartnerSummary(e.CrossColabs.Count > 0 ? e.CrossColabs : BuildLegacyPartnerColabs(e.Partners, e.PartnerEmails))),
+        new("partnerNames", "Organizations", e => BuildPartnerSummary(e.CrossColabs.Count > 0 ? e.CrossColabs : BuildLegacyPartnerColabs(e.Partners, e.PartnerEmails))),
+        new("contactNames", "Contact Names", e => BuildContactSummary(e.CrossColabs)),
         new("partnerEmails", "Partner Emails", e => ResolvePartnerEmailsDisplay(e)),
         new("date", "Date", e => FormatDate(e.Date)),
         new("time", "Time", e => FormatTime(e.Time))
@@ -1690,6 +1697,11 @@ public class StrategyController : Controller
             .Select(c => c.PartnerEmail?.Trim())
             .Where(email => !string.IsNullOrWhiteSpace(email)));
 
+    private static string BuildContactSummary(IEnumerable<CrossColab> crossColabs)
+        => string.Join(", ", crossColabs
+            .Select(c => c.ContactName?.Trim())
+            .Where(name => !string.IsNullOrWhiteSpace(name)));
+
     private static string ResolvePartnerEmailsDisplay(Strategy strategy)
     {
         var crossColabEmails = BuildPartnerEmailSummary(strategy.CrossColabs);
@@ -1766,6 +1778,7 @@ public class StrategyController : Controller
                     [Id] int NOT NULL IDENTITY,
                     [StrategyId] int NOT NULL,
                     [PartnerName] nvarchar(200) NOT NULL,
+                    [ContactName] nvarchar(200) NULL,
                     [PartnerEmail] nvarchar(256) NULL,
                     [CreatedDate] datetime2 NOT NULL CONSTRAINT [DF_crosscolabs_CreatedDate] DEFAULT(SYSUTCDATETIME()),
                     CONSTRAINT [PK_crosscolabs] PRIMARY KEY ([Id])
@@ -1778,6 +1791,12 @@ public class StrategyController : Controller
             BEGIN
                 ALTER TABLE [dbo].[crosscolabs]
                 ADD [PartnerEmail] nvarchar(256) NULL;
+            END
+
+            IF COL_LENGTH('dbo.crosscolabs', 'ContactName') IS NULL
+            BEGIN
+                ALTER TABLE [dbo].[crosscolabs]
+                ADD [ContactName] nvarchar(200) NULL;
             END
 
             IF COL_LENGTH('dbo.crosscolabs', 'CreatedDate') IS NULL

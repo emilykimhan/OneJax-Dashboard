@@ -663,7 +663,8 @@
                                 <th><label class="column-export-label"><input class="form-check-input event-export-column" type="checkbox" name="columns" value="eventName" form="eventExportForm" checked /><span>Event</span></label></th>
                                 <th><label class="column-export-label"><input class="form-check-input event-export-column" type="checkbox" name="columns" value="description" form="eventExportForm" checked /><span>Description</span></label></th>
                                 <th><label class="column-export-label"><input class="form-check-input event-export-column" type="checkbox" name="columns" value="crossCollaboration" form="eventExportForm" checked /><span>Cross-Collabs</span></label></th>
-                                <th><label class="column-export-label"><input class="form-check-input event-export-column" type="checkbox" name="columns" value="partnerNames" form="eventExportForm" checked /><span>Partners</span></label></th>
+                                <th><label class="column-export-label"><input class="form-check-input event-export-column" type="checkbox" name="columns" value="partnerNames" form="eventExportForm" checked /><span>Organization</span></label></th>
+                                <th><label class="column-export-label"><input class="form-check-input event-export-column" type="checkbox" name="columns" value="contactNames" form="eventExportForm" checked /><span>Contact Name</span></label></th>
                                 <th><label class="column-export-label"><input class="form-check-input event-export-column" type="checkbox" name="columns" value="partnerEmails" form="eventExportForm" checked /><span>Partner Emails</span></label></th>
                                 <th><label class="column-export-label"><input class="form-check-input event-export-column" type="checkbox" name="columns" value="date" form="eventExportForm" checked /><span>Date</span></label></th>
                                 <th><label class="column-export-label"><input class="form-check-input event-export-column" type="checkbox" name="columns" value="time" form="eventExportForm" checked /><span>Time</span></label></th>
@@ -682,6 +683,9 @@
                                 var partnerEmailsDisplay = !string.IsNullOrWhiteSpace(crossColabEmailsDisplay)
                                     ? crossColabEmailsDisplay
                                     : e.PartnerEmails;
+                                var contactNamesDisplay = string.Join(", ", e.CrossColabs
+                                    .Select(c => c.ContactName)
+                                    .Where(name => !string.IsNullOrWhiteSpace(name)));
 
                                 var dateDisplay = e.Date;
                                 if (!string.IsNullOrWhiteSpace(e.Date) && DateTime.TryParse(e.Date, out var parsedDate))
@@ -748,13 +752,29 @@
                                         }
                                     </td>
 
-                                    <td data-label="Partners">
+                                    <td data-label="Organization">
                                         @if (!string.IsNullOrWhiteSpace(e.Partners))
                                         {
                                             <div class="collaborator-list">
                                                 @foreach (var partner in e.Partners.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
                                                 {
                                                     <span class="collaborator-item">@partner</span>
+                                                }
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span class="cell-muted">—</span>
+                                        }
+                                    </td>
+
+                                    <td data-label="Contact Name">
+                                        @if (!string.IsNullOrWhiteSpace(contactNamesDisplay))
+                                        {
+                                            <div class="collaborator-list">
+                                                @foreach (var contactName in contactNamesDisplay.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                                                {
+                                                    <span class="collaborator-item">@contactName</span>
                                                 }
                                             </div>
                                         }
@@ -877,7 +897,8 @@
                                         <th><label class="column-export-label"><input class="form-check-input event-export-column" type="checkbox" name="columns" value="eventName" form="eventExportForm" checked /><span>Event</span></label></th>
                                         <th><label class="column-export-label"><input class="form-check-input event-export-column" type="checkbox" name="columns" value="description" form="eventExportForm" checked /><span>Description</span></label></th>
                                         <th><label class="column-export-label"><input class="form-check-input event-export-column" type="checkbox" name="columns" value="crossCollaboration" form="eventExportForm" checked /><span>Cross Collaboration</span></label></th>
-                                        <th><label class="column-export-label"><input class="form-check-input event-export-column" type="checkbox" name="columns" value="partnerNames" form="eventExportForm" checked /><span>Partners</span></label></th>
+                                        <th><label class="column-export-label"><input class="form-check-input event-export-column" type="checkbox" name="columns" value="partnerNames" form="eventExportForm" checked /><span>Organization</span></label></th>
+                                        <th><label class="column-export-label"><input class="form-check-input event-export-column" type="checkbox" name="columns" value="contactNames" form="eventExportForm" checked /><span>Contact Name</span></label></th>
                                         <th><label class="column-export-label"><input class="form-check-input event-export-column" type="checkbox" name="columns" value="partnerEmails" form="eventExportForm" checked /><span>Partner Emails</span></label></th>
                                         <th><label class="column-export-label"><input class="form-check-input event-export-column" type="checkbox" name="columns" value="date" form="eventExportForm" checked /><span>Date</span></label></th>
                                         <th><label class="column-export-label"><input class="form-check-input event-export-column" type="checkbox" name="columns" value="time" form="eventExportForm" checked /><span>Time</span></label></th>
@@ -896,6 +917,9 @@
                                         var partnerEmailsDisplay = !string.IsNullOrWhiteSpace(crossColabEmailsDisplay)
                                             ? crossColabEmailsDisplay
                                             : e.PartnerEmails;
+                                        var contactNamesDisplay = string.Join(", ", e.CrossColabs
+                                            .Select(c => c.ContactName)
+                                            .Where(name => !string.IsNullOrWhiteSpace(name)));
 
                                         var dateDisplay = e.Date;
                                         if (!string.IsNullOrWhiteSpace(e.Date) && DateTime.TryParse(e.Date, out var parsedDate))
@@ -962,13 +986,29 @@
                                                 }
                                             </td>
 
-                                            <td data-label="Partners">
+                                            <td data-label="Organization">
                                                 @if (!string.IsNullOrWhiteSpace(e.Partners))
                                                 {
                                                     <div class="collaborator-list">
                                                         @foreach (var partner in e.Partners.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
                                                         {
                                                             <span class="collaborator-item">@partner</span>
+                                                        }
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <span class="cell-muted">—</span>
+                                                }
+                                            </td>
+
+                                            <td data-label="Contact Name">
+                                                @if (!string.IsNullOrWhiteSpace(contactNamesDisplay))
+                                                {
+                                                    <div class="collaborator-list">
+                                                        @foreach (var contactName in contactNamesDisplay.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                                                        {
+                                                            <span class="collaborator-item">@contactName</span>
                                                         }
                                                     </div>
                                                 }
