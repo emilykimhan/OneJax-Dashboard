@@ -132,6 +132,7 @@ CREATE TABLE IF NOT EXISTS "crosscolabs" (
     "Id" INTEGER NOT NULL CONSTRAINT "PK_crosscolabs" PRIMARY KEY AUTOINCREMENT,
     "StrategyId" INTEGER NOT NULL,
     "PartnerName" TEXT NOT NULL,
+    "ContactName" TEXT NULL,
     "PartnerEmail" TEXT NULL,
     "CreatedDate" TEXT NOT NULL,
     CONSTRAINT "FK_crosscolabs_Strategies_StrategyId" FOREIGN KEY ("StrategyId") REFERENCES "Strategies" ("Id") ON DELETE CASCADE

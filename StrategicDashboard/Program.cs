@@ -822,6 +822,7 @@ static void EnsureCrossColabSupport(ApplicationDbContext db)
                     [Id] int NOT NULL IDENTITY,
                     [StrategyId] int NOT NULL,
                     [PartnerName] nvarchar(200) NOT NULL,
+                    [ContactName] nvarchar(200) NULL,
                     [PartnerEmail] nvarchar(256) NULL,
                     [CreatedDate] datetime2 NOT NULL,
                     CONSTRAINT [PK_crosscolabs] PRIMARY KEY ([Id]),
@@ -829,6 +830,14 @@ static void EnsureCrossColabSupport(ApplicationDbContext db)
                 );
 
                 CREATE INDEX [IX_crosscolabs_StrategyId] ON [dbo].[crosscolabs] ([StrategyId]);
+            END
+            """);
+
+        db.Database.ExecuteSqlRaw("""
+            IF COL_LENGTH('dbo.crosscolabs', 'ContactName') IS NULL
+            BEGIN
+                ALTER TABLE [dbo].[crosscolabs]
+                ADD [ContactName] nvarchar(200) NULL;
             END
             """);
 
@@ -854,11 +863,14 @@ static void EnsureCrossColabSupport(ApplicationDbContext db)
                 "Id" INTEGER NOT NULL CONSTRAINT "PK_crosscolabs" PRIMARY KEY AUTOINCREMENT,
                 "StrategyId" INTEGER NOT NULL,
                 "PartnerName" TEXT NOT NULL,
+                "ContactName" TEXT NULL,
                 "PartnerEmail" TEXT NULL,
                 "CreatedDate" TEXT NOT NULL,
                 CONSTRAINT "FK_crosscolabs_Strategies_StrategyId" FOREIGN KEY ("StrategyId") REFERENCES "Strategies" ("Id") ON DELETE CASCADE
             );
             """);
+        EnsureSqliteColumn(connection, "crosscolabs", "ContactName",
+            "ALTER TABLE \"crosscolabs\" ADD COLUMN \"ContactName\" TEXT NULL;");
     }
     finally
     {

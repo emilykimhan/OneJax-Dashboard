@@ -12,6 +12,9 @@ public class CrossColab
     [MaxLength(200)]
     public string PartnerName { get; set; } = string.Empty;
 
+    [MaxLength(200)]
+    public string? ContactName { get; set; }
+
     [EmailAddress]
     [MaxLength(256)]
     public string? PartnerEmail { get; set; }

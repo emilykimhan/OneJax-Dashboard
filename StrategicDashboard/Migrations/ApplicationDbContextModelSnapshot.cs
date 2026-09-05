@@ -352,6 +352,10 @@ namespace StrategicDashboard.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("ContactName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.Property<string>("PartnerEmail")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
