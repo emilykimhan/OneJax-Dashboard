@@ -56,6 +56,7 @@ CREATE TABLE IF NOT EXISTS "Strategies" (
     "Description" TEXT NOT NULL,
     "Date" TEXT NULL,
     "Time" TEXT NULL, "EventType" TEXT NOT NULL DEFAULT '', "EventFYear" TEXT NOT NULL DEFAULT '',
+    "PartnerEmails" TEXT NOT NULL DEFAULT '',
     CONSTRAINT "FK_Strategies_StrategicGoals_StrategicGoalId" FOREIGN KEY ("StrategicGoalId") REFERENCES "StrategicGoals" ("Id") ON DELETE CASCADE
 );
 CREATE TABLE IF NOT EXISTS "Metric" (

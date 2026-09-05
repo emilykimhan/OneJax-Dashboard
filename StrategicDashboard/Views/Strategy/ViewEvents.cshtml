@@ -677,6 +677,11 @@
                                 var programNameDisplay = !string.IsNullOrWhiteSpace(e.ProgramName) ? e.ProgramName : "—";
                                 var programTypeDisplay = !string.IsNullOrWhiteSpace(e.ProgramType) ? e.ProgramType : "—";
                                 var eventName = e.Name;
+                                var organizationsDisplay = e.CrossColabs.Count > 0
+                                    ? string.Join(", ", e.CrossColabs
+                                        .Select(c => c.PartnerName)
+                                        .Where(name => !string.IsNullOrWhiteSpace(name)))
+                                    : e.Partners;
                                 var crossColabEmailsDisplay = string.Join(", ", e.CrossColabs
                                     .Select(c => c.PartnerEmail)
                                     .Where(email => !string.IsNullOrWhiteSpace(email)));
@@ -753,10 +758,10 @@
                                     </td>
 
                                     <td data-label="Organization">
-                                        @if (!string.IsNullOrWhiteSpace(e.Partners))
+                                        @if (!string.IsNullOrWhiteSpace(organizationsDisplay))
                                         {
                                             <div class="collaborator-list">
-                                                @foreach (var partner in e.Partners.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                                                @foreach (var partner in organizationsDisplay.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
                                                 {
                                                     <span class="collaborator-item">@partner</span>
                                                 }
@@ -911,6 +916,11 @@
                                         var programNameDisplay = !string.IsNullOrWhiteSpace(e.ProgramName) ? e.ProgramName : "—";
                                         var programTypeDisplay = !string.IsNullOrWhiteSpace(e.ProgramType) ? e.ProgramType : "—";
                                         var eventName = e.Name;
+                                        var organizationsDisplay = e.CrossColabs.Count > 0
+                                            ? string.Join(", ", e.CrossColabs
+                                                .Select(c => c.PartnerName)
+                                                .Where(name => !string.IsNullOrWhiteSpace(name)))
+                                            : e.Partners;
                                         var crossColabEmailsDisplay = string.Join(", ", e.CrossColabs
                                             .Select(c => c.PartnerEmail)
                                             .Where(email => !string.IsNullOrWhiteSpace(email)));
@@ -987,10 +997,10 @@
                                             </td>
 
                                             <td data-label="Organization">
-                                                @if (!string.IsNullOrWhiteSpace(e.Partners))
+                                                @if (!string.IsNullOrWhiteSpace(organizationsDisplay))
                                                 {
                                                     <div class="collaborator-list">
-                                                        @foreach (var partner in e.Partners.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                                                        @foreach (var partner in organizationsDisplay.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
                                                         {
                                                             <span class="collaborator-item">@partner</span>
                                                         }
