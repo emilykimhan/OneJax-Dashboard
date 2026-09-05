@@ -1125,6 +1125,12 @@ static void EnsureStrategyProgramSupport(ApplicationDbContext db)
                 ALTER TABLE [dbo].[Strategies]
                 ADD [ProgramType] nvarchar(max) NULL;
             END
+
+            IF COL_LENGTH('dbo.Strategies', 'PartnerEmails') IS NULL
+            BEGIN
+                ALTER TABLE [dbo].[Strategies]
+                ADD [PartnerEmails] nvarchar(max) NOT NULL CONSTRAINT [DF_Strategies_PartnerEmails] DEFAULT(N'');
+            END
             """);
 
         return;
@@ -1150,6 +1156,8 @@ static void EnsureStrategyProgramSupport(ApplicationDbContext db)
             "ALTER TABLE \"Strategies\" ADD COLUMN \"ProgramName\" TEXT NULL;");
         EnsureSqliteColumn(connection, "Strategies", "ProgramType",
             "ALTER TABLE \"Strategies\" ADD COLUMN \"ProgramType\" TEXT NULL;");
+        EnsureSqliteColumn(connection, "Strategies", "PartnerEmails",
+            "ALTER TABLE \"Strategies\" ADD COLUMN \"PartnerEmails\" TEXT NOT NULL DEFAULT '';");
     }
     finally
     {
