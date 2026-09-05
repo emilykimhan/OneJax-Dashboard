@@ -1201,17 +1201,18 @@ namespace OneJaxDashboard.Controllers
                 {
                     existing.Quarter = model.Quarter;
                     existing.Year = model.Year;
-                    existing.CommunityPrograms = model.CommunityPrograms;
-                    existing.OneYouthPrograms = model.OneYouthPrograms;
-                    existing.InterfaithPrograms = model.InterfaithPrograms;
-                    existing.HumanitarianEvent = model.HumanitarianEvent;
-                    existing.MiscellaneousExpenses = model.MiscellaneousExpenses;
-                    existing.CorporateGiving = model.CorporateGiving;
+                    existing.PersonnelExpenses = model.PersonnelExpenses;
+                    existing.ContractProfessionalServices = model.ContractProfessionalServices;
+                    existing.OperatingExpenses = model.OperatingExpenses;
+                    existing.ProgramExpenses = model.ProgramExpenses;
+                    existing.AdvertisingMarketing = model.AdvertisingMarketing;
+                    existing.ProfessionalDevelopmentExpense = model.ProfessionalDevelopmentExpense;
                     existing.IndividualGiving = model.IndividualGiving;
-                    existing.GrantsFoundations = model.GrantsFoundations;
-                    existing.CommunityEvents = model.CommunityEvents;
+                    existing.CorporateFoundationGrants = model.CorporateFoundationGrants;
+                    existing.HumanitarianAwards = model.HumanitarianAwards;
+                    existing.ProgramRevenue = model.ProgramRevenue;
                     existing.PeopleCultureWorkshops = model.PeopleCultureWorkshops;
-                    existing.MiscellaneousRevenue = model.MiscellaneousRevenue;
+                    existing.OtherRevenues = model.OtherRevenues;
                     existing.Notes = model.Notes;
                     _context.SaveChanges();
                     TempData["Success"] = "Annual Budget Tracking record updated successfully!";

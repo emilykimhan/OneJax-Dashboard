@@ -2063,13 +2063,14 @@ public class HomeController : Controller
         foreach (var budget in budgetTracking)
         {
             // Revenue fields only
-            totalRevenue += (budget.CorporateGiving ?? 0) + (budget.IndividualGiving ?? 0) + 
-                           (budget.GrantsFoundations ?? 0) + (budget.CommunityEvents ?? 0) + 
-                           (budget.PeopleCultureWorkshops ?? 0);
+            totalRevenue += (budget.IndividualGiving ?? 0) + (budget.CorporateFoundationGrants ?? 0) +
+                           (budget.HumanitarianAwards ?? 0) + (budget.ProgramRevenue ?? 0) +
+                           (budget.PeopleCultureWorkshops ?? 0) + (budget.OtherRevenues ?? 0);
             
             // Expense fields only  
-            totalExpenses += (budget.CommunityPrograms ?? 0) + (budget.OneYouthPrograms ?? 0) + 
-                            (budget.InterfaithPrograms ?? 0) + (budget.HumanitarianEvent ?? 0);
+            totalExpenses += (budget.PersonnelExpenses ?? 0) + (budget.ContractProfessionalServices ?? 0) +
+                            (budget.OperatingExpenses ?? 0) + (budget.ProgramExpenses ?? 0) +
+                            (budget.AdvertisingMarketing ?? 0) + (budget.ProfessionalDevelopmentExpense ?? 0);
         }
         
         AddOrUpdateMetric(goal, "Budget Revenue Tracking", "Total tracked revenue streams", 
