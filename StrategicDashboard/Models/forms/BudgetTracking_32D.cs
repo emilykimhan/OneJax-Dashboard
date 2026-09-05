@@ -18,45 +18,45 @@ namespace OneJaxDashboard.Models
         [Display(Name = "Year")]
         public int Year { get; set; } = 2022;
 
-        // EXPENSES
+        // EXPENDITURES
         [Range(0, double.MaxValue, ErrorMessage = "Value cannot be negative")]
         [DataType(DataType.Currency)]
-        [Display(Name = "Community Programs")]
+        [Display(Name = "Personnel Expenses")]
         [Column(TypeName = "decimal(18,2)")]
-        public decimal? CommunityPrograms { get; set; }
+        public decimal? PersonnelExpenses { get; set; }
 
         [Range(0, double.MaxValue, ErrorMessage = "Value cannot be negative")]
         [DataType(DataType.Currency)]
-        [Display(Name = "OneYouth Programs")]
+        [Display(Name = "Contract & Professional Services")]
         [Column(TypeName = "decimal(18,2)")]
-        public decimal? OneYouthPrograms { get; set; }
+        public decimal? ContractProfessionalServices { get; set; }
 
         [Range(0, double.MaxValue, ErrorMessage = "Value cannot be negative")]
         [DataType(DataType.Currency)]
-        [Display(Name = "Interfaith Programs")]
+        [Display(Name = "Operating Expenses")]
         [Column(TypeName = "decimal(18,2)")]
-        public decimal? InterfaithPrograms { get; set; }
+        public decimal? OperatingExpenses { get; set; }
 
         [Range(0, double.MaxValue, ErrorMessage = "Value cannot be negative")]
         [DataType(DataType.Currency)]
-        [Display(Name = "Humanitarian Event")]
+        [Display(Name = "Program Expenses")]
         [Column(TypeName = "decimal(18,2)")]
-        public decimal? HumanitarianEvent { get; set; }
+        public decimal? ProgramExpenses { get; set; }
 
         [Range(0, double.MaxValue, ErrorMessage = "Value cannot be negative")]
         [DataType(DataType.Currency)]
-        [Display(Name = "Miscellaneous Expenses")]
+        [Display(Name = "Advertising & Marketing")]
         [Column(TypeName = "decimal(18,2)")]
-        public decimal? MiscellaneousExpenses { get; set; }
+        public decimal? AdvertisingMarketing { get; set; }
+
+        [Range(0, double.MaxValue, ErrorMessage = "Value cannot be negative")]
+        [DataType(DataType.Currency)]
+        [Display(Name = "Professional Development")]
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? ProfessionalDevelopmentExpense { get; set; }
 
         
         // REVENUES
-        [Range(0, double.MaxValue, ErrorMessage = "Value cannot be negative")]
-        [DataType(DataType.Currency)]
-        [Display(Name = "Corporate Giving")]
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal? CorporateGiving { get; set; }
-
         [Range(0, double.MaxValue, ErrorMessage = "Value cannot be negative")]
         [DataType(DataType.Currency)]
         [Display(Name = "Individual Giving")]
@@ -65,27 +65,33 @@ namespace OneJaxDashboard.Models
 
         [Range(0, double.MaxValue, ErrorMessage = "Value cannot be negative")]
         [DataType(DataType.Currency)]
-        [Display(Name = "Grants & Foundations")]
+        [Display(Name = "Corporate & Foundation Grants")]
         [Column(TypeName = "decimal(18,2)")]
-        public decimal? GrantsFoundations { get; set; }
+        public decimal? CorporateFoundationGrants { get; set; }
 
         [Range(0, double.MaxValue, ErrorMessage = "Value cannot be negative")]
         [DataType(DataType.Currency)]
-        [Display(Name = "Community Events")]
+        [Display(Name = "Humanitarian Awards")]
         [Column(TypeName = "decimal(18,2)")]
-        public decimal? CommunityEvents { get; set; }
+        public decimal? HumanitarianAwards { get; set; }
 
         [Range(0, double.MaxValue, ErrorMessage = "Value cannot be negative")]
         [DataType(DataType.Currency)]
-        [Display(Name = "People and Culture Workshops")]
+        [Display(Name = "Program Revenue")]
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? ProgramRevenue { get; set; }
+
+        [Range(0, double.MaxValue, ErrorMessage = "Value cannot be negative")]
+        [DataType(DataType.Currency)]
+        [Display(Name = "People & Culture Workshops")]
         [Column(TypeName = "decimal(18,2)")]
         public decimal? PeopleCultureWorkshops { get; set; }
 
         [Range(0, double.MaxValue, ErrorMessage = "Value cannot be negative")]
         [DataType(DataType.Currency)]
-        [Display(Name = "Miscellaneous Revenue")]
+        [Display(Name = "Other Revenues")]
         [Column(TypeName = "decimal(18,2)")]
-        public decimal? MiscellaneousRevenue { get; set; }
+        public decimal? OtherRevenues { get; set; }
 
         [StringLength(1000)]
         [Display(Name = "Notes")]
@@ -95,14 +101,14 @@ namespace OneJaxDashboard.Models
 
         // Calculated properties
         [Display(Name = "Total Expenses")]
-        public decimal TotalExpenses => (CommunityPrograms ?? 0) + (OneYouthPrograms ?? 0) + 
-                                        (InterfaithPrograms ?? 0) + (HumanitarianEvent ?? 0) + 
-                                        (MiscellaneousExpenses ?? 0);
+        public decimal TotalExpenses => (PersonnelExpenses ?? 0) + (ContractProfessionalServices ?? 0) +
+                                        (OperatingExpenses ?? 0) + (ProgramExpenses ?? 0) +
+                                        (AdvertisingMarketing ?? 0) + (ProfessionalDevelopmentExpense ?? 0);
 
         [Display(Name = "Total Revenues")]
-        public decimal TotalRevenues => (CorporateGiving ?? 0) + (IndividualGiving ?? 0) + 
-                                        (GrantsFoundations ?? 0) + (CommunityEvents ?? 0) + 
-                                        (PeopleCultureWorkshops ?? 0) + (MiscellaneousRevenue ?? 0);
+        public decimal TotalRevenues => (IndividualGiving ?? 0) + (CorporateFoundationGrants ?? 0) +
+                                        (HumanitarianAwards ?? 0) + (ProgramRevenue ?? 0) +
+                                        (PeopleCultureWorkshops ?? 0) + (OtherRevenues ?? 0);
 
         [Display(Name = "Net (Revenue - Expense)")]
         public decimal NetAmount => TotalRevenues - TotalExpenses;

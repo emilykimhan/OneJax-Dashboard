@@ -17,7 +17,6 @@ namespace OneJaxDashboard.Controllers
 
         private static readonly Dictionary<string, (string Entity, string Label)> RecordActionMap = new(StringComparer.OrdinalIgnoreCase)
         {
-            ["CollabPartner"] = ("CollabTouch", "Collaborative Partner Touchpoint"),
             ["FirstTimeParticipant"] = ("FirstTimeParticipant", "First-Time Participant"),
             ["Demographics"] = ("Demographics", "Demographics Tracking"),
             ["CommunityPerception"] = ("IdentityAnnualAverage", "Community Perception"),
@@ -32,7 +31,6 @@ namespace OneJaxDashboard.Controllers
             ["CommRate"] = ("CommunicationRate", "Communication Satisfaction"),
             ["DonorEvent"] = ("DonorEvent", "Donor/Honoree Engagement"),
             ["WebsiteTraffic"] = ("WebsiteTraffic", "Website Traffic"),
-            ["FrameworkPlan"] = ("FrameworkPlan2026", "Framework Development Plan"),
             ["BoardMember"] = ("BoardMemberRecruitment", "Board Member Recruitment"),
             ["BoardMeetingAttendance"] = ("BoardMeetingAttendance", "Board Meeting Attendance"),
             ["SelfAssessment"] = ("SelfAssessment", "Self-Assessment"),
@@ -197,7 +195,6 @@ namespace OneJaxDashboard.Controllers
             var allMilestones = _context.achieveMile_6D.ToList();
             var allCommunityPerception = _context.Annual_average_7D.ToList();
             var allDemographics = _context.demographics_8D.Include(d => d.Strategy).ToList();
-            var allFrameworkPlans = _context.Plan2026_24D.ToList();
             var allBoardMembers = _context.BoardMember_29D.ToList();
             var allBoardMeetings = _context.BoardMeetingAttendance.ToList();
             var allSelfAssessments = _context.selfAssess_31D.ToList();
@@ -209,7 +206,6 @@ namespace OneJaxDashboard.Controllers
             var allYouthAttendance = _context.YouthAttend_15D.Include(y => y.Strategy).ToList();
             var allParticipantDiversity = _context.Diversity_37D.Include(d => d.Strategy).ToList();
             var allFirstTimeParticipants = _context.FirstTime_38D.Include(f => f.Strategy).ToList();
-            var allCollabPartners = _context.CollabTouch_47D.Include(c => c.Strategy).ToList();
 
             // Apply filters
             var filteredStaffSurveys = allStaffSurveys;
@@ -225,7 +221,6 @@ namespace OneJaxDashboard.Controllers
             var filteredMilestones = allMilestones;
             var filteredCommunityPerception = allCommunityPerception;
             var filteredDemographics = allDemographics;
-            var filteredFrameworkPlans = allFrameworkPlans;
             var filteredBoardMembers = allBoardMembers;
             var filteredBoardMeetings = allBoardMeetings;
             var filteredSelfAssessments = allSelfAssessments;
@@ -237,7 +232,6 @@ namespace OneJaxDashboard.Controllers
             var filteredYouthAttendance = allYouthAttendance;
             var filteredParticipantDiversity = allParticipantDiversity;
             var filteredFirstTimeParticipants = allFirstTimeParticipants;
-            var filteredCollabPartners = allCollabPartners;
             
             // Filter by date
             DateTime filterStartDate = DateTime.MinValue;
@@ -306,9 +300,6 @@ namespace OneJaxDashboard.Controllers
                     filteredDemographics = filteredDemographics
                         .Where(d => d.CreatedDate >= filterStartDate && d.CreatedDate <= filterEndDate)
                         .ToList();
-                    filteredFrameworkPlans = filteredFrameworkPlans
-                        .Where(f => f.CreatedDate >= filterStartDate && f.CreatedDate <= filterEndDate)
-                        .ToList();
                     filteredBoardMembers = filteredBoardMembers
                         .Where(b => b.CreatedDate >= filterStartDate && b.CreatedDate <= filterEndDate)
                         .ToList();
@@ -342,9 +333,6 @@ namespace OneJaxDashboard.Controllers
                     filteredFirstTimeParticipants = filteredFirstTimeParticipants
                         .Where(f => f.CreatedDate >= filterStartDate && f.CreatedDate <= filterEndDate)
                         .ToList();
-                    filteredCollabPartners = filteredCollabPartners
-                        .Where(c => c.CreatedDate >= filterStartDate && c.CreatedDate <= filterEndDate)
-                        .ToList();
                 }
             }
             
@@ -363,7 +351,6 @@ namespace OneJaxDashboard.Controllers
                 filteredMilestones = new List<achieveMile_6D>();
                 filteredCommunityPerception = new List<Annual_average_7D>();
                 filteredDemographics = new List<demographics_8D>();
-                filteredFrameworkPlans = new List<Plan2026_24D>();
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
@@ -385,7 +372,6 @@ namespace OneJaxDashboard.Controllers
                 filteredMilestones = new List<achieveMile_6D>();
                 filteredCommunityPerception = new List<Annual_average_7D>();
                 filteredDemographics = new List<demographics_8D>();
-                filteredFrameworkPlans = new List<Plan2026_24D>();
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
@@ -407,7 +393,6 @@ namespace OneJaxDashboard.Controllers
                 filteredMilestones = new List<achieveMile_6D>();
                 filteredCommunityPerception = new List<Annual_average_7D>();
                 filteredDemographics = new List<demographics_8D>();
-                filteredFrameworkPlans = new List<Plan2026_24D>();
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
@@ -429,7 +414,6 @@ namespace OneJaxDashboard.Controllers
                 filteredMilestones = new List<achieveMile_6D>();
                 filteredCommunityPerception = new List<Annual_average_7D>();
                 filteredDemographics = new List<demographics_8D>();
-                filteredFrameworkPlans = new List<Plan2026_24D>();
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
@@ -451,7 +435,6 @@ namespace OneJaxDashboard.Controllers
                 filteredMilestones = new List<achieveMile_6D>();
                 filteredCommunityPerception = new List<Annual_average_7D>();
                 filteredDemographics = new List<demographics_8D>();
-                filteredFrameworkPlans = new List<Plan2026_24D>();
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
@@ -473,7 +456,6 @@ namespace OneJaxDashboard.Controllers
                 filteredMilestones = new List<achieveMile_6D>();
                 filteredCommunityPerception = new List<Annual_average_7D>();
                 filteredDemographics = new List<demographics_8D>();
-                filteredFrameworkPlans = new List<Plan2026_24D>();
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
@@ -495,7 +477,6 @@ namespace OneJaxDashboard.Controllers
                 filteredMilestones = new List<achieveMile_6D>();
                 filteredCommunityPerception = new List<Annual_average_7D>();
                 filteredDemographics = new List<demographics_8D>();
-                filteredFrameworkPlans = new List<Plan2026_24D>();
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
@@ -517,7 +498,6 @@ namespace OneJaxDashboard.Controllers
                 filteredMilestones = new List<achieveMile_6D>();
                 filteredCommunityPerception = new List<Annual_average_7D>();
                 filteredDemographics = new List<demographics_8D>();
-                filteredFrameworkPlans = new List<Plan2026_24D>();
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
@@ -539,7 +519,6 @@ namespace OneJaxDashboard.Controllers
                 filteredMilestones = new List<achieveMile_6D>();
                 filteredCommunityPerception = new List<Annual_average_7D>();
                 filteredDemographics = new List<demographics_8D>();
-                filteredFrameworkPlans = new List<Plan2026_24D>();
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
@@ -561,7 +540,6 @@ namespace OneJaxDashboard.Controllers
                 filteredMilestones = new List<achieveMile_6D>();
                 filteredCommunityPerception = new List<Annual_average_7D>();
                 filteredDemographics = new List<demographics_8D>();
-                filteredFrameworkPlans = new List<Plan2026_24D>();
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
@@ -583,7 +561,6 @@ namespace OneJaxDashboard.Controllers
                 filteredSocialMedia = new List<socialMedia_5D>();
                 filteredCommunityPerception = new List<Annual_average_7D>();
                 filteredDemographics = new List<demographics_8D>();
-                filteredFrameworkPlans = new List<Plan2026_24D>();
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
@@ -605,7 +582,6 @@ namespace OneJaxDashboard.Controllers
                 filteredSocialMedia = new List<socialMedia_5D>();
                 filteredMilestones = new List<achieveMile_6D>();
                 filteredDemographics = new List<demographics_8D>();
-                filteredFrameworkPlans = new List<Plan2026_24D>();
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
@@ -627,29 +603,6 @@ namespace OneJaxDashboard.Controllers
                 filteredSocialMedia = new List<socialMedia_5D>();
                 filteredMilestones = new List<achieveMile_6D>();
                 filteredCommunityPerception = new List<Annual_average_7D>();
-                filteredFrameworkPlans = new List<Plan2026_24D>();
-                filteredBoardMembers = new List<BoardMemberRecruitment>();
-                filteredBoardMeetings = new List<BoardMeetingAttendance>();
-                filteredSelfAssessments = new List<selfAssess_31D>();
-                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
-                filteredInterfaithEvents = new List<interfaith_11D>();
-                filteredEventSatisfactions = new List<eventSatisfaction>();
-            }
-            else if (recordType == "framework-plan")
-            {
-                filteredStaffSurveys = new List<StaffSurvey_22D>();
-                filteredProfDev = new List<ProfessionalDevelopment>();
-                filteredMediaPlacements = new List<MediaPlacements_3D>();
-                filteredWebsiteTraffic = new List<WebsiteTraffic_4D>();
-                filteredDonorEvents = new List<DonorEvent_19D>();
-                filteredCommRates = new List<Comm_rate20D>();
-                filteredFeeForServices = new List<feeForService_21D>();
-                filteredIncomeRecords = new List<income_27D>();
-                filteredBudgetRecords = new List<BudgetTracking_28D>();
-                filteredSocialMedia = new List<socialMedia_5D>();
-                filteredMilestones = new List<achieveMile_6D>();
-                filteredCommunityPerception = new List<Annual_average_7D>();
-                filteredDemographics = new List<demographics_8D>();
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
@@ -672,7 +625,6 @@ namespace OneJaxDashboard.Controllers
                 filteredMilestones = new List<achieveMile_6D>();
                 filteredCommunityPerception = new List<Annual_average_7D>();
                 filteredDemographics = new List<demographics_8D>();
-                filteredFrameworkPlans = new List<Plan2026_24D>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
                 filteredVolunteerPrograms = new List<volunteerProgram_40D>();
@@ -694,7 +646,6 @@ namespace OneJaxDashboard.Controllers
                 filteredMilestones = new List<achieveMile_6D>();
                 filteredCommunityPerception = new List<Annual_average_7D>();
                 filteredDemographics = new List<demographics_8D>();
-                filteredFrameworkPlans = new List<Plan2026_24D>();
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
                 filteredVolunteerPrograms = new List<volunteerProgram_40D>();
@@ -716,7 +667,6 @@ namespace OneJaxDashboard.Controllers
                 filteredMilestones = new List<achieveMile_6D>();
                 filteredCommunityPerception = new List<Annual_average_7D>();
                 filteredDemographics = new List<demographics_8D>();
-                filteredFrameworkPlans = new List<Plan2026_24D>();
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredVolunteerPrograms = new List<volunteerProgram_40D>();
@@ -738,7 +688,6 @@ namespace OneJaxDashboard.Controllers
                 filteredMilestones = new List<achieveMile_6D>();
                 filteredCommunityPerception = new List<Annual_average_7D>();
                 filteredDemographics = new List<demographics_8D>();
-                filteredFrameworkPlans = new List<Plan2026_24D>();
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
@@ -760,7 +709,6 @@ namespace OneJaxDashboard.Controllers
                 filteredMilestones = new List<achieveMile_6D>();
                 filteredCommunityPerception = new List<Annual_average_7D>();
                 filteredDemographics = new List<demographics_8D>();
-                filteredFrameworkPlans = new List<Plan2026_24D>();
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
@@ -782,7 +730,6 @@ namespace OneJaxDashboard.Controllers
                 filteredMilestones = new List<achieveMile_6D>();
                 filteredCommunityPerception = new List<Annual_average_7D>();
                 filteredDemographics = new List<demographics_8D>();
-                filteredFrameworkPlans = new List<Plan2026_24D>();
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
@@ -804,7 +751,6 @@ namespace OneJaxDashboard.Controllers
                 filteredMilestones = new List<achieveMile_6D>();
                 filteredCommunityPerception = new List<Annual_average_7D>();
                 filteredDemographics = new List<demographics_8D>();
-                filteredFrameworkPlans = new List<Plan2026_24D>();
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
@@ -827,7 +773,6 @@ namespace OneJaxDashboard.Controllers
                 filteredMilestones = new List<achieveMile_6D>();
                 filteredCommunityPerception = new List<Annual_average_7D>();
                 filteredDemographics = new List<demographics_8D>();
-                filteredFrameworkPlans = new List<Plan2026_24D>();
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
@@ -851,7 +796,6 @@ namespace OneJaxDashboard.Controllers
                 filteredMilestones = new List<achieveMile_6D>();
                 filteredCommunityPerception = new List<Annual_average_7D>();
                 filteredDemographics = new List<demographics_8D>();
-                filteredFrameworkPlans = new List<Plan2026_24D>();
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
@@ -877,7 +821,6 @@ namespace OneJaxDashboard.Controllers
                 filteredMilestones = new List<achieveMile_6D>();
                 filteredCommunityPerception = new List<Annual_average_7D>();
                 filteredDemographics = new List<demographics_8D>();
-                filteredFrameworkPlans = new List<Plan2026_24D>();
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
@@ -903,7 +846,6 @@ namespace OneJaxDashboard.Controllers
                 filteredMilestones = new List<achieveMile_6D>();
                 filteredCommunityPerception = new List<Annual_average_7D>();
                 filteredDemographics = new List<demographics_8D>();
-                filteredFrameworkPlans = new List<Plan2026_24D>();
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
@@ -919,8 +861,6 @@ namespace OneJaxDashboard.Controllers
             // If a specific record type is selected, hide unrelated records
             if (!string.IsNullOrEmpty(recordType) && recordType != "all" && recordType != "first-time-participants")
                 filteredFirstTimeParticipants = new List<FirstTime_38D>();
-            if (!string.IsNullOrEmpty(recordType) && recordType != "all" && recordType != "collab-partners")
-                filteredCollabPartners = new List<CollabTouch_47D>();
 
             // Set ViewBag data
             ViewBag.StaffSurveys = filteredStaffSurveys;
@@ -936,7 +876,6 @@ namespace OneJaxDashboard.Controllers
             ViewBag.Milestones = filteredMilestones;
             ViewBag.CommunityPerception = filteredCommunityPerception;
             ViewBag.Demographics = filteredDemographics;
-            ViewBag.FrameworkPlans = filteredFrameworkPlans;
             ViewBag.BoardMembers = filteredBoardMembers;
             ViewBag.BoardMeetings = filteredBoardMeetings;
             ViewBag.SelfAssessments = filteredSelfAssessments;
@@ -948,13 +887,12 @@ namespace OneJaxDashboard.Controllers
             ViewBag.YouthAttendance = filteredYouthAttendance;
             ViewBag.ParticipantDiversity = filteredParticipantDiversity;
             ViewBag.FirstTimeParticipants = filteredFirstTimeParticipants;
-            ViewBag.CollabPartners = filteredCollabPartners;
             ViewBag.RecordType = recordType ?? "all";
             ViewBag.DateFilter = dateFilter ?? "all";
             ViewBag.StartDate = startDate?.ToString("yyyy-MM-dd");
             ViewBag.EndDate = endDate?.ToString("yyyy-MM-dd");
-            ViewBag.TotalCount = allStaffSurveys.Count + allProfDev.Count + allMediaPlacements.Count + allWebsiteTraffic.Count + allDonorEvents.Count + allCommRates.Count + allFeeForServices.Count + allIncomeRecords.Count + allBudgetRecords.Count + allSocialMedia.Count + allMilestones.Count + allCommunityPerception.Count + allDemographics.Count + allFrameworkPlans.Count + allBoardMembers.Count + allBoardMeetings.Count + allSelfAssessments.Count + allVolunteerPrograms.Count + allInterfaithEvents.Count + allEventSatisfactions.Count + allFaithCommunity.Count + allNetworkContacts.Count + allYouthAttendance.Count + allParticipantDiversity.Count + allFirstTimeParticipants.Count + allCollabPartners.Count;
-            ViewBag.VisibleCount = filteredStaffSurveys.Count + filteredProfDev.Count + filteredMediaPlacements.Count + filteredWebsiteTraffic.Count + filteredDonorEvents.Count + filteredCommRates.Count + filteredFeeForServices.Count + filteredIncomeRecords.Count + filteredBudgetRecords.Count + filteredSocialMedia.Count + filteredMilestones.Count + filteredCommunityPerception.Count + filteredDemographics.Count + filteredFrameworkPlans.Count + filteredBoardMembers.Count + filteredBoardMeetings.Count + filteredSelfAssessments.Count + filteredVolunteerPrograms.Count + filteredInterfaithEvents.Count + filteredEventSatisfactions.Count + filteredFaithCommunity.Count + filteredNetworkContacts.Count + filteredYouthAttendance.Count + filteredParticipantDiversity.Count + filteredFirstTimeParticipants.Count + filteredCollabPartners.Count;
+            ViewBag.TotalCount = allStaffSurveys.Count + allProfDev.Count + allMediaPlacements.Count + allWebsiteTraffic.Count + allDonorEvents.Count + allCommRates.Count + allFeeForServices.Count + allIncomeRecords.Count + allBudgetRecords.Count + allSocialMedia.Count + allMilestones.Count + allCommunityPerception.Count + allDemographics.Count + allBoardMembers.Count + allBoardMeetings.Count + allSelfAssessments.Count + allVolunteerPrograms.Count + allInterfaithEvents.Count + allEventSatisfactions.Count + allFaithCommunity.Count + allNetworkContacts.Count + allYouthAttendance.Count + allParticipantDiversity.Count + allFirstTimeParticipants.Count;
+            ViewBag.VisibleCount = filteredStaffSurveys.Count + filteredProfDev.Count + filteredMediaPlacements.Count + filteredWebsiteTraffic.Count + filteredDonorEvents.Count + filteredCommRates.Count + filteredFeeForServices.Count + filteredIncomeRecords.Count + filteredBudgetRecords.Count + filteredSocialMedia.Count + filteredMilestones.Count + filteredCommunityPerception.Count + filteredDemographics.Count + filteredBoardMembers.Count + filteredBoardMeetings.Count + filteredSelfAssessments.Count + filteredVolunteerPrograms.Count + filteredInterfaithEvents.Count + filteredEventSatisfactions.Count + filteredFaithCommunity.Count + filteredNetworkContacts.Count + filteredYouthAttendance.Count + filteredParticipantDiversity.Count + filteredFirstTimeParticipants.Count;
             
             return View();
             }
@@ -963,67 +901,6 @@ namespace OneJaxDashboard.Controllers
                 TempData["Error"] = $"Record history could not load: {ex.GetBaseException().Message}";
                 return RedirectToAction("Index");
             }
-        }
-
-        // Delete Collaborative Partner Touchpoints
-        [HttpPost]
-        public IActionResult DeleteCollabPartner(int id)
-        {
-            var record = _context.CollabTouch_47D.Find(id);
-            if (record != null)
-            {
-                _context.CollabTouch_47D.Remove(record);
-                _context.SaveChanges();
-                TempData["Success"] = "Collaborative Partner record deleted successfully!";
-            }
-            else
-            {
-                TempData["Error"] = "Record not found.";
-            }
-            return RedirectToRecordHistory();
-        }
-
-        // Edit Collaborative Partner Touchpoints - GET
-        [HttpGet]
-        public IActionResult EditCollabPartner(int id)
-        {
-            var record = _context.CollabTouch_47D.Include(c => c.Strategy).FirstOrDefault(c => c.Id == id);
-            if (record == null)
-            {
-                TempData["Error"] = "Record not found.";
-                return RedirectToRecordHistory();
-            }
-            ViewBag.Strategies = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(_context.Strategies.OrderBy(s => s.Name), "Id", "Name", record.StrategyId);
-            return View(record);
-        }
-
-        // Edit Collaborative Partner Touchpoints - POST
-        [HttpPost]
-        public IActionResult EditCollabPartner(CollabTouch_47D model)
-        {
-            if (ModelState.IsValid)
-            {
-                var existing = _context.CollabTouch_47D.Find(model.Id);
-                if (existing != null)
-                {
-                    existing.FiscalYear = model.FiscalYear;
-                    existing.PartnerOrganization = model.PartnerOrganization;
-                    existing.Contact = model.Contact;
-                    existing.ContactEmail = model.ContactEmail;
-                    existing.ContactPhone = model.ContactPhone;
-                    existing.StrategyId = model.StrategyId;
-                    existing.Touchpoint = model.Touchpoint;
-                    _context.SaveChanges();
-                    TempData["Success"] = "Collaborative Partner record updated successfully!";
-                    return RedirectToRecordHistory();
-                }
-                else
-                {
-                    TempData["Error"] = "Record not found.";
-                }
-            }
-            ViewBag.Strategies = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(_context.Strategies.OrderBy(s => s.Name), "Id", "Name", model.StrategyId);
-            return View(model);
         }
 
         // Delete First-Time Participants
@@ -1324,17 +1201,18 @@ namespace OneJaxDashboard.Controllers
                 {
                     existing.Quarter = model.Quarter;
                     existing.Year = model.Year;
-                    existing.CommunityPrograms = model.CommunityPrograms;
-                    existing.OneYouthPrograms = model.OneYouthPrograms;
-                    existing.InterfaithPrograms = model.InterfaithPrograms;
-                    existing.HumanitarianEvent = model.HumanitarianEvent;
-                    existing.MiscellaneousExpenses = model.MiscellaneousExpenses;
-                    existing.CorporateGiving = model.CorporateGiving;
+                    existing.PersonnelExpenses = model.PersonnelExpenses;
+                    existing.ContractProfessionalServices = model.ContractProfessionalServices;
+                    existing.OperatingExpenses = model.OperatingExpenses;
+                    existing.ProgramExpenses = model.ProgramExpenses;
+                    existing.AdvertisingMarketing = model.AdvertisingMarketing;
+                    existing.ProfessionalDevelopmentExpense = model.ProfessionalDevelopmentExpense;
                     existing.IndividualGiving = model.IndividualGiving;
-                    existing.GrantsFoundations = model.GrantsFoundations;
-                    existing.CommunityEvents = model.CommunityEvents;
+                    existing.CorporateFoundationGrants = model.CorporateFoundationGrants;
+                    existing.HumanitarianAwards = model.HumanitarianAwards;
+                    existing.ProgramRevenue = model.ProgramRevenue;
                     existing.PeopleCultureWorkshops = model.PeopleCultureWorkshops;
-                    existing.MiscellaneousRevenue = model.MiscellaneousRevenue;
+                    existing.OtherRevenues = model.OtherRevenues;
                     existing.Notes = model.Notes;
                     _context.SaveChanges();
                     TempData["Success"] = "Annual Budget Tracking record updated successfully!";
@@ -1921,68 +1799,6 @@ namespace OneJaxDashboard.Controllers
             return View(traffic);
         }
 
-        // Delete Framework Development Plan
-        [HttpPost]
-        public IActionResult DeleteFrameworkPlan(int id)
-        {
-            var record = _context.Plan2026_24D.Find(id);
-            if (record != null)
-            {
-                _context.Plan2026_24D.Remove(record);
-                _context.SaveChanges();
-                TempData["Success"] = "Framework Development Plan record deleted successfully!";
-            }
-            else
-            {
-                TempData["Error"] = "Record not found.";
-            }
-            return RedirectToRecordHistory();
-        }
-
-        // Edit Framework Development Plan - GET
-        [HttpGet]
-        public IActionResult EditFrameworkPlan(int id)
-        {
-            var record = _context.Plan2026_24D.Find(id);
-            if (record == null)
-            {
-                TempData["Error"] = "Record not found.";
-                return RedirectToRecordHistory();
-            }
-            return View(record);
-        }
-
-        // Edit Framework Development Plan - POST
-        [HttpPost]
-        public IActionResult EditFrameworkPlan(Plan2026_24D model)
-        {
-            if (ModelState.IsValid)
-            {
-                var existing = _context.Plan2026_24D.Find(model.Id);
-                if (existing != null)
-                {
-                    existing.Name = model.Name;
-                    existing.Year = model.Year;
-                    existing.Quarter = model.Quarter;
-                    existing.FrameworkStatus = model.FrameworkStatus;
-                    existing.Notes = model.Notes;
-                    existing.GoalMet = model.GoalMet;
-                    existing.IssueName = model.IssueName;
-                    existing.CrisisDescription = model.CrisisDescription;
-                    existing.IssueHandled = model.IssueHandled;
-                    _context.SaveChanges();
-                    TempData["Success"] = "Framework Development Plan record updated successfully!";
-                    return RedirectToRecordHistory();
-                }
-                else
-                {
-                    TempData["Error"] = "Record not found.";
-                    return RedirectToRecordHistory();
-                }
-            }
-            return View(model);
-        }
-
         // Delete Board Member Recruitment
         [HttpPost]
         public IActionResult DeleteBoardMember(int id)
@@ -2567,8 +2383,6 @@ namespace OneJaxDashboard.Controllers
                     return RemoveIfFound(_context.Annual_average_7D.Find(id));
                 case "programs-demographics":
                     return RemoveIfFound(_context.demographics_8D.Find(id));
-                case "framework-plan":
-                    return RemoveIfFound(_context.Plan2026_24D.Find(id));
                 case "board-member":
                     return RemoveIfFound(_context.BoardMember_29D.Find(id));
                 case "board-meeting":
@@ -2591,8 +2405,6 @@ namespace OneJaxDashboard.Controllers
                     return RemoveIfFound(_context.Diversity_37D.Find(id));
                 case "first-time-participants":
                     return RemoveIfFound(_context.FirstTime_38D.Find(id));
-                case "collab-partners":
-                    return RemoveIfFound(_context.CollabTouch_47D.Find(id));
                 default:
                     return false;
             }
