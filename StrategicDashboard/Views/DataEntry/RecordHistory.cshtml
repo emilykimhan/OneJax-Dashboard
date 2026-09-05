@@ -49,7 +49,6 @@
                             <option value="milestone" selected="@(ViewBag.RecordType == "milestone" ? "selected" : null)">Milestone Achievement Only</option>
                             <option value="community-perception" selected="@(ViewBag.RecordType == "community-perception" ? "selected" : null)">Community Perception Survey Only</option>
                             <option value="programs-demographics" selected="@(ViewBag.RecordType == "programs-demographics" ? "selected" : null)">Programs Demographics Only</option>
-                            <option value="framework-plan" selected="@(ViewBag.RecordType == "framework-plan" ? "selected" : null)">Framework Development Plan Only</option>
                             <option value="board-member" selected="@(ViewBag.RecordType == "board-member" ? "selected" : null)">Board Member Recruitment Only</option>
                             <option value="board-meeting" selected="@(ViewBag.RecordType == "board-meeting" ? "selected" : null)">Board Meeting Attendance Only</option>
                             <option value="self-assessment" selected="@(ViewBag.RecordType == "self-assessment" ? "selected" : null)">Board Self-Assessment Only</option>
@@ -61,7 +60,6 @@
                             <option value="youth-attendance" selected="@(ViewBag.RecordType == "youth-attendance" ? "selected" : null)">Youth Attendance Only</option>
                             <option value="participant-diversity" selected="@(ViewBag.RecordType == "participant-diversity" ? "selected" : null)">Participant Diversity Only</option>
                             <option value="first-time-participants" selected="@(ViewBag.RecordType == "first-time-participants" ? "selected" : null)">First-Time Participants Only</option>
-                            <option value="collab-partners" selected="@(ViewBag.RecordType == "collab-partners" ? "selected" : null)">Collaborative Partner Touchpoints Only</option>
                         </select>
                     </div>
                     <div class="col-md-6 mb-3">
@@ -977,84 +975,6 @@
         </div>
         }
 
-        @if (ViewBag.RecordType == "all" || ViewBag.RecordType == "framework-plan")
-        {
-        <!-- Framework Development Plan Records -->
-        <div class="record-section">
-            <h5 class="section-title">Framework Development Plan Records</h5>
-            @if (ViewBag.FrameworkPlans != null && ((List<OneJaxDashboard.Models.Plan2026_24D>)ViewBag.FrameworkPlans).Any())
-            {
-                <div class="records-list">
-                    @foreach (var plan in (List<OneJaxDashboard.Models.Plan2026_24D>)ViewBag.FrameworkPlans)
-                    {
-                        <div class="record-item">
-                            <div class="record-header">
-                                <span class="record-type">Framework Development Plan</span>
-                                <label class="export-checkbox-label">
-                                    <input type="checkbox" class="record-checkbox" data-type="framework-plan" data-id="@plan.Id" />
-                                    <span>Select</span>
-                                </label>
-                            </div>
-                            <div class="record-details">
-                                <div class="detail-item">
-                                    <strong>Name:</strong> @plan.Name
-                                </div>
-                                <div class="detail-item">
-                                    <strong>Year:</strong> @plan.Year
-                                </div>
-                                <div class="detail-item">
-                                    <strong>Quarter:</strong> @plan.Quarter
-                                </div>
-                                <div class="detail-item">
-                                    <strong>Framework Status:</strong> @plan.FrameworkStatus
-                                </div>
-                                <div class="detail-item">
-                                    <strong>Goal Met:</strong> @(plan.GoalMet ? "Yes" : "No")
-                                </div>
-                                @if (!string.IsNullOrEmpty(plan.IssueName))
-                                {
-                                    <div class="detail-item">
-                                        <strong>Issue Name:</strong> @plan.IssueName
-                                    </div>
-                                }
-                                @if (!string.IsNullOrEmpty(plan.CrisisDescription))
-                                {
-                                    <div class="detail-item">
-                                        <strong>Crisis Description:</strong> @plan.CrisisDescription
-                                    </div>
-                                }
-                                <div class="detail-item">
-                                    <strong>Issue Handled:</strong> @(plan.IssueHandled ? "Yes" : "No")
-                                </div>
-                                @if (!string.IsNullOrEmpty(plan.Notes))
-                                {
-                                    <div class="detail-item">
-                                        <strong>Notes:</strong> @plan.Notes
-                                    </div>
-                                }
-                                <div class="detail-item">
-                                    <strong>Created Date:</strong> @plan.CreatedDate.ToString("MM/dd/yyyy")
-                                </div>
-                            </div>
-                            <div class="record-actions mt-3">
-                                <a asp-controller="DataEntry" asp-action="EditFrameworkPlan" asp-route-id="@plan.Id" class="btn btn-primary btn-sm">Edit</a>
-                                <form asp-controller="DataEntry" asp-action="DeleteFrameworkPlan" method="post" style="display:inline;" onsubmit="return confirmTypedDelete('delete this record');">
-                                    <input type="hidden" name="id" value="@plan.Id" />
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                                </form>
-                            </div>
-                        </div>
-                    }
-                </div>
-            }
-            else
-            {
-                <p class="no-records">No Framework Development Plan records found.</p>
-            }
-        </div>
-        }
-
         @if (ViewBag.RecordType == "all" || ViewBag.RecordType == "board-member")
         {
         <!-- Board Member Recruitment Records -->
@@ -1660,75 +1580,6 @@
             else
             {
                 <p class="no-records">No First-Time Participant records found.</p>
-            }
-        </div>
-        }
-
-        @if (ViewBag.RecordType == "all" || ViewBag.RecordType == "collab-partners")
-        {
-        <!-- Collaborative Partner Touchpoints Records -->
-        <div class="record-section">
-            <h5 class="section-title">Collaborative Partner Touchpoint Records</h5>
-            @if (ViewBag.CollabPartners != null && ((List<OneJaxDashboard.Models.CollabTouch_47D>)ViewBag.CollabPartners).Any())
-            {
-                <div class="records-list">
-                    @foreach (var cp in (List<OneJaxDashboard.Models.CollabTouch_47D>)ViewBag.CollabPartners)
-                    {
-                        <div class="record-item">
-                            <div class="record-header">
-                                <span class="record-type">Collaborative Partner</span>
-                                <label class="export-checkbox-label">
-                                    <input type="checkbox" class="record-checkbox" data-type="collab-partners" data-id="@cp.Id" />
-                                    <span>Select</span>
-                                </label>
-                            </div>
-                            <div class="record-details">
-                                <div class="detail-item">
-                                    <strong>Fiscal Year:</strong> @cp.FiscalYear
-                                </div>
-                                <div class="detail-item">
-                                    <strong>Partner / Allied Organization:</strong> @cp.PartnerOrganization
-                                </div>
-                                <div class="detail-item">
-                                    <strong>Contact:</strong> @cp.Contact
-                                </div>
-                                @if (!string.IsNullOrEmpty(cp.ContactEmail))
-                                {
-                                    <div class="detail-item">
-                                        <strong>Contact Email:</strong> @cp.ContactEmail
-                                    </div>
-                                }
-                                @if (!string.IsNullOrEmpty(cp.ContactPhone))
-                                {
-                                    <div class="detail-item">
-                                        <strong>Contact Phone:</strong> @cp.ContactPhone
-                                    </div>
-                                }
-                                <div class="detail-item">
-                                    <strong>Event:</strong> @(cp.Strategy?.Name ?? "N/A")
-                                </div>
-                                <div class="detail-item">
-                                    <strong>Touchpoint:</strong> @cp.Touchpoint
-                                </div>
-                                <div class="detail-item">
-                                    <strong>Created Date:</strong> @cp.CreatedDate.ToString("MM/dd/yyyy")
-                                </div>
-                            </div>
-                            <div class="record-actions mt-3">
-                                <a asp-controller="DataEntry" asp-action="EditCollabPartner" asp-route-id="@cp.Id" class="btn btn-primary btn-sm">Edit</a>
-                                <form asp-controller="DataEntry" asp-action="DeleteCollabPartner" method="post" style="display:inline;" onsubmit="return confirmTypedDelete('delete this record');">
-                                    <input type="hidden" name="id" value="@cp.Id" />
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                                </form>
-                            </div>
-                        </div>
-                    }
-                </div>
-            }
-            else
-            {
-                <p class="no-records">No Collaborative Partner Touchpoint records found.</p>
             }
         </div>
         }

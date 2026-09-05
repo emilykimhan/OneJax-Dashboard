@@ -23,7 +23,6 @@ public sealed class AppDataResetter
         "CommunicationRate",
         "Annual_average_7D",
         "demographics_8D",
-        "Plan2026_24D",
         "achieveMile_6D",
         "socialMedia_5D",
         "DonorEvents_19D",

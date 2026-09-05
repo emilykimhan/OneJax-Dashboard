@@ -66,63 +66,73 @@
                             </div>
                         </div>
 
-                        <!-- Expenses Section -->
+                        <!-- Expenditures Section -->
                         <hr class="my-4">
-                        <h5 class="mb-3" style="color:var(--onejax-navy);">📉 Admin Operators</h5>
+                        <h5 class="mb-3" style="color:var(--onejax-navy);">📉 Expenditures</h5>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label asp-for="CommunityPrograms" class="form-label fw-bold">Community Programs:</label>
+                                <label asp-for="PersonnelExpenses" class="form-label fw-bold">Personnel Expenses:</label>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
-                                    <input asp-for="CommunityPrograms" type="number" min="0" step="0.01" 
+                                    <input asp-for="PersonnelExpenses" type="number" min="0" step="0.01" 
                                            class="form-control" placeholder="0.00" />
                                 </div>
-                                <span asp-validation-for="CommunityPrograms" class="text-danger"></span>
+                                <span asp-validation-for="PersonnelExpenses" class="text-danger"></span>
                             </div>
 
                             <div class="col-md-6 mb-3">
-                                <label asp-for="OneYouthPrograms" class="form-label fw-bold">OneYouth Programs:</label>
+                                <label asp-for="ContractProfessionalServices" class="form-label fw-bold">Contract & Professional Services:</label>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
-                                    <input asp-for="OneYouthPrograms" type="number" min="0" step="0.01" 
+                                    <input asp-for="ContractProfessionalServices" type="number" min="0" step="0.01" 
                                            class="form-control" placeholder="0.00" />
                                 </div>
-                                <span asp-validation-for="OneYouthPrograms" class="text-danger"></span>
+                                <span asp-validation-for="ContractProfessionalServices" class="text-danger"></span>
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label asp-for="InterfaithPrograms" class="form-label fw-bold">Interfaith Programs:</label>
+                                <label asp-for="OperatingExpenses" class="form-label fw-bold">Operating Expenses:</label>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
-                                    <input asp-for="InterfaithPrograms" type="number" min="0" step="0.01" 
+                                    <input asp-for="OperatingExpenses" type="number" min="0" step="0.01" 
                                            class="form-control" placeholder="0.00" />
                                 </div>
-                                <span asp-validation-for="InterfaithPrograms" class="text-danger"></span>
+                                <span asp-validation-for="OperatingExpenses" class="text-danger"></span>
                             </div>
 
                             <div class="col-md-6 mb-3">
-                                <label asp-for="HumanitarianEvent" class="form-label fw-bold">Humanitarian Event:</label>
+                                <label asp-for="ProgramExpenses" class="form-label fw-bold">Program Expenses:</label>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
-                                    <input asp-for="HumanitarianEvent" type="number" min="0" step="0.01" 
+                                    <input asp-for="ProgramExpenses" type="number" min="0" step="0.01" 
                                            class="form-control" placeholder="0.00" />
                                 </div>
-                                <span asp-validation-for="HumanitarianEvent" class="text-danger"></span>
+                                <span asp-validation-for="ProgramExpenses" class="text-danger"></span>
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label asp-for="MiscellaneousExpenses" class="form-label fw-bold">Miscellaneous Expenses:</label>
+                                <label asp-for="AdvertisingMarketing" class="form-label fw-bold">Advertising & Marketing:</label>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
-                                    <input asp-for="MiscellaneousExpenses" type="number" min="0" step="0.01" 
+                                    <input asp-for="AdvertisingMarketing" type="number" min="0" step="0.01" 
                                            class="form-control" placeholder="0.00" />
                                 </div>
-                                <span asp-validation-for="MiscellaneousExpenses" class="text-danger"></span>
+                                <span asp-validation-for="AdvertisingMarketing" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="ProfessionalDevelopmentExpense" class="form-label fw-bold">Professional Development:</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input asp-for="ProfessionalDevelopmentExpense" type="number" min="0" step="0.01" 
+                                           class="form-control" placeholder="0.00" />
+                                </div>
+                                <span asp-validation-for="ProfessionalDevelopmentExpense" class="text-danger"></span>
                             </div>
                         </div>
 
@@ -132,16 +142,6 @@
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label asp-for="CorporateGiving" class="form-label fw-bold">Corporate Giving:</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">$</span>
-                                    <input asp-for="CorporateGiving" type="number" min="0" step="0.01" 
-                                           class="form-control" placeholder="0.00" />
-                                </div>
-                                <span asp-validation-for="CorporateGiving" class="text-danger"></span>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
                                 <label asp-for="IndividualGiving" class="form-label fw-bold">Individual Giving:</label>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
@@ -150,33 +150,43 @@
                                 </div>
                                 <span asp-validation-for="IndividualGiving" class="text-danger"></span>
                             </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="GrantsFoundations" class="form-label fw-bold">Grants & Foundations:</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">$</span>
-                                    <input asp-for="GrantsFoundations" type="number" min="0" step="0.01" 
-                                           class="form-control" placeholder="0.00" />
-                                </div>
-                                <span asp-validation-for="GrantsFoundations" class="text-danger"></span>
-                            </div>
 
                             <div class="col-md-6 mb-3">
-                                <label asp-for="CommunityEvents" class="form-label fw-bold">Community Events:</label>
+                                <label asp-for="CorporateFoundationGrants" class="form-label fw-bold">Corporate & Foundation Grants:</label>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
-                                    <input asp-for="CommunityEvents" type="number" min="0" step="0.01" 
+                                    <input asp-for="CorporateFoundationGrants" type="number" min="0" step="0.01" 
                                            class="form-control" placeholder="0.00" />
                                 </div>
-                                <span asp-validation-for="CommunityEvents" class="text-danger"></span>
+                                <span asp-validation-for="CorporateFoundationGrants" class="text-danger"></span>
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label asp-for="PeopleCultureWorkshops" class="form-label fw-bold">People and Culture Workshops:</label>
+                                <label asp-for="HumanitarianAwards" class="form-label fw-bold">Humanitarian Awards:</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input asp-for="HumanitarianAwards" type="number" min="0" step="0.01" 
+                                           class="form-control" placeholder="0.00" />
+                                </div>
+                                <span asp-validation-for="HumanitarianAwards" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="ProgramRevenue" class="form-label fw-bold">Program Revenue:</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input asp-for="ProgramRevenue" type="number" min="0" step="0.01" 
+                                           class="form-control" placeholder="0.00" />
+                                </div>
+                                <span asp-validation-for="ProgramRevenue" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="PeopleCultureWorkshops" class="form-label fw-bold">People & Culture Workshops:</label>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
                                     <input asp-for="PeopleCultureWorkshops" type="number" min="0" step="0.01" 
@@ -186,13 +196,13 @@
                             </div>
 
                             <div class="col-md-6 mb-3">
-                                <label asp-for="MiscellaneousRevenue" class="form-label fw-bold">Miscellaneous Revenue:</label>
+                                <label asp-for="OtherRevenues" class="form-label fw-bold">Other Revenues:</label>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
-                                    <input asp-for="MiscellaneousRevenue" type="number" min="0" step="0.01" 
+                                    <input asp-for="OtherRevenues" type="number" min="0" step="0.01" 
                                            class="form-control" placeholder="0.00" />
                                 </div>
-                                <span asp-validation-for="MiscellaneousRevenue" class="text-danger"></span>
+                                <span asp-validation-for="OtherRevenues" class="text-danger"></span>
                             </div>
                         </div>
 

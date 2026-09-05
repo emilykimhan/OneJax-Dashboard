@@ -96,29 +96,6 @@ public class HomeController : Controller
                 }
 
                 // Collaborative Partner Touchpoints (CollabTouch_47D): selected-FY pace + latest partner names.
-                var collabRows = await _context.CollabTouch_47D
-                    .Include(c => c.Strategy)
-                    .OrderByDescending(c => c.CreatedDate)
-                    .ToListAsync();
-
-                collabRows = collabRows
-                    .Where(c => FiscalYearMatches(c.FiscalYear, selectedFiscalYear))
-                    .ToList();
-
-                ViewBag.CommunityPartnerEntryCount = collabRows.Count;
-                ViewBag.CommunityPartnersCurrentCount = collabRows.Count;
-
-                ViewBag.CommunityPartnersLatest = collabRows
-                    .OrderByDescending(c => c.CreatedDate)
-                    .Take(5)
-                    .Select(c => new
-                    {
-                        date = c.CreatedDate.ToString("MMM d, yyyy", CultureInfo.InvariantCulture),
-                        partner = c.PartnerOrganization,
-                        touchpoint = c.Touchpoint,
-                        strategy = c.Strategy?.Name ?? "Unassigned"
-                    })
-                    .ToList();
 
                 var interfaithRows = await _context.Interfaith_11D
                     .OrderByDescending(i => i.CreatedDate)
@@ -538,25 +515,6 @@ public class HomeController : Controller
                 (item.WorkshopDate >= range.StartDate && item.WorkshopDate <= range.EndDate)
                 || item.Year == selectedFiscalYearStart
                 || item.Year == selectedFiscalYearEnd)
-            .ToList();
-    }
-
-    private List<Plan2026_24D> FilterFrameworkPlansByFiscalYear(IEnumerable<Plan2026_24D> source, string fiscalYear)
-    {
-        if (!TryParseFiscalYearEnd(fiscalYear, out var selectedFiscalYearEnd))
-        {
-            return source.ToList();
-        }
-
-        var range = GetFiscalYearRange(selectedFiscalYearEnd);
-        var selectedFiscalYearStart = selectedFiscalYearEnd - 1;
-
-        return source
-            .Where(item =>
-                GetFiscalYearEndFromQuarterLabel(item.Year, item.Quarter, fiscalQuarterLabels: true) == selectedFiscalYearEnd
-                || item.Year == selectedFiscalYearStart
-                || item.Year == selectedFiscalYearEnd
-                || IsDateInRange(item.CreatedDate, range.StartDate, range.EndDate))
             .ToList();
     }
 
@@ -1744,27 +1702,6 @@ public class HomeController : Controller
         }
         catch { }
 
-        // Framework Development Plan
-        try
-        {
-            var latest = FilterFrameworkPlansByFiscalYear(
-                    await _context.Plan2026_24D.ToListAsync(),
-                    fiscalYear)
-                .OrderByDescending(p => p.Year)
-                .ThenByDescending(p => p.Quarter)
-                .ThenByDescending(p => p.CreatedDate)
-                .FirstOrDefault();
-            if (latest != null)
-            {
-                data.FrameworkYear = latest.Year;
-                data.FrameworkQuarter = latest.Quarter ?? "";
-                data.FrameworkStatus = latest.FrameworkStatus ?? "";
-                data.FrameworkGoalMet = latest.GoalMet;
-                data.FrameworkLastUpdated = latest.CreatedDate;
-            }
-        }
-        catch { }
-
         return data;
     }
 
@@ -1962,16 +1899,6 @@ public class HomeController : Controller
             trustRating, "%", "70", annualSurvey.Any() ? "Active" : "Planning",
             $"🌟 {trustRating}% identify OneJax as trusted leader ({latestSurvey?.TotalRespondents} respondents, {latestSurvey?.Year}) | Form: Data Entry → Annual Survey", nextId++);
 
-        // 5. Strategic Planning (from Plan2026_24D)
-        var plan2026 = FilterFrameworkPlansByFiscalYear(
-            await _context.Plan2026_24D.ToListAsync(),
-            fiscalYear);
-        var completedPlans = plan2026.Count(p => p.GoalMet);
-        
-        AddOrUpdateMetric(goal, "Strategic Plan Completion", "2026 planning progress", 
-            completedPlans, "goals met", "20", plan2026.Any() ? "Active" : "Planning",
-            $"🎯 Plans Completed: {completedPlans}/{plan2026.Count} | Form: Data Entry → 2026 Planning", nextId++);
-
         // 6. Milestone Achievement (from achieveMile_6D)
         var milestoneEntries = FilterByFiscalYearMonthNumberWithCreatedDateFallback(
             await _context.achieveMile_6D.ToListAsync(),
@@ -2136,13 +2063,14 @@ public class HomeController : Controller
         foreach (var budget in budgetTracking)
         {
             // Revenue fields only
-            totalRevenue += (budget.CorporateGiving ?? 0) + (budget.IndividualGiving ?? 0) + 
-                           (budget.GrantsFoundations ?? 0) + (budget.CommunityEvents ?? 0) + 
-                           (budget.PeopleCultureWorkshops ?? 0);
+            totalRevenue += (budget.IndividualGiving ?? 0) + (budget.CorporateFoundationGrants ?? 0) +
+                           (budget.HumanitarianAwards ?? 0) + (budget.ProgramRevenue ?? 0) +
+                           (budget.PeopleCultureWorkshops ?? 0) + (budget.OtherRevenues ?? 0);
             
             // Expense fields only  
-            totalExpenses += (budget.CommunityPrograms ?? 0) + (budget.OneYouthPrograms ?? 0) + 
-                            (budget.InterfaithPrograms ?? 0) + (budget.HumanitarianEvent ?? 0);
+            totalExpenses += (budget.PersonnelExpenses ?? 0) + (budget.ContractProfessionalServices ?? 0) +
+                            (budget.OperatingExpenses ?? 0) + (budget.ProgramExpenses ?? 0) +
+                            (budget.AdvertisingMarketing ?? 0) + (budget.ProfessionalDevelopmentExpense ?? 0);
         }
         
         AddOrUpdateMetric(goal, "Budget Revenue Tracking", "Total tracked revenue streams", 
@@ -2276,15 +2204,6 @@ public class HomeController : Controller
             hasYouthGrowth
                 ? $"{youthGrowth:F1}% growth based on the two most recent youth attendance records | Form: Data Entry → CommYouth15D"
                 : "Need at least two youth attendance entries to calculate growth - Go to Data Entry → CommYouth15D", nextId++);
-
-        var partnerRows = (await _context.CollabTouch_47D.ToListAsync())
-            .Where(p => FiscalYearMatches(p.FiscalYear, fiscalYear))
-            .ToList();
-        AddOrUpdateMetric(goal, "Cross-Sector Collaborations", "Collaborative partner touchpoints logged",
-            partnerRows.Count, "partners", "3", partnerRows.Any() ? "Active" : "Planning",
-            partnerRows.Any()
-                ? $"{partnerRows.Count} collaborative partner touchpoints logged | Form: Data Entry → CommCollab47D"
-                : "No collaborative partner touchpoints yet - Go to Data Entry → CommCollab47D", nextId++);
 
         var faithRows = FilterByFiscalYearStrategyDateWithCreatedDateFallback(
             await _context.FaithCommunity_13D.ToListAsync(),

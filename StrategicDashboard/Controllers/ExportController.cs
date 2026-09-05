@@ -175,12 +175,6 @@ public class ExportController : Controller
             AddSheet("Programs Demographics", new[] { "Event","Year","ZipCodes","Notes","CreatedDate" },
                 records.Select(x => new object?[] { x.Strategy?.Name ?? "", x.Year, x.ZipCodes, x.Notes ?? "", x.CreatedDate.ToString("MM/dd/yyyy") }));
         }
-        if (byType.TryGetValue("framework-plan", out var fpIds))
-        {
-            var records = _context.Plan2026_24D.Where(x => fpIds.Contains(x.Id)).ToList();
-            AddSheet("Framework Plan", new[] { "Name","Year","Quarter","FrameworkStatus","GoalMet","IssueName","CrisisDescription","IssueHandled","Notes","CreatedDate" },
-                records.Select(x => new object?[] { x.Name, x.Year, x.Quarter, x.FrameworkStatus, x.GoalMet, x.IssueName ?? "", x.CrisisDescription ?? "", x.IssueHandled, x.Notes ?? "", x.CreatedDate.ToString("MM/dd/yyyy") }));
-        }
         if (byType.TryGetValue("board-member", out var bmIds))
         {
             var records = _context.BoardMember_29D.Where(x => bmIds.Contains(x.Id)).ToList();
@@ -247,13 +241,6 @@ public class ExportController : Controller
             AddSheet("First-Time Participants", new[] { "FiscalYear","Event","TotalAttendees","FirstTimeParticipants","FirstTimeRate","GoalMet","CreatedDate" },
                 records.Select(x => new object?[] { x.FiscalYear, x.Strategy?.Name ?? "", x.TotalAttendees, x.NumberOfFirstTimeParticipants, x.FirstTimeParticipantRate, x.GoalMet, x.CreatedDate.ToString("MM/dd/yyyy") }));
         }
-        if (byType.TryGetValue("collab-partners", out var collabIds))
-        {
-            var records = _context.CollabTouch_47D.Include(c => c.Strategy).Where(x => collabIds.Contains(x.Id)).ToList();
-            AddSheet("Collab Partner Touchpoints", new[] { "FiscalYear","PartnerOrganization","Contact","ContactEmail","ContactPhone","Event","Touchpoint","CreatedDate" },
-                records.Select(x => new object?[] { x.FiscalYear, x.PartnerOrganization, x.Contact, x.ContactEmail ?? "", x.ContactPhone ?? "", x.Strategy?.Name ?? "", x.Touchpoint, x.CreatedDate.ToString("MM/dd/yyyy") }));
-        }
-
         if (!workbook.Worksheets.Any())
         {
             TempData["Error"] = "No matching records found for export.";
