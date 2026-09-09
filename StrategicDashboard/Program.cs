@@ -120,6 +120,7 @@ using (var scope = app.Services.CreateScope())
     RunStartupStep("Ensuring activity log schema support", () => EnsureActivityLogSupport(db));
     RunStartupStep("Ensuring fallback admin access", () => EnsureFallbackAdminAccess(db, builder.Configuration));
     RunStartupStep("Ensuring professional development schema support", () => EnsureProfessionalDevelopmentSchemaSupport(db));
+    RunStartupStep("Ensuring budget tracking category schema support", () => EnsureBudgetTrackingCategoriesSupport(db));
     RunStartupStep("Ensuring canonical strategic goals", () => EnsureCanonicalStrategicGoals(db));
     Console.WriteLine("[startup] Database bootstrap complete.");
 }
@@ -903,6 +904,114 @@ static void EnsureProfessionalDevelopmentSchemaSupport(ApplicationDbContext db)
         columnName: "Month",
         sqlServerDefinition: "nvarchar(20) NOT NULL CONSTRAINT [DF_ProfessionalDevelopments_Month] DEFAULT(N'')",
         sqliteDefinition: "\"Month\" TEXT NOT NULL DEFAULT ''");
+}
+
+static void EnsureBudgetTrackingCategoriesSupport(ApplicationDbContext db)
+{
+    // Budget categories were restructured; add the new revenue/expenditure columns.
+    var newColumns = new[]
+    {
+        "PersonnelExpenses", "ContractProfessionalServices", "OperatingExpenses",
+        "ProgramExpenses", "AdvertisingMarketing", "ProfessionalDevelopmentExpense",
+        "CorporateFoundationGrants", "HumanitarianAwards", "ProgramRevenue", "OtherRevenues"
+    };
+
+    foreach (var columnName in newColumns)
+    {
+        EnsureRequiredColumn(
+            db,
+            tableName: "BudgetTracking_28D",
+            columnName: columnName,
+            sqlServerDefinition: "decimal(18,2) NULL",
+            sqliteDefinition: $"\"{columnName}\" TEXT NULL");
+    }
+
+    // Drop the retired columns the new categories replaced.
+    var retiredColumns = new[]
+    {
+        "CommunityPrograms", "OneYouthPrograms", "InterfaithPrograms", "HumanitarianEvent",
+        "MiscellaneousExpenses", "CorporateGiving", "GrantsFoundations", "CommunityEvents",
+        "MiscellaneousRevenue"
+    };
+
+    foreach (var columnName in retiredColumns)
+    {
+        EnsureColumnDropped(db, "BudgetTracking_28D", columnName);
+    }
+}
+
+static void EnsureColumnDropped(ApplicationDbContext db, string tableName, string columnName)
+{
+    if (db.Database.IsSqlServer())
+    {
+        var tableIdentifier = DelimitSqlServerIdentifier(tableName);
+        var columnIdentifier = DelimitSqlServerIdentifier(columnName);
+        var tableNameLiteral = EscapeSqlServerStringLiteral(tableName);
+        var columnNameLiteral = EscapeSqlServerStringLiteral(columnName);
+        var sql = $"""
+            IF COL_LENGTH('{tableNameLiteral}', '{columnNameLiteral}') IS NOT NULL
+            BEGIN
+                DECLARE @constraintName sysname;
+                SELECT @constraintName = d.name
+                FROM sys.default_constraints d
+                INNER JOIN sys.columns c
+                    ON d.parent_object_id = c.object_id AND d.parent_column_id = c.column_id
+                WHERE d.parent_object_id = OBJECT_ID('{tableNameLiteral}') AND c.name = '{columnNameLiteral}';
+                IF @constraintName IS NOT NULL
+                    EXEC('ALTER TABLE {tableIdentifier} DROP CONSTRAINT [' + @constraintName + '];');
+
+                ALTER TABLE {tableIdentifier} DROP COLUMN {columnIdentifier};
+            END
+            """;
+
+        db.Database.ExecuteSqlRaw(sql);
+        return;
+    }
+
+    if (!db.Database.IsSqlite())
+    {
+        return;
+    }
+
+    var connection = db.Database.GetDbConnection();
+    var shouldClose = connection.State != ConnectionState.Open;
+    if (shouldClose)
+    {
+        connection.Open();
+    }
+
+    try
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText = $"PRAGMA table_info('{tableName}');";
+
+        var hasColumn = false;
+        using (var reader = command.ExecuteReader())
+        {
+            while (reader.Read())
+            {
+                if (string.Equals(reader["name"]?.ToString(), columnName, StringComparison.OrdinalIgnoreCase))
+                {
+                    hasColumn = true;
+                    break;
+                }
+            }
+        }
+
+        if (hasColumn)
+        {
+            using var alterCommand = connection.CreateCommand();
+            alterCommand.CommandText = $"ALTER TABLE \"{tableName}\" DROP COLUMN \"{columnName}\";";
+            alterCommand.ExecuteNonQuery();
+        }
+    }
+    finally
+    {
+        if (shouldClose)
+        {
+            connection.Close();
+        }
+    }
 }
 
 static void EnsureRequiredColumn(
