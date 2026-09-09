@@ -946,7 +946,9 @@ public class StrategyController : Controller
     {
         if (!_context.Database.IsSqlServer())
         {
-            return _context.Strategies.FirstOrDefault(s => s.Id == id);
+            return _context.Strategies
+                .Include(s => s.CrossColabs)
+                .FirstOrDefault(s => s.Id == id);
         }
 
         var connection = _context.Database.GetDbConnection();
@@ -1259,6 +1261,9 @@ public class StrategyController : Controller
                 });
             }
 
+            // Release the reader before loading collaborators on the same connection.
+            // SQL Server connections without MARS cannot run another command while it is open.
+            reader.Close();
             ApplyCrossColabSummaries(results);
             ApplyStrategyGoalReferences(results);
             return results;
