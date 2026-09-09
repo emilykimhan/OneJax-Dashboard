@@ -18,17 +18,19 @@ namespace StrategicDashboard.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "9.0.10")
-                .HasAnnotation("Relational:MaxIdentifierLength", 128);
-
-            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+                .HasAnnotation("Relational:MaxIdentifierLength", 128)
+                .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
             modelBuilder.Entity("OneJaxDashboard.Models.ActivityLogEntry", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<string>("Action")
                         .IsRequired()
@@ -49,16 +51,17 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ActivityLogs");
+                    b.ToTable("ActivityLogs", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.Annual_average_7D", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
@@ -84,16 +87,17 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Annual_average_7D");
+                    b.ToTable("Annual_average_7D", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.ArchivedProgram", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<DateTime>("ArchivedAtUtc")
                         .HasColumnType("datetime2");
@@ -115,16 +119,17 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ArchivedPrograms");
+                    b.ToTable("ArchivedPrograms", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.BoardMeetingAttendance", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
@@ -140,21 +145,23 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("BoardMeetingAttendance");
+                    b.ToTable("BoardMeetingAttendance", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.BoardMemberRecruitment", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("MemberNames")
+                        .IsRequired()
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
@@ -177,58 +184,56 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("BoardMember_29D");
+                    b.ToTable("BoardMember_29D", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.BudgetTracking_28D", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal?>("AdvertisingMarketing")
+                    b.Property<decimal?>("CommunityEvents")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<decimal?>("ContractProfessionalServices")
+                    b.Property<decimal?>("CommunityPrograms")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<decimal?>("CorporateFoundationGrants")
+                    b.Property<decimal?>("CorporateGiving")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<decimal?>("HumanitarianAwards")
+                    b.Property<decimal?>("GrantsFoundations")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("HumanitarianEvent")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal?>("IndividualGiving")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("InterfaithPrograms")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("MiscellaneousExpenses")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("MiscellaneousRevenue")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<decimal?>("OperatingExpenses")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal?>("OtherRevenues")
+                    b.Property<decimal?>("OneYouthPrograms")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal?>("PeopleCultureWorkshops")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal?>("PersonnelExpenses")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal?>("ProfessionalDevelopmentExpense")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal?>("ProgramExpenses")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal?>("ProgramRevenue")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Quarter")
@@ -241,16 +246,67 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("BudgetTracking_28D");
+                    b.ToTable("BudgetTracking_28D", (string)null);
+                });
+
+            modelBuilder.Entity("OneJaxDashboard.Models.CollabTouch_47D", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("Contact")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("ContactEmail")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("ContactPhone")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FiscalYear")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("PartnerOrganization")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("StrategyId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Touchpoint")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StrategyId");
+
+                    b.ToTable("CollabTouch_47D", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.Comm_rate20D", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<decimal>("AverageCommunicationSatisfaction")
                         .HasColumnType("decimal(18,2)");
@@ -266,16 +322,17 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("CommunicationRate");
+                    b.ToTable("CommunicationRate", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.ContactsInterfaith_14D", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
@@ -291,20 +348,17 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ContactsInterfaith_14D");
+                    b.ToTable("ContactsInterfaith_14D", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.CrossColab", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("ContactName")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
@@ -332,9 +386,10 @@ namespace StrategicDashboard.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
@@ -353,16 +408,17 @@ namespace StrategicDashboard.Migrations
 
                     b.HasIndex("StrategyId");
 
-                    b.ToTable("Diversity_37D");
+                    b.ToTable("Diversity_37D", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.DonorEvent_19D", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<string>("CreatedBy")
                         .HasMaxLength(100)
@@ -384,16 +440,17 @@ namespace StrategicDashboard.Migrations
 
                     b.HasIndex("StrategyId");
 
-                    b.ToTable("DonorEvents_19D");
+                    b.ToTable("DonorEvents_19D", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.Event", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<string>("AdminNotes")
                         .IsRequired()
@@ -472,16 +529,17 @@ namespace StrategicDashboard.Migrations
 
                     b.HasIndex("StrategyId");
 
-                    b.ToTable("Events");
+                    b.ToTable("Events", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.FaithCommunity_13D", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
@@ -496,16 +554,17 @@ namespace StrategicDashboard.Migrations
 
                     b.HasIndex("StrategyId");
 
-                    b.ToTable("FaithCommunity_13D");
+                    b.ToTable("FaithCommunity_13D", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.FirstTime_38D", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
@@ -527,16 +586,17 @@ namespace StrategicDashboard.Migrations
 
                     b.HasIndex("StrategyId");
 
-                    b.ToTable("FirstTime_38D");
+                    b.ToTable("FirstTime_38D", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.GoalMetric", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<decimal>("CurrentValue")
                         .HasColumnType("decimal(18,2)");
@@ -598,16 +658,17 @@ namespace StrategicDashboard.Migrations
 
                     b.HasIndex("StrategicGoalId");
 
-                    b.ToTable("GoalMetrics");
+                    b.ToTable("GoalMetrics", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.MediaPlacements_3D", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<int?>("April")
                         .HasColumnType("int");
@@ -653,16 +714,70 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("MediaPlacements_3D");
+                    b.ToTable("MediaPlacements_3D", (string)null);
+                });
+
+            modelBuilder.Entity("OneJaxDashboard.Models.Plan2026_24D", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CrisisDescription")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("FrameworkStatus")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("GoalMet")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IssueHandled")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("IssueName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Quarter")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("nvarchar(2)");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Plan2026_24D", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.ProfessionalDevelopment", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<string>("Activities")
                         .IsRequired()
@@ -686,16 +801,17 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ProfessionalDevelopments");
+                    b.ToTable("ProfessionalDevelopments", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.Programs", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -711,16 +827,17 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Programs");
+                    b.ToTable("Programs", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.StaffSurvey_22D", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
@@ -738,16 +855,17 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("StaffSurveys_22D");
+                    b.ToTable("StaffSurveys_22D", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.Staffauth", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -773,16 +891,17 @@ namespace StrategicDashboard.Migrations
                     b.HasIndex("Username")
                         .IsUnique();
 
-                    b.ToTable("Staffauth");
+                    b.ToTable("Staffauth", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.StrategicGoal", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<string>("Color")
                         .IsRequired()
@@ -798,16 +917,17 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("StrategicGoals");
+                    b.ToTable("StrategicGoals", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.Strategy", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<DateTime?>("ArchivedAtUtc")
                         .HasColumnType("datetime2");
@@ -859,16 +979,17 @@ namespace StrategicDashboard.Migrations
 
                     b.HasIndex("StrategicGoalId");
 
-                    b.ToTable("Strategies");
+                    b.ToTable("Strategies", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.WebsiteTraffic_4D", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
@@ -890,16 +1011,17 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("WebsiteTraffic");
+                    b.ToTable("WebsiteTraffic", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.YouthAttend_15D", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<decimal>("AveragePostAssessment")
                         .HasColumnType("decimal(18,2)");
@@ -923,16 +1045,17 @@ namespace StrategicDashboard.Migrations
 
                     b.HasIndex("StrategyId");
 
-                    b.ToTable("YouthAttend_15D");
+                    b.ToTable("YouthAttend_15D", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.achieveMile_6D", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
@@ -951,16 +1074,17 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("achieveMile_6D");
+                    b.ToTable("achieveMile_6D", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.demographics_8D", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
@@ -984,16 +1108,17 @@ namespace StrategicDashboard.Migrations
 
                     b.HasIndex("StrategyId");
 
-                    b.ToTable("demographics_8D");
+                    b.ToTable("demographics_8D", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.eventSatisfaction", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
@@ -1008,16 +1133,17 @@ namespace StrategicDashboard.Migrations
 
                     b.HasIndex("StrategyId");
 
-                    b.ToTable("EventSatisfaction_12D");
+                    b.ToTable("EventSatisfaction_12D", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.feeForService_21D", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<string>("ClientName")
                         .IsRequired()
@@ -1072,16 +1198,17 @@ namespace StrategicDashboard.Migrations
 
                     b.HasIndex("StrategyId");
 
-                    b.ToTable("FeeForServices_21D");
+                    b.ToTable("FeeForServices_21D", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.income_27D", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
@@ -1108,16 +1235,17 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("income_27D");
+                    b.ToTable("income_27D", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.interfaith_11D", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
@@ -1138,16 +1266,17 @@ namespace StrategicDashboard.Migrations
 
                     b.HasIndex("StrategyId");
 
-                    b.ToTable("Interfaith_11D");
+                    b.ToTable("Interfaith_11D", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.selfAssess_31D", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
@@ -1165,16 +1294,17 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("selfAssess_31D");
+                    b.ToTable("selfAssess_31D", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.socialMedia_5D", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<decimal?>("AprilJuneEngagementRate")
                         .HasColumnType("decimal(18,2)");
@@ -1199,16 +1329,17 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("socialMedia_5D");
+                    b.ToTable("socialMedia_5D", (string)null);
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.volunteerProgram_40D", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<string>("CommunicationsActivities")
                         .IsRequired()
@@ -1242,7 +1373,18 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("volunteerProgram_40D");
+                    b.ToTable("volunteerProgram_40D", (string)null);
+                });
+
+            modelBuilder.Entity("OneJaxDashboard.Models.CollabTouch_47D", b =>
+                {
+                    b.HasOne("OneJaxDashboard.Models.Strategy", "Strategy")
+                        .WithMany()
+                        .HasForeignKey("StrategyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Strategy");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.CrossColab", b =>
