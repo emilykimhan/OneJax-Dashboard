@@ -117,6 +117,8 @@ using (var scope = app.Services.CreateScope())
     RunStartupStep("Ensuring strategy archive schema support", () => EnsureStrategyArchiveSupport(db));
     RunStartupStep("Ensuring cross collaborator schema support", () => EnsureCrossColabSupport(db));
     RunStartupStep("Ensuring program archive schema support", () => EnsureProgramArchiveSupport(db));
+    RunStartupStep("Removing legacy volunteer program table", () => EnsureVolunteerProgramTableRemoved(db));
+    RunStartupStep("Removing legacy orphaned tables", () => EnsureLegacyOrphanedTablesRemoved(db));
     RunStartupStep("Ensuring activity log schema support", () => EnsureActivityLogSupport(db));
     RunStartupStep("Ensuring fallback admin access", () => EnsureFallbackAdminAccess(db, builder.Configuration));
     RunStartupStep("Ensuring professional development schema support", () => EnsureProfessionalDevelopmentSchemaSupport(db));
@@ -627,6 +629,60 @@ static void EnsureFallbackAdminAccess(ApplicationDbContext db, IConfiguration co
     {
         Console.WriteLine($"[admin-bootstrap] Failed to create or promote an administrator: {ex}");
     }
+}
+
+static void EnsureVolunteerProgramTableRemoved(ApplicationDbContext db)
+{
+    // The Volunteer Program feature was removed from the dashboard (tracked internally instead).
+    // Drop the table if it still exists; safe to run repeatedly.
+    if (db.Database.IsSqlServer())
+    {
+        db.Database.ExecuteSqlRaw("""
+            IF OBJECT_ID(N'dbo.volunteerProgram_40D', N'U') IS NOT NULL
+            BEGIN
+                DROP TABLE [dbo].[volunteerProgram_40D];
+            END
+            """);
+        return;
+    }
+
+    if (!db.Database.IsSqlite())
+    {
+        return;
+    }
+
+    db.Database.ExecuteSqlRaw("""DROP TABLE IF EXISTS "volunteerProgram_40D";""");
+}
+
+static void EnsureLegacyOrphanedTablesRemoved(ApplicationDbContext db)
+{
+    // CollabTouch_47D (old Collaborative Partner Touchpoints feature) and Plan2026_24D
+    // (old Framework Development Plan feature) were removed from the code months ago,
+    // but the tables were never dropped. Neither is referenced anywhere in the app.
+    if (db.Database.IsSqlServer())
+    {
+        db.Database.ExecuteSqlRaw("""
+            IF OBJECT_ID(N'dbo.CollabTouch_47D', N'U') IS NOT NULL
+            BEGIN
+                DROP TABLE [dbo].[CollabTouch_47D];
+            END
+            """);
+        db.Database.ExecuteSqlRaw("""
+            IF OBJECT_ID(N'dbo.Plan2026_24D', N'U') IS NOT NULL
+            BEGIN
+                DROP TABLE [dbo].[Plan2026_24D];
+            END
+            """);
+        return;
+    }
+
+    if (!db.Database.IsSqlite())
+    {
+        return;
+    }
+
+    db.Database.ExecuteSqlRaw("""DROP TABLE IF EXISTS "CollabTouch_47D";""");
+    db.Database.ExecuteSqlRaw("""DROP TABLE IF EXISTS "Plan2026_24D";""");
 }
 
 static void EnsureProgramArchiveSupport(ApplicationDbContext db)
