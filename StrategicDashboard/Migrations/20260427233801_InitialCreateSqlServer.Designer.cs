@@ -28,27 +28,21 @@ namespace StrategicDashboard.Migrations
             modelBuilder.Entity("OneJaxDashboard.Models.ActivityLogEntry", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd();
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Action")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
-                    b.Property<string>("Details")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<string>("Details");
 
-                    b.Property<string>("Entity")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<string>("Entity");
 
-                    b.Property<DateTime>("Timestamp")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime>("Timestamp");
 
                     b.Property<string>("User")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.HasKey("Id");
 
@@ -58,32 +52,25 @@ namespace StrategicDashboard.Migrations
             modelBuilder.Entity("OneJaxDashboard.Models.Annual_average_7D", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd();
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime>("CreatedDate");
 
-                    b.Property<int?>("Month")
-                        .HasColumnType("int");
+                    b.Property<int?>("Month");
 
                     b.Property<string>("Notes")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasMaxLength(500);
 
                     b.Property<decimal>("Percentage")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int?>("RespondentsIdentifyingAsTrusted")
-                        .HasColumnType("int");
+                    b.Property<int?>("RespondentsIdentifyingAsTrusted");
 
-                    b.Property<int?>("TotalRespondents")
-                        .HasColumnType("int");
+                    b.Property<int?>("TotalRespondents");
 
-                    b.Property<int>("Year")
-                        .HasColumnType("int");
+                    b.Property<int>("Year");
 
                     b.HasKey("Id");
 
@@ -93,28 +80,22 @@ namespace StrategicDashboard.Migrations
             modelBuilder.Entity("OneJaxDashboard.Models.ArchivedProgram", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd();
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("ArchivedAtUtc")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime>("ArchivedAtUtc");
 
                     b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
-                    b.Property<int>("OriginalProgramId")
-                        .HasColumnType("int");
+                    b.Property<int>("OriginalProgramId");
 
                     b.Property<string>("ProgramName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.Property<string>("ProgramType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.HasKey("Id");
 
@@ -124,22 +105,17 @@ namespace StrategicDashboard.Migrations
             modelBuilder.Entity("OneJaxDashboard.Models.BoardMeetingAttendance", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd();
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime>("CreatedDate");
 
-                    b.Property<DateTime>("MeetingDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime>("MeetingDate");
 
-                    b.Property<int>("MembersInAttendance")
-                        .HasColumnType("int");
+                    b.Property<int>("MembersInAttendance");
 
-                    b.Property<int?>("TotalBoardMembers")
-                        .HasColumnType("int");
+                    b.Property<int?>("TotalBoardMembers");
 
                     b.HasKey("Id");
 
@@ -149,35 +125,27 @@ namespace StrategicDashboard.Migrations
             modelBuilder.Entity("OneJaxDashboard.Models.BoardMemberRecruitment", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd();
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime>("CreatedDate");
 
                     b.Property<string>("MemberNames")
                         .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasMaxLength(1000);
 
-                    b.Property<int?>("NumberRecruited")
-                        .HasColumnType("int");
+                    b.Property<int?>("NumberRecruited");
 
                     b.Property<string>("ProspectNames")
                         .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasMaxLength(1000);
 
-                    b.Property<int>("Quarter")
-                        .HasColumnType("int");
+                    b.Property<int>("Quarter");
 
-                    b.Property<int>("TotalProspectOutreach")
-                        .HasColumnType("int");
+                    b.Property<int>("TotalProspectOutreach");
 
-                    b.Property<int>("Year")
-                        .HasColumnType("int");
+                    b.Property<int>("Year");
 
                     b.HasKey("Id");
 
@@ -187,8 +155,7 @@ namespace StrategicDashboard.Migrations
             modelBuilder.Entity("OneJaxDashboard.Models.BudgetTracking_28D", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd();
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
@@ -201,8 +168,7 @@ namespace StrategicDashboard.Migrations
                     b.Property<decimal?>("CorporateGiving")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime>("CreatedDate");
 
                     b.Property<decimal?>("GrantsFoundations")
                         .HasColumnType("decimal(18,2)");
@@ -223,8 +189,7 @@ namespace StrategicDashboard.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Notes")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasMaxLength(1000);
 
                     b.Property<decimal?>("OneYouthPrograms")
                         .HasColumnType("decimal(18,2)");
@@ -234,11 +199,9 @@ namespace StrategicDashboard.Migrations
 
                     b.Property<string>("Quarter")
                         .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
+                        .HasMaxLength(10);
 
-                    b.Property<int>("Year")
-                        .HasColumnType("int");
+                    b.Property<int>("Year");
 
                     b.HasKey("Id");
 
@@ -248,44 +211,35 @@ namespace StrategicDashboard.Migrations
             modelBuilder.Entity("OneJaxDashboard.Models.CollabTouch_47D", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd();
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Contact")
                         .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
+                        .HasMaxLength(150);
 
                     b.Property<string>("ContactEmail")
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
+                        .HasMaxLength(150);
 
                     b.Property<string>("ContactPhone")
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
+                        .HasMaxLength(30);
 
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime>("CreatedDate");
 
                     b.Property<string>("FiscalYear")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasMaxLength(20);
 
                     b.Property<string>("PartnerOrganization")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasMaxLength(200);
 
-                    b.Property<int>("StrategyId")
-                        .HasColumnType("int");
+                    b.Property<int>("StrategyId");
 
                     b.Property<string>("Touchpoint")
                         .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasMaxLength(500);
 
                     b.HasKey("Id");
 
@@ -297,22 +251,18 @@ namespace StrategicDashboard.Migrations
             modelBuilder.Entity("OneJaxDashboard.Models.Comm_rate20D", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd();
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("AverageCommunicationSatisfaction")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime>("CreatedDate");
 
-                    b.Property<int>("Month")
-                        .HasColumnType("int");
+                    b.Property<int>("Month");
 
-                    b.Property<int>("Year")
-                        .HasColumnType("int");
+                    b.Property<int>("Year");
 
                     b.HasKey("Id");
 
@@ -322,22 +272,17 @@ namespace StrategicDashboard.Migrations
             modelBuilder.Entity("OneJaxDashboard.Models.ContactsInterfaith_14D", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd();
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime>("CreatedDate");
 
-                    b.Property<int?>("Month")
-                        .HasColumnType("int");
+                    b.Property<int?>("Month");
 
-                    b.Property<int>("TotalInterfaithContacts")
-                        .HasColumnType("int");
+                    b.Property<int>("TotalInterfaithContacts");
 
-                    b.Property<int>("Year")
-                        .HasColumnType("int");
+                    b.Property<int>("Year");
 
                     b.HasKey("Id");
 
@@ -347,23 +292,18 @@ namespace StrategicDashboard.Migrations
             modelBuilder.Entity("OneJaxDashboard.Models.Diversity_37D", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd();
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime>("CreatedDate");
 
-                    b.Property<int>("DiversityCount")
-                        .HasColumnType("int");
+                    b.Property<int>("DiversityCount");
 
                     b.Property<string>("FiscalYear")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
-                    b.Property<int>("StrategyId")
-                        .HasColumnType("int");
+                    b.Property<int>("StrategyId");
 
                     b.HasKey("Id");
 
@@ -375,26 +315,20 @@ namespace StrategicDashboard.Migrations
             modelBuilder.Entity("OneJaxDashboard.Models.DonorEvent_19D", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd();
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("CreatedBy")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(100);
 
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime>("CreatedDate");
 
-                    b.Property<int>("EventSatisfactionRating")
-                        .HasColumnType("int");
+                    b.Property<int>("EventSatisfactionRating");
 
-                    b.Property<int>("NumberOfParticipants")
-                        .HasColumnType("int");
+                    b.Property<int>("NumberOfParticipants");
 
-                    b.Property<int>("StrategyId")
-                        .HasColumnType("int");
+                    b.Property<int>("StrategyId");
 
                     b.HasKey("Id");
 
@@ -406,81 +340,61 @@ namespace StrategicDashboard.Migrations
             modelBuilder.Entity("OneJaxDashboard.Models.Event", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd();
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("AdminNotes")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
-                    b.Property<DateTime?>("AssignmentDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime?>("AssignmentDate");
 
-                    b.Property<int>("Attendees")
-                        .HasColumnType("int");
+                    b.Property<int>("Attendees");
 
-                    b.Property<DateTime?>("CompletionDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime?>("CompletionDate");
 
                     b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
-                    b.Property<DateTime?>("DueDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime?>("DueDate");
 
-                    b.Property<DateTime?>("EndDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime?>("EndDate");
 
-                    b.Property<bool>("IsArchived")
-                        .HasColumnType("bit");
+                    b.Property<bool>("IsArchived");
 
-                    b.Property<bool>("IsAssignedByAdmin")
-                        .HasColumnType("bit");
+                    b.Property<bool>("IsAssignedByAdmin");
 
                     b.Property<string>("Location")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.Property<string>("Notes")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.Property<string>("OwnerUsername")
                         .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasMaxLength(256);
 
                     b.Property<string>("PostAssessmentData")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.Property<string>("PreAssessmentData")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.Property<decimal?>("SatisfactionScore")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<DateTime?>("StartDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime?>("StartDate");
 
                     b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
-                    b.Property<int?>("StrategyId")
-                        .HasColumnType("int");
+                    b.Property<int?>("StrategyId");
 
                     b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.HasKey("Id");
 
@@ -494,19 +408,15 @@ namespace StrategicDashboard.Migrations
             modelBuilder.Entity("OneJaxDashboard.Models.FaithCommunity_13D", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd();
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime>("CreatedDate");
 
-                    b.Property<int>("NumberOfFaithsRepresented")
-                        .HasColumnType("int");
+                    b.Property<int>("NumberOfFaithsRepresented");
 
-                    b.Property<int>("StrategyId")
-                        .HasColumnType("int");
+                    b.Property<int>("StrategyId");
 
                     b.HasKey("Id");
 
@@ -518,26 +428,20 @@ namespace StrategicDashboard.Migrations
             modelBuilder.Entity("OneJaxDashboard.Models.FirstTime_38D", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd();
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime>("CreatedDate");
 
                     b.Property<string>("FiscalYear")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
-                    b.Property<int>("NumberOfFirstTimeParticipants")
-                        .HasColumnType("int");
+                    b.Property<int>("NumberOfFirstTimeParticipants");
 
-                    b.Property<int>("StrategyId")
-                        .HasColumnType("int");
+                    b.Property<int>("StrategyId");
 
-                    b.Property<int>("TotalAttendees")
-                        .HasColumnType("int");
+                    b.Property<int>("TotalAttendees");
 
                     b.HasKey("Id");
 
@@ -549,8 +453,7 @@ namespace StrategicDashboard.Migrations
             modelBuilder.Entity("OneJaxDashboard.Models.GoalMetric", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd();
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
@@ -558,27 +461,21 @@ namespace StrategicDashboard.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("DataSource")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.Property<string>("FiscalYear")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
-                    b.Property<bool>("IsPublic")
-                        .HasColumnType("bit");
+                    b.Property<bool>("IsPublic");
 
                     b.Property<string>("MetricType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.Property<decimal>("Q1Value")
                         .HasColumnType("decimal(18,2)");
@@ -593,22 +490,17 @@ namespace StrategicDashboard.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
-                    b.Property<int>("StrategicGoalId")
-                        .HasColumnType("int");
+                    b.Property<int>("StrategicGoalId");
 
                     b.Property<string>("Target")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
-                    b.Property<DateTime>("TargetDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime>("TargetDate");
 
                     b.Property<string>("Unit")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.HasKey("Id");
 
@@ -620,52 +512,37 @@ namespace StrategicDashboard.Migrations
             modelBuilder.Entity("OneJaxDashboard.Models.MediaPlacements_3D", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd();
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("April")
-                        .HasColumnType("int");
+                    b.Property<int?>("April");
 
-                    b.Property<int?>("August")
-                        .HasColumnType("int");
+                    b.Property<int?>("August");
 
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime>("CreatedDate");
 
-                    b.Property<int?>("December")
-                        .HasColumnType("int");
+                    b.Property<int?>("December");
 
-                    b.Property<int?>("February")
-                        .HasColumnType("int");
+                    b.Property<int?>("February");
 
-                    b.Property<int?>("January")
-                        .HasColumnType("int");
+                    b.Property<int?>("January");
 
-                    b.Property<int?>("July")
-                        .HasColumnType("int");
+                    b.Property<int?>("July");
 
-                    b.Property<int?>("June")
-                        .HasColumnType("int");
+                    b.Property<int?>("June");
 
-                    b.Property<int?>("March")
-                        .HasColumnType("int");
+                    b.Property<int?>("March");
 
-                    b.Property<int?>("May")
-                        .HasColumnType("int");
+                    b.Property<int?>("May");
 
-                    b.Property<int?>("November")
-                        .HasColumnType("int");
+                    b.Property<int?>("November");
 
-                    b.Property<int?>("October")
-                        .HasColumnType("int");
+                    b.Property<int?>("October");
 
-                    b.Property<int?>("September")
-                        .HasColumnType("int");
+                    b.Property<int?>("September");
 
-                    b.Property<int>("Year")
-                        .HasColumnType("int");
+                    b.Property<int>("Year");
 
                     b.HasKey("Id");
 
@@ -675,49 +552,38 @@ namespace StrategicDashboard.Migrations
             modelBuilder.Entity("OneJaxDashboard.Models.Plan2026_24D", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd();
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime>("CreatedDate");
 
                     b.Property<string>("CrisisDescription")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasMaxLength(1000);
 
                     b.Property<string>("FrameworkStatus")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(100);
 
-                    b.Property<bool>("GoalMet")
-                        .HasColumnType("bit");
+                    b.Property<bool>("GoalMet");
 
-                    b.Property<bool>("IssueHandled")
-                        .HasColumnType("bit");
+                    b.Property<bool>("IssueHandled");
 
                     b.Property<string>("IssueName")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasMaxLength(200);
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasMaxLength(200);
 
                     b.Property<string>("Notes")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasMaxLength(500);
 
                     b.Property<string>("Quarter")
                         .IsRequired()
-                        .HasMaxLength(2)
-                        .HasColumnType("nvarchar(2)");
+                        .HasMaxLength(2);
 
-                    b.Property<int>("Year")
-                        .HasColumnType("int");
+                    b.Property<int>("Year");
 
                     b.HasKey("Id");
 
@@ -727,30 +593,24 @@ namespace StrategicDashboard.Migrations
             modelBuilder.Entity("OneJaxDashboard.Models.ProfessionalDevelopment", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd();
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Activities")
                         .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
+                        .HasMaxLength(2000);
 
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime>("CreatedDate");
 
                     b.Property<string>("Month")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasMaxLength(20);
 
                     b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
-                    b.Property<int>("Year")
-                        .HasColumnType("int");
+                    b.Property<int>("Year");
 
                     b.HasKey("Id");
 
@@ -760,22 +620,18 @@ namespace StrategicDashboard.Migrations
             modelBuilder.Entity("OneJaxDashboard.Models.Programs", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd();
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.Property<string>("ProgramName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.Property<string>("ProgramType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.HasKey("Id");
 
@@ -785,24 +641,19 @@ namespace StrategicDashboard.Migrations
             modelBuilder.Entity("OneJaxDashboard.Models.StaffSurvey_22D", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd();
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime>("CreatedDate");
 
                     b.Property<string>("Month")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasMaxLength(20);
 
-                    b.Property<int>("SatisfactionRate")
-                        .HasColumnType("int");
+                    b.Property<int>("SatisfactionRate");
 
-                    b.Property<int>("Year")
-                        .HasColumnType("int");
+                    b.Property<int>("Year");
 
                     b.HasKey("Id");
 
@@ -812,29 +663,23 @@ namespace StrategicDashboard.Migrations
             modelBuilder.Entity("OneJaxDashboard.Models.Staffauth", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd();
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
-                    b.Property<bool>("IsAdmin")
-                        .HasColumnType("bit");
+                    b.Property<bool>("IsAdmin");
 
                     b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
-                    b.Property<string>("Password")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<string>("Password");
 
                     b.Property<string>("Username")
                         .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasMaxLength(256);
 
                     b.HasKey("Id");
 
@@ -847,22 +692,18 @@ namespace StrategicDashboard.Migrations
             modelBuilder.Entity("OneJaxDashboard.Models.StrategicGoal", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd();
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Color")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.HasKey("Id");
 
@@ -872,54 +713,40 @@ namespace StrategicDashboard.Migrations
             modelBuilder.Entity("OneJaxDashboard.Models.Strategy", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd();
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime?>("ArchivedAtUtc")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime?>("ArchivedAtUtc");
 
                     b.Property<string>("CrossCollaboration")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
-                    b.Property<string>("Date")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<string>("Date");
 
                     b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.Property<string>("EventFYear")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
-                    b.Property<bool>("IsArchived")
-                        .HasColumnType("bit");
+                    b.Property<bool>("IsArchived");
 
                     b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.Property<string>("Partners")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
-                    b.Property<int?>("ProgramId")
-                        .HasColumnType("int");
+                    b.Property<int?>("ProgramId");
 
-                    b.Property<string>("ProgramName")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<string>("ProgramName");
 
-                    b.Property<string>("ProgramType")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<string>("ProgramType");
 
-                    b.Property<int>("StrategicGoalId")
-                        .HasColumnType("int");
+                    b.Property<int>("StrategicGoalId");
 
-                    b.Property<string>("Time")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<string>("Time");
 
                     b.HasKey("Id");
 
@@ -933,28 +760,21 @@ namespace StrategicDashboard.Migrations
             modelBuilder.Entity("OneJaxDashboard.Models.WebsiteTraffic_4D", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd();
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime>("CreatedDate");
 
-                    b.Property<int?>("Q1_JulySeptember")
-                        .HasColumnType("int");
+                    b.Property<int?>("Q1_JulySeptember");
 
-                    b.Property<int?>("Q2_OctoberDecember")
-                        .HasColumnType("int");
+                    b.Property<int?>("Q2_OctoberDecember");
 
-                    b.Property<int?>("Q3_JanuaryMarch")
-                        .HasColumnType("int");
+                    b.Property<int?>("Q3_JanuaryMarch");
 
-                    b.Property<int?>("Q4_AprilJune")
-                        .HasColumnType("int");
+                    b.Property<int?>("Q4_AprilJune");
 
-                    b.Property<int>("Year")
-                        .HasColumnType("int");
+                    b.Property<int>("Year");
 
                     b.HasKey("Id");
 
@@ -964,8 +784,7 @@ namespace StrategicDashboard.Migrations
             modelBuilder.Entity("OneJaxDashboard.Models.YouthAttend_15D", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd();
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
@@ -975,17 +794,14 @@ namespace StrategicDashboard.Migrations
                     b.Property<decimal>("AveragePreAssessment")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime>("CreatedDate");
 
-                    b.Property<int>("NumberOfYouthAttendees")
-                        .HasColumnType("int");
+                    b.Property<int>("NumberOfYouthAttendees");
 
                     b.Property<decimal>("PostEventSurveySatisfaction")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("StrategyId")
-                        .HasColumnType("int");
+                    b.Property<int>("StrategyId");
 
                     b.HasKey("Id");
 
@@ -997,25 +813,20 @@ namespace StrategicDashboard.Migrations
             modelBuilder.Entity("OneJaxDashboard.Models.achieveMile_6D", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd();
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime>("CreatedDate");
 
-                    b.Property<int?>("Month")
-                        .HasColumnType("int");
+                    b.Property<int?>("Month");
 
                     b.Property<decimal>("Percentage")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("Year")
-                        .HasColumnType("int");
+                    b.Property<int>("Year");
 
-                    b.Property<bool>("achievedReview")
-                        .HasColumnType("bit");
+                    b.Property<bool>("achievedReview");
 
                     b.HasKey("Id");
 
@@ -1025,28 +836,22 @@ namespace StrategicDashboard.Migrations
             modelBuilder.Entity("OneJaxDashboard.Models.demographics_8D", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd();
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime>("CreatedDate");
 
                     b.Property<string>("Notes")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasMaxLength(500);
 
-                    b.Property<int>("StrategyId")
-                        .HasColumnType("int");
+                    b.Property<int>("StrategyId");
 
-                    b.Property<int>("Year")
-                        .HasColumnType("int");
+                    b.Property<int>("Year");
 
                     b.Property<string>("ZipCodes")
                         .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasMaxLength(1000);
 
                     b.HasKey("Id");
 
@@ -1058,19 +863,16 @@ namespace StrategicDashboard.Migrations
             modelBuilder.Entity("OneJaxDashboard.Models.eventSatisfaction", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd();
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime>("CreatedDate");
 
                     b.Property<decimal>("EventAttendeeSatisfactionPercentage")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("StrategyId")
-                        .HasColumnType("int");
+                    b.Property<int>("StrategyId");
 
                     b.HasKey("Id");
 
@@ -1082,32 +884,26 @@ namespace StrategicDashboard.Migrations
             modelBuilder.Entity("OneJaxDashboard.Models.feeForService_21D", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd();
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ClientName")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasMaxLength(200);
 
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime>("CreatedDate");
 
                     b.Property<string>("EventName")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasMaxLength(200);
 
                     b.Property<string>("EventPartners")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasMaxLength(500);
 
                     b.Property<decimal>("ExpenseReceived")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("NumberOfAttendees")
-                        .HasColumnType("int");
+                    b.Property<int>("NumberOfAttendees");
 
                     b.Property<decimal>("ParticipantSatisfactionRating")
                         .HasColumnType("decimal(18,2)");
@@ -1118,23 +914,18 @@ namespace StrategicDashboard.Migrations
                     b.Property<decimal>("RevenueReceived")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("StrategyId")
-                        .HasColumnType("int");
+                    b.Property<int>("StrategyId");
 
-                    b.Property<DateTime>("WorkshopDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime>("WorkshopDate");
 
                     b.Property<string>("WorkshopFormat")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasMaxLength(50);
 
                     b.Property<string>("WorkshopLocation")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasMaxLength(200);
 
-                    b.Property<int>("Year")
-                        .HasColumnType("int");
+                    b.Property<int>("Year");
 
                     b.HasKey("Id");
 
@@ -1146,33 +937,27 @@ namespace StrategicDashboard.Migrations
             modelBuilder.Entity("OneJaxDashboard.Models.income_27D", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd();
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime>("CreatedDate");
 
                     b.Property<string>("IncomeSource")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasMaxLength(200);
 
                     b.Property<string>("Month")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasMaxLength(20);
 
                     b.Property<string>("Notes")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasMaxLength(1000);
 
-                    b.Property<int?>("Year")
-                        .HasColumnType("int");
+                    b.Property<int?>("Year");
 
                     b.HasKey("Id");
 
@@ -1182,25 +967,19 @@ namespace StrategicDashboard.Migrations
             modelBuilder.Entity("OneJaxDashboard.Models.interfaith_11D", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd();
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime>("CreatedDate");
 
-                    b.Property<int>("NumberOfFaithsRepresented")
-                        .HasColumnType("int");
+                    b.Property<int>("NumberOfFaithsRepresented");
 
-                    b.Property<int>("PostEventSatisfactionSurvey")
-                        .HasColumnType("int");
+                    b.Property<int>("PostEventSatisfactionSurvey");
 
-                    b.Property<int>("StrategyId")
-                        .HasColumnType("int");
+                    b.Property<int>("StrategyId");
 
-                    b.Property<int>("TotalAttendance")
-                        .HasColumnType("int");
+                    b.Property<int>("TotalAttendance");
 
                     b.HasKey("Id");
 
@@ -1212,24 +991,19 @@ namespace StrategicDashboard.Migrations
             modelBuilder.Entity("OneJaxDashboard.Models.selfAssess_31D", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd();
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime>("CreatedDate");
 
                     b.Property<string>("Month")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasMaxLength(20);
 
-                    b.Property<int>("SelfAssessmentScore")
-                        .HasColumnType("int");
+                    b.Property<int>("SelfAssessmentScore");
 
-                    b.Property<int>("Year")
-                        .HasColumnType("int");
+                    b.Property<int>("Year");
 
                     b.HasKey("Id");
 
@@ -1239,19 +1013,16 @@ namespace StrategicDashboard.Migrations
             modelBuilder.Entity("OneJaxDashboard.Models.socialMedia_5D", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd();
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<decimal?>("AprilJuneEngagementRate")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime>("CreatedDate");
 
-                    b.Property<bool>("GoalMet")
-                        .HasColumnType("bit");
+                    b.Property<bool>("GoalMet");
 
                     b.Property<decimal?>("JanMarEngagementRate")
                         .HasColumnType("decimal(18,2)");
@@ -1262,8 +1033,7 @@ namespace StrategicDashboard.Migrations
                     b.Property<decimal?>("OctDecEngagementRate")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("Year")
-                        .HasColumnType("int");
+                    b.Property<int>("Year");
 
                     b.HasKey("Id");
 
@@ -1273,40 +1043,31 @@ namespace StrategicDashboard.Migrations
             modelBuilder.Entity("OneJaxDashboard.Models.volunteerProgram_40D", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd();
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("CommunicationsActivities")
                         .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
+                        .HasMaxLength(2000);
 
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime>("CreatedDate");
 
                     b.Property<string>("InitiativeDescriptions")
                         .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
+                        .HasMaxLength(2000);
 
-                    b.Property<int>("NumberOfVolunteers")
-                        .HasColumnType("int");
+                    b.Property<int>("NumberOfVolunteers");
 
-                    b.Property<int>("Quarter")
-                        .HasColumnType("int");
+                    b.Property<int>("Quarter");
 
                     b.Property<string>("RecognitionActivities")
                         .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
+                        .HasMaxLength(2000);
 
-                    b.Property<int>("VolunteerLedInitiatives")
-                        .HasColumnType("int");
+                    b.Property<int>("VolunteerLedInitiatives");
 
-                    b.Property<int>("Year")
-                        .HasColumnType("int");
+                    b.Property<int>("Year");
 
                     b.HasKey("Id");
 

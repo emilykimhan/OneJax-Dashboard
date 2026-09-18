@@ -15,13 +15,13 @@ namespace StrategicDashboard.Migrations
                 name: "achieveMile_6D",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Year = table.Column<int>(type: "int", nullable: false),
-                    Month = table.Column<int>(type: "int", nullable: true),
-                    Percentage = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    achievedReview = table.Column<bool>(type: "bit", nullable: false),
-                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    Year = table.Column<int>(nullable: false),
+                    Month = table.Column<int>(nullable: true),
+                    Percentage = table.Column<decimal>(nullable: false),
+                    achievedReview = table.Column<bool>(nullable: false),
+                    CreatedDate = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -32,13 +32,13 @@ namespace StrategicDashboard.Migrations
                 name: "ActivityLogs",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Timestamp = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    User = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Action = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Entity = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Details = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    Timestamp = table.Column<DateTime>(nullable: false),
+                    User = table.Column<string>(nullable: false),
+                    Action = table.Column<string>(nullable: false),
+                    Entity = table.Column<string>(nullable: true),
+                    Details = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -49,15 +49,15 @@ namespace StrategicDashboard.Migrations
                 name: "Annual_average_7D",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Year = table.Column<int>(type: "int", nullable: false),
-                    Month = table.Column<int>(type: "int", nullable: true),
-                    Percentage = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    TotalRespondents = table.Column<int>(type: "int", nullable: true),
-                    RespondentsIdentifyingAsTrusted = table.Column<int>(type: "int", nullable: true),
-                    Notes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    Year = table.Column<int>(nullable: false),
+                    Month = table.Column<int>(nullable: true),
+                    Percentage = table.Column<decimal>(nullable: false),
+                    TotalRespondents = table.Column<int>(nullable: true),
+                    RespondentsIdentifyingAsTrusted = table.Column<int>(nullable: true),
+                    Notes = table.Column<string>(maxLength: 500, nullable: true),
+                    CreatedDate = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -68,13 +68,13 @@ namespace StrategicDashboard.Migrations
                 name: "ArchivedPrograms",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    OriginalProgramId = table.Column<int>(type: "int", nullable: false),
-                    ProgramName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ProgramType = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ArchivedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    OriginalProgramId = table.Column<int>(nullable: false),
+                    ProgramName = table.Column<string>(nullable: false),
+                    ProgramType = table.Column<string>(nullable: false),
+                    Description = table.Column<string>(nullable: false),
+                    ArchivedAtUtc = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -85,12 +85,12 @@ namespace StrategicDashboard.Migrations
                 name: "BoardMeetingAttendance",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    MeetingDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    MembersInAttendance = table.Column<int>(type: "int", nullable: false),
-                    TotalBoardMembers = table.Column<int>(type: "int", nullable: true),
-                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    MeetingDate = table.Column<DateTime>(nullable: false),
+                    MembersInAttendance = table.Column<int>(nullable: false),
+                    TotalBoardMembers = table.Column<int>(nullable: true),
+                    CreatedDate = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -101,15 +101,15 @@ namespace StrategicDashboard.Migrations
                 name: "BoardMember_29D",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    MemberNames = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
-                    Quarter = table.Column<int>(type: "int", nullable: false),
-                    Year = table.Column<int>(type: "int", nullable: false),
-                    NumberRecruited = table.Column<int>(type: "int", nullable: true),
-                    ProspectNames = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
-                    TotalProspectOutreach = table.Column<int>(type: "int", nullable: false),
-                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    MemberNames = table.Column<string>(maxLength: 1000, nullable: false),
+                    Quarter = table.Column<int>(nullable: false),
+                    Year = table.Column<int>(nullable: false),
+                    NumberRecruited = table.Column<int>(nullable: true),
+                    ProspectNames = table.Column<string>(maxLength: 1000, nullable: false),
+                    TotalProspectOutreach = table.Column<int>(nullable: false),
+                    CreatedDate = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -120,23 +120,23 @@ namespace StrategicDashboard.Migrations
                 name: "BudgetTracking_28D",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Quarter = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
-                    Year = table.Column<int>(type: "int", nullable: false),
-                    CommunityPrograms = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    OneYouthPrograms = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    InterfaithPrograms = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    HumanitarianEvent = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    MiscellaneousExpenses = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    CorporateGiving = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    IndividualGiving = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    GrantsFoundations = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    CommunityEvents = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    PeopleCultureWorkshops = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    MiscellaneousRevenue = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    Notes = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
-                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    Quarter = table.Column<string>(maxLength: 10, nullable: false),
+                    Year = table.Column<int>(nullable: false),
+                    CommunityPrograms = table.Column<decimal>(nullable: true),
+                    OneYouthPrograms = table.Column<decimal>(nullable: true),
+                    InterfaithPrograms = table.Column<decimal>(nullable: true),
+                    HumanitarianEvent = table.Column<decimal>(nullable: true),
+                    MiscellaneousExpenses = table.Column<decimal>(nullable: true),
+                    CorporateGiving = table.Column<decimal>(nullable: true),
+                    IndividualGiving = table.Column<decimal>(nullable: true),
+                    GrantsFoundations = table.Column<decimal>(nullable: true),
+                    CommunityEvents = table.Column<decimal>(nullable: true),
+                    PeopleCultureWorkshops = table.Column<decimal>(nullable: true),
+                    MiscellaneousRevenue = table.Column<decimal>(nullable: true),
+                    Notes = table.Column<string>(maxLength: 1000, nullable: true),
+                    CreatedDate = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -147,12 +147,12 @@ namespace StrategicDashboard.Migrations
                 name: "CommunicationRate",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Year = table.Column<int>(type: "int", nullable: false),
-                    Month = table.Column<int>(type: "int", nullable: false),
-                    AverageCommunicationSatisfaction = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    Year = table.Column<int>(nullable: false),
+                    Month = table.Column<int>(nullable: false),
+                    AverageCommunicationSatisfaction = table.Column<decimal>(nullable: false),
+                    CreatedDate = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -163,12 +163,12 @@ namespace StrategicDashboard.Migrations
                 name: "ContactsInterfaith_14D",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Year = table.Column<int>(type: "int", nullable: false),
-                    Month = table.Column<int>(type: "int", nullable: true),
-                    TotalInterfaithContacts = table.Column<int>(type: "int", nullable: false),
-                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    Year = table.Column<int>(nullable: false),
+                    Month = table.Column<int>(nullable: true),
+                    TotalInterfaithContacts = table.Column<int>(nullable: false),
+                    CreatedDate = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -179,14 +179,14 @@ namespace StrategicDashboard.Migrations
                 name: "income_27D",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    IncomeSource = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
-                    Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Month = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    Year = table.Column<int>(type: "int", nullable: true),
-                    Notes = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
-                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    IncomeSource = table.Column<string>(maxLength: 200, nullable: false),
+                    Amount = table.Column<decimal>(nullable: false),
+                    Month = table.Column<string>(maxLength: 20, nullable: false),
+                    Year = table.Column<int>(nullable: true),
+                    Notes = table.Column<string>(maxLength: 1000, nullable: true),
+                    CreatedDate = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -197,22 +197,22 @@ namespace StrategicDashboard.Migrations
                 name: "MediaPlacements_3D",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Year = table.Column<int>(type: "int", nullable: false),
-                    January = table.Column<int>(type: "int", nullable: true),
-                    February = table.Column<int>(type: "int", nullable: true),
-                    March = table.Column<int>(type: "int", nullable: true),
-                    April = table.Column<int>(type: "int", nullable: true),
-                    May = table.Column<int>(type: "int", nullable: true),
-                    June = table.Column<int>(type: "int", nullable: true),
-                    July = table.Column<int>(type: "int", nullable: true),
-                    August = table.Column<int>(type: "int", nullable: true),
-                    September = table.Column<int>(type: "int", nullable: true),
-                    October = table.Column<int>(type: "int", nullable: true),
-                    November = table.Column<int>(type: "int", nullable: true),
-                    December = table.Column<int>(type: "int", nullable: true),
-                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    Year = table.Column<int>(nullable: false),
+                    January = table.Column<int>(nullable: true),
+                    February = table.Column<int>(nullable: true),
+                    March = table.Column<int>(nullable: true),
+                    April = table.Column<int>(nullable: true),
+                    May = table.Column<int>(nullable: true),
+                    June = table.Column<int>(nullable: true),
+                    July = table.Column<int>(nullable: true),
+                    August = table.Column<int>(nullable: true),
+                    September = table.Column<int>(nullable: true),
+                    October = table.Column<int>(nullable: true),
+                    November = table.Column<int>(nullable: true),
+                    December = table.Column<int>(nullable: true),
+                    CreatedDate = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -223,18 +223,18 @@ namespace StrategicDashboard.Migrations
                 name: "Plan2026_24D",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
-                    Year = table.Column<int>(type: "int", nullable: false),
-                    Quarter = table.Column<string>(type: "nvarchar(2)", maxLength: 2, nullable: false),
-                    FrameworkStatus = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Notes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    GoalMet = table.Column<bool>(type: "bit", nullable: false),
-                    IssueName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
-                    CrisisDescription = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
-                    IssueHandled = table.Column<bool>(type: "bit", nullable: false),
-                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    Name = table.Column<string>(maxLength: 200, nullable: false),
+                    Year = table.Column<int>(nullable: false),
+                    Quarter = table.Column<string>(maxLength: 2, nullable: false),
+                    FrameworkStatus = table.Column<string>(maxLength: 100, nullable: false),
+                    Notes = table.Column<string>(maxLength: 500, nullable: true),
+                    GoalMet = table.Column<bool>(nullable: false),
+                    IssueName = table.Column<string>(maxLength: 200, nullable: true),
+                    CrisisDescription = table.Column<string>(maxLength: 1000, nullable: true),
+                    IssueHandled = table.Column<bool>(nullable: false),
+                    CreatedDate = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -245,13 +245,13 @@ namespace StrategicDashboard.Migrations
                 name: "ProfessionalDevelopments",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Year = table.Column<int>(type: "int", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Month = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    Activities = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: false),
-                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    Year = table.Column<int>(nullable: false),
+                    Name = table.Column<string>(nullable: false),
+                    Month = table.Column<string>(maxLength: 20, nullable: false),
+                    Activities = table.Column<string>(maxLength: 2000, nullable: false),
+                    CreatedDate = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -262,11 +262,11 @@ namespace StrategicDashboard.Migrations
                 name: "Programs",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    ProgramName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ProgramType = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    ProgramName = table.Column<string>(nullable: false),
+                    Description = table.Column<string>(nullable: false),
+                    ProgramType = table.Column<string>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -277,12 +277,12 @@ namespace StrategicDashboard.Migrations
                 name: "selfAssess_31D",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Year = table.Column<int>(type: "int", nullable: false),
-                    Month = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    SelfAssessmentScore = table.Column<int>(type: "int", nullable: false),
-                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    Year = table.Column<int>(nullable: false),
+                    Month = table.Column<string>(maxLength: 20, nullable: false),
+                    SelfAssessmentScore = table.Column<int>(nullable: false),
+                    CreatedDate = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -293,15 +293,15 @@ namespace StrategicDashboard.Migrations
                 name: "socialMedia_5D",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Year = table.Column<int>(type: "int", nullable: false),
-                    JulySeptEngagementRate = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    OctDecEngagementRate = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    JanMarEngagementRate = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    AprilJuneEngagementRate = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    GoalMet = table.Column<bool>(type: "bit", nullable: false)
+                    Year = table.Column<int>(nullable: false),
+                    JulySeptEngagementRate = table.Column<decimal>(nullable: true),
+                    OctDecEngagementRate = table.Column<decimal>(nullable: true),
+                    JanMarEngagementRate = table.Column<decimal>(nullable: true),
+                    AprilJuneEngagementRate = table.Column<decimal>(nullable: true),
+                    CreatedDate = table.Column<DateTime>(nullable: false),
+                    GoalMet = table.Column<bool>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -312,13 +312,13 @@ namespace StrategicDashboard.Migrations
                 name: "Staffauth",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Username = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
-                    Password = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    IsAdmin = table.Column<bool>(type: "bit", nullable: false)
+                    Name = table.Column<string>(nullable: false),
+                    Username = table.Column<string>(maxLength: 256, nullable: false),
+                    Password = table.Column<string>(nullable: true),
+                    Email = table.Column<string>(nullable: false),
+                    IsAdmin = table.Column<bool>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -330,12 +330,12 @@ namespace StrategicDashboard.Migrations
                 name: "StaffSurveys_22D",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Year = table.Column<int>(type: "int", nullable: false),
-                    Month = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    SatisfactionRate = table.Column<int>(type: "int", nullable: false),
-                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    Year = table.Column<int>(nullable: false),
+                    Month = table.Column<string>(maxLength: 20, nullable: false),
+                    SatisfactionRate = table.Column<int>(nullable: false),
+                    CreatedDate = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -346,11 +346,11 @@ namespace StrategicDashboard.Migrations
                 name: "StrategicGoals",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Color = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Name = table.Column<string>(nullable: false),
+                    Description = table.Column<string>(nullable: false),
+                    Color = table.Column<string>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -361,16 +361,16 @@ namespace StrategicDashboard.Migrations
                 name: "volunteerProgram_40D",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Quarter = table.Column<int>(type: "int", nullable: false),
-                    Year = table.Column<int>(type: "int", nullable: false),
-                    NumberOfVolunteers = table.Column<int>(type: "int", nullable: false),
-                    CommunicationsActivities = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: false),
-                    RecognitionActivities = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: false),
-                    VolunteerLedInitiatives = table.Column<int>(type: "int", nullable: false),
-                    InitiativeDescriptions = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: false),
-                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    Quarter = table.Column<int>(nullable: false),
+                    Year = table.Column<int>(nullable: false),
+                    NumberOfVolunteers = table.Column<int>(nullable: false),
+                    CommunicationsActivities = table.Column<string>(maxLength: 2000, nullable: false),
+                    RecognitionActivities = table.Column<string>(maxLength: 2000, nullable: false),
+                    VolunteerLedInitiatives = table.Column<int>(nullable: false),
+                    InitiativeDescriptions = table.Column<string>(maxLength: 2000, nullable: false),
+                    CreatedDate = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -381,14 +381,14 @@ namespace StrategicDashboard.Migrations
                 name: "WebsiteTraffic",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Year = table.Column<int>(type: "int", nullable: false),
-                    Q1_JulySeptember = table.Column<int>(type: "int", nullable: true),
-                    Q2_OctoberDecember = table.Column<int>(type: "int", nullable: true),
-                    Q3_JanuaryMarch = table.Column<int>(type: "int", nullable: true),
-                    Q4_AprilJune = table.Column<int>(type: "int", nullable: true),
-                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    Year = table.Column<int>(nullable: false),
+                    Q1_JulySeptember = table.Column<int>(nullable: true),
+                    Q2_OctoberDecember = table.Column<int>(nullable: true),
+                    Q3_JanuaryMarch = table.Column<int>(nullable: true),
+                    Q4_AprilJune = table.Column<int>(nullable: true),
+                    CreatedDate = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -399,24 +399,24 @@ namespace StrategicDashboard.Migrations
                 name: "GoalMetrics",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    StrategicGoalId = table.Column<int>(type: "int", nullable: false),
-                    Target = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CurrentValue = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Unit = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    TargetDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    DataSource = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    MetricType = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    IsPublic = table.Column<bool>(type: "bit", nullable: false),
-                    FiscalYear = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Q1Value = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Q2Value = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Q3Value = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Q4Value = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
+                    Name = table.Column<string>(nullable: false),
+                    Description = table.Column<string>(nullable: false),
+                    StrategicGoalId = table.Column<int>(nullable: false),
+                    Target = table.Column<string>(nullable: false),
+                    CurrentValue = table.Column<decimal>(nullable: false),
+                    Unit = table.Column<string>(nullable: false),
+                    Status = table.Column<string>(nullable: false),
+                    TargetDate = table.Column<DateTime>(nullable: false),
+                    DataSource = table.Column<string>(nullable: false),
+                    MetricType = table.Column<string>(nullable: false),
+                    IsPublic = table.Column<bool>(nullable: false),
+                    FiscalYear = table.Column<string>(nullable: false),
+                    Q1Value = table.Column<decimal>(nullable: false),
+                    Q2Value = table.Column<decimal>(nullable: false),
+                    Q3Value = table.Column<decimal>(nullable: false),
+                    Q4Value = table.Column<decimal>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -433,21 +433,21 @@ namespace StrategicDashboard.Migrations
                 name: "Strategies",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ProgramName = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ProgramType = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ProgramId = table.Column<int>(type: "int", nullable: true),
-                    StrategicGoalId = table.Column<int>(type: "int", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Date = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Time = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    CrossCollaboration = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Partners = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    EventFYear = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    IsArchived = table.Column<bool>(type: "bit", nullable: false),
-                    ArchivedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    Name = table.Column<string>(nullable: false),
+                    ProgramName = table.Column<string>(nullable: true),
+                    ProgramType = table.Column<string>(nullable: true),
+                    ProgramId = table.Column<int>(nullable: true),
+                    StrategicGoalId = table.Column<int>(nullable: false),
+                    Description = table.Column<string>(nullable: false),
+                    Date = table.Column<string>(nullable: true),
+                    Time = table.Column<string>(nullable: true),
+                    CrossCollaboration = table.Column<string>(nullable: false),
+                    Partners = table.Column<string>(nullable: false),
+                    EventFYear = table.Column<string>(nullable: false),
+                    IsArchived = table.Column<bool>(nullable: false),
+                    ArchivedAtUtc = table.Column<DateTime>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -470,16 +470,16 @@ namespace StrategicDashboard.Migrations
                 name: "CollabTouch_47D",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    FiscalYear = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    PartnerOrganization = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
-                    Contact = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
-                    ContactEmail = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: true),
-                    ContactPhone = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: true),
-                    StrategyId = table.Column<int>(type: "int", nullable: false),
-                    Touchpoint = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
-                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    FiscalYear = table.Column<string>(maxLength: 20, nullable: false),
+                    PartnerOrganization = table.Column<string>(maxLength: 200, nullable: false),
+                    Contact = table.Column<string>(maxLength: 150, nullable: false),
+                    ContactEmail = table.Column<string>(maxLength: 150, nullable: true),
+                    ContactPhone = table.Column<string>(maxLength: 30, nullable: true),
+                    StrategyId = table.Column<int>(nullable: false),
+                    Touchpoint = table.Column<string>(maxLength: 500, nullable: false),
+                    CreatedDate = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -496,13 +496,13 @@ namespace StrategicDashboard.Migrations
                 name: "demographics_8D",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    StrategyId = table.Column<int>(type: "int", nullable: false),
-                    Year = table.Column<int>(type: "int", nullable: false),
-                    ZipCodes = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
-                    Notes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    StrategyId = table.Column<int>(nullable: false),
+                    Year = table.Column<int>(nullable: false),
+                    ZipCodes = table.Column<string>(maxLength: 1000, nullable: false),
+                    Notes = table.Column<string>(maxLength: 500, nullable: true),
+                    CreatedDate = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -519,12 +519,12 @@ namespace StrategicDashboard.Migrations
                 name: "Diversity_37D",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    FiscalYear = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    StrategyId = table.Column<int>(type: "int", nullable: false),
-                    DiversityCount = table.Column<int>(type: "int", nullable: false),
-                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    FiscalYear = table.Column<string>(nullable: false),
+                    StrategyId = table.Column<int>(nullable: false),
+                    DiversityCount = table.Column<int>(nullable: false),
+                    CreatedDate = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -541,13 +541,13 @@ namespace StrategicDashboard.Migrations
                 name: "DonorEvents_19D",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    StrategyId = table.Column<int>(type: "int", nullable: false),
-                    NumberOfParticipants = table.Column<int>(type: "int", nullable: false),
-                    EventSatisfactionRating = table.Column<int>(type: "int", nullable: false),
-                    CreatedBy = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    StrategyId = table.Column<int>(nullable: false),
+                    NumberOfParticipants = table.Column<int>(nullable: false),
+                    EventSatisfactionRating = table.Column<int>(nullable: false),
+                    CreatedBy = table.Column<string>(maxLength: 100, nullable: true),
+                    CreatedDate = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -564,28 +564,28 @@ namespace StrategicDashboard.Migrations
                 name: "Events",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Location = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    SatisfactionScore = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    Attendees = table.Column<int>(type: "int", nullable: false),
-                    Notes = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    PreAssessmentData = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    PostAssessmentData = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    StrategyId = table.Column<int>(type: "int", nullable: true),
-                    OwnerUsername = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
-                    IsAssignedByAdmin = table.Column<bool>(type: "bit", nullable: false),
-                    AdminNotes = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    AssignmentDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    DueDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    IsArchived = table.Column<bool>(type: "bit", nullable: false),
-                    CompletionDate = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    Title = table.Column<string>(nullable: false),
+                    Type = table.Column<string>(nullable: false),
+                    Location = table.Column<string>(nullable: false),
+                    SatisfactionScore = table.Column<decimal>(nullable: true),
+                    Attendees = table.Column<int>(nullable: false),
+                    Notes = table.Column<string>(nullable: false),
+                    PreAssessmentData = table.Column<string>(nullable: false),
+                    PostAssessmentData = table.Column<string>(nullable: false),
+                    Description = table.Column<string>(nullable: false),
+                    Status = table.Column<string>(nullable: false),
+                    StartDate = table.Column<DateTime>(nullable: true),
+                    EndDate = table.Column<DateTime>(nullable: true),
+                    StrategyId = table.Column<int>(nullable: true),
+                    OwnerUsername = table.Column<string>(maxLength: 256, nullable: false),
+                    IsAssignedByAdmin = table.Column<bool>(nullable: false),
+                    AdminNotes = table.Column<string>(nullable: false),
+                    AssignmentDate = table.Column<DateTime>(nullable: true),
+                    DueDate = table.Column<DateTime>(nullable: true),
+                    IsArchived = table.Column<bool>(nullable: false),
+                    CompletionDate = table.Column<DateTime>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -606,11 +606,11 @@ namespace StrategicDashboard.Migrations
                 name: "EventSatisfaction_12D",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    StrategyId = table.Column<int>(type: "int", nullable: false),
-                    EventAttendeeSatisfactionPercentage = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    StrategyId = table.Column<int>(nullable: false),
+                    EventAttendeeSatisfactionPercentage = table.Column<decimal>(nullable: false),
+                    CreatedDate = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -627,11 +627,11 @@ namespace StrategicDashboard.Migrations
                 name: "FaithCommunity_13D",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    StrategyId = table.Column<int>(type: "int", nullable: false),
-                    NumberOfFaithsRepresented = table.Column<int>(type: "int", nullable: false),
-                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    StrategyId = table.Column<int>(nullable: false),
+                    NumberOfFaithsRepresented = table.Column<int>(nullable: false),
+                    CreatedDate = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -648,22 +648,22 @@ namespace StrategicDashboard.Migrations
                 name: "FeeForServices_21D",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    ClientName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
-                    StrategyId = table.Column<int>(type: "int", nullable: false),
-                    EventName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
-                    WorkshopFormat = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    WorkshopLocation = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
-                    WorkshopDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    EventPartners = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    NumberOfAttendees = table.Column<int>(type: "int", nullable: false),
-                    ParticipantSatisfactionRating = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    PartnerSatisfactionRating = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    RevenueReceived = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    ExpenseReceived = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Year = table.Column<int>(type: "int", nullable: false),
-                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    ClientName = table.Column<string>(maxLength: 200, nullable: false),
+                    StrategyId = table.Column<int>(nullable: false),
+                    EventName = table.Column<string>(maxLength: 200, nullable: true),
+                    WorkshopFormat = table.Column<string>(maxLength: 50, nullable: false),
+                    WorkshopLocation = table.Column<string>(maxLength: 200, nullable: true),
+                    WorkshopDate = table.Column<DateTime>(nullable: false),
+                    EventPartners = table.Column<string>(maxLength: 500, nullable: true),
+                    NumberOfAttendees = table.Column<int>(nullable: false),
+                    ParticipantSatisfactionRating = table.Column<decimal>(nullable: false),
+                    PartnerSatisfactionRating = table.Column<decimal>(nullable: false),
+                    RevenueReceived = table.Column<decimal>(nullable: false),
+                    ExpenseReceived = table.Column<decimal>(nullable: false),
+                    Year = table.Column<int>(nullable: false),
+                    CreatedDate = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -680,13 +680,13 @@ namespace StrategicDashboard.Migrations
                 name: "FirstTime_38D",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    FiscalYear = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    StrategyId = table.Column<int>(type: "int", nullable: false),
-                    TotalAttendees = table.Column<int>(type: "int", nullable: false),
-                    NumberOfFirstTimeParticipants = table.Column<int>(type: "int", nullable: false),
-                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    FiscalYear = table.Column<string>(nullable: false),
+                    StrategyId = table.Column<int>(nullable: false),
+                    TotalAttendees = table.Column<int>(nullable: false),
+                    NumberOfFirstTimeParticipants = table.Column<int>(nullable: false),
+                    CreatedDate = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -703,13 +703,13 @@ namespace StrategicDashboard.Migrations
                 name: "Interfaith_11D",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    StrategyId = table.Column<int>(type: "int", nullable: false),
-                    NumberOfFaithsRepresented = table.Column<int>(type: "int", nullable: false),
-                    PostEventSatisfactionSurvey = table.Column<int>(type: "int", nullable: false),
-                    TotalAttendance = table.Column<int>(type: "int", nullable: false),
-                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    StrategyId = table.Column<int>(nullable: false),
+                    NumberOfFaithsRepresented = table.Column<int>(nullable: false),
+                    PostEventSatisfactionSurvey = table.Column<int>(nullable: false),
+                    TotalAttendance = table.Column<int>(nullable: false),
+                    CreatedDate = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -726,14 +726,14 @@ namespace StrategicDashboard.Migrations
                 name: "YouthAttend_15D",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    StrategyId = table.Column<int>(type: "int", nullable: false),
-                    NumberOfYouthAttendees = table.Column<int>(type: "int", nullable: false),
-                    PostEventSurveySatisfaction = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    AveragePreAssessment = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    AveragePostAssessment = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    StrategyId = table.Column<int>(nullable: false),
+                    NumberOfYouthAttendees = table.Column<int>(nullable: false),
+                    PostEventSurveySatisfaction = table.Column<decimal>(nullable: false),
+                    AveragePreAssessment = table.Column<decimal>(nullable: false),
+                    AveragePostAssessment = table.Column<decimal>(nullable: false),
+                    CreatedDate = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {
