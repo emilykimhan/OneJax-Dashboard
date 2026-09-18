@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OneJaxDashboard.Data;
 
@@ -10,9 +11,11 @@ using OneJaxDashboard.Data;
 namespace StrategicDashboard.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260915013742_RebaselineSchema")]
+    partial class RebaselineSchema
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.10");
@@ -36,7 +39,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ActivityLogs", (string)null);
+                    b.ToTable("ActivityLogs");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.Annual_average_7D", b =>
@@ -62,7 +65,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Annual_average_7D", (string)null);
+                    b.ToTable("Annual_average_7D");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.ArchivedProgram", b =>
@@ -85,7 +88,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ArchivedPrograms", (string)null);
+                    b.ToTable("ArchivedPrograms");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.BoardMeetingAttendance", b =>
@@ -103,7 +106,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("BoardMeetingAttendance", (string)null);
+                    b.ToTable("BoardMeetingAttendance");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.BoardMemberRecruitment", b =>
@@ -130,7 +133,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("BoardMember_29D", (string)null);
+                    b.ToTable("BoardMember_29D");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.BudgetTracking_28D", b =>
@@ -187,7 +190,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("BudgetTracking_28D", (string)null);
+                    b.ToTable("BudgetTracking_28D");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.Comm_rate20D", b =>
@@ -206,7 +209,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("CommunicationRate", (string)null);
+                    b.ToTable("CommunicationRate");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.ContactsInterfaith_14D", b =>
@@ -224,7 +227,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ContactsInterfaith_14D", (string)null);
+                    b.ToTable("ContactsInterfaith_14D");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.CrossColab", b =>
@@ -271,7 +274,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasIndex("StrategyId");
 
-                    b.ToTable("Diversity_37D", (string)null);
+                    b.ToTable("Diversity_37D");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.DonorEvent_19D", b =>
@@ -294,7 +297,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasIndex("StrategyId");
 
-                    b.ToTable("DonorEvents_19D", (string)null);
+                    b.ToTable("DonorEvents_19D");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.Event", b =>
@@ -360,7 +363,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasIndex("StrategyId");
 
-                    b.ToTable("Events", (string)null);
+                    b.ToTable("Events");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.FaithCommunity_13D", b =>
@@ -378,7 +381,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasIndex("StrategyId");
 
-                    b.ToTable("FaithCommunity_13D", (string)null);
+                    b.ToTable("FaithCommunity_13D");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.FirstTime_38D", b =>
@@ -401,7 +404,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasIndex("StrategyId");
 
-                    b.ToTable("FirstTime_38D", (string)null);
+                    b.ToTable("FirstTime_38D");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.GoalMetric", b =>
@@ -458,7 +461,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasIndex("StrategicGoalId");
 
-                    b.ToTable("GoalMetrics", (string)null);
+                    b.ToTable("GoalMetrics");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.MediaPlacements_3D", b =>
@@ -496,7 +499,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("MediaPlacements_3D", (string)null);
+                    b.ToTable("MediaPlacements_3D");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.ProfessionalDevelopment", b =>
@@ -521,7 +524,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ProfessionalDevelopments", (string)null);
+                    b.ToTable("ProfessionalDevelopments");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.Programs", b =>
@@ -540,7 +543,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Programs", (string)null);
+                    b.ToTable("Programs");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.StaffSurvey_22D", b =>
@@ -560,7 +563,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("StaffSurveys_22D", (string)null);
+                    b.ToTable("StaffSurveys_22D");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.Staffauth", b =>
@@ -587,7 +590,7 @@ namespace StrategicDashboard.Migrations
                     b.HasIndex("Username")
                         .IsUnique();
 
-                    b.ToTable("Staffauth", (string)null);
+                    b.ToTable("Staffauth");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.StrategicGoal", b =>
@@ -606,7 +609,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("StrategicGoals", (string)null);
+                    b.ToTable("StrategicGoals");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.Strategy", b =>
@@ -651,7 +654,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasIndex("StrategicGoalId");
 
-                    b.ToTable("Strategies", (string)null);
+                    b.ToTable("Strategies");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.WebsiteTraffic_4D", b =>
@@ -673,7 +676,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("WebsiteTraffic", (string)null);
+                    b.ToTable("WebsiteTraffic");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.YouthAttend_15D", b =>
@@ -700,7 +703,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasIndex("StrategyId");
 
-                    b.ToTable("YouthAttend_15D", (string)null);
+                    b.ToTable("YouthAttend_15D");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.achieveMile_6D", b =>
@@ -721,7 +724,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("achieveMile_6D", (string)null);
+                    b.ToTable("achieveMile_6D");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.demographics_8D", b =>
@@ -746,7 +749,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasIndex("StrategyId");
 
-                    b.ToTable("demographics_8D", (string)null);
+                    b.ToTable("demographics_8D");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.eventSatisfaction", b =>
@@ -765,7 +768,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasIndex("StrategyId");
 
-                    b.ToTable("EventSatisfaction_12D", (string)null);
+                    b.ToTable("EventSatisfaction_12D");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.feeForService_21D", b =>
@@ -816,7 +819,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasIndex("StrategyId");
 
-                    b.ToTable("FeeForServices_21D", (string)null);
+                    b.ToTable("FeeForServices_21D");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.income_27D", b =>
@@ -844,7 +847,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("income_27D", (string)null);
+                    b.ToTable("income_27D");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.interfaith_11D", b =>
@@ -866,7 +869,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasIndex("StrategyId");
 
-                    b.ToTable("Interfaith_11D", (string)null);
+                    b.ToTable("Interfaith_11D");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.selfAssess_31D", b =>
@@ -886,7 +889,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("selfAssess_31D", (string)null);
+                    b.ToTable("selfAssess_31D");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.socialMedia_5D", b =>
@@ -914,7 +917,7 @@ namespace StrategicDashboard.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("socialMedia_5D", (string)null);
+                    b.ToTable("socialMedia_5D");
                 });
 
             modelBuilder.Entity("OneJaxDashboard.Models.CrossColab", b =>

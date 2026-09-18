@@ -32,7 +32,6 @@ public sealed class AppDataResetter
         "BoardMember_29D",
         "BoardMeetingAttendance",
         "selfAssess_31D",
-        "volunteerProgram_40D",
         "Interfaith_11D",
         "EventSatisfaction_12D",
         "CollabTouch_47D",

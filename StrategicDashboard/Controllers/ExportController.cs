@@ -193,12 +193,6 @@ public class ExportController : Controller
             AddSheet("Board Self-Assessment", new[] { "Year", "Month", "SelfAssessmentScore", "CreatedDate" },
                 records.Select(x => new object?[] { x.Year, x.Month, x.SelfAssessmentScore, x.CreatedDate.ToString("MM/dd/yyyy") }));
         }
-        if (byType.TryGetValue("volunteer-program", out var vpIds))
-        {
-            var records = _context.volunteerProgram_40D.Where(x => vpIds.Contains(x.Id)).ToList();
-            AddSheet("Volunteer Program", new[] { "Quarter","Year","NumberOfVolunteers","VolunteerLedInitiatives","CommunicationsActivities","RecognitionActivities","InitiativeDescriptions","CreatedDate" },
-                records.Select(x => new object?[] { x.Quarter.ToString(), x.Year, x.NumberOfVolunteers, x.VolunteerLedInitiatives, x.CommunicationsActivities, x.RecognitionActivities, x.InitiativeDescriptions, x.CreatedDate.ToString("MM/dd/yyyy") }));
-        }
         if (byType.TryGetValue("interfaith-event", out var ieIds))
         {
             var records = _context.Interfaith_11D.Include(i => i.Strategy).Where(x => ieIds.Contains(x.Id)).ToList();

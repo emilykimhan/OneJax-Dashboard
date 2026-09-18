@@ -30,8 +30,7 @@
 	                                            var mYouth = scheduledGoalMetrics.FirstOrDefault(m => (m.Name ?? "").Contains("Youth", StringComparison.OrdinalIgnoreCase) && (m.Name ?? "").Contains("Attendance", StringComparison.OrdinalIgnoreCase));
 	                                            var mSatisfaction = scheduledGoalMetrics.FirstOrDefault(m => (m.Name ?? "").Contains("Satisfaction", StringComparison.OrdinalIgnoreCase) && (m.Name ?? "").Contains("Event", StringComparison.OrdinalIgnoreCase))
 	                                                ?? scheduledGoalMetrics.FirstOrDefault(m => (m.Name ?? "").Contains("Satisfaction", StringComparison.OrdinalIgnoreCase));
-	                                            var mPartners = scheduledGoalMetrics.FirstOrDefault(m => (m.Name ?? "").Contains("Partner", StringComparison.OrdinalIgnoreCase) && (m.Name ?? "").Contains("Touchpoints", StringComparison.OrdinalIgnoreCase))
-	                                                ?? scheduledGoalMetrics.FirstOrDefault(m => (m.Name ?? "").Contains("Collaboration", StringComparison.OrdinalIgnoreCase));
+	                                            var mPartners = scheduledGoalMetrics.FirstOrDefault(m => (m.Name ?? "").Contains("Collaboration", StringComparison.OrdinalIgnoreCase));
 	                                            var mFaith = scheduledGoalMetrics.FirstOrDefault(m => (m.Name ?? "").Contains("Faith", StringComparison.OrdinalIgnoreCase) && (m.Name ?? "").Contains("Representation", StringComparison.OrdinalIgnoreCase));
 	                                            var mClergy = scheduledGoalMetrics.FirstOrDefault(m => (m.Name ?? "").Contains("Clergy", StringComparison.OrdinalIgnoreCase) && (m.Name ?? "").Contains("Network", StringComparison.OrdinalIgnoreCase));
 	                                            var mDiversity = goalMetrics.FirstOrDefault(m => (m.Name ?? "").Contains("Diversity", StringComparison.OrdinalIgnoreCase) && (m.Name ?? "").Contains("Participant", StringComparison.OrdinalIgnoreCase));
@@ -851,6 +850,75 @@
 	                                                                            </div>
 	                                                                        </div>
 	                                                                    </div>
+	                                                                </div>
+	                                                            </section>
+	                                                        </div>
+
+	                                                        <div class="col-xl-4 d-flex">
+	                                                            <section class="community-panel community-relationships w-100">
+	                                                                <div class="community-panel-header">
+	                                                                    <div>
+	                                                                        <span class="community-kicker">Collaborative Partnerships</span>
+	                                                                        <h4>Partners engaged through events</h4>
+	                                                                    </div>
+	                                                                    <span class="community-state-badge">@panelBadgeText(relationshipAnyScheduled, relationshipAllScheduled, "Cross-Sector Collaborations")</span>
+	                                                                </div>
+	                                                                @if (!relationshipAllScheduled)
+	                                                                {
+	                                                                    <div class="community-state-note">@panelNoteText(relationshipAnyScheduled, relationshipAllScheduled, "Cross-Sector Collaborations")</div>
+	                                                                }
+	                                                                @if (canManageData)
+	                                                                {
+	                                                                    <div class="community-panel-header">
+	                                                                        <div class="community-link-cluster">
+	                                                                            <a asp-controller="Strategy" asp-action="ViewEvents" class="btn btn-sm btn-outline-light">Manage partners</a>
+	                                                                        </div>
+	                                                                    </div>
+	                                                                }
+
+	                                                                <div class="community-mini-card">
+	                                                                    <div class="community-chart-label">Partners this year</div>
+	                                                                    <div class="community-kpi-big">@scheduledValueLabel(partnersScheduled, partnersValueRaw, "0", "")</div>
+	                                                                    <div class="community-kpi-caption">Collaborative partners added through events, @activeFiscalYearLabel</div>
+	                                                                    <div class="community-rail-track"><div class="community-rail-fill" style="width:@progressWidth(partnersProgress)%"></div></div>
+	                                                                    <div class="community-inline-meta">
+	                                                                        <span>Target: @targetLabel(partnersTarget, "0", "", "") per year</span>
+	                                                                        <span>@partnersStatusText</span>
+	                                                                    </div>
+	                                                                </div>
+
+	                                                                <div class="community-mini-card mt-3">
+	                                                                    <div class="community-chart-label">Latest partners</div>
+	                                                                    @if (anyLatestPartners)
+	                                                                    {
+	                                                                        <div class="community-table-wrap">
+	                                                                            <table class="table community-mini-table">
+	                                                                                <thead>
+	                                                                                    <tr><th>Partner</th><th>Added</th></tr>
+	                                                                                </thead>
+	                                                                                <tbody>
+	                                                                                    @foreach (var partner in latestPartners!)
+	                                                                                    {
+	                                                                                        <tr>
+	                                                                                            <td>
+	                                                                                                <div class="community-partner-name">@partner.partnerName</div>
+	                                                                                                @{ string? contactName = partner.contactName; }
+	                                                                                                @if (!string.IsNullOrWhiteSpace(contactName))
+	                                                                                                {
+	                                                                                                    <div class="community-partner-meta">@contactName</div>
+	                                                                                                }
+	                                                                                            </td>
+	                                                                                            <td>@partner.date</td>
+	                                                                                        </tr>
+	                                                                                    }
+	                                                                                </tbody>
+	                                                                            </table>
+	                                                                        </div>
+	                                                                    }
+	                                                                    else
+	                                                                    {
+	                                                                        <div class="community-kpi-caption">No collaborative partners logged yet for @activeFiscalYearLabel.</div>
+	                                                                    }
 	                                                                </div>
 	                                                            </section>
 	                                                        </div>

@@ -37,7 +37,6 @@ public static class DashboardMetricRules
         "Earned Media Placements",
         "Geographic Reach",
         "Board Recruitment",
-        "Volunteer Program Participation",
         "Budget Revenue Tracking",
         "Fee-for-Service Income",
         "General Income Streams",

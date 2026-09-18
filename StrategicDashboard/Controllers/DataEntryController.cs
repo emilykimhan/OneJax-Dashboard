@@ -34,7 +34,6 @@ namespace OneJaxDashboard.Controllers
             ["BoardMember"] = ("BoardMemberRecruitment", "Board Member Recruitment"),
             ["BoardMeetingAttendance"] = ("BoardMeetingAttendance", "Board Meeting Attendance"),
             ["SelfAssessment"] = ("SelfAssessment", "Self-Assessment"),
-            ["VolunteerProgram"] = ("VolunteerProgram", "Volunteer Program"),
             ["InterfaithEvent"] = ("InterfaithEvent", "Interfaith Event"),
             ["EventSatisfaction"] = ("EventSatisfaction", "Event Satisfaction"),
             ["FaithCommunity"] = ("FaithCommunity", "Faith Community Representation"),
@@ -198,7 +197,6 @@ namespace OneJaxDashboard.Controllers
             var allBoardMembers = _context.BoardMember_29D.ToList();
             var allBoardMeetings = _context.BoardMeetingAttendance.ToList();
             var allSelfAssessments = _context.selfAssess_31D.ToList();
-            var allVolunteerPrograms = _context.volunteerProgram_40D.ToList();
             var allInterfaithEvents = _context.Interfaith_11D.Include(i => i.Strategy).ToList();
             var allEventSatisfactions = _context.EventSatisfaction_12D.Include(e => e.Strategy).ToList();
             var allFaithCommunity = _context.FaithCommunity_13D.Include(f => f.Strategy).ToList();
@@ -224,7 +222,6 @@ namespace OneJaxDashboard.Controllers
             var filteredBoardMembers = allBoardMembers;
             var filteredBoardMeetings = allBoardMeetings;
             var filteredSelfAssessments = allSelfAssessments;
-            var filteredVolunteerPrograms = allVolunteerPrograms;
             var filteredInterfaithEvents = allInterfaithEvents;
             var filteredEventSatisfactions = allEventSatisfactions;
             var filteredFaithCommunity = allFaithCommunity;
@@ -309,9 +306,6 @@ namespace OneJaxDashboard.Controllers
                     filteredSelfAssessments = filteredSelfAssessments
                         .Where(s => s.CreatedDate >= filterStartDate && s.CreatedDate <= filterEndDate)
                         .ToList();
-                    filteredVolunteerPrograms = filteredVolunteerPrograms
-                        .Where(v => v.CreatedDate >= filterStartDate && v.CreatedDate <= filterEndDate)
-                        .ToList();
                     filteredInterfaithEvents = filteredInterfaithEvents
                         .Where(i => i.CreatedDate >= filterStartDate && i.CreatedDate <= filterEndDate)
                         .ToList();
@@ -354,7 +348,6 @@ namespace OneJaxDashboard.Controllers
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
-                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
                 filteredInterfaithEvents = new List<interfaith_11D>();
                 filteredEventSatisfactions = new List<eventSatisfaction>();
             }
@@ -375,7 +368,6 @@ namespace OneJaxDashboard.Controllers
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
-                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
                 filteredInterfaithEvents = new List<interfaith_11D>();
                 filteredEventSatisfactions = new List<eventSatisfaction>();
             }
@@ -396,7 +388,6 @@ namespace OneJaxDashboard.Controllers
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
-                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
                 filteredInterfaithEvents = new List<interfaith_11D>();
                 filteredEventSatisfactions = new List<eventSatisfaction>();
             }
@@ -417,7 +408,6 @@ namespace OneJaxDashboard.Controllers
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
-                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
                 filteredInterfaithEvents = new List<interfaith_11D>();
                 filteredEventSatisfactions = new List<eventSatisfaction>();
             }
@@ -438,7 +428,6 @@ namespace OneJaxDashboard.Controllers
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
-                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
                 filteredInterfaithEvents = new List<interfaith_11D>();
                 filteredEventSatisfactions = new List<eventSatisfaction>();
             }
@@ -459,7 +448,6 @@ namespace OneJaxDashboard.Controllers
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
-                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
                 filteredInterfaithEvents = new List<interfaith_11D>();
                 filteredEventSatisfactions = new List<eventSatisfaction>();
             }
@@ -480,7 +468,6 @@ namespace OneJaxDashboard.Controllers
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
-                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
                 filteredInterfaithEvents = new List<interfaith_11D>();
                 filteredEventSatisfactions = new List<eventSatisfaction>();
             }
@@ -501,7 +488,6 @@ namespace OneJaxDashboard.Controllers
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
-                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
                 filteredInterfaithEvents = new List<interfaith_11D>();
                 filteredEventSatisfactions = new List<eventSatisfaction>();
             }
@@ -522,7 +508,6 @@ namespace OneJaxDashboard.Controllers
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
-                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
                 filteredInterfaithEvents = new List<interfaith_11D>();
                 filteredEventSatisfactions = new List<eventSatisfaction>();
             }
@@ -543,7 +528,6 @@ namespace OneJaxDashboard.Controllers
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
-                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
                 filteredInterfaithEvents = new List<interfaith_11D>();
                 filteredEventSatisfactions = new List<eventSatisfaction>();
             }
@@ -564,7 +548,6 @@ namespace OneJaxDashboard.Controllers
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
-                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
                 filteredInterfaithEvents = new List<interfaith_11D>();
                 filteredEventSatisfactions = new List<eventSatisfaction>();
             }
@@ -585,7 +568,6 @@ namespace OneJaxDashboard.Controllers
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
-                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
                 filteredInterfaithEvents = new List<interfaith_11D>();
                 filteredEventSatisfactions = new List<eventSatisfaction>();
             }
@@ -606,7 +588,6 @@ namespace OneJaxDashboard.Controllers
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
-                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
                 filteredInterfaithEvents = new List<interfaith_11D>();
                 filteredEventSatisfactions = new List<eventSatisfaction>();
             }
@@ -627,7 +608,6 @@ namespace OneJaxDashboard.Controllers
                 filteredDemographics = new List<demographics_8D>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
-                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
                 filteredInterfaithEvents = new List<interfaith_11D>();
                 filteredEventSatisfactions = new List<eventSatisfaction>();
             }
@@ -648,7 +628,6 @@ namespace OneJaxDashboard.Controllers
                 filteredDemographics = new List<demographics_8D>();
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
-                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
                 filteredInterfaithEvents = new List<interfaith_11D>();
                 filteredEventSatisfactions = new List<eventSatisfaction>();
             }
@@ -669,28 +648,6 @@ namespace OneJaxDashboard.Controllers
                 filteredDemographics = new List<demographics_8D>();
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
-                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
-                filteredInterfaithEvents = new List<interfaith_11D>();
-                filteredEventSatisfactions = new List<eventSatisfaction>();
-            }
-            else if (recordType == "volunteer-program")
-            {
-                filteredStaffSurveys = new List<StaffSurvey_22D>();
-                filteredProfDev = new List<ProfessionalDevelopment>();
-                filteredMediaPlacements = new List<MediaPlacements_3D>();
-                filteredWebsiteTraffic = new List<WebsiteTraffic_4D>();
-                filteredDonorEvents = new List<DonorEvent_19D>();
-                filteredCommRates = new List<Comm_rate20D>();
-                filteredFeeForServices = new List<feeForService_21D>();
-                filteredIncomeRecords = new List<income_27D>();
-                filteredBudgetRecords = new List<BudgetTracking_28D>();
-                filteredSocialMedia = new List<socialMedia_5D>();
-                filteredMilestones = new List<achieveMile_6D>();
-                filteredCommunityPerception = new List<Annual_average_7D>();
-                filteredDemographics = new List<demographics_8D>();
-                filteredBoardMembers = new List<BoardMemberRecruitment>();
-                filteredBoardMeetings = new List<BoardMeetingAttendance>();
-                filteredSelfAssessments = new List<selfAssess_31D>();
                 filteredInterfaithEvents = new List<interfaith_11D>();
                 filteredEventSatisfactions = new List<eventSatisfaction>();
             }
@@ -712,7 +669,6 @@ namespace OneJaxDashboard.Controllers
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
-                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
                 filteredEventSatisfactions = new List<eventSatisfaction>();
             }
             else if (recordType == "event-satisfaction")
@@ -733,7 +689,6 @@ namespace OneJaxDashboard.Controllers
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
-                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
                 filteredInterfaithEvents = new List<interfaith_11D>();
             }
             else if (recordType == "faith-community")
@@ -754,7 +709,6 @@ namespace OneJaxDashboard.Controllers
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
-                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
                 filteredInterfaithEvents = new List<interfaith_11D>();
                 filteredEventSatisfactions = new List<eventSatisfaction>();
             }
@@ -776,7 +730,6 @@ namespace OneJaxDashboard.Controllers
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
-                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
                 filteredInterfaithEvents = new List<interfaith_11D>();
                 filteredEventSatisfactions = new List<eventSatisfaction>();
                 filteredFaithCommunity = new List<FaithCommunity_13D>();
@@ -799,7 +752,6 @@ namespace OneJaxDashboard.Controllers
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
-                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
                 filteredInterfaithEvents = new List<interfaith_11D>();
                 filteredEventSatisfactions = new List<eventSatisfaction>();
                 filteredFaithCommunity = new List<FaithCommunity_13D>();
@@ -824,7 +776,6 @@ namespace OneJaxDashboard.Controllers
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
-                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
                 filteredInterfaithEvents = new List<interfaith_11D>();
                 filteredEventSatisfactions = new List<eventSatisfaction>();
                 filteredFaithCommunity = new List<FaithCommunity_13D>();
@@ -849,7 +800,6 @@ namespace OneJaxDashboard.Controllers
                 filteredBoardMembers = new List<BoardMemberRecruitment>();
                 filteredBoardMeetings = new List<BoardMeetingAttendance>();
                 filteredSelfAssessments = new List<selfAssess_31D>();
-                filteredVolunteerPrograms = new List<volunteerProgram_40D>();
                 filteredInterfaithEvents = new List<interfaith_11D>();
                 filteredEventSatisfactions = new List<eventSatisfaction>();
                 filteredFaithCommunity = new List<FaithCommunity_13D>();
@@ -879,7 +829,6 @@ namespace OneJaxDashboard.Controllers
             ViewBag.BoardMembers = filteredBoardMembers;
             ViewBag.BoardMeetings = filteredBoardMeetings;
             ViewBag.SelfAssessments = filteredSelfAssessments;
-            ViewBag.VolunteerPrograms = filteredVolunteerPrograms;
             ViewBag.InterfaithEvents = filteredInterfaithEvents;
             ViewBag.EventSatisfactions = filteredEventSatisfactions;
             ViewBag.FaithCommunity = filteredFaithCommunity;
@@ -891,8 +840,8 @@ namespace OneJaxDashboard.Controllers
             ViewBag.DateFilter = dateFilter ?? "all";
             ViewBag.StartDate = startDate?.ToString("yyyy-MM-dd");
             ViewBag.EndDate = endDate?.ToString("yyyy-MM-dd");
-            ViewBag.TotalCount = allStaffSurveys.Count + allProfDev.Count + allMediaPlacements.Count + allWebsiteTraffic.Count + allDonorEvents.Count + allCommRates.Count + allFeeForServices.Count + allIncomeRecords.Count + allBudgetRecords.Count + allSocialMedia.Count + allMilestones.Count + allCommunityPerception.Count + allDemographics.Count + allBoardMembers.Count + allBoardMeetings.Count + allSelfAssessments.Count + allVolunteerPrograms.Count + allInterfaithEvents.Count + allEventSatisfactions.Count + allFaithCommunity.Count + allNetworkContacts.Count + allYouthAttendance.Count + allParticipantDiversity.Count + allFirstTimeParticipants.Count;
-            ViewBag.VisibleCount = filteredStaffSurveys.Count + filteredProfDev.Count + filteredMediaPlacements.Count + filteredWebsiteTraffic.Count + filteredDonorEvents.Count + filteredCommRates.Count + filteredFeeForServices.Count + filteredIncomeRecords.Count + filteredBudgetRecords.Count + filteredSocialMedia.Count + filteredMilestones.Count + filteredCommunityPerception.Count + filteredDemographics.Count + filteredBoardMembers.Count + filteredBoardMeetings.Count + filteredSelfAssessments.Count + filteredVolunteerPrograms.Count + filteredInterfaithEvents.Count + filteredEventSatisfactions.Count + filteredFaithCommunity.Count + filteredNetworkContacts.Count + filteredYouthAttendance.Count + filteredParticipantDiversity.Count + filteredFirstTimeParticipants.Count;
+            ViewBag.TotalCount = allStaffSurveys.Count + allProfDev.Count + allMediaPlacements.Count + allWebsiteTraffic.Count + allDonorEvents.Count + allCommRates.Count + allFeeForServices.Count + allIncomeRecords.Count + allBudgetRecords.Count + allSocialMedia.Count + allMilestones.Count + allCommunityPerception.Count + allDemographics.Count + allBoardMembers.Count + allBoardMeetings.Count + allSelfAssessments.Count + allInterfaithEvents.Count + allEventSatisfactions.Count + allFaithCommunity.Count + allNetworkContacts.Count + allYouthAttendance.Count + allParticipantDiversity.Count + allFirstTimeParticipants.Count;
+            ViewBag.VisibleCount = filteredStaffSurveys.Count + filteredProfDev.Count + filteredMediaPlacements.Count + filteredWebsiteTraffic.Count + filteredDonorEvents.Count + filteredCommRates.Count + filteredFeeForServices.Count + filteredIncomeRecords.Count + filteredBudgetRecords.Count + filteredSocialMedia.Count + filteredMilestones.Count + filteredCommunityPerception.Count + filteredDemographics.Count + filteredBoardMembers.Count + filteredBoardMeetings.Count + filteredSelfAssessments.Count + filteredInterfaithEvents.Count + filteredEventSatisfactions.Count + filteredFaithCommunity.Count + filteredNetworkContacts.Count + filteredYouthAttendance.Count + filteredParticipantDiversity.Count + filteredFirstTimeParticipants.Count;
             
             return View();
             }
@@ -1964,62 +1913,6 @@ namespace OneJaxDashboard.Controllers
         }
 
         [HttpPost]
-        public IActionResult DeleteVolunteerProgram(int id)
-        {
-            var record = _context.volunteerProgram_40D.Find(id);
-            if (record != null)
-            {
-                _context.volunteerProgram_40D.Remove(record);
-                _context.SaveChanges();
-                TempData["Success"] = "Volunteer Program record deleted successfully!";
-            }
-            else
-            {
-                TempData["Error"] = "Record not found.";
-            }
-            return RedirectToRecordHistory();
-        }
-
-        [HttpGet]
-        public IActionResult EditVolunteerProgram(int id)
-        {
-            var record = _context.volunteerProgram_40D.Find(id);
-            if (record == null)
-            {
-                TempData["Error"] = "Record not found.";
-                return RedirectToRecordHistory();
-            }
-            return View(record);
-        }
-
-        [HttpPost]
-        public IActionResult EditVolunteerProgram(volunteerProgram_40D model)
-        {
-            if (ModelState.IsValid)
-            {
-                var existing = _context.volunteerProgram_40D.Find(model.Id);
-                if (existing != null)
-                {
-                    existing.Quarter = model.Quarter;
-                    existing.Year = model.Year;
-                    existing.NumberOfVolunteers = model.NumberOfVolunteers;
-                    existing.CommunicationsActivities = model.CommunicationsActivities;
-                    existing.RecognitionActivities = model.RecognitionActivities;
-                    existing.VolunteerLedInitiatives = model.VolunteerLedInitiatives;
-                    existing.InitiativeDescriptions = model.InitiativeDescriptions;
-                    _context.SaveChanges();
-                    TempData["Success"] = "Volunteer Program record updated successfully!";
-                    return RedirectToRecordHistory();
-                }
-                else
-                {
-                    TempData["Error"] = "Record not found.";
-                }
-            }
-            return View(model);
-        }
-
-        [HttpPost]
         public IActionResult DeleteInterfaithEvent(int id)
         {
             var record = _context.Interfaith_11D.Find(id);
@@ -2389,8 +2282,6 @@ namespace OneJaxDashboard.Controllers
                     return RemoveIfFound(_context.BoardMeetingAttendance.Find(id));
                 case "self-assessment":
                     return RemoveIfFound(_context.selfAssess_31D.Find(id));
-                case "volunteer-program":
-                    return RemoveIfFound(_context.volunteerProgram_40D.Find(id));
                 case "interfaith-event":
                     return RemoveIfFound(_context.Interfaith_11D.Find(id));
                 case "event-satisfaction":

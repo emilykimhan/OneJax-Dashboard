@@ -137,7 +137,6 @@ namespace OneJaxDashboard.Controllers
                 "BoardMemberRecruitment",
                 "BoardMeetingAttendance",
                 "SelfAssessment",
-                "VolunteerProgram",
                 "InterfaithContacts",
                 "Diversity",
                 "FirstTimeParticipant",

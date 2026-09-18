@@ -15,12 +15,12 @@ namespace StrategicDashboard.Migrations
                 name: "crosscolabs",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    StrategyId = table.Column<int>(type: "int", nullable: false),
-                    PartnerName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
-                    PartnerEmail = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    StrategyId = table.Column<int>(nullable: false),
+                    PartnerName = table.Column<string>(maxLength: 200, nullable: false),
+                    PartnerEmail = table.Column<string>(maxLength: 256, nullable: true),
+                    CreatedDate = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {
