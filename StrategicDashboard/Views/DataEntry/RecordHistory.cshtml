@@ -52,7 +52,6 @@
                             <option value="board-member" selected="@(ViewBag.RecordType == "board-member" ? "selected" : null)">Board Member Recruitment Only</option>
                             <option value="board-meeting" selected="@(ViewBag.RecordType == "board-meeting" ? "selected" : null)">Board Meeting Attendance Only</option>
                             <option value="self-assessment" selected="@(ViewBag.RecordType == "self-assessment" ? "selected" : null)">Board Self-Assessment Only</option>
-                            <option value="volunteer-program" selected="@(ViewBag.RecordType == "volunteer-program" ? "selected" : null)">Volunteer Program Only</option>
                             <option value="interfaith-event" selected="@(ViewBag.RecordType == "interfaith-event" ? "selected" : null)">Interfaith Collaboration Events Only</option>
                             <option value="event-satisfaction" selected="@(ViewBag.RecordType == "event-satisfaction" ? "selected" : null)">Event Satisfaction Only</option>
                             <option value="faith-community" selected="@(ViewBag.RecordType == "faith-community" ? "selected" : null)">Faith Community Representation Only</option>
@@ -1149,68 +1148,6 @@
         </div>
         }
 
-        @if (ViewBag.RecordType == "all" || ViewBag.RecordType == "volunteer-program")
-        {
-        <!-- Volunteer Program Records -->
-        <div class="record-section">
-            <h5 class="section-title">Volunteer Program Records</h5>
-            @if (ViewBag.VolunteerPrograms != null && ((List<OneJaxDashboard.Models.volunteerProgram_40D>)ViewBag.VolunteerPrograms).Any())
-            {
-                <div class="records-list">
-                    @foreach (var vp in (List<OneJaxDashboard.Models.volunteerProgram_40D>)ViewBag.VolunteerPrograms)
-                    {
-                        <div class="record-item">
-                            <div class="record-header">
-                                <span class="record-type">Volunteer Program</span>
-                                <label class="export-checkbox-label">
-                                    <input type="checkbox" class="record-checkbox" data-type="volunteer-program" data-id="@vp.Id" />
-                                    <span>Select</span>
-                                </label>
-                            </div>
-                            <div class="record-details">
-                                <div class="detail-item">
-                                    <strong>Quarter:</strong> @vp.Quarter
-                                </div>
-                                <div class="detail-item">
-                                    <strong>Year:</strong> @vp.Year
-                                </div>
-                                <div class="detail-item">
-                                    <strong>Number of Volunteers:</strong> @vp.NumberOfVolunteers
-                                </div>
-                                <div class="detail-item">
-                                    <strong>Volunteer-Led Initiatives:</strong> @vp.VolunteerLedInitiatives
-                                </div>
-                                <div class="detail-item">
-                                    <strong>Communications Activities:</strong> @vp.CommunicationsActivities
-                                </div>
-                                <div class="detail-item">
-                                    <strong>Recognition Activities:</strong> @vp.RecognitionActivities
-                                </div>
-                                <div class="detail-item">
-                                    <strong>Initiative Descriptions:</strong> @vp.InitiativeDescriptions
-                                </div>
-                                <div class="detail-item">
-                                    <strong>Created Date:</strong> @vp.CreatedDate.ToString("MM/dd/yyyy")
-                                </div>
-                            </div>
-                            <div class="record-actions mt-3">
-                                <a asp-controller="DataEntry" asp-action="EditVolunteerProgram" asp-route-id="@vp.Id" class="btn btn-primary btn-sm">Edit</a>
-                                <form asp-controller="DataEntry" asp-action="DeleteVolunteerProgram" method="post" style="display:inline;" onsubmit="return confirmTypedDelete('delete this record');">
-                                    <input type="hidden" name="id" value="@vp.Id" />
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                                </form>
-                            </div>
-                        </div>
-                    }
-                </div>
-            }
-            else
-            {
-                <p class="no-records">No Volunteer Program records found.</p>
-            }
-        </div>
-        }
 
         @if (ViewBag.RecordType == "all" || ViewBag.RecordType == "interfaith-event")
         {

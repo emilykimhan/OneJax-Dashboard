@@ -48,8 +48,7 @@ namespace OneJaxDashboard.Models
                 ["Board Meeting Participation"] = new("2025-2026", null, MetricTrackingType.Annual),
                 ["Board Self-Assessment"] = new("2025-2026", null, MetricTrackingType.Annual),
                 ["Participant Diversity"] = new("2027-2028", null, MetricTrackingType.YearOverYear),
-                ["First-Time Participants"] = new("2027-2028", null, MetricTrackingType.Annual),
-                ["Volunteer Program Participation"] = new("2027-2028", null, MetricTrackingType.Cumulative)
+                ["First-Time Participants"] = new("2027-2028", null, MetricTrackingType.Annual)
             };
 
         public static MetricSchedule? GetSchedule(string metricName)
