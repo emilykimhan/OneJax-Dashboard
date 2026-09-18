@@ -43,7 +43,7 @@ public class HomeController : Controller
             // Apply filters
             dashboardData = ApplyFilters(dashboardData, status ?? "", time ?? "", goal ?? "", selectedFiscalYear, quarter ?? "");
 
-            // Community Engagement visuals (dashboard only): Youth Attendance + Partner Touchpoints charts/tables.
+            // Community Engagement visuals (dashboard only): Youth Attendance, Collaborative Partners, and related charts/tables.
             // Keep public safe: aggregate values only, and latest-entries table excludes partner/contact PII.
             try
             {
@@ -95,7 +95,29 @@ public class HomeController : Controller
                     }
                 }
 
-                // Collaborative Partner Touchpoints (CollabTouch_47D): selected-FY pace + latest partner names.
+                // Collaborative Partners (CrossColab): partners added via events, tracked toward the Cross-Sector Collaborations goal.
+                var crossColabRows = FilterByFiscalYearStrategyDateWithCreatedDateFallback(
+                        await _context.CrossColabs
+                            .OrderByDescending(c => c.CreatedDate)
+                            .ToListAsync(),
+                        selectedFiscalYear,
+                        c => c.StrategyId,
+                        c => c.CreatedDate)
+                    .OrderByDescending(c => GetStrategyOccurrenceDateOrCreatedDate(c.StrategyId, c.CreatedDate))
+                    .ToList();
+
+                ViewBag.CommunityPartnerEntryCount = crossColabRows.Count;
+                ViewBag.CommunityPartnersCurrentCount = crossColabRows.Count;
+                ViewBag.CommunityPartnersLatest = crossColabRows
+                    .Take(5)
+                    .Select(c => new
+                    {
+                        partnerName = c.PartnerName,
+                        contactName = c.ContactName,
+                        date = GetStrategyOccurrenceDateOrCreatedDate(c.StrategyId, c.CreatedDate)
+                            .ToString("MMM d, yyyy", CultureInfo.InvariantCulture)
+                    })
+                    .ToList();
 
                 var interfaithRows = await _context.Interfaith_11D
                     .OrderByDescending(i => i.CreatedDate)
@@ -247,32 +269,16 @@ public class HomeController : Controller
                 .ToList();
 
             // Add budget tracking data for Financial Sustainability chart
+            // Note: the Budget Tracking form labels its quarters as fiscal quarters
+            // (Q1 = July-September, ... Q4 = April-June), not calendar quarters.
             var budgetTracking = FilterByFiscalYearQuarterLabelWithCreatedDateFallback(
                 await _context.BudgetTracking_28D.ToListAsync(),
                 selectedFiscalYear,
                 b => b.Year,
                 b => b.Quarter,
                 b => b.CreatedDate,
-                fiscalQuarterLabels: false);
+                fiscalQuarterLabels: true);
             ViewBag.BudgetTracking = budgetTracking;
-
-            // Add volunteer program records for detailed organizational card display
-            var volunteerProgramRecords = await _context.volunteerProgram_40D
-                .OrderByDescending(v => v.Year)
-                .ThenByDescending(v => v.Quarter)
-                .ThenByDescending(v => v.CreatedDate)
-                .ToListAsync();
-            ViewBag.VolunteerProgramRecords = FilterByFiscalYearCalendarQuarterWithCreatedDateFallback(
-                    volunteerProgramRecords,
-                    selectedFiscalYear,
-                    v => v.Year,
-                    v => v.Quarter,
-                    v => v.CreatedDate)
-                .OrderByDescending(v => v.Year)
-                .ThenByDescending(v => v.Quarter)
-                .ThenByDescending(v => v.CreatedDate)
-                .Take(12)
-                .ToList();
 
             dashboardData.Summary.TotalEvents = dashboardData.StrategicGoals?.Sum(g => g.Events?.Count ?? 0) ?? 0;
             dashboardData.Summary.TotalActivities = dashboardData.Summary.TotalStaffSurveys +
@@ -2021,28 +2027,6 @@ public class HomeController : Controller
                 ? $"{boardSelfAssessments.Count} entries, {avgBoardSelfAssessment:F1}% average score | Form: Data Entry → Board Self-Assessment"
                 : "No board self-assessment data yet - Go to Data Entry → Board Self-Assessment", nextId++);
 
-        // 6. Volunteer Program
-        var volunteerPrograms = FilterByFiscalYearCalendarQuarterWithCreatedDateFallback(
-            await _context.volunteerProgram_40D.ToListAsync(),
-            fiscalYear,
-            v => v.Year,
-            v => v.Quarter,
-            v => v.CreatedDate);
-        var totalVolunteers = volunteerPrograms.Sum(v => v.NumberOfVolunteers);
-        var totalVolunteerInitiatives = volunteerPrograms.Sum(v => v.VolunteerLedInitiatives);
-
-        AddOrUpdateMetric(goal, "Volunteer Program Participation", "Total volunteers and volunteer-led initiatives",
-            totalVolunteers, "volunteers", "100", volunteerPrograms.Any() ? "Active" : "Planning",
-            volunteerPrograms.Any()
-                ? $"{totalVolunteers} volunteers across {volunteerPrograms.Count} entries, {totalVolunteerInitiatives} volunteer-led initiatives | Form: Data Entry → Volunteer Program"
-                : "No volunteer program data yet - Go to Data Entry → Volunteer Program", nextId++);
-
-        var volunteerMetric = goal.Metrics.FirstOrDefault(m => m.Name == "Volunteer Program Participation");
-        if (volunteerMetric != null)
-        {
-            volunteerMetric.Q1Value = totalVolunteerInitiatives;
-            volunteerMetric.Q2Value = volunteerPrograms.Count;
-        }
     }
 
     private async Task AddFinancialMetricsAsync(StrategicGoal goal, string fiscalYear)
@@ -2050,13 +2034,15 @@ public class HomeController : Controller
         var nextId = goal.Metrics.Count + 3000;
 
         // 1. Budget Tracking
+        // Note: the Budget Tracking form labels its quarters as fiscal quarters
+        // (Q1 = July-September, ... Q4 = April-June), not calendar quarters.
         var budgetTracking = FilterByFiscalYearQuarterLabelWithCreatedDateFallback(
             await _context.BudgetTracking_28D.ToListAsync(),
             fiscalYear,
             b => b.Year,
             b => b.Quarter,
             b => b.CreatedDate,
-            fiscalQuarterLabels: false);
+            fiscalQuarterLabels: true);
         decimal totalRevenue = 0;
         decimal totalExpenses = 0;
         
@@ -2175,6 +2161,17 @@ public class HomeController : Controller
             interfaithRows.Any()
                 ? $"{interfaithRows.Count} interfaith event entries submitted | Form: Data Entry → Interfaith 11D"
                 : "No interfaith event entries yet - Go to Data Entry → Interfaith 11D", nextId++);
+
+        var crossColabRows = FilterByFiscalYearStrategyDateWithCreatedDateFallback(
+            await _context.CrossColabs.ToListAsync(),
+            fiscalYear,
+            c => c.StrategyId,
+            c => c.CreatedDate);
+        AddOrUpdateMetric(goal, "Cross-Sector Collaborations", "Collaborative partners added through events",
+            crossColabRows.Count, "partnerships", "3", crossColabRows.Any() ? "Active" : "Planning",
+            crossColabRows.Any()
+                ? $"{crossColabRows.Count} collaborative partner entries submitted | Added via Events → Cross Collaboration"
+                : "No collaborative partners logged yet - Add a partner via Events → Cross Collaboration", nextId++);
 
         var youthRows = FilterByFiscalYearStrategyDateWithCreatedDateFallback(
             await _context.YouthAttend_15D
